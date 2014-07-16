@@ -1,0 +1,3 @@
+[submodule "lib/nshmp-sha"]
+	path = lib/nshmp-sha
+	url = https://github.com/pmpowers-usgs/nshmp-sha.git
