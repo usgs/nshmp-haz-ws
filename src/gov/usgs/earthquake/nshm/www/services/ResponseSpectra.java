@@ -41,7 +41,6 @@ public class ResponseSpectra {
 //			.enableComplexMapKeySerialization()
 			.create();
 	}
-	// @formatter:on
 
 	/*
 	 * Standard request: [Imt, Gmm] return [mu, sigma]
@@ -153,8 +152,18 @@ public class ResponseSpectra {
 		
 		Request request = new Request();
 		request.ids = EnumSet.of(Gmm.ASK_14, Gmm.BSSA_14, Gmm.CB_14, Gmm.CY_14, Gmm.IDRISS_14);
-		request.input = GmmInput.create(6.5, 10.0, 10.3, 10.0, 90, 14.0, 0.5, 7.5, 0.0, 760.0,
-			true, NaN, NaN);
+		request.input = GmmInput.builder()
+				.mag(6.5)
+				.distances(10.0, 10.3, 10.0)
+				.dip(90.0)
+				.width(14.0)
+				.zTop(0.5)
+				.zHyp(7.5)
+				.rake(0.0)
+				.vs30(760.0, true)
+				.z2p5(NaN)
+				.z1p0(NaN)
+				.build();
 
 		System.out.println(GSON.toJson(request));
 		

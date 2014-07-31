@@ -225,9 +225,6 @@ public class DeterministicSpectra extends HttpServlet {
 			checkArgument(field != null, "Invalid key: %s", key);
 			
 			switch (field) {
-				case RATE:
-					// ignore me for determinisitic
-					break;
 				case MAG:
 					builder.mag(Double.valueOf(value));
 					break;
