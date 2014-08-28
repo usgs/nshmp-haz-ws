@@ -1,69 +1,63 @@
 package gov.usgs.earthquake.nshm.www.util;
 
-import org.opensha.eq.forecast.Forecast;
+import org.opensha.eq.model.HazardModel;
 
 /**
- * Add comments here
- * 
+ * Hazard model identifiers.
  * @author Peter Powers
  */
-public enum ForecastID {
-
-	// TODO refactor to Model
-
-	// TODO these enums should be keyed to know forecast locations;
-	// forecastMgr would be able to generate instances using String/URL key
+public enum ModelID {
 
 	NSHMP_CEUS_2008() {
-		@Override public Forecast instance() {
+		@Override public HazardModel instance() {
 			return Ceus2008.INSTANCE.model;
 		}
 	},
 	NSHMP_WUS_2008 {
-		@Override public Forecast instance() {
+		@Override public HazardModel instance() {
 			return Wus2008.INSTANCE.model;
 		}
 	},
 	NSHMP_CEUS_2014 {
-		@Override public Forecast instance() {
+		@Override public HazardModel instance() {
 			return Ceus2014.INSTANCE.model;
 		}
 	},
 	NSHMP_WUS_2014 {
-		@Override public Forecast instance() {
+		@Override public HazardModel instance() {
 			return Wus2014.INSTANCE.model;
 		}
 	};
 
 	/**
-	 * Returns the shared initialized instance of a the {@link Forecast} for
+	 * Returns the shared initialized instance of a the {@link HazardModel} for
 	 * this identifier.
 	 */
-	public abstract Forecast instance();
+	public abstract HazardModel instance();
 
 	// @formatter:off
 
 	private static enum Ceus2008 {
 		INSTANCE;
-		private Forecast model;
+		private HazardModel model;
 		private Ceus2008() { model = null; }
 	}
 
 	private static enum Wus2008 {
 		INSTANCE;
-		private Forecast model;
+		private HazardModel model;
 		private Wus2008() { model = null; }
 	}
 
 	private static enum Ceus2014 {
 		INSTANCE;
-		private Forecast model;
+		private HazardModel model;
 		private Ceus2014() { model = null; }
 	}
 
 	private static enum Wus2014 {
 		INSTANCE;
-		private Forecast model;
+		private HazardModel model;
 		private Wus2014() { model = null; }
 	}
 
