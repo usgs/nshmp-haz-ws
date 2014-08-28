@@ -1,13 +1,11 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.opensha.programs.DeterministicSpectra.spectra;
 import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -18,35 +16,29 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.opensha.calc.ScalarGroundMotion;
 import org.opensha.data.DataUtils;
 import org.opensha.gmm.Gmm;
 import org.opensha.gmm.GmmInput;
 import org.opensha.gmm.GmmInput.Builder;
 import org.opensha.gmm.GmmInput.GmmField;
-import org.opensha.gmm.Imt;
+import org.opensha.programs.DeterministicSpectra.MultiResult;
 import org.opensha.util.Parsing;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Converter;
 import com.google.common.base.Enums;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * Servlet implementation class DeterministicSpectra
+ * DeterministicSpectra servlet implementation.
  */
 @WebServlet("/DeterministicSpectra")
 public class DeterministicSpectra extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private static final String NAME = "Hazard Spectra";
+	private static final String NAME = "DeterministicSpectra";
 	private static final String RESULT_NAME = NAME + " Results";
 	private static final String GROUP_NAME_MEAN = "Means";
 	private static final String GROUP_NAME_SIGMA = "Sigmas";
@@ -62,150 +54,100 @@ public class DeterministicSpectra extends HttpServlet {
 	static {
 		GSON = new GsonBuilder()
 			.serializeSpecialFloatingPointValues()
-//			.setPrettyPrinting()
-//			.enableComplexMapKeySerialization()
+			.setPrettyPrinting()
 			.create();
 	}
+
+	/*
+	 * Example get requests:
+	 * 
+	 * DeterministicSpectra?ids=CB_14
+	 * DeterministicSpectra?ids=CB_14,BSSA_14,CB_14,CY_14,IDRISS_14
+	 * DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN
+	 */
+
 	// @formatter:on
 
-	public DeterministicSpectra() {}
-
-	private static final String DEFAULT_QUERY = "ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
-	
 	/*
-	 * GET requests must have at least and "ids" key. The supplied key-values for
-	 * GmmInput parameters will be mapped to GmmInput fields as appropriate, using
-	 * defaults for all missing key-value pairs. An exception will be thrown for
-	 * keys that do not match "ids" or any of the GmmInput fields.
+	 * GET requests must have at least an "ids" key. The supplied key-values for
+	 * GmmInput parameters will be mapped to GmmInput fields as appropriate,
+	 * using defaults for all missing key-value pairs. An exception will be
+	 * thrown for keys that do not match "ids" or any of the GmmInput fields.
 	 */
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		// TODO hold on to this for other services
-		// Iterator<String> args =
-		// Parsing.splitOnSlash(request.getQueryString()).iterator();
-		// Iterable<Gmm> gmms =
-		// Iterables.transform(Parsing.splitOnCommas(args.next()),
-		// Enums.stringConverter(Gmm.class));
-		// Iterable
+		response.setContentType("text/html");
 
-		
-		String query = request.getQueryString();
-		if (Strings.isNullOrEmpty(query)) query = DEFAULT_QUERY;
+		String gmmParam = request.getParameter(KEY_IDS);
+		if (gmmParam == null) {
+			response.getWriter().print(USAGE);
+			return;
+		}
+
+		RequestData requestData = new RequestData();
 		Map<String, String[]> params = request.getParameterMap();
-		
-		Request svcRequest = new Request();
 		try {
-			svcRequest.ids = buildGmmSet(params);
-			svcRequest.input = buildInput(params);
+			requestData.gmms = buildGmmSet(params);
+			requestData.input = buildInput(params);
 		} catch (Exception e) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+			// TODO stack trace?
 		}
-		Response svcResponse = processRequest(svcRequest);
-		
-		response.setContentType("text/html");
-//		PrintWriter printWriter = response.getWriter();
-//		printWriter.println("<h1>Hello Get!</h1>");
+
+		ResponseData svcResponse = processRequest(requestData);
 		GSON.toJson(svcResponse, response.getWriter());
 
 	}
 
-	/* 
-	 * @formatter:off
-	 * 
-	 * POST expects JSON of the form:
-	 * 
-	 * {
-	 * 		"ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"],
-	 * 		"input":{
-	 * 			"rate":0.0,
-	 * 			"Mw":6.5,
-	 * 			"rJB":10.0,
-	 * 			"rRup":10.3,
-	 * 			"rX":10.0,
-	 * 			"dip":90.0,
-	 * 			"width":14.0,
-	 * 			"zTop":0.5,
-	 * 			"zHyp":7.5,
-	 * 			"rake":0.0,
-	 * 			"vs30":760.0,
-	 * 			"vsInf":true,
-	 * 			"z2p5":NaN,
-	 * 			"z1p0":NaN
-	 * 		}
-	 * };
-	 * 
-	 * @formatter:on
-	 */
+	private static final String USAGE;
 
-	@Override protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-
-		InputStream stream = request.getInputStream();
-		String data = CharStreams.toString(new InputStreamReader(stream, Charsets.UTF_8));
-		Closeables.closeQuietly(stream);
-
-		Request svcRequest = GSON.fromJson(data, Request.class);
-		Response svcResponse = processRequest(svcRequest);
-		GSON.toJson(svcResponse, response.getWriter());
+	static {
+		StringBuilder sb = new StringBuilder("DeterministicSpectra usage:<br/><br/>");
+		sb.append("At a minimum, ground motion model identifiers must be supplied:<br/>");
+		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;e.g.  DeterministicSpectra?ids=CB_14<br/><br/>");
+		sb.append("'ids' may be a comma-separated list of model ids, no spaces.<br/><br/>");
+		sb.append("Additional parameters that may optionally be supplied are:<br/>");
+		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;[mag, rJB, rRup, rX, dip, width, zTop, zHyp, rake, vs30, vsInf, z2p5, z1p0]<br/><br/>");
+		sb.append("Default values will be used for any parameters not supplied.");
+		USAGE = sb.toString();
 	}
 
-	static class Request {
-		Set<Gmm> ids;
+	static class RequestData {
+		Set<Gmm> gmms;
 		GmmInput input;
 	}
 
-	static class Response {
+	static class ResponseData {
 		String name;
-		Request request;
+		RequestData request;
 		XY_DataGroup means;
 		XY_DataGroup sigmas;
 	}
 
-	// sample JSON
-	// {"ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"],"input":{"rate":0.0,"Mw":6.5,"rJB":10.0,"rRup":10.3,"rX":10.0,"dip":90.0,"width":14.0,"zTop":0.5,"zHyp":7.5,"rake":0.0,"vs30":760.0,"vsInf":true,"z2p5":NaN,"z1p0":NaN}};
-	// sample query
-	// ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&Mw=6.5&rJB=10.0&rRup=10.3&rX=10.0&dip=90.0&width=14.0&zTop=0.5&zHyp=7.5&rake=0.0&vs30=760.0&vsInf=true&z2p5=NaN&z1p0=NaN
-	// ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14/6.5/10.0/10.0/10.0/90.0/14.0/0.5/7.5/0.0/760.0/true/NaN/NaN
+	private static ResponseData processRequest(final RequestData request) {
 
-	// private static readParams()
-
-	private static Response processRequest(final Request request) {
-
-		// set up result aggregators
-		Set<Imt> imts = Gmm.responseSpectrumIMTs(request.ids);
-		List<Double> periods = Imt.periods(imts);
-		Map<Gmm, List<Double>> meanMap = Maps.newEnumMap(Gmm.class);
-		Map<Gmm, List<Double>> sigmaMap = Maps.newEnumMap(Gmm.class);
-
-		// compute spectra
-		for (Gmm gmm : request.ids) {
-			List<Double> means = new ArrayList<>();
-			List<Double> sigmas = new ArrayList<>();
-			meanMap.put(gmm, means);
-			sigmaMap.put(gmm, sigmas);
-			for (Imt imt : imts) {
-				ScalarGroundMotion sgm = gmm.instance(imt).calc(request.input);
-				means.add(sgm.mean());
-				sigmas.add(sgm.sigma());
-			}
-		}
+		MultiResult result = spectra(request.gmms, request.input);
 
 		// set up response
-		Response response = new Response();
+		ResponseData response = new ResponseData();
 		response.request = request;
 		response.name = RESULT_NAME;
-		response.means = XY_DataGroup.create(GROUP_NAME_MEAN, X_LABEL, Y_LABEL_MEDIAN, periods);
-		response.sigmas = XY_DataGroup.create(GROUP_NAME_SIGMA, X_LABEL, Y_LABEL_SIGMA, periods);
+		response.means = XY_DataGroup.create(GROUP_NAME_MEAN, X_LABEL, Y_LABEL_MEDIAN,
+			result.periods);
+		response.sigmas = XY_DataGroup.create(GROUP_NAME_SIGMA, X_LABEL, Y_LABEL_SIGMA,
+			result.periods);
 
 		// populate response
-		for (Gmm gmm : meanMap.keySet()) {
-			response.means.add(gmm.name(), gmm.toString(), DataUtils.exp(meanMap.get(gmm)));
-			response.sigmas.add(gmm.name(), gmm.toString(), sigmaMap.get(gmm));
+		for (Gmm gmm : result.meanMap.keySet()) {
+			// result contains immutable lists so copy in order to modify
+			response.means.add(gmm.name(), gmm.toString(),
+				DataUtils.exp(new ArrayList<>(result.meanMap.get(gmm))));
+			response.sigmas.add(gmm.name(), gmm.toString(), result.sigmaMap.get(gmm));
 		}
 		return response;
 	}
-	
+
 	private static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
 		checkArgument(params.containsKey(KEY_IDS), "Missing ground motion model key: " + KEY_IDS);
 		Iterable<String> gmmStrings = Parsing.splitOnCommas(params.get(KEY_IDS)[0]);
@@ -214,28 +156,28 @@ public class DeterministicSpectra extends HttpServlet {
 	}
 
 	private static GmmInput buildInput(Map<String, String[]> params) {
-		
+
 		Builder builder = GmmInput.builder().withDefaults();
-		
+
 		for (Entry<String, String[]> entry : params.entrySet()) {
 			if (entry.getKey().equals(KEY_IDS)) continue;
 			String key = entry.getKey();
 			String value = entry.getValue()[0];
 			GmmField field = GmmField.fromString(key);
 			checkArgument(field != null, "Invalid key: %s", key);
-			
+
 			switch (field) {
 				case MAG:
 					builder.mag(Double.valueOf(value));
 					break;
 				case RJB:
-					builder.rjb(Double.valueOf(value));
+					builder.rJB(Double.valueOf(value));
 					break;
 				case RRUP:
-					builder.rrup(Double.valueOf(value));
+					builder.rRup(Double.valueOf(value));
 					break;
 				case RX:
-					builder.rx(Double.valueOf(value));
+					builder.rX(Double.valueOf(value));
 					break;
 				case DIP:
 					builder.dip(Double.valueOf(value));
@@ -270,5 +212,32 @@ public class DeterministicSpectra extends HttpServlet {
 		}
 		return builder.build();
 	}
+
+	// TODO holding on to code below in the event that GET is updated to
+	// handle JSON requests.
+	
+	/*
+	 * POST expects JSON of the form:
+	 * 
+	 * { "ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"], "input":{
+	 * "rate":0.0, "Mw":6.5, "rJB":10.0, "rRup":10.3, "rX":10.0, "dip":90.0,
+	 * "width":14.0, "zTop":0.5, "zHyp":7.5, "rake":0.0, "vs30":760.0,
+	 * "vsInf":true, "z2p5":NaN, "z1p0":NaN } };
+	 */
+
+	// Old test POST implementation that would receive JSON
+	// @Override protected void doPost(HttpServletRequest request,
+	// HttpServletResponse response)
+	// throws ServletException, IOException {
+	//
+	// InputStream stream = request.getInputStream();
+	// String data = CharStreams.toString(new InputStreamReader(stream,
+	// Charsets.UTF_8));
+	// Closeables.closeQuietly(stream);
+	//
+	// Request svcRequest = GSON.fromJson(data, Request.class);
+	// Response svcResponse = processRequest(svcRequest);
+	// GSON.toJson(svcResponse, response.getWriter());
+	// }
 
 }
