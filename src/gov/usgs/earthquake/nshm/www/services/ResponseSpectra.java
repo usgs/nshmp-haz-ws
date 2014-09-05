@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opensha.calc.ScalarGroundMotion;
+import org.opensha.gmm.ScalarGroundMotion;
 import org.opensha.gmm.Gmm;
 import org.opensha.gmm.GmmInput;
 import org.opensha.gmm.Imt;
@@ -31,15 +31,6 @@ public class ResponseSpectra {
 
 	// TODO logging
 
-	// TODO hold on to this for other services
-	// Iterator<String> args =
-	// Parsing.splitOnSlash(request.getQueryString()).iterator();
-	// Iterable<Gmm> gmms =
-	// Iterables.transform(Parsing.splitOnCommas(args.next()),
-	// Enums.stringConverter(Gmm.class));
-	// Iterable
-
-	// hazCurve service: year/model/imt/lon/lat/
 
 	private static final Gson GSON;
 
