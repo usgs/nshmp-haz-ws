@@ -19,6 +19,7 @@ import org.opensha.eq.model.HazardModel;
 import org.opensha.geo.Location;
 import org.opensha.gmm.Imt;
 import org.opensha.util.Parsing;
+import org.opensha.util.Parsing.Delimiter;
 
 /**
  * Servlet implementation class HazardCurve
@@ -46,7 +47,7 @@ public class HazardCurve extends HttpServlet {
 			return;
 		}
 		
-		List<String> args = Parsing.splitOnSlashesToList(query);
+		List<String> args = Parsing.splitToList(query, Delimiter.SLASH);
 		if (args.size() != 5) {
 			response.getWriter().print(USAGE);
 			return;
@@ -67,8 +68,8 @@ public class HazardCurve extends HttpServlet {
 		Location loc = Location.create(lat, lon);
 		Site site = Site.create(loc, 760.0);
 		HazardResult result = calc(model, imt, site);
-		String curve = Parsing.joinOnCommas(result.curve().xValues()) + LINE_SEPARATOR.value() +
-			Parsing.joinOnCommas(result.curve().yValues());
+		String curve = Parsing.join(result.curve().xValues(), Delimiter.COMMA) + LINE_SEPARATOR.value() +
+			Parsing.join(result.curve().yValues(), Delimiter.COMMA);
 		return curve;
 	}
 

@@ -23,6 +23,7 @@ import org.opensha.gmm.GmmInput.Builder;
 import org.opensha.gmm.GmmInput.GmmField;
 import org.opensha.programs.DeterministicSpectra.MultiResult;
 import org.opensha.util.Parsing;
+import org.opensha.util.Parsing.Delimiter;
 
 import com.google.common.base.Converter;
 import com.google.common.base.Enums;
@@ -154,7 +155,7 @@ public class DeterministicSpectra extends HttpServlet {
 
 	private static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
 		checkArgument(params.containsKey(KEY_IDS), "Missing ground motion model key: " + KEY_IDS);
-		Iterable<String> gmmStrings = Parsing.splitOnCommas(params.get(KEY_IDS)[0]);
+		Iterable<String> gmmStrings = Parsing.split(params.get(KEY_IDS)[0], Delimiter.COMMA);
 		Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
 		return Sets.newEnumSet(Iterables.transform(gmmStrings, converter), Gmm.class);
 	}
