@@ -25,11 +25,11 @@
       "info": "info",
       "value": 42.0,
       "units": "km",
-      "rangeAllow": [
+      "rangeAllowed": [
         -23.0,
         99.0
       ],
-      "rangeRec": [
+      "rangeRecommended": [
         0.0,
         50.0
       ]

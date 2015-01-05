@@ -2,8 +2,8 @@ package gov.usgs.earthquake.param;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static gov.usgs.earthquake.param.ParamKey.RANGE_ALLOW;
-import static gov.usgs.earthquake.param.ParamKey.RANGE_REC;
+import static gov.usgs.earthquake.param.ParamKey.RANGE_ALLOWED;
+import static gov.usgs.earthquake.param.ParamKey.RANGE_RECOMMENDED;
 import static gov.usgs.earthquake.param.ParamKey.TYPE;
 import static gov.usgs.earthquake.param.ParamType.DOUBLE_BOUNDED;
 import static gov.usgs.earthquake.param.ParamType.INTEGER_BOUNDED;
@@ -62,12 +62,12 @@ class DefaultBoundedNumberParam<T extends Number & Comparable<T>> extends Defaul
 		JsonArray rangeAllow = new JsonArray();
 		rangeAllow.add(new JsonPrimitive(minAllow));
 		rangeAllow.add(new JsonPrimitive(maxAllow));
-		state.add(RANGE_ALLOW.toString(), rangeAllow);
+		state.add(RANGE_ALLOWED.toString(), rangeAllow);
 
 		JsonArray rangeRec = new JsonArray();
 		rangeRec.add(new JsonPrimitive(minRec));
 		rangeRec.add(new JsonPrimitive(maxRec));
-		state.add(RANGE_REC.toString(), rangeRec);
+		state.add(RANGE_RECOMMENDED.toString(), rangeRec);
 	}
 
 	@Override public final void set(T value) {
