@@ -175,8 +175,9 @@ class DefaultParam<T> implements Param<T> {
 	// @formatter:off
 	
 	/*
-	 * Sets the value in the json state object. This method provides the logic to mutate a Param
-	 * value to the correct type of JsonELement and should be overridden by subclasses as necessary.
+	 * Sets the value in the json state object. This method provides the
+	 * logic to mutate a Param value to the correct type of JsonELement and
+	 * should be overridden by subclasses as necessary.
 	 */
 	void setState(T value) {
 		state.add(VALUE.toString(), value.getClass().equals(Boolean.class) ? 

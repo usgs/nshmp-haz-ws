@@ -1,12 +1,45 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.opensha.calc.Site.MAX_VS30;
+import static org.opensha.calc.Site.MAX_Z1P0;
+import static org.opensha.calc.Site.MAX_Z2P5;
+import static org.opensha.calc.Site.MIN_VS30;
+import static org.opensha.calc.Site.MIN_Z1P0;
+import static org.opensha.calc.Site.MIN_Z2P5;
+import static org.opensha.eq.Magnitudes.MAX_MAG;
+import static org.opensha.eq.Magnitudes.MIN_MAG;
+import static org.opensha.eq.fault.Faults.MAX_DEPTH_SUB_SLAB;
+import static org.opensha.eq.fault.Faults.MAX_DIP;
+import static org.opensha.eq.fault.Faults.MAX_RAKE;
+import static org.opensha.eq.fault.Faults.MAX_WIDTH_SUB_INTERFACE;
+import static org.opensha.eq.fault.Faults.MIN_DEPTH;
+import static org.opensha.eq.fault.Faults.MIN_DIP;
+import static org.opensha.eq.fault.Faults.MIN_RAKE;
+import static org.opensha.eq.fault.Faults.MIN_WIDTH;
+import static org.opensha.gmm.GmmInput.Field.DIP;
+import static org.opensha.gmm.GmmInput.Field.MAG;
+import static org.opensha.gmm.GmmInput.Field.RAKE;
+import static org.opensha.gmm.GmmInput.Field.RJB;
+import static org.opensha.gmm.GmmInput.Field.RRUP;
+import static org.opensha.gmm.GmmInput.Field.RX;
+import static org.opensha.gmm.GmmInput.Field.VS30;
+import static org.opensha.gmm.GmmInput.Field.VSINF;
+import static org.opensha.gmm.GmmInput.Field.WIDTH;
+import static org.opensha.gmm.GmmInput.Field.Z1P0;
+import static org.opensha.gmm.GmmInput.Field.Z2P5;
+import static org.opensha.gmm.GmmInput.Field.ZHYP;
+import static org.opensha.gmm.GmmInput.Field.ZTOP;
 import static org.opensha.programs.DeterministicSpectra.spectra;
 import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
+import gov.usgs.earthquake.param.Param;
+import gov.usgs.earthquake.param.ParamList;
+import gov.usgs.earthquake.param.Params;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -21,7 +54,7 @@ import org.opensha.data.DataUtils;
 import org.opensha.gmm.Gmm;
 import org.opensha.gmm.GmmInput;
 import org.opensha.gmm.GmmInput.Builder;
-import org.opensha.gmm.GmmInput.GmmField;
+import org.opensha.gmm.GmmInput.Field;
 import org.opensha.programs.DeterministicSpectra.MultiResult;
 import org.opensha.util.Parsing;
 import org.opensha.util.Parsing.Delimiter;
@@ -71,6 +104,19 @@ public class DeterministicSpectra extends HttpServlet {
             })
 			.create();
 	}
+	
+	/*
+	 * TODO
+	 * This service was initially set up to take name-value pairs
+	 * 		- this approach does not provide necessary metadata
+	 * 
+	 * It will actually be much more complicated to provide services, that are dependent
+	 * on knowing which GMMs are intended to be used. However, perhaps the servlet is
+	 * structured to provide:
+	 * 		- absolute ranges (JSON meta) and the supported GMMs for nothing provided
+	 * 		- collective ranges (JSON meta)for 1 or more GMM supplied (only GMM suplied)
+	 * 		- a result for fully specified rupture-site-Gmms
+	 */
 
 	/*
 	 * Example get requests:
@@ -181,7 +227,7 @@ public class DeterministicSpectra extends HttpServlet {
 			if (entry.getKey().equals(KEY_IDS)) continue;
 			String key = entry.getKey();
 			String value = entry.getValue()[0];
-			GmmField field = GmmField.fromString(key);
+			Field field = Field.fromString(key);
 			checkArgument(field != null, "Invalid key: %s", key);
 
 			switch (field) {
@@ -257,5 +303,70 @@ public class DeterministicSpectra extends HttpServlet {
 	// Response svcResponse = processRequest(svcRequest);
 	// GSON.toJson(svcResponse, response.getWriter());
 	// }
+
+	static class Parameters {
+
+		ParamList pList;
+
+		// @formatter:off
+		
+		Parameters() {
+			
+			Param<Gmm> gmmParam = Params.newEnumParam(
+				"Ground Motion Model",
+				"Choose a ground motion model",
+				Gmm.ASK_14,
+				EnumSet.of(Gmm.ASK_14, Gmm.BSSA_14, Gmm.CB_14, Gmm.CY_14, Gmm.IDRISS_14));
+			
+			// @formatter:on
+
+			// TODO this should really be polling the Gmms for supported
+			// magnitude range
+			Param<Double> magParam = Params.newDoubleParamWithBounds(MAG.label, MAG.info, MAG.unit,
+				MAG.defaultValue, MIN_MAG, MAX_MAG);
+
+			Param<Double> rjbParam = Params.newDoubleParamWithBounds(RJB.label, RJB.label,
+				RJB.unit, RJB.defaultValue, 0.0, 300.0);
+
+			Param<Double> rrupParam = Params.newDoubleParamWithBounds(RRUP.label, RRUP.info,
+				RRUP.unit, RRUP.defaultValue, 0.0, 300.0);
+
+			Param<Double> rxParam = Params.newDoubleParamWithBounds(RX.label, RX.info, RX.unit,
+				RX.defaultValue, 0.0, 300.0);
+
+			Param<Double> dipParam = Params.newDoubleParamWithBounds(DIP.label, DIP.info, DIP.unit,
+				DIP.defaultValue, MIN_DIP, MAX_DIP);
+
+			Param<Double> widthParam = Params.newDoubleParamWithBounds(WIDTH.label, WIDTH.info,
+				WIDTH.unit, WIDTH.defaultValue, MIN_WIDTH, MAX_WIDTH_SUB_INTERFACE);
+
+			Param<Double> ztopParam = Params.newDoubleParamWithBounds(ZTOP.label, ZTOP.info,
+				ZTOP.unit, ZTOP.defaultValue, MIN_DEPTH, MAX_DEPTH_SUB_SLAB);
+
+			Param<Double> zhypParam = Params.newDoubleParamWithBounds(ZHYP.label, ZHYP.info,
+				ZHYP.unit, ZHYP.defaultValue, MIN_DEPTH, MAX_DEPTH_SUB_SLAB);
+
+			Param<Double> rakeParam = Params.newDoubleParamWithBounds(RAKE.label, RAKE.info,
+				RAKE.unit, RAKE.defaultValue, MIN_RAKE, MAX_RAKE);
+
+			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
+				VS30.unit, VS30.defaultValue, MIN_VS30, MAX_VS30);
+
+			Param<Boolean> vsinfParam = Params.newBooleanParam(VSINF.label, VSINF.info,
+				VSINF.defaultValue > 0.0);
+
+			// TODO basin depth defaults; should
+			Param<Double> z2p5Param = Params.newDoubleParamWithBounds(Z2P5.label, Z2P5.info,
+				Z2P5.unit, Z2P5.defaultValue, MIN_Z2P5, MAX_Z2P5);
+
+			Param<Double> z1p0Param = Params.newDoubleParamWithBounds(Z1P0.label, Z1P0.info,
+				Z1P0.unit, Z1P0.defaultValue, MIN_Z1P0, MAX_Z1P0);
+
+			pList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
+				widthParam, ztopParam, zhypParam, rakeParam, vs30Param, vsinfParam, z2p5Param,
+				z1p0Param);
+
+		}
+	}
 
 }
