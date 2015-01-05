@@ -1,0 +1,61 @@
+{
+  "paramList": [
+    {
+      "type": "String",
+      "name": "testParam",
+      "info": "info",
+      "value": "sharkbait"
+    },
+    {
+      "type": "Boolean",
+      "name": "testBoolParam",
+      "info": "info",
+      "value": false
+    },
+    {
+      "type": "Double",
+      "name": "testDoubleParam",
+      "info": "info",
+      "value": 33.0,
+      "units": "km"
+    },
+    {
+      "type": "DoubleBounded",
+      "name": "testDoubleRangeParam",
+      "info": "info",
+      "value": 42.0,
+      "units": "km",
+      "rangeAllow": [
+        -23.0,
+        99.0
+      ],
+      "rangeRec": [
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "type": "Enum",
+      "name": "Test Choice Enum",
+      "info": "enumInfo",
+      "value": "THREE",
+      "options": [
+        "ONE",
+        "THREE"
+      ]
+    },
+    {
+      "type": "Integer",
+      "name": "testIntParam",
+      "info": "info",
+      "value": 41,
+      "units": "count"
+    }
+  ]
+}
+				
+				
+		  	
+			
+			
+		
