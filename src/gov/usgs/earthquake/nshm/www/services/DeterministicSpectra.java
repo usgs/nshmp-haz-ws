@@ -5,6 +5,7 @@ import static org.opensha.programs.DeterministicSpectra.spectra;
 import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +32,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 /**
  * DeterministicSpectra servlet implementation.
@@ -53,15 +58,23 @@ public class DeterministicSpectra extends HttpServlet {
 
 	// @formatter:off
 	static {
+				
 		GSON = new GsonBuilder()
 			.serializeSpecialFloatingPointValues()
 			.setPrettyPrinting()
+			.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
+				@Override public JsonElement serialize(Double src, Type typeOfSrc,
+						JsonSerializationContext context) {
+					if (src.isNaN() || src.isInfinite()) return new JsonPrimitive(src.toString());
+					return new JsonPrimitive(src);
+				}
+            })
 			.create();
 	}
 
 	/*
 	 * Example get requests:
-	 * 
+	 *  
 	 * DeterministicSpectra?ids=CB_14
 	 * DeterministicSpectra?ids=CB_14,BSSA_14,CB_14,CY_14,IDRISS_14
 	 * DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN
