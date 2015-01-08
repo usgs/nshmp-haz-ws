@@ -137,7 +137,7 @@ public class Params {
 	 *         {@code values} is {@code null} or contains {@code null} values
 	 */
 	public static DiscreteNumberParam<Double> newDoubleParamWithValues(String name, String info,
-			String units, double defaultValue, Collection<Double> options) {
+			String units, double defaultValue, Set<Double> options) {
 
 		return new DefaultDiscreteNumberParam<Double>(name, info, units, defaultValue, options);
 	}
@@ -160,6 +160,27 @@ public class Params {
 			int defaultValue) {
 
 		return new DefaultNumberParam<Integer>(name, info, units, defaultValue);
+	}
+
+	/**
+	 * Creates a new {@code Param} whose value can be set to any {@code int}.
+	 * 
+	 * @param name of the {@code Param} (max 72 chars)
+	 * @param info {@code String} for use in tooltips; a {@code null} value will
+	 *        be set to an empty {@code String} (max 256 chars)
+	 * @param units of this {@code Param} value; a {@code null} value will be
+	 *        set to an empty {@code String} (max 24 chars)
+	 * @param defaultValue of the {@code Param}
+	 * @param options that this parameter may be set to
+	 * @return a new {@code int}-valued {@code Param}
+	 * @throws IllegalArgumentException if {@code name} is empty
+	 * @throws NullPointerException if the {@code name} or {@code defaultValue}
+	 *         is {@code null}
+	 */
+	public static DiscreteNumberParam<Integer> newIntegerParamWithValues(String name, String info,
+			String units, int defaultValue, Set<Integer> options) {
+
+		return new DefaultDiscreteNumberParam<Integer>(name, info, units, defaultValue, options);
 	}
 
 	/**

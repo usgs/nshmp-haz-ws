@@ -6,11 +6,13 @@ import gov.usgs.earthquake.param.DiscreteNumberParam;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 @SuppressWarnings("javadoc")
 public class DefaultDiscreteNumberParamTest {
@@ -22,11 +24,11 @@ public class DefaultDiscreteNumberParamTest {
 	private static final String UNITS = "units/unit";
 
 	private static final double DV = -10;
-	private static Collection<Double> OPTIONS;
+	private static Set<Double> OPTIONS;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		OPTIONS = Lists.newArrayList(10d, -10d, 0d, 100d, 100d, -100d);
+		OPTIONS = Sets.newHashSet(10d, -10d, 0d, 100d, 100d, -100d);
 		param = new DefaultDiscreteNumberParam<Double>(NAME, INFO, UNITS, DV,
 			OPTIONS);
 	}
@@ -40,7 +42,7 @@ public class DefaultDiscreteNumberParamTest {
 	@Test(expected = IllegalArgumentException.class)
 	public final void testCreateIAE1() {
 		// empty options
-		List<Double> emptyOptions = Lists.newArrayList();
+		Set<Double> emptyOptions = Sets.newHashSet();
 		new DefaultDiscreteNumberParam<Double>(NAME, INFO, UNITS, DV,
 			emptyOptions);
 	}
@@ -48,14 +50,14 @@ public class DefaultDiscreteNumberParamTest {
 	@Test(expected = IllegalArgumentException.class)
 	public final void testCreateIAE2() {
 		// default not in options
-		List<Double> options = Lists.newArrayList(1.0, 2.0, 3.0);
+		Set<Double> options = Sets.newHashSet(1.0, 2.0, 3.0);
 		new DefaultDiscreteNumberParam<Double>(NAME, INFO, UNITS, DV, options);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public final void testCreateIAE3() {
 		// null in option
-		List<Double> options = Lists.newArrayList(1.0, null, 3.0);
+		Set<Double> options = Sets.newHashSet(1.0, null, 3.0);
 		new DefaultDiscreteNumberParam<Double>(NAME, INFO, UNITS, DV, options);
 	}
 
@@ -68,7 +70,7 @@ public class DefaultDiscreteNumberParamTest {
 	@Test
 	public final void testEnabledForSingleValue() {
 		// if only one value is allowed, param should not be enabled
-		Collection<Double> options = Lists.newArrayList(10d);
+		Set<Double> options = Sets.newHashSet(10d);
 		DiscreteNumberParam<Double> param = new DefaultDiscreteNumberParam<Double>(
 			NAME, INFO, UNITS, 10d, options);
 		assertFalse(param.enabled());

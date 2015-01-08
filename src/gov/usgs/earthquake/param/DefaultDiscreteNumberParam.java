@@ -7,7 +7,6 @@ import static gov.usgs.earthquake.param.ParamKey.TYPE;
 import static gov.usgs.earthquake.param.ParamType.DOUBLE_DISCRETE;
 import static gov.usgs.earthquake.param.ParamType.INTEGER_DISCRETE;
 
-import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSortedSet;
@@ -43,7 +42,7 @@ class DefaultDiscreteNumberParam<T extends Number> extends DefaultNumberParam<T>
 	 *         {@code values} is empty or contains {@code null}
 	 */
 	DefaultDiscreteNumberParam(String name, String info, String units, T defaultValue,
-		Collection<T> options) {
+		Set<T> options) {
 
 		super(name, info, units, defaultValue);
 		checkNotNull(options);

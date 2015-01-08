@@ -170,8 +170,8 @@ public class DeterministicSpectra extends HttpServlet {
 		sb.append("Additional parameters that may optionally be supplied, in order, are:<br/><br/>");
 		sb.append("&nbsp;&nbsp;<code>[mag, rJB, rRup, rX, dip, width, zTop, zHyp, rake, vs30, vsInf, z2p5, z1p0]</code><br/><br/>");
 		sb.append("For <a href=\"/nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN\">example</a>:<br/><br/>");
-		sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14...</code>");
-		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5...</code>");
+		sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14...</code><br/>");
+		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5...</code><br/>");
 		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN</code><br/><br/>");
 		sb.append("Default values will be used for any parameters not supplied.");
 		USAGE = sb.toString();
@@ -306,7 +306,7 @@ public class DeterministicSpectra extends HttpServlet {
 
 	static class Parameters {
 
-		ParamList pList;
+		ParamList gmmParamList;
 
 		// @formatter:off
 		
@@ -362,7 +362,7 @@ public class DeterministicSpectra extends HttpServlet {
 			Param<Double> z1p0Param = Params.newDoubleParamWithBounds(Z1P0.label, Z1P0.info,
 				Z1P0.unit, Z1P0.defaultValue, MIN_Z1P0, MAX_Z1P0);
 
-			pList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
+			gmmParamList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
 				widthParam, ztopParam, zhypParam, rakeParam, vs30Param, vsinfParam, z2p5Param,
 				z1p0Param);
 

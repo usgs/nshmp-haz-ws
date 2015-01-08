@@ -17,22 +17,22 @@ import com.google.common.io.Resources;
 @SuppressWarnings("javadoc")
 public enum ModelID {
 
-	NSHMP_CEUS_2008() {
+	CEUS_2008() {
 		@Override public HazardModel instance() {
 			return Ceus2008.INSTANCE.model;
 		}
 	},
-	NSHMP_WUS_2008 {
+	WUS_2008 {
 		@Override public HazardModel instance() {
 			return Wus2008.INSTANCE.model;
 		}
 	},
-	NSHMP_CEUS_2014 {
+	CEUS_2014 {
 		@Override public HazardModel instance() {
 			return Ceus2014.INSTANCE.model;
 		}
 	},
-	NSHMP_WUS_2014 {
+	WUS_2014 {
 		@Override public HazardModel instance() {
 			return Wus2014.INSTANCE.model;
 		}
