@@ -9,8 +9,6 @@ import gov.usgs.earthquake.param.ParamList;
 import gov.usgs.earthquake.param.Params;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;

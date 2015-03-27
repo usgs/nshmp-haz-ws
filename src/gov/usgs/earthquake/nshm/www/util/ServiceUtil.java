@@ -15,13 +15,10 @@ import org.opensha.calc.Calcs;
 public class ServiceUtil implements ServletContextListener {
 
 	@Override public void contextDestroyed(ServletContextEvent arg0) {
-//		Calcs.
-		// TODO do nothing
-
+		Calcs.shutdown();
 	}
 
 	@Override public void contextInitialized(ServletContextEvent arg0) {
-		// TODO do nothing
 
 	}
 
