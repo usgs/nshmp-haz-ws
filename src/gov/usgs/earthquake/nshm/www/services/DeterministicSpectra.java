@@ -1,10 +1,10 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.opensha.calc.Site.MAX_VS30;
+import static org.opensha.calc.Site.MAX_VS_30;
 import static org.opensha.calc.Site.MAX_Z1P0;
 import static org.opensha.calc.Site.MAX_Z2P5;
-import static org.opensha.calc.Site.MIN_VS30;
+import static org.opensha.calc.Site.MIN_VS_30;
 import static org.opensha.calc.Site.MIN_Z1P0;
 import static org.opensha.calc.Site.MIN_Z2P5;
 import static org.opensha.eq.Magnitudes.MAX_MAG;
@@ -350,7 +350,7 @@ public class DeterministicSpectra extends HttpServlet {
 				RAKE.unit, RAKE.defaultValue, MIN_RAKE, MAX_RAKE);
 
 			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
-				VS30.unit, VS30.defaultValue, MIN_VS30, MAX_VS30);
+				VS30.unit, VS30.defaultValue, MIN_VS_30, MAX_VS_30);
 
 			Param<Boolean> vsinfParam = Params.newBooleanParam(VSINF.label, VSINF.info,
 				VSINF.defaultValue > 0.0);

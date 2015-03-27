@@ -9,8 +9,11 @@ import gov.usgs.earthquake.param.ParamList;
 import gov.usgs.earthquake.param.Params;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opensha.calc.HazardResult;
 import org.opensha.calc.Site;
+import org.opensha.data.ArrayXY_Sequence;
 import org.opensha.eq.model.HazardModel;
 import org.opensha.geo.GeoTools;
 import org.opensha.geo.Location;
@@ -30,6 +34,7 @@ import org.opensha.util.Parsing.Delimiter;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 /**
  * Servlet implementation class HazardCurve
@@ -37,12 +42,16 @@ import com.google.gson.GsonBuilder;
 @WebServlet("/HazardCurve/*")
 public class HazardCurve extends HttpServlet {
 
+	private static final String NEWLINE = LINE_SEPARATOR.value();
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 	// TODO logging; servlet will only use system ConsoleHandler
 	// and Formatter; need to set up our custom console handler as a
 	// fileHandler independent of tomcat request logs; config
 	// should be automagically read from classes/logging.properties
+	
+	// The first additional parameters that could be exposed for
+	// dynamic calculations are site params
 	
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
@@ -74,19 +83,26 @@ public class HazardCurve extends HttpServlet {
 	}
 
 	private String processRequest(List<String> args) {
-		String modelStr = "NSHMP_" + args.get(1) + "_" + args.get(0);
+		String modelStr = args.get(1) + "_" + args.get(0);
 		ModelID modelId = ModelID.valueOf(modelStr);
 		HazardModel model = modelId.instance();
 		if (model == null) return "Model " + modelId + " not currently supported";
-		Imt imt = Imt.valueOf(args.get(2));
+//		Imt imt = Imt.valueOf(args.get(2));
 		double lon = Double.valueOf(args.get(3));
 		double lat = Double.valueOf(args.get(4));
 		Location loc = Location.create(lat, lon);
-		Site site = Site.create(loc, 760.0);
-		HazardResult result = calc(model, imt, site);
-		String curve = Parsing.join(result.curve().xValues(), Delimiter.COMMA) + LINE_SEPARATOR.value() +
-			Parsing.join(result.curve().yValues(), Delimiter.COMMA);
-		return curve;
+		Site site = Site.builder().location(loc).vs30(760.0).build();
+		HazardResult result = calc(model, model.config(), site);
+		StringBuilder sb = new StringBuilder();
+		for (Entry<Imt, ArrayXY_Sequence> entry : result.curves().entrySet()) {
+			sb.append(entry.getKey()).append(":").append(NEWLINE);
+			ArrayXY_Sequence curve = entry.getValue();
+			sb.append(Parsing.join(curve.xValues(), Delimiter.COMMA));
+			sb.append(NEWLINE);
+			sb.append(Parsing.join(curve.yValues(), Delimiter.COMMA));
+			sb.append(NEWLINE);
+		}
+		return sb.toString();
 	}
 
 	private static final String USAGE;
@@ -155,8 +171,18 @@ public class HazardCurve extends HttpServlet {
 	}
 	
 	public static void main(String[] args) {
+		
+//		HazardModel model = ModelID.WUS_2008.instance();
+//	    URL url = HazardCurve.class.getResource("/models/2008/Western US");
+//	    URL url = ModelID.class.getResource("/");
+//		System.out.println(url);
+		
 		Parameters p = new Parameters();
-		System.out.println(GSON.toJson(p.pList.state()));
+		JsonObject meta = new JsonObject();
+		meta.addProperty("application", "HazardCurve");
+		meta.add("parameters", p.pList.state());
+		System.out.println(GSON.toJson(meta));
+		
 	}
 
 }

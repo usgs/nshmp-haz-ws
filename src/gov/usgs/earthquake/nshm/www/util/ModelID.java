@@ -75,7 +75,7 @@ public enum ModelID {
 		private HazardModel model;
 
 		private Wus2008() {
-			model = loadModel("/models/2008/Western US.zip", "2008 USGS Western US Hazard Model");
+			model = loadModel("/models/2008/Western US", "2008 USGS Western US Hazard Model");
 		}
 	}
 

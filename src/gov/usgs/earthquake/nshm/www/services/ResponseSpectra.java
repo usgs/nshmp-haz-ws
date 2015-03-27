@@ -43,6 +43,11 @@ public class ResponseSpectra {
 			.create();
 	}
 
+	// This service will do a custom HazardCurve calculation, looping
+	// over all supported periods. Spectra will be generated in
+	// browser
+	
+	
 	/*
 	 * Standard request: [Imt, Gmm] return [mu, sigma]
 	 * 
