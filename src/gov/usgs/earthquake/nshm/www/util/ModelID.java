@@ -5,7 +5,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.opensha.eq.model.HazardModel;
+import org.opensha2.eq.model.HazardModel;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Resources;

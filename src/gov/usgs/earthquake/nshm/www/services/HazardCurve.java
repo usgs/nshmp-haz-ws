@@ -1,8 +1,8 @@
 package gov.usgs.earthquake.nshm.www.services;
 
-import static org.opensha.gmm.Imt.*;
+import static org.opensha2.gmm.Imt.*;
 import static com.google.common.base.StandardSystemProperty.LINE_SEPARATOR;
-import static org.opensha.programs.HazardCurve.calc;
+import static org.opensha2.programs.HazardCurve.calc;
 import gov.usgs.earthquake.nshm.www.util.ModelID;
 import gov.usgs.earthquake.param.Param;
 import gov.usgs.earthquake.param.ParamList;
@@ -19,15 +19,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.opensha.calc.HazardResult;
-import org.opensha.calc.Site;
-import org.opensha.data.ArrayXY_Sequence;
-import org.opensha.eq.model.HazardModel;
-import org.opensha.geo.GeoTools;
-import org.opensha.geo.Location;
-import org.opensha.gmm.Imt;
-import org.opensha.util.Parsing;
-import org.opensha.util.Parsing.Delimiter;
+import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.Site;
+import org.opensha2.data.ArrayXY_Sequence;
+import org.opensha2.eq.model.HazardModel;
+import org.opensha2.geo.GeoTools;
+import org.opensha2.geo.Location;
+import org.opensha2.gmm.Imt;
+import org.opensha2.util.Parsing;
+import org.opensha2.util.Parsing.Delimiter;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;

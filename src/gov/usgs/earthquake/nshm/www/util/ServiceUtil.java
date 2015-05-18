@@ -4,7 +4,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.opensha.calc.Calcs;
+import org.opensha2.calc.Calcs;
 
 /**
  * Add comments here

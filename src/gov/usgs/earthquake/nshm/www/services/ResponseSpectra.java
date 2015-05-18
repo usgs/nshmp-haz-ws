@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opensha.gmm.ScalarGroundMotion;
-import org.opensha.gmm.Gmm;
-import org.opensha.gmm.GmmInput;
-import org.opensha.gmm.Imt;
+import org.opensha2.gmm.ScalarGroundMotion;
+import org.opensha2.gmm.Gmm;
+import org.opensha2.gmm.GmmInput;
+import org.opensha2.gmm.Imt;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
