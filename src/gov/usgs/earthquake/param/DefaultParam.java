@@ -172,30 +172,27 @@ class DefaultParam<T> implements Param<T> {
 		return trimmed.substring(0, min(trimmed.length(), length));
 	}
 
-	// @formatter:off
-	
 	/*
-	 * Sets the value in the json state object. This method provides the
-	 * logic to mutate a Param value to the correct type of JsonELement and
-	 * should be overridden by subclasses as necessary.
+	 * Sets the value in the json state object. This method provides the logic
+	 * to mutate a Param value to the correct type of JsonELement and should be
+	 * overridden by subclasses as necessary.
 	 */
 	void setState(T value) {
-		state.add(VALUE.toString(), value.getClass().equals(Boolean.class) ? 
-			new JsonPrimitive((Boolean) value) : 
+		state.add(VALUE.toString(), value.getClass().equals(Boolean.class) ?
+			new JsonPrimitive((Boolean) value) :
 			new JsonPrimitive(value.toString()));
 	}
-	
+
 	/*
-	 * Sets the value of this parameter. This method provides the logic
-	 * to mutate a JsonElement to the correct Param value type and should be
+	 * Sets the value of this parameter. This method provides the logic to
+	 * mutate a JsonElement to the correct Param value type and should be
 	 * overridden by subclasses as necessary. When overridden, this method
 	 * should always call set() so that listeners are notified as necessary.
 	 */
-	@SuppressWarnings("unchecked")
-	void setState(JsonElement json) {
-		set(value.getClass().equals(Boolean.class) ? 
+	@SuppressWarnings("unchecked") void setState(JsonElement json) {
+		set(value.getClass().equals(Boolean.class) ?
 			(T) (Boolean) json.getAsBoolean() :
 			(T) json.getAsString());
 	}
-	
+
 }

@@ -19,7 +19,6 @@ public class ServiceUtil implements ServletContextListener {
 	}
 
 	@Override public void contextInitialized(ServletContextEvent arg0) {
-
 	}
 
 }

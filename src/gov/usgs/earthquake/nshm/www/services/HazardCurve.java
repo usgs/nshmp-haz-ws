@@ -47,25 +47,25 @@ public class HazardCurve extends HttpServlet {
 	// and Formatter; need to set up our custom console handler as a
 	// fileHandler independent of tomcat request logs; config
 	// should be automagically read from classes/logging.properties
-	
+
 	// The first additional parameters that could be exposed for
 	// dynamic calculations are site params
-	
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+
 		response.setContentType("text/html");
-		
+
 		String query = request.getPathInfo();
 		if (query == null) {
 			response.getWriter().print(USAGE);
 			return;
 		}
-		
+
 		List<String> args = Parsing.splitToList(query, Delimiter.SLASH);
 		if (args.size() == 0) {
 			response.getWriter().print(USAGE);
@@ -75,7 +75,7 @@ public class HazardCurve extends HttpServlet {
 			response.getWriter().print(USAGE);
 			return;
 		}
-		
+
 		String result = processRequest(args);
 		response.getWriter().print(result);
 	}
@@ -85,7 +85,7 @@ public class HazardCurve extends HttpServlet {
 		ModelID modelId = ModelID.valueOf(modelStr);
 		HazardModel model = modelId.instance();
 		if (model == null) return "Model " + modelId + " not currently supported";
-//		Imt imt = Imt.valueOf(args.get(2));
+		// Imt imt = Imt.valueOf(args.get(2));
 		double lon = Double.valueOf(args.get(3));
 		double lat = Double.valueOf(args.get(4));
 		Location loc = Location.create(lat, lon);
@@ -117,7 +117,7 @@ public class HazardCurve extends HttpServlet {
 		sb.append("&nbsp;&nbsp;imt = see <a href=\"http://usgs.github.io/nshmp-haz/index.html?org/opensha/gmm/Imt.html\">docs</a> for options<br/>");
 		USAGE = sb.toString();
 	}
-	
+
 	// @formatter:off
 	
 	private static final String ANGLE_UNIT = "°";
@@ -167,6 +167,25 @@ public class HazardCurve extends HttpServlet {
 			
 		}
 	}
+	
+	/*
+	 * IMTs: PGA, SA0P20, SA1P00
+	 * TODO this need to be updated to the result of polling all models and supports
+	 * needs to be updated to specific models
+	 * 
+	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year because
+	 * 		we'll only be running the most current model, as opposed to a specific release)
+	 * 
+	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
+	 * 
+	 * 
+	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
+	 * 		aka 'soil'
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 	
 	public static void main(String[] args) {
 		
