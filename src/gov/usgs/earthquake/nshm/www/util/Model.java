@@ -15,7 +15,7 @@ import com.google.common.io.Resources;
  * @author Peter Powers
  */
 @SuppressWarnings("javadoc")
-public enum ModelID {
+public enum Model {
 
 	CEUS_2008() {
 		@Override public HazardModel instance() {
@@ -57,7 +57,7 @@ public enum ModelID {
 
 	/*
 	 * Enum singletons guarantee that each model loads in a threadsafe manner
-	 * only when ModelID.instance() is called (above).
+	 * only when Model.instance() is called (above).
 	 */
 
 	private static enum Ceus2008 {

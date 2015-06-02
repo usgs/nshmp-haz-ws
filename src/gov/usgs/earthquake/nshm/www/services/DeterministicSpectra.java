@@ -9,14 +9,10 @@ import static org.opensha2.calc.Site.MIN_Z1P0;
 import static org.opensha2.calc.Site.MIN_Z2P5;
 import static org.opensha2.eq.Magnitudes.MAX_MAG;
 import static org.opensha2.eq.Magnitudes.MIN_MAG;
-import static org.opensha2.eq.fault.Faults.MAX_DEPTH_SUB_SLAB;
-import static org.opensha2.eq.fault.Faults.MAX_DIP;
-import static org.opensha2.eq.fault.Faults.MAX_RAKE;
-import static org.opensha2.eq.fault.Faults.MAX_WIDTH_SUB_INTERFACE;
-import static org.opensha2.eq.fault.Faults.MIN_DEPTH;
-import static org.opensha2.eq.fault.Faults.MIN_DIP;
-import static org.opensha2.eq.fault.Faults.MIN_RAKE;
-import static org.opensha2.eq.fault.Faults.MIN_WIDTH;
+import static org.opensha2.eq.fault.Faults.DIP_RANGE;
+import static org.opensha2.eq.fault.Faults.RAKE_RANGE;
+import static org.opensha2.eq.fault.Faults.INTERFACE_WIDTH_RANGE;
+import static org.opensha2.eq.fault.Faults.CRUSTAL_DEPTH_RANGE;
 import static org.opensha2.gmm.GmmInput.Field.DIP;
 import static org.opensha2.gmm.GmmInput.Field.MAG;
 import static org.opensha2.gmm.GmmInput.Field.RAKE;
@@ -279,7 +275,7 @@ public class DeterministicSpectra extends HttpServlet {
 
 	// TODO holding on to code below in the event that GET is updated to
 	// handle JSON requests.
-	
+
 	/*
 	 * POST expects JSON of the form:
 	 * 
@@ -335,19 +331,23 @@ public class DeterministicSpectra extends HttpServlet {
 				RX.defaultValue, 0.0, 300.0);
 
 			Param<Double> dipParam = Params.newDoubleParamWithBounds(DIP.label, DIP.info, DIP.unit,
-				DIP.defaultValue, MIN_DIP, MAX_DIP);
+				DIP.defaultValue, DIP_RANGE.lowerEndpoint(), DIP_RANGE.upperEndpoint());
 
 			Param<Double> widthParam = Params.newDoubleParamWithBounds(WIDTH.label, WIDTH.info,
-				WIDTH.unit, WIDTH.defaultValue, MIN_WIDTH, MAX_WIDTH_SUB_INTERFACE);
+				WIDTH.unit, WIDTH.defaultValue, INTERFACE_WIDTH_RANGE.lowerEndpoint(),
+				INTERFACE_WIDTH_RANGE.upperEndpoint());
 
 			Param<Double> ztopParam = Params.newDoubleParamWithBounds(ZTOP.label, ZTOP.info,
-				ZTOP.unit, ZTOP.defaultValue, MIN_DEPTH, MAX_DEPTH_SUB_SLAB);
+				ZTOP.unit, ZTOP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
+				CRUSTAL_DEPTH_RANGE.upperEndpoint());
 
 			Param<Double> zhypParam = Params.newDoubleParamWithBounds(ZHYP.label, ZHYP.info,
-				ZHYP.unit, ZHYP.defaultValue, MIN_DEPTH, MAX_DEPTH_SUB_SLAB);
+				ZHYP.unit, ZHYP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
+				CRUSTAL_DEPTH_RANGE.upperEndpoint());
 
 			Param<Double> rakeParam = Params.newDoubleParamWithBounds(RAKE.label, RAKE.info,
-				RAKE.unit, RAKE.defaultValue, MIN_RAKE, MAX_RAKE);
+				RAKE.unit, RAKE.defaultValue, RAKE_RANGE.lowerEndpoint(),
+				RAKE_RANGE.upperEndpoint());
 
 			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
 				VS30.unit, VS30.defaultValue, MIN_VS_30, MAX_VS_30);
