@@ -3,6 +3,7 @@
 	<name>nshmp-haz-ws</name>
 	<comment></comment>
 	<projects>
+		<project>nshmp-haz</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

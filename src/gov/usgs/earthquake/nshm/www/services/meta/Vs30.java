@@ -23,8 +23,20 @@ public enum Vs30 {
 		return this.name().substring(3) + " m/s (" + label + ")";
 	}
 
+	/**
+	 * Return the Vs30 value for this identifier.
+	 */
 	public double value() {
 		return value;
+	}
+	
+	/**
+	 * Create a Vs30 constant from a Vs30 {@code value}.
+	 * @param value to process
+	 */
+	public static Vs30 fromValue(double value) {
+		String name = "VS_" + (int) value;
+		return Enum.valueOf(Vs30.class, name);
 	}
 
 }
