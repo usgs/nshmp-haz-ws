@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.util;
+package gov.usgs.earthquake.nshm.www.services;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;

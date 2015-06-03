@@ -1,6 +1,7 @@
-package gov.usgs.earthquake.nshm.www.util;
+package gov.usgs.earthquake.nshm.www.services;
 
-import static gov.usgs.earthquake.nshm.www.util.Models.CONTEXT_ID;
+import static gov.usgs.earthquake.nshm.www.services.Models.CONTEXT_ID;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -10,7 +11,7 @@ import org.opensha2.calc.Calcs;
 
 @WebListener
 @SuppressWarnings("javadoc")
-public class ServiceUtil implements ServletContextListener {
+public class ServletConfig implements ServletContextListener {
 
 	@Override public void contextDestroyed(ServletContextEvent e) {
 		Calcs.shutdown();

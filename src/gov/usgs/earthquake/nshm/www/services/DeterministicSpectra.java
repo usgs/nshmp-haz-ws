@@ -28,9 +28,6 @@ import static org.opensha2.gmm.GmmInput.Field.ZHYP;
 import static org.opensha2.gmm.GmmInput.Field.ZTOP;
 import static org.opensha2.programs.DeterministicSpectra.spectra;
 import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
-import gov.usgs.earthquake.param.Param;
-import gov.usgs.earthquake.param.ParamList;
-import gov.usgs.earthquake.param.Params;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -300,73 +297,73 @@ public class DeterministicSpectra extends HttpServlet {
 	// GSON.toJson(svcResponse, response.getWriter());
 	// }
 
-	static class Parameters {
-
-		ParamList gmmParamList;
-
-		// @formatter:off
-		
-		Parameters() {
-			
-			Param<Gmm> gmmParam = Params.newEnumParam(
-				"Ground Motion Model",
-				"Choose a ground motion model",
-				Gmm.ASK_14,
-				EnumSet.of(Gmm.ASK_14, Gmm.BSSA_14, Gmm.CB_14, Gmm.CY_14, Gmm.IDRISS_14));
-			
-			// @formatter:on
-
-			// TODO this should really be polling the Gmms for supported
-			// magnitude range
-			Param<Double> magParam = Params.newDoubleParamWithBounds(MAG.label, MAG.info, MAG.unit,
-				MAG.defaultValue, MIN_MAG, MAX_MAG);
-
-			Param<Double> rjbParam = Params.newDoubleParamWithBounds(RJB.label, RJB.label,
-				RJB.unit, RJB.defaultValue, 0.0, 300.0);
-
-			Param<Double> rrupParam = Params.newDoubleParamWithBounds(RRUP.label, RRUP.info,
-				RRUP.unit, RRUP.defaultValue, 0.0, 300.0);
-
-			Param<Double> rxParam = Params.newDoubleParamWithBounds(RX.label, RX.info, RX.unit,
-				RX.defaultValue, 0.0, 300.0);
-
-			Param<Double> dipParam = Params.newDoubleParamWithBounds(DIP.label, DIP.info, DIP.unit,
-				DIP.defaultValue, DIP_RANGE.lowerEndpoint(), DIP_RANGE.upperEndpoint());
-
-			Param<Double> widthParam = Params.newDoubleParamWithBounds(WIDTH.label, WIDTH.info,
-				WIDTH.unit, WIDTH.defaultValue, INTERFACE_WIDTH_RANGE.lowerEndpoint(),
-				INTERFACE_WIDTH_RANGE.upperEndpoint());
-
-			Param<Double> ztopParam = Params.newDoubleParamWithBounds(ZTOP.label, ZTOP.info,
-				ZTOP.unit, ZTOP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
-				CRUSTAL_DEPTH_RANGE.upperEndpoint());
-
-			Param<Double> zhypParam = Params.newDoubleParamWithBounds(ZHYP.label, ZHYP.info,
-				ZHYP.unit, ZHYP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
-				CRUSTAL_DEPTH_RANGE.upperEndpoint());
-
-			Param<Double> rakeParam = Params.newDoubleParamWithBounds(RAKE.label, RAKE.info,
-				RAKE.unit, RAKE.defaultValue, RAKE_RANGE.lowerEndpoint(),
-				RAKE_RANGE.upperEndpoint());
-
-			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
-				VS30.unit, VS30.defaultValue, MIN_VS_30, MAX_VS_30);
-
-			Param<Boolean> vsinfParam = Params.newBooleanParam(VSINF.label, VSINF.info,
-				VSINF.defaultValue > 0.0);
-
-			// TODO basin depth defaults; should
-			Param<Double> z2p5Param = Params.newDoubleParamWithBounds(Z2P5.label, Z2P5.info,
-				Z2P5.unit, Z2P5.defaultValue, MIN_Z2P5, MAX_Z2P5);
-
-			Param<Double> z1p0Param = Params.newDoubleParamWithBounds(Z1P0.label, Z1P0.info,
-				Z1P0.unit, Z1P0.defaultValue, MIN_Z1P0, MAX_Z1P0);
-
-			gmmParamList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
-				widthParam, ztopParam, zhypParam, rakeParam, vs30Param, vsinfParam, z2p5Param,
-				z1p0Param);
-
-		}
-	}
+//	static class Parameters {
+//
+//		ParamList gmmParamList;
+//
+//		// @formatter:off
+//		
+//		Parameters() {
+//			
+//			Param<Gmm> gmmParam = Params.newEnumParam(
+//				"Ground Motion Model",
+//				"Choose a ground motion model",
+//				Gmm.ASK_14,
+//				EnumSet.of(Gmm.ASK_14, Gmm.BSSA_14, Gmm.CB_14, Gmm.CY_14, Gmm.IDRISS_14));
+//			
+//			// @formatter:on
+//
+//			// TODO this should really be polling the Gmms for supported
+//			// magnitude range
+//			Param<Double> magParam = Params.newDoubleParamWithBounds(MAG.label, MAG.info, MAG.unit,
+//				MAG.defaultValue, MIN_MAG, MAX_MAG);
+//
+//			Param<Double> rjbParam = Params.newDoubleParamWithBounds(RJB.label, RJB.label,
+//				RJB.unit, RJB.defaultValue, 0.0, 300.0);
+//
+//			Param<Double> rrupParam = Params.newDoubleParamWithBounds(RRUP.label, RRUP.info,
+//				RRUP.unit, RRUP.defaultValue, 0.0, 300.0);
+//
+//			Param<Double> rxParam = Params.newDoubleParamWithBounds(RX.label, RX.info, RX.unit,
+//				RX.defaultValue, 0.0, 300.0);
+//
+//			Param<Double> dipParam = Params.newDoubleParamWithBounds(DIP.label, DIP.info, DIP.unit,
+//				DIP.defaultValue, DIP_RANGE.lowerEndpoint(), DIP_RANGE.upperEndpoint());
+//
+//			Param<Double> widthParam = Params.newDoubleParamWithBounds(WIDTH.label, WIDTH.info,
+//				WIDTH.unit, WIDTH.defaultValue, INTERFACE_WIDTH_RANGE.lowerEndpoint(),
+//				INTERFACE_WIDTH_RANGE.upperEndpoint());
+//
+//			Param<Double> ztopParam = Params.newDoubleParamWithBounds(ZTOP.label, ZTOP.info,
+//				ZTOP.unit, ZTOP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
+//				CRUSTAL_DEPTH_RANGE.upperEndpoint());
+//
+//			Param<Double> zhypParam = Params.newDoubleParamWithBounds(ZHYP.label, ZHYP.info,
+//				ZHYP.unit, ZHYP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
+//				CRUSTAL_DEPTH_RANGE.upperEndpoint());
+//
+//			Param<Double> rakeParam = Params.newDoubleParamWithBounds(RAKE.label, RAKE.info,
+//				RAKE.unit, RAKE.defaultValue, RAKE_RANGE.lowerEndpoint(),
+//				RAKE_RANGE.upperEndpoint());
+//
+//			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
+//				VS30.unit, VS30.defaultValue, MIN_VS_30, MAX_VS_30);
+//
+//			Param<Boolean> vsinfParam = Params.newBooleanParam(VSINF.label, VSINF.info,
+//				VSINF.defaultValue > 0.0);
+//
+//			// TODO basin depth defaults; should
+//			Param<Double> z2p5Param = Params.newDoubleParamWithBounds(Z2P5.label, Z2P5.info,
+//				Z2P5.unit, Z2P5.defaultValue, MIN_Z2P5, MAX_Z2P5);
+//
+//			Param<Double> z1p0Param = Params.newDoubleParamWithBounds(Z1P0.label, Z1P0.info,
+//				Z1P0.unit, Z1P0.defaultValue, MIN_Z1P0, MAX_Z1P0);
+//
+//			gmmParamList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
+//				widthParam, ztopParam, zhypParam, rakeParam, vs30Param, vsinfParam, z2p5Param,
+//				z1p0Param);
+//
+//		}
+//	}
 
 }

@@ -13,11 +13,10 @@ import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_CURVE_USAGE;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
 import static org.opensha2.programs.HazardCurve.calc;
+import gov.usgs.earthquake.nshm.www.services.Models.Id;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
-import gov.usgs.earthquake.nshm.www.util.Models;
-import gov.usgs.earthquake.nshm.www.util.Models.Id;
 
 import java.io.IOException;
 import java.util.List;
