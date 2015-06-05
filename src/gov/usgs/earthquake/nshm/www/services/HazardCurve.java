@@ -1,6 +1,5 @@
 package gov.usgs.earthquake.nshm.www.services;
 
-import static com.google.common.base.StandardSystemProperty.LINE_SEPARATOR;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshm.www.services.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshm.www.services.Util.readValue;
@@ -16,9 +15,11 @@ import static org.opensha2.programs.HazardCurve.calc;
 import gov.usgs.earthquake.nshm.www.services.Models.Id;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
+import gov.usgs.earthquake.nshm.www.services.meta.Util;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,24 +37,35 @@ import org.opensha2.calc.HazardResult;
 import org.opensha2.calc.Site;
 import org.opensha2.data.ArrayXY_Sequence;
 import org.opensha2.eq.model.HazardModel;
+import org.opensha2.eq.model.SourceType;
 import org.opensha2.geo.Location;
 import org.opensha2.gmm.Imt;
 import org.opensha2.util.Parsing;
 import org.opensha2.util.Parsing.Delimiter;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * Servlet implementation class HazardCurve
- */
+@SuppressWarnings("unused")
 @WebServlet(urlPatterns = { "/HazardCurve", "/HazardCurve/*" })
 public class HazardCurve extends HttpServlet {
 
-	private static final String NEWLINE = LINE_SEPARATOR.value();
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	// TODO share via context?
+	private static final Gson GSON;
+
+	static {
+		GSON = new GsonBuilder()
+			.registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
+			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
+			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
+			.disableHtmlEscaping()
+			.setPrettyPrinting()
+			.create();
+	}
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -68,51 +80,56 @@ public class HazardCurve extends HttpServlet {
 			return;
 		}
 
-		String result;
+		StringBuffer urlBuf = request.getRequestURL();
+		if (query != null) urlBuf.append('?').append(query);
+		String url = urlBuf.toString();
+
+		RequestData requestData;
 		try {
 			if (query != null) { // process query '?'
-				result = processRequest(request.getParameterMap());
+				requestData = buildRequest(request.getParameterMap());
 			} else { // process slash-delimited request
-				result = processRequest(pathInfo);
+				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
+				if (params.size() < 6) {
+					response.getWriter().print(HAZARD_CURVE_USAGE);
+					return;
+				}
+				requestData = buildRequest(params);
 			}
-			response.getWriter().print(result);
+			Result result = processCalculation(url, requestData);
+			String resultStr = GSON.toJson(result);
+			response.getWriter().print(resultStr);
 
 		} catch (Exception e) {
-			StringBuffer url = request.getRequestURL();
-			if (query != null) url.append('?').append(query);
-			String message = errorMessage(url.toString(), e);
+			String message = errorMessage(url, e);
 			response.getWriter().print(message);
 		}
-
 	}
 
-	/* Process query string key-value pairs */
-	private String processRequest(Map<String, String[]> paramMap) {
-		Edition edition = readValue(paramMap, EDITION, Edition.class);
-		Region region = readValue(paramMap, REGION, Region.class);
-		double lon = readDoubleValue(paramMap, LONGITUDE);
-		double lat = readDoubleValue(paramMap, LATITUDE);
-		Imt imt = readValue(paramMap, IMT, Imt.class);
-		Vs30 vs30 = Vs30.fromValue(readDoubleValue(paramMap, VS30));
-		return processCalculation(edition, region, lon, lat, imt, vs30);
+	/* Reduce query string key-value pairs */
+	private RequestData buildRequest(Map<String, String[]> paramMap) {
+		return new RequestData(
+			readValue(paramMap, EDITION, Edition.class),
+			readValue(paramMap, REGION, Region.class),
+			readDoubleValue(paramMap, LONGITUDE),
+			readDoubleValue(paramMap, LATITUDE),
+			readValue(paramMap, IMT, Imt.class),
+			Vs30.fromValue(readDoubleValue(paramMap, VS30)));
 	}
 
-	/* Process slash-delimited request */
-	private String processRequest(String paramStr) {
-		List<String> params = Parsing.splitToList(paramStr, Delimiter.SLASH);
-		if (params.size() < 6) return HAZARD_CURVE_USAGE;
-		Edition edition = readValue(params.get(0), Edition.class);
-		Region region = readValue(params.get(1), Region.class);
-		double lon = Double.valueOf(params.get(2));
-		double lat = Double.valueOf(params.get(3));
-		Imt imt = readValue(params.get(4), Imt.class);
-		Vs30 vs30 = Vs30.fromValue(Double.valueOf(params.get(5)));
-		return processCalculation(edition, region, lon, lat, imt, vs30);
+	/* Reduce slash-delimited request */
+	private RequestData buildRequest(List<String> params) {
+		return new RequestData(
+			readValue(params.get(0), Edition.class),
+			readValue(params.get(1), Region.class),
+			Double.valueOf(params.get(2)),
+			Double.valueOf(params.get(3)),
+			readValue(params.get(4), Imt.class),
+			Vs30.fromValue(Double.valueOf(params.get(5))));
 	}
 
-	private String processCalculation(Edition edition, Region region, double lon, double lat,
-			Imt imt, Vs30 vs30) {
-		String modelStr = region.name() + "_" + edition.year();
+	private Result processCalculation(String url, RequestData data) {
+		String modelStr = data.region.name() + "_" + data.edition.year();
 		Models.Id modelId = Id.valueOf(modelStr);
 		Models models = (Models) getServletContext().getAttribute(Models.CONTEXT_ID);
 
@@ -125,31 +142,27 @@ public class HazardCurve extends HttpServlet {
 			Throwables.propagate(ee);
 		}
 
-		// Optional<Model> modelId = Enums.getIfPresent(Model.class, modelStr);
-		// checkState(modelId.isPresent(),
-		// "Unkown or unsupported model: \"%s\"", modelStr);
-		// HazardModel model = modelId.get().instance();
-		// HazardModel model = null; //modelId.get().instance();
-
-		Location loc = Location.create(lat, lon);
-		Site site = Site.builder().location(loc).vs30(vs30.value()).build();
+		Location loc = Location.create(data.latitude, data.longitude);
+		Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
 
 		// calculate
-		Set<Imt> imts = Sets.immutableEnumSet(imt);
+		Set<Imt> imts = Sets.immutableEnumSet(data.imt);
 		CalcConfig config = CalcConfig.copyWithImts(model.config(), imts);
-		HazardResult result = calc(model, config, site);
+		HazardResult hazResult = calc(model, config, site);
 
-		// return response
-		StringBuilder sb = new StringBuilder();
-		for (Entry<Imt, ArrayXY_Sequence> entry : result.curves().entrySet()) {
-			sb.append(entry.getKey()).append(":").append(NEWLINE);
-			ArrayXY_Sequence curve = entry.getValue();
-			sb.append(Parsing.join(curve.xValues(), Delimiter.COMMA));
-			sb.append(NEWLINE);
-			sb.append(Parsing.join(curve.yValues(), Delimiter.COMMA));
-			sb.append(NEWLINE);
-		}
-		return sb.toString();
+		return new Result(url, data, hazResult);
+		// // return response
+		// StringBuilder sb = new StringBuilder();
+		// for (Entry<Imt, ArrayXY_Sequence> entry : result.curves().entrySet())
+		// {
+		// sb.append(entry.getKey()).append(":").append(NEWLINE);
+		// ArrayXY_Sequence curve = entry.getValue();
+		// sb.append(Parsing.join(curve.xValues(), Delimiter.COMMA));
+		// sb.append(NEWLINE);
+		// sb.append(Parsing.join(curve.yValues(), Delimiter.COMMA));
+		// sb.append(NEWLINE);
+		// }
+		// return sb.toString();
 	}
 
 	/*
@@ -179,6 +192,119 @@ public class HazardCurve extends HttpServlet {
 		// meta.add("parameters", p.pList.state());
 		// System.out.println(GSON.toJson(meta));
 
+	}
+
+	private final static class RequestData {
+
+		final Edition edition;
+		final Region region;
+		final double latitude;
+		final double longitude;
+		final Imt imt;
+		final Vs30 vs30;
+
+		private RequestData(
+				Edition edition,
+				Region region,
+				double longitude,
+				double latitude,
+				Imt imt,
+				Vs30 vs30) {
+
+			this.edition = edition;
+			this.region = region;
+			this.latitude = latitude;
+			this.longitude = longitude;
+			this.imt = imt;
+			this.vs30 = vs30;
+		}
+	}
+
+	private final static class ResponseData {
+
+		final Edition edition;
+		final Region region;
+		final double latitude;
+		final double longitude;
+		final Imt imt;
+		final Vs30 vs30;
+		final String xlabel = "Ground Motion (g)";
+		final String ylabel = "Annual Frequency of Exceedence";
+		final List<Double> xvals;
+
+		ResponseData(RequestData request, List<Double> xvals) {
+			this.edition = request.edition;
+			this.region = request.region;
+			this.longitude = request.longitude;
+			this.latitude = request.latitude;
+			this.imt = request.imt;
+			this.vs30 = request.vs30;
+			this.xvals = xvals;
+		}
+	}
+
+	private final static class Response {
+
+		final ResponseData metadata;
+		final List<Curve> data;
+
+		Response(ResponseData metadata, List<Curve> data) {
+			this.metadata = metadata;
+			this.data = data;
+		}
+	}
+
+	private final static class Curve {
+
+		final String component;
+		final List<Double> yvals;
+
+		Curve(String component, List<Double> yvals) {
+			this.component = component;
+			this.yvals = yvals;
+		}
+	}
+
+	private static class Result {
+
+		final String status = "success";
+		final String date = ServletUtil.formatDate(new Date()); // TODO time
+		final String url;
+		final List<Response> response;
+
+		Result(String url, RequestData requestData, HazardResult hazResult) {
+
+			this.url = url;
+
+			ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+
+			Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotals =
+				HazardResult.totalsByType(hazResult);
+
+			for (Entry<Imt, ArrayXY_Sequence> imtTotal : hazResult.curves().entrySet()) {
+				Imt imt = imtTotal.getKey();
+				ArrayXY_Sequence sequence = imtTotal.getValue();
+				ImmutableList.Builder<Curve> typeCurvesBuilder = ImmutableList.builder();
+
+				// total curve
+				Curve totalCurve = new Curve("Total", sequence.yValues());
+				typeCurvesBuilder.add(totalCurve);
+
+				// component curves
+				for (Entry<SourceType, ArrayXY_Sequence> typeTotal : typeTotals.get(imt).entrySet()) {
+					String component = typeTotal.getKey().toString();
+					Curve componentCurve = new Curve(component, typeTotal.getValue().yValues());
+					typeCurvesBuilder.add(componentCurve);
+				}
+
+				// metadata
+				ResponseData rData = new ResponseData(requestData, sequence.xValues());
+				Response r = new Response(rData, typeCurvesBuilder.build());
+				responseListBuilder.add(r);
+			}
+
+			this.response = responseListBuilder.build();
+		}
 	}
 
 }

@@ -19,7 +19,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-final class Util {
+public final class Util {
 
 	static final Set<Imt> IMTS = EnumSet.of(PGA, SA0P2, SA1P0);
 
@@ -47,7 +47,7 @@ final class Util {
 		}
 	};
 
-	static class EnumSerializer<E extends Enum<E>> implements JsonSerializer<E> {
+	public static final class EnumSerializer<E extends Enum<E>> implements JsonSerializer<E> {
 
 		@Override public JsonElement serialize(E src, Type type,
 				JsonSerializationContext context) {

@@ -1,7 +1,6 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static java.lang.Double.NaN;
-import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
 
 import java.util.ArrayList;
 import java.util.EnumSet;

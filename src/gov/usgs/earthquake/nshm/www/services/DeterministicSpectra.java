@@ -27,7 +27,6 @@ import static org.opensha2.gmm.GmmInput.Field.Z2P5;
 import static org.opensha2.gmm.GmmInput.Field.ZHYP;
 import static org.opensha2.gmm.GmmInput.Field.ZTOP;
 import static org.opensha2.programs.DeterministicSpectra.spectra;
-import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
