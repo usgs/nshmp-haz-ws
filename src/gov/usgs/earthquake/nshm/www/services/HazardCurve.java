@@ -1,6 +1,7 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static gov.usgs.earthquake.nshm.www.services.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshm.www.services.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshm.www.services.Util.readValue;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.EDITION;
@@ -12,10 +13,8 @@ import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_CURVE_USAGE;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
 import static org.opensha2.programs.HazardCurve.calc;
-import gov.usgs.earthquake.nshm.www.services.Models.Id;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
-import gov.usgs.earthquake.nshm.www.services.meta.Util;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -34,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.Results;
 import org.opensha2.calc.Site;
 import org.opensha2.data.ArrayXY_Sequence;
 import org.opensha2.eq.model.HazardModel;
@@ -43,29 +43,23 @@ import org.opensha2.gmm.Imt;
 import org.opensha2.util.Parsing;
 import org.opensha2.util.Parsing.Delimiter;
 
-import com.google.common.base.Throwables;
+import com.google.common.base.Optional;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
+/**
+ * Hazard curve service.
+ * @author Peter Powers
+ */
 @SuppressWarnings("unused")
-@WebServlet(urlPatterns = { "/HazardCurve", "/HazardCurve/*" })
+@WebServlet(
+		name = "Hazard Curve Service",
+		description = "USGS NSHMP Hazard Curve Calculator",
+		urlPatterns = {
+			"/HazardCurve",
+			"/HazardCurve/*" })
 public class HazardCurve extends HttpServlet {
-
-	// TODO share via context?
-	private static final Gson GSON;
-
-	static {
-		GSON = new GsonBuilder()
-			.registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
-			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
-			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
-			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
-			.disableHtmlEscaping()
-			.setPrettyPrinting()
-			.create();
-	}
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -97,7 +91,8 @@ public class HazardCurve extends HttpServlet {
 				requestData = buildRequest(params);
 			}
 			Result result = processCalculation(url, requestData);
-			String resultStr = GSON.toJson(result);
+
+			String resultStr = ServletUtil.GSON.toJson(result);
 			response.getWriter().print(resultStr);
 
 		} catch (Exception e) {
@@ -130,39 +125,28 @@ public class HazardCurve extends HttpServlet {
 
 	private Result processCalculation(String url, RequestData data) {
 		String modelStr = data.region.name() + "_" + data.edition.year();
-		Models.Id modelId = Id.valueOf(modelStr);
-		Models models = (Models) getServletContext().getAttribute(Models.CONTEXT_ID);
+		Model modelId = Model.valueOf(modelStr);
 
-		HazardModel model = null;
-		try {
-			model = models.get(modelId);
-		} catch (ExecutionException ee) {
-			// TODO improve/log
-			ee.printStackTrace();
-			Throwables.propagate(ee);
-		}
+		@SuppressWarnings("unchecked")
+		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
+			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
+		// TODO improve or log; should be using get(id) instead (checked)
+		HazardModel model = modelCache.getUnchecked(modelId);
 
 		Location loc = Location.create(data.latitude, data.longitude);
 		Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
 
 		// calculate
 		Set<Imt> imts = Sets.immutableEnumSet(data.imt);
-		CalcConfig config = CalcConfig.copyWithImts(model.config(), imts);
-		HazardResult hazResult = calc(model, config, site);
+		CalcConfig config = CalcConfig.builder()
+			.copy(model.config())
+			.imts(imts)
+			.build();
+
+		Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
+		HazardResult hazResult = calc(model, config, site, executor);
 
 		return new Result(url, data, hazResult);
-		// // return response
-		// StringBuilder sb = new StringBuilder();
-		// for (Entry<Imt, ArrayXY_Sequence> entry : result.curves().entrySet())
-		// {
-		// sb.append(entry.getKey()).append(":").append(NEWLINE);
-		// ArrayXY_Sequence curve = entry.getValue();
-		// sb.append(Parsing.join(curve.xValues(), Delimiter.COMMA));
-		// sb.append(NEWLINE);
-		// sb.append(Parsing.join(curve.yValues(), Delimiter.COMMA));
-		// sb.append(NEWLINE);
-		// }
-		// return sb.toString();
 	}
 
 	/*
@@ -177,22 +161,6 @@ public class HazardCurve extends HttpServlet {
 	 * 
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
-
-	// TODO clean
-	public static void main(String[] args) {
-
-		// HazardModel model = Model.WUS_2008.instance();
-		// URL url = HazardCurve.class.getResource("/models/2008/Western US");
-		// URL url = Model.class.getResource("/");
-		// System.out.println(url);
-
-		// Parameters p = new Parameters();
-		// JsonObject meta = new JsonObject();
-		// meta.addProperty("application", "HazardCurve");
-		// meta.add("parameters", p.pList.state());
-		// System.out.println(GSON.toJson(meta));
-
-	}
 
 	private final static class RequestData {
 
@@ -279,7 +247,7 @@ public class HazardCurve extends HttpServlet {
 			ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
 
 			Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotals =
-				HazardResult.totalsByType(hazResult);
+				Results.totalsByType(hazResult);
 
 			for (Entry<Imt, ArrayXY_Sequence> imtTotal : hazResult.curves().entrySet()) {
 				Imt imt = imtTotal.getKey();

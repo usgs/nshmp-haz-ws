@@ -5,32 +5,23 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.servlet.ServletContext;
 
 import org.opensha2.eq.model.HazardModel;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
-/**
- * Hazard model identifiers.
- * @author Peter Powers
- */
 @SuppressWarnings("javadoc")
-public class Models {
+@Deprecated
+final class Models {
 
 	public static final String CONTEXT_ID = "models";
 
@@ -38,7 +29,10 @@ public class Models {
 
 	private final ServletContext context;
 
-	Models(ServletContext context, boolean init) {
+	/*
+	 * Optional executor, if present, triggers loading of all models.
+	 */
+	Models(ServletContext context, Optional<ExecutorService> executor) {
 
 		this.context = context;
 
@@ -48,7 +42,7 @@ public class Models {
 			}
 		});
 
-		if (init) init();
+		if (executor.isPresent()) init(executor.get());
 	}
 
 	private HazardModel createInstance(Id id) {
@@ -57,7 +51,7 @@ public class Models {
 				return loadModel("/models/2008/Central & Eastern US",
 					"2008 USGS Central & Eastern US Hazard Model");
 			case CEUS_2014:
-				return loadModel("/models/2008/Central & Eastern US",
+				return loadModel("/models/2014/Central & Eastern US",
 					"2008 USGS Central & Eastern US Hazard Model");
 			case WUS_2008:
 				return loadModel("/models/2008/Western US",
@@ -70,33 +64,31 @@ public class Models {
 		}
 	}
 
-	void init() {
-		Id[] ids = Id.values();
-		int numProc = Math.min(Runtime.getRuntime().availableProcessors(), ids.length);
-		ExecutorService ex = Executors.newFixedThreadPool(numProc);
-		ListeningExecutorService lex = MoreExecutors.listeningDecorator(ex);
-
-		// HazardModel model;
-		// for (final Id id : ids) {
-		// model = cache.getUnchecked(id);
-		// }
-
-		List<ListenableFuture<HazardModel>> futureModels = new ArrayList<>();
-
-		for (final Id id : ids) {
-			ListenableFuture<HazardModel> explosion = lex.submit(new Callable<HazardModel>() {
-				@Override public HazardModel call() {
-					return cache.getUnchecked(id);
-				}
-			});
+	private void init(ExecutorService ex) {
+		/*
+		 * LoadingCache will block any requests until the requested model is
+		 * available so we only need to submit loading tasks here, not wait for
+		 * them to complete.
+		 */
+		for (final Id id : Id.values()) {
+			ex.submit(new Loader(cache, id));
 		}
-		ListenableFuture<List<HazardModel>> futureList = Futures.allAsList(futureModels);
-		try {
-			futureList.get();
-		} catch (InterruptedException | ExecutionException e) {
-			// TODO enable logging of some sort
-			e.printStackTrace();
+	}
+
+	private static class Loader implements Callable<HazardModel> {
+
+		final LoadingCache<Id, HazardModel> cache;
+		final Id id;
+
+		Loader(LoadingCache<Id, HazardModel> cache, Id id) {
+			this.cache = cache;
+			this.id = id;
 		}
+
+		@Override public HazardModel call() throws Exception {
+			return cache.getUnchecked(id);
+		}
+
 	}
 
 	public HazardModel get(Id id) throws ExecutionException {
@@ -115,9 +107,8 @@ public class Models {
 			System.out.println(resourcePath);
 			System.out.println(name);
 			URL url = context.getResource(resourcePath);
-			// URL url = Resources.getResource(resourcePath);
 			Path path = Paths.get(url.toURI());
-			return HazardModel.load(path, name);
+			return HazardModel.load(path);
 		} catch (URISyntaxException | MalformedURLException e) {
 			Throwables.propagate(e);
 			return null;

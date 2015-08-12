@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshm.www.services.meta;
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
+import gov.usgs.earthquake.nshm.www.services.ServletUtil;
 
 import java.util.EnumSet;
 
@@ -22,26 +23,25 @@ public class Metadata {
 
 	public static final String HAZARD_CURVE_USAGE;
 
-	private static Gson GSON;
-
 	static {
-		GSON = new GsonBuilder()
-			.setPrettyPrinting()
-			.disableHtmlEscaping()
-			.create();
+		// TODO clean
+//		GSON = new GsonBuilder()
+//			.setPrettyPrinting()
+//			.disableHtmlEscaping()
+//			.create();
+//
+//		Gson gson = new GsonBuilder()
+//			.registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
+//			.registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
+//			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
+//			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+//			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
+//			.disableHtmlEscaping()
+//			.serializeNulls()
+//			.setPrettyPrinting()
+//			.create();
 
-		Gson gson = new GsonBuilder()
-			.registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
-			.registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
-			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
-			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
-			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
-			.disableHtmlEscaping()
-			.serializeNulls()
-			.setPrettyPrinting()
-			.create();
-
-		HAZARD_CURVE_USAGE = gson.toJson(new HazardCurve());
+		HAZARD_CURVE_USAGE = ServletUtil.GSON.toJson(new HazardCurve());
 	}
 
 	@SuppressWarnings("unused")
@@ -99,7 +99,7 @@ public class Metadata {
 
 	public static String errorMessage(String url, Throwable e) {
 		Error error = new Error(url, e);
-		return GSON.toJson(error);
+		return ServletUtil.GSON.toJson(error);
 	}
 
 	@SuppressWarnings("unused")
@@ -112,9 +112,9 @@ public class Metadata {
 		private Error(String request, Throwable e) {
 			this.request = request;
 			String trace = Throwables.getStackTraceAsString(e);
-			trace = trace.replaceAll("\n", "<br />");
+			trace = trace.replaceAll("\n", "<br/>");
 			trace = trace.replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-			this.trace =  "<br />" + trace;
+			this.trace =  "<br/>" + trace;
 		}
 	}
 
