@@ -5,48 +5,62 @@
 		nshmp-haz-ws are web services built on top of nshmp-haz
 	</description>
 
+	
 	<property name="src.dir" value="src/" />
 	<property name="lib.dir" value="lib/" />
 	<property name="classes.dir" value="classes/" />
-	
 	<property name="dist.dir" value="dist/" />
-
 	<property name="build.dir" value="build/" />
-    <property name="temp.dir.web-inf" value="${build.dir}/WEB-INF" />
-    <property name="temp.dir.lib" value="${temp.dir.web-inf}/lib" />
-    <property name="temp.dir.classes" value="${temp.dir.web-inf}/classes" />
-    <property name="temp.dir.meta-inf" value="${temp.dir}/META-INF" />
 
-	<path id="library.classpath">
-		<fileset dir="${lib.dir}">
-			<include name="**/*.jar" />
-		</fileset>
-	</path>
+	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
+	<property name="nshmp-haz.build" value="${nshmp-haz.dir}build.xml" />
+	<property name="nshmp-haz.project" value="${nshmp-haz.dir}.project" />
+	<property name="nshmp-haz.jar" value="${nshmp-haz.dir}${dist}nshmp-haz.jar" />
+
+	<property name="nshmp-haz-ws.htdocs.dir" value="htdocs" />
+	<property name="nshmp-haz-ws.classes.dir" value="${build.dir}${classes.dir}" />
+	<property name="nshmp-haz-ws.dist.dir" value="${build.dir}${dist.dir}" />
+	<property name="nshmp-haz-ws.web-inf" value="WebContent/WEB-INF/" />
+	<property name="nshmp-haz-ws.webfile" value="${nshmp-haz-ws.web-inf}web.xml" />
+	<property name="nshmp-haz-ws.war" value="${nshmp-haz-ws.dist.dir}nshmp-haz-ws.war" />
 
 
-	<target name="build" depends="compile">
-		<jar destfile="${dist.dir}nshmp-haz.jar">
-			<fileset dir="${classes.dir}" />
-			<zipgroupfileset dir="${lib.dir}">
-				<include name="*.jar" />
-				<exclude name="ant-*" />
-			</zipgroupfileset>
-		</jar>
+	<target name="build" 
+			depends="compile"
+			description="Builds a nshmp-haz-ws WAR file">
+		<war destfile="${nshmp-haz-ws.war}" webxml="nshmp-haz-ws.webfile">
+			<fileset dir="${nshmp-haz-ws.htdocs.dir}" />
+			<lib dir="${lib}" />
+			<classes dir="${nshmp-haz-ws.classes.dir}" />
+		</war>
 	</target>
+	
+	
+	
+	
+	<target name="compile" depends="build.nshmp-haz">
 
+		<!-- Ensure that nshmp-haz.jar is available 
+		
+		if !jar exists
+		-->
+		<path id="library.classpath">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
 
-	<target name="compile">
 
 		<!-- Clean the classes/ directory -->
-		<delete dir="${classes.dir}" />
-		<mkdir dir="${classes.dir}" />
+		<delete dir="${nshmp-haz-ws.classes}" />
+		<mkdir dir="${nshmp-haz-ws.classes}" />
 
 		<!-- Compile to classes/  -->
 		<javac srcdir="${src.dir}"
 		       destdir="${classes.dir}"
 		       classpathref="library.classpath"
 		       nowarn="true"
-			   fork="true"
+		       fork="true"
 		       source="1.7"
 		       target="1.7"
 		       encoding="UTF-8"
@@ -62,37 +76,54 @@
 
 	</target>
 
+	
+	
+	<!-- Build nshmp-haz.jar and copy to local lib -->
+	<!-- This brings with it all gson and guava lib classes -->
+	<target name="build.nshmp-haz"
+	        depends="check.nshmp-haz-jar.exists"
+	        unless="nshmp-haz-jar.exists">
 
-	<target name="javadoc">
+		<!-- Confirm nshmp-haz.jar build with user -->
+		<input message="lib/nshmp-haz.jar is missing. Would you like to build it now (y/n)?"
+		       validargs="y,n"
+		       addproperty="abort.build" />
+		<condition property="abort">
+			<equals arg1="n" arg2="${abort.build}" />
+		</condition>
+		<fail if="abort" message="Build aborted by user" />
 
-		<!-- Clean the docs directory; .git data preserved by defaultexcludes -->
-		<delete includeEmptyDirs="true" failonerror="yes" verbose="no">
-			<fileset dir="${javadoc.dir}" />
-		</delete>
+		<!-- Abort if nshmp-haz project is missing -->
+		<fail unless="nshmp-haz.exists"
+		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
 
-		<javadoc classpathref="library.classpath"
-		         destdir="${javadoc.dir}"
-		         author="true"
-		         version="true"
-		         use="true"
-		         windowtitle="nshmp-haz"
-		         doctitle="nshmp-haz"
-		         maxmemory="512m"
-		         verbose="false"
-		         encoding="UTF-8"
-		         docencoding="UTF-8"
-		         charset="UTF-8">
-
-			<fileset dir="${src.dir}" defaultexcludes="yes">
-				<include name="**/*.java" />
-			</fileset>
-
-			<link href="http://docs.oracle.com/javase/7/docs/api/" />
-			<link href="http://commons.apache.org/proper/commons-math/apidocs/" />
-			<link href="http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/" />
-
-		</javadoc>
+		<antcall target="refresh.nshmp-haz" />
 	</target>
+
+	<target name="check.nshmp-haz-jar.exists">
+		<available file="${lib}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
+	</target>
+
+
+	
+	<target name="refresh.nshmp-haz"
+			depends="check.nshmp-haz.exists">
+
+		<!-- Abort if nshmp-haz project is missing -->
+		<fail unless="nshmp-haz.exists"
+		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
+
+		<delete file="${lib}nshmp-haz.jar}" />
+		<ant antfile="${nshmp-haz.build}build.xml" />
+		<copy file="nshmp-haz.jar" todir="${lib.dir}" />
+	</target>
+	
+	<target name="check.nshmp-haz.exists">
+		<available file="${nshmp-haz.project}" property="nshmp-haz.exists" />
+	</target>
+
+
+
 
 </project>
 
