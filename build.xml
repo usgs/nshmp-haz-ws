@@ -5,17 +5,29 @@
 		nshmp-haz-ws are web services built on top of nshmp-haz
 	</description>
 
+	<!-- Building nshmp-haz-ws depends on:
+			- the presence of lib/nshmp-haz.jar
+			  (build prompts to create this if missing
+			   and fails if nshmp-haz project is missing;
+			   see nshmp-haz.dir property)
+			- a valid tomcat.lib.dir property
+			- the correct paths to the 2008 and 2014 NSHMP models
+			  (see the model.dir.cous2008 and model.dir.cous2014 properties
+	-->
 	
 	<property name="src.dir" value="src/" />
 	<property name="lib.dir" value="lib/" />
 	<property name="classes.dir" value="classes/" />
 	<property name="dist.dir" value="dist/" />
 	<property name="build.dir" value="build/" />
+	
+	<property name="tomcat.lib.dir"
+			  value="/Users/pmpowers/Library/Tomcat/apache-tomcat-8.0.20/lib" />
 
 	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
 	<property name="nshmp-haz.build" value="${nshmp-haz.dir}build.xml" />
 	<property name="nshmp-haz.project" value="${nshmp-haz.dir}.project" />
-	<property name="nshmp-haz.jar" value="${nshmp-haz.dir}${dist}nshmp-haz.jar" />
+	<property name="nshmp-haz.jar" value="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" />
 
 	<property name="nshmp-haz-ws.htdocs.dir" value="htdocs" />
 	<property name="nshmp-haz-ws.classes.dir" value="${build.dir}${classes.dir}" />
@@ -24,40 +36,52 @@
 	<property name="nshmp-haz-ws.webfile" value="${nshmp-haz-ws.web-inf}web.xml" />
 	<property name="nshmp-haz-ws.war" value="${nshmp-haz-ws.dist.dir}nshmp-haz-ws.war" />
 
-
+	<property name="model.dir.cous2008" value="../nshmp-model-cous-2008" />
+	<property name="model.dir.cous2014" value="../nshmp-model-cous-2014" />
+	
+	
+	<!-- Build project assuming nshmp-haz exists -->
 	<target name="build" 
 			depends="compile"
 			description="Builds a nshmp-haz-ws WAR file">
-		<war destfile="${nshmp-haz-ws.war}" webxml="nshmp-haz-ws.webfile">
+				
+		<war destfile="${nshmp-haz-ws.war}" webxml="${nshmp-haz-ws.webfile}">
 			<fileset dir="${nshmp-haz-ws.htdocs.dir}" />
+			<zipfileset dir="${model.dir.cous2008}" prefix="models"/>
+			<zipfileset dir="${model.dir.cous2014}" prefix="models"/>
 			<lib dir="${lib}" />
 			<classes dir="${nshmp-haz-ws.classes.dir}" />
 		</war>
 	</target>
 	
 	
+	<!-- Force nshmp-haz dependency update before build -->
+	<target name="build.all"
+			description="Builds a nshmp-haz-ws WAR file, including dependencies">
+	
+		<antcall target="refresh.nshmp-haz"/>
+		<antcall target="build"/>
+	</target>
 	
 	
 	<target name="compile" depends="build.nshmp-haz">
 
-		<!-- Ensure that nshmp-haz.jar is available 
-		
-		if !jar exists
-		-->
 		<path id="library.classpath">
 			<fileset dir="${lib.dir}">
 				<include name="**/*.jar" />
 			</fileset>
+			<fileset dir="${tomcat.lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
 		</path>
 
-
 		<!-- Clean the classes/ directory -->
-		<delete dir="${nshmp-haz-ws.classes}" />
-		<mkdir dir="${nshmp-haz-ws.classes}" />
+		<delete dir="${nshmp-haz-ws.classes.dir}" />
+		<mkdir dir="${nshmp-haz-ws.classes.dir}" />
 
 		<!-- Compile to classes/  -->
 		<javac srcdir="${src.dir}"
-		       destdir="${classes.dir}"
+		       destdir="${nshmp-haz-ws.classes.dir}"
 		       classpathref="library.classpath"
 		       nowarn="true"
 		       fork="true"
@@ -71,15 +95,12 @@
 		<!-- Copy any non-Java resources -->
 		<copy todir="${classes.dir}" includeEmptyDirs="false">
 			<fileset dir="${src.dir}" excludes="**/*.java" />
-			<fileset dir="${lib.dir}" excludes="**/*.jar" />
 		</copy>
 
 	</target>
-
 	
 	
-	<!-- Build nshmp-haz.jar and copy to local lib -->
-	<!-- This brings with it all gson and guava lib classes -->
+	<!-- Build and copy nshmp-haz.jar if necessesary -->
 	<target name="build.nshmp-haz"
 	        depends="check.nshmp-haz-jar.exists"
 	        unless="nshmp-haz-jar.exists">
@@ -93,36 +114,33 @@
 		</condition>
 		<fail if="abort" message="Build aborted by user" />
 
-		<!-- Abort if nshmp-haz project is missing -->
-		<fail unless="nshmp-haz.exists"
-		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
-
 		<antcall target="refresh.nshmp-haz" />
 	</target>
 
 	<target name="check.nshmp-haz-jar.exists">
-		<available file="${lib}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
+		<available file="${lib.dir}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
+		<echo message="${nshmp-haz-jar.exists}" />
 	</target>
-
-
 	
+	
+	
+	<!-- Update nshmp-haz, which includes Guava and Gson libs -->
 	<target name="refresh.nshmp-haz"
 			depends="check.nshmp-haz.exists">
-
+	
 		<!-- Abort if nshmp-haz project is missing -->
 		<fail unless="nshmp-haz.exists"
 		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
 
 		<delete file="${lib}nshmp-haz.jar}" />
-		<ant antfile="${nshmp-haz.build}build.xml" />
-		<copy file="nshmp-haz.jar" todir="${lib.dir}" />
+		<ant antfile="${nshmp-haz.build}" useNativeBasedir="true" />
+		<copy file="${nshmp-haz.jar}" todir="${lib.dir}" />
 	</target>
 	
 	<target name="check.nshmp-haz.exists">
 		<available file="${nshmp-haz.project}" property="nshmp-haz.exists" />
+		<echo message="${nshmp-haz.exists}" />
 	</target>
-
-
 
 
 </project>
