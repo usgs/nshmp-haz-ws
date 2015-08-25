@@ -19,6 +19,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+@SuppressWarnings("javadoc")
 public final class Util {
 
 	static final Set<Imt> IMTS = EnumSet.of(PGA, SA0P2, SA1P0);
@@ -69,11 +70,25 @@ public final class Util {
 		}
 	}
 
+	/* Constrain all doubles to 8 decimal places */
+	public static final class DoubleSerializer implements JsonSerializer<Double> {
+
+		@Override public JsonElement serialize(Double d, Type type,
+				JsonSerializationContext context) {
+			double dOut = Double.valueOf(String.format("%.8g", d));
+			return new JsonPrimitive(dOut);
+		}
+		
+	}
+	
+	// TODO clean?
 	static class ParamTypeSerializer implements JsonSerializer<ParamType> {
 		@Override public JsonElement serialize(ParamType paramType, Type type,
 				JsonSerializationContext context) {
 			return new JsonPrimitive(paramType.name().toLowerCase());
 		}
 	}
+	
+	
 
 }

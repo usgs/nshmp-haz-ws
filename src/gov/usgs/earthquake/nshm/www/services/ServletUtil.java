@@ -61,6 +61,7 @@ public class ServletUtil implements ServletContextListener {
 			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
 			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
 			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
+			.registerTypeAdapter(Double.class, new Util.DoubleSerializer())
 			.disableHtmlEscaping()
 			.setPrettyPrinting()
 			.create();
