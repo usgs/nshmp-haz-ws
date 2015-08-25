@@ -1,15 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>nshmp-haz web services</title>
+	<link href="css/styles.css" rel="stylesheet" type="text/css" />
+
+	<meta charset="UTF-8">
+	<title>NSHMP web services</title>
 </head>
 <body>
-<strong>nshmp-haz-ws</strong> provides the following services:<br/>
-<ul>
-<li><a href="DeterministicSpectra">DeterministicSpectra</a></li>
-<li><a href="HazardCurve">HazardCurve</a></li>
-</ul>
-See each page above for instructions on use.
+	<h1>Services: nshmp-haz-ws</h1>
+
+	<h2>HazardCurve</h2>
+
+	A USGS hazard curve may be computed by supplying a slash-delimited<br/>
+	or name-value pair query consisting of edition, region, longitude,<br/>
+	latitude, intensity measure type (imt), and Vs30 value. For <a href="/nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
+
+	<code>
+	http://.../nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760<br/>
+	<br/>
+	&nbsp;&nbsp;&nbsp; – or –<br/>
+	<br/>
+	http://.../nshmp-haz-ws/HazardCurve?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760<br/>
+	<br/>
+	&nbsp;&nbsp;&nbsp; – where –<br/>
+	<br/>
+	edition = [E2008, E2014]<br/>
+	region = [COUS, WUS, CEUS]<br/>
+	vs30 = [180, 259, 360, 537, 1150, 2000]<br/>
+	imt = [PGA, SA0P2, SA1P0]<br/>
+	</code>
+	<br/>
+	See <a href="/nshmp-haz-ws/HazardCurve">usage</a> for parameter dependencies.
+
+
+
+	<!-- <ul>
+		<li><a href="DeterministicSpectra">DeterministicSpectra</a></li>
+		<li><a href="HazardCurve">HazardCurve</a></li>
+	</ul>
+	See each page above for instructions on use.
+	-->
+
 </body>
 </html>

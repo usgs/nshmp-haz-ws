@@ -1,11 +1,11 @@
-package gov.usgs.earthquake.nshm.www.util;
+package gov.usgs.earthquake.nshm.www.services;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opensha.data.XY_Point;
-import org.opensha.data.XY_Sequence;
-import org.opensha.util.Parsing;
+import org.opensha2.data.XY_Point;
+import org.opensha2.data.XY_Sequence;
+import org.opensha2.util.Parsing;
 
 import com.google.common.primitives.Doubles;
 

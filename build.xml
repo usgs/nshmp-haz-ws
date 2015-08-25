@@ -1,97 +1,147 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="nshmp-haz-ws">
-    <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
-    <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.7"/>
-    <property name="source" value="1.7"/>
-    <path id="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath">
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/annotations-api.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/catalina-ant.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/catalina-ha.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/catalina-tribes.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/catalina.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/ecj-4.2.1.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/el-api.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/jasper-el.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/jasper.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/jsp-api.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/servlet-api.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-api.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-coyote.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-dbcp.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-i18n-es.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-i18n-fr.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-i18n-ja.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-jdbc.jar"/>
-        <pathelement location="../../../Library/Tomcat/apache-tomcat-7.0.37/lib/tomcat-util.jar"/>
-    </path>
-    <path id="Web App Libraries.libraryclasspath"/>
-    <path id="EAR Libraries.libraryclasspath"/>
-    <path id="nshmp-haz-ws.classpath">
-        <pathelement location="build/classes"/>
-        <path refid="Apache Tomcat v7.0 [Apache Tomcat v7.0].libraryclasspath"/>
-        <path refid="Web App Libraries.libraryclasspath"/>
-        <path refid="EAR Libraries.libraryclasspath"/>
-        <pathelement location="lib/nshmp-haz/lib/commons-math3-3.3.jar"/>
-        <pathelement location="lib/nshmp-haz/lib/gson-2.3.jar"/>
-        <pathelement location="lib/nshmp-haz/lib/guava-17.0.jar"/>
-    </path>
-    <target name="init">
-        <mkdir dir="build/classes"/>
-        <copy includeemptydirs="false" todir="build/classes">
-            <fileset dir="lib/nshmp-haz/src">
-                <exclude name="**/*.launch"/>
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-        <copy includeemptydirs="false" todir="build/classes">
-            <fileset dir="src">
-                <exclude name="**/*.launch"/>
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-    </target>
-    <target name="clean">
-        <delete dir="build/classes"/>
-    </target>
-    <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
-    <target name="build-subprojects"/>
-    <target depends="init" name="build-project">
-        <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" includeantruntime="false" source="${source}" target="${target}">
-            <src path="lib/nshmp-haz/src"/>
-            <src path="src"/>
-            <classpath refid="nshmp-haz-ws.classpath"/>
-        </javac>
-    </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
-        <copy todir="${ant.library.dir}">
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </copy>
-        <unzip dest="${ant.library.dir}">
-            <patternset includes="jdtCompilerAdapter.jar"/>
-            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
-        </unzip>
-    </target>
-    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
-        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
-        <antcall target="build"/>
-    </target>
-    <target name="ResponseSpectra">
-        <java classname="gov.usgs.earthquake.nshm.www.services.ResponseSpectra" failonerror="true" fork="yes">
-            <classpath refid="nshmp-haz-ws.classpath"/>
-        </java>
-    </target>
-    <target name="Scratch (7)">
-        <java classname="gov.usgs.earthquake.nshm.www.util.Scratch" failonerror="true" fork="yes">
-            <classpath refid="nshmp-haz-ws.classpath"/>
-        </java>
-    </target>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="nshmp-haz-ws" default="build" basedir=".">
+
+	<description>
+		nshmp-haz-ws are web services built on top of nshmp-haz
+	</description>
+
+	<!-- Building nshmp-haz-ws depends on:
+			- the presence of lib/nshmp-haz.jar
+			  (build prompts to create this if missing)
+			- a valid servlet.lib.dir property
+			- the correct paths to the 2008 and 2014 NSHMP models
+			  (see the model.dir.cous2008 and model.dir.cous2014 properties
+	-->
+	
+	<property environment="env" />
+	<property name="src.dir" value="src/" />
+	<property name="lib.dir" value="lib/" />
+	<property name="classes.dir" value="classes/" />
+	<property name="dist.dir" value="dist/" />
+	<property name="htdocs.dir" value="htdocs/" />
+	<property name="web-inf.dir" value="WebContent/WEB-INF/" />
+	
+	<property name="web.file" value="${web-inf.dir}web.xml" />
+	<property name="war.file" value="${dist.dir}nshmp-haz-ws.war" />
+	
+	
+	<!-- ========================= -->
+	<!--  These properties may be  -->
+	<!--  different depending on   -->
+	<!--     your environment.     -->
+	<!-- ========================= -->
+	<property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
+	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
+	<property name="model.dir.cous2008" value="../nshmp-model-cous-2008/" />
+	<property name="model.dir.cous2014" value="../nshmp-model-cous-2014/" />
+
+
+	
+	<!-- Build project assuming nshmp-haz exists -->
+	<target name="build" 
+			depends="compile"
+			description="Builds a nshmp-haz-ws WAR file">
+				
+		<war destfile="${war.file}" webxml="${web.file}">
+			<fileset dir="${htdocs.dir}" />
+			<zipfileset dir="${model.dir.cous2008}" prefix="models/2008"/>
+			<zipfileset dir="${model.dir.cous2014}" prefix="models/2014"/>
+			<lib dir="${lib.dir}" />
+			<classes dir="${classes.dir}" />
+		</war>
+	</target>
+	
+	
+	
+	<!-- Force nshmp-haz dependency update before build -->
+	<target name="build.all"
+			description="Builds a nshmp-haz-ws WAR file, including dependencies">
+	
+		<antcall target="refresh.nshmp-haz"/>
+		<antcall target="build"/>
+	</target>
+	
+	
+	
+	<target name="compile" depends="build.nshmp-haz">
+
+		<path id="library.classpath">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${servlet.lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+
+		<!-- Clean the classes/ directory -->
+		<delete dir="${classes.dir}" />
+		<mkdir dir="${classes.dir}" />
+
+		<!-- Compile to classes/  -->
+		<javac srcdir="${src.dir}"
+		       destdir="${classes.dir}"
+		       classpathref="library.classpath"
+		       nowarn="true"
+		       fork="true"
+		       source="1.7"
+		       target="1.7"
+		       encoding="UTF-8"
+		       debug="true"
+		       includeantruntime="false"
+		       createMissingPackageInfoClass="false" />
+
+		<!-- Copy any non-Java resources -->
+		<copy todir="${classes.dir}" includeEmptyDirs="false">
+			<fileset dir="${src.dir}" excludes="**/*.java" />
+		</copy>
+
+	</target>
+	
+	
+	
+	<!-- Build and copy nshmp-haz.jar if necessesary -->
+	<target name="build.nshmp-haz"
+	        depends="check.nshmp-haz-jar.exists"
+	        unless="nshmp-haz-jar.exists">
+
+		<!-- Confirm nshmp-haz.jar build with user -->
+		<input message="lib/nshmp-haz.jar is missing. Would you like to build it now (y/n)?"
+		       validargs="y,n"
+		       addproperty="abort.build" />
+		<condition property="abort">
+			<equals arg1="n" arg2="${abort.build}" />
+		</condition>
+		<fail if="abort" message="Build aborted by user" />
+
+		<antcall target="refresh.nshmp-haz" />
+	</target>
+
+	<target name="check.nshmp-haz-jar.exists">
+		<available file="${lib.dir}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
+		<echo message="${nshmp-haz-jar.exists}" />
+	</target>
+	
+	
+	
+	<!-- Update nshmp-haz, which includes Guava and Gson libs -->
+	<target name="refresh.nshmp-haz"
+			depends="check.nshmp-haz.exists">
+	
+		<!-- Abort if nshmp-haz project is missing -->
+		<fail unless="nshmp-haz.exists"
+		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
+
+		<delete file="${lib}nshmp-haz.jar}" />
+		<ant dir="${nshmp-haz.dir}" />
+		<copy file="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" todir="${lib.dir}" />
+	</target>
+	
+	<target name="check.nshmp-haz.exists">
+		<available file="${nshmp-haz.dir}.project" property="nshmp-haz.exists" />
+		<echo message="${nshmp-haz.exists}" />
+	</target>
+
+
 </project>
+

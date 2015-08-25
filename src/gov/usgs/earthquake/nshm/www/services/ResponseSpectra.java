@@ -1,24 +1,20 @@
 package gov.usgs.earthquake.nshm.www.services;
 
 import static java.lang.Double.NaN;
-import gov.usgs.earthquake.nshm.www.util.XY_DataGroup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opensha.gmm.ScalarGroundMotion;
-import org.opensha.gmm.Gmm;
-import org.opensha.gmm.GmmInput;
-import org.opensha.gmm.Imt;
+import org.opensha2.gmm.Gmm;
+import org.opensha2.gmm.GmmInput;
+import org.opensha2.gmm.Imt;
+import org.opensha2.gmm.ScalarGroundMotion;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Doubles;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -27,6 +23,7 @@ import com.google.gson.GsonBuilder;
  * 
  * @author Peter Powers
  */
+@Deprecated
 public class ResponseSpectra {
 
 	// TODO logging

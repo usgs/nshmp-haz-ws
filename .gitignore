@@ -1,8 +1,8 @@
 /bin
 /classes
+/lib
+/dist
 /docs
 /tmp
-/WebContent
-/build
-/src/models
+/WebContent/models
 Scratch*.java

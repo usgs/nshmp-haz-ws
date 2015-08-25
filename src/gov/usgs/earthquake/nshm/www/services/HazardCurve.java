@@ -1,17 +1,29 @@
 package gov.usgs.earthquake.nshm.www.services;
 
-import static org.opensha.gmm.Imt.*;
-import static com.google.common.base.StandardSystemProperty.LINE_SEPARATOR;
-import static org.opensha.programs.HazardCurve.calc;
-import gov.usgs.earthquake.nshm.www.util.ModelID;
-import gov.usgs.earthquake.param.Param;
-import gov.usgs.earthquake.param.ParamList;
-import gov.usgs.earthquake.param.Params;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static gov.usgs.earthquake.nshm.www.services.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshm.www.services.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshm.www.services.Util.readValue;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.EDITION;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.IMT;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.LATITUDE;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.LONGITUDE;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.REGION;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
+import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_CURVE_USAGE;
+import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
+import static org.opensha2.programs.HazardCurve.calc;
+import gov.usgs.earthquake.nshm.www.services.meta.Edition;
+import gov.usgs.earthquake.nshm.www.services.meta.Region;
+import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
-import java.util.EnumSet;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.Executor;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,168 +31,248 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.opensha.calc.HazardResult;
-import org.opensha.calc.Site;
-import org.opensha.data.ArrayXY_Sequence;
-import org.opensha.eq.model.HazardModel;
-import org.opensha.geo.GeoTools;
-import org.opensha.geo.Location;
-import org.opensha.gmm.Imt;
-import org.opensha.util.Parsing;
-import org.opensha.util.Parsing.Delimiter;
+import org.opensha2.calc.CalcConfig;
+import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.Results;
+import org.opensha2.calc.Site;
+import org.opensha2.data.ArrayXY_Sequence;
+import org.opensha2.eq.model.HazardModel;
+import org.opensha2.eq.model.SourceType;
+import org.opensha2.geo.Location;
+import org.opensha2.gmm.Imt;
+import org.opensha2.util.Parsing;
+import org.opensha2.util.Parsing.Delimiter;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.common.base.Optional;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
- * Servlet implementation class HazardCurve
+ * Hazard curve service.
+ * @author Peter Powers
  */
-@WebServlet("/HazardCurve/*")
+@SuppressWarnings("unused")
+@WebServlet(
+		name = "Hazard Curve Service",
+		description = "USGS NSHMP Hazard Curve Calculator",
+		urlPatterns = {
+			"/HazardCurve",
+			"/HazardCurve/*" })
 public class HazardCurve extends HttpServlet {
 
-	private static final String NEWLINE = LINE_SEPARATOR.value();
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-	// TODO logging; servlet will only use system ConsoleHandler
-	// and Formatter; need to set up our custom console handler as a
-	// fileHandler independent of tomcat request logs; config
-	// should be automagically read from classes/logging.properties
-	
-	// The first additional parameters that could be exposed for
-	// dynamic calculations are site params
-	
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+
 		response.setContentType("text/html");
-		
-		String query = request.getPathInfo();
-		if (query == null) {
-			response.getWriter().print(USAGE);
+
+		String query = request.getQueryString();
+		String pathInfo = request.getPathInfo();
+
+		if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
+			response.getWriter().print(HAZARD_CURVE_USAGE);
 			return;
 		}
-		
-		List<String> args = Parsing.splitToList(query, Delimiter.SLASH);
-		if (args.size() == 0) {
-			response.getWriter().print(USAGE);
-			return;
-		}
-		if (args.size() != 5) {
-			response.getWriter().print(USAGE);
-			return;
-		}
-		
-		String result = processRequest(args);
-		response.getWriter().print(result);
-	}
 
-	private String processRequest(List<String> args) {
-		String modelStr = args.get(1) + "_" + args.get(0);
-		ModelID modelId = ModelID.valueOf(modelStr);
-		HazardModel model = modelId.instance();
-		if (model == null) return "Model " + modelId + " not currently supported";
-//		Imt imt = Imt.valueOf(args.get(2));
-		double lon = Double.valueOf(args.get(3));
-		double lat = Double.valueOf(args.get(4));
-		Location loc = Location.create(lat, lon);
-		Site site = Site.builder().location(loc).vs30(760.0).build();
-		HazardResult result = calc(model, model.config(), site);
-		StringBuilder sb = new StringBuilder();
-		for (Entry<Imt, ArrayXY_Sequence> entry : result.curves().entrySet()) {
-			sb.append(entry.getKey()).append(":").append(NEWLINE);
-			ArrayXY_Sequence curve = entry.getValue();
-			sb.append(Parsing.join(curve.xValues(), Delimiter.COMMA));
-			sb.append(NEWLINE);
-			sb.append(Parsing.join(curve.yValues(), Delimiter.COMMA));
-			sb.append(NEWLINE);
-		}
-		return sb.toString();
-	}
+		StringBuffer urlBuf = request.getRequestURL();
+		if (query != null) urlBuf.append('?').append(query);
+		String url = urlBuf.toString();
 
-	private static final String USAGE;
+		RequestData requestData;
+		try {
+			if (query != null) { // process query '?'
+				requestData = buildRequest(request.getParameterMap());
+			} else { // process slash-delimited request
+				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
+				if (params.size() < 6) {
+					response.getWriter().print(HAZARD_CURVE_USAGE);
+					return;
+				}
+				requestData = buildRequest(params);
+			}
+			Result result = processCalculation(url, requestData);
 
-	static {
-		StringBuilder sb = new StringBuilder("HazardCurve usage:<br/><br/>");
-		sb.append("A USGS hazard curve may be computed by supplying a slash-delimited<br/>");
-		sb.append("query consisting of year, model, intensity measure type (imt), longitude,<br/>");
-		sb.append("and latitude. For <a href=\"/nshmp-haz-ws/HazardCurve/2008/WUS/PGA/-118.25/34.05\">example</a>:<br/><br/>");
-		sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/HazardCurve/2008/WUS/PGA/-118.25/34.05</code><br/><br/>");
-		sb.append("where:<br/>");
-		sb.append("&nbsp;&nbsp;year = [2008, 2014]<br/>");
-		sb.append("&nbsp;&nbsp;model = [WUS, CEUS]<br/>");
-		sb.append("&nbsp;&nbsp;imt = see <a href=\"http://usgs.github.io/nshmp-haz/index.html?org/opensha/gmm/Imt.html\">docs</a> for options<br/>");
-		USAGE = sb.toString();
-	}
-	
-	// @formatter:off
-	
-	private static final String ANGLE_UNIT = "°";
-	
-	static class Parameters {
+			String resultStr = ServletUtil.GSON.toJson(result);
+			response.getWriter().print(resultStr);
 
-		ParamList pList;
-		
-		private Parameters() {
-			
-			Param<ModelID> modelParam = Params.newEnumParam(
-				"Hazard Model",
-				"USGS hazard model and year identifier",
-				ModelID.WUS_2008,
-				EnumSet.allOf(ModelID.class));
-				
-			Param<Imt> imtParam = Params.newEnumParam(
-				"Intensity Measure",
-				"USGS hazard model and year identifier",
-				PGA,
-				EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0, SA3P0));
-				
-			Param<Integer> vsParam = Params.newIntegerParamWithValues(
-				"Vs30",
-				"The Vs30 at the site of interest",
-				"m/s",
-				760,
-				ImmutableSet.of(180, 259, 360, 537, 760, 1150, 2000));
-
-			Param<Double> latParam = Params.newDoubleParamWithBounds(
-				"Latitude",
-				"Latitude of site, in degrees",
-				ANGLE_UNIT,
-				34.0,
-				GeoTools.MIN_LAT,
-				GeoTools.MAX_LAT);
-
-			Param<Double> lonParam = Params.newDoubleParamWithBounds(
-				"Longitude",
-				"Longitude of site, in degrees",
-				ANGLE_UNIT,
-				-118.2,
-				GeoTools.MIN_LON,
-				GeoTools.MAX_LON);
-						
-			pList = ParamList.of(modelParam, imtParam, vsParam, latParam, lonParam);
-			
+		} catch (Exception e) {
+			String message = errorMessage(url, e);
+			response.getWriter().print(message);
 		}
 	}
-	
-	public static void main(String[] args) {
-		
-//		HazardModel model = ModelID.WUS_2008.instance();
-//	    URL url = HazardCurve.class.getResource("/models/2008/Western US");
-//	    URL url = ModelID.class.getResource("/");
-//		System.out.println(url);
-		
-		Parameters p = new Parameters();
-		JsonObject meta = new JsonObject();
-		meta.addProperty("application", "HazardCurve");
-		meta.add("parameters", p.pList.state());
-		System.out.println(GSON.toJson(meta));
-		
+
+	/* Reduce query string key-value pairs */
+	private RequestData buildRequest(Map<String, String[]> paramMap) {
+		return new RequestData(
+			readValue(paramMap, EDITION, Edition.class),
+			readValue(paramMap, REGION, Region.class),
+			readDoubleValue(paramMap, LONGITUDE),
+			readDoubleValue(paramMap, LATITUDE),
+			readValue(paramMap, IMT, Imt.class),
+			Vs30.fromValue(readDoubleValue(paramMap, VS30)));
+	}
+
+	/* Reduce slash-delimited request */
+	private RequestData buildRequest(List<String> params) {
+		return new RequestData(
+			readValue(params.get(0), Edition.class),
+			readValue(params.get(1), Region.class),
+			Double.valueOf(params.get(2)),
+			Double.valueOf(params.get(3)),
+			readValue(params.get(4), Imt.class),
+			Vs30.fromValue(Double.valueOf(params.get(5))));
+	}
+
+	private Result processCalculation(String url, RequestData data) {
+		String modelStr = data.region.name() + "_" + data.edition.year();
+		Model modelId = Model.valueOf(modelStr);
+
+		@SuppressWarnings("unchecked")
+		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
+			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
+		// TODO improve or log; should be using get(id) instead (checked)
+		HazardModel model = modelCache.getUnchecked(modelId);
+
+		Location loc = Location.create(data.latitude, data.longitude);
+		Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
+
+		// calculate
+		Set<Imt> imts = Sets.immutableEnumSet(data.imt);
+		CalcConfig config = CalcConfig.builder()
+			.copy(model.config())
+			.imts(imts)
+			.build();
+
+		Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
+		HazardResult hazResult = calc(model, config, site, executor);
+
+		return new Result(url, data, hazResult);
+	}
+
+	/*
+	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
+	 * polling all models and supports needs to be updated to specific models
+	 * 
+	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
+	 * because we'll only be running the most current model, as opposed to a
+	 * specific release)
+	 * 
+	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
+	 * 
+	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
+	 */
+
+	private final static class RequestData {
+
+		final Edition edition;
+		final Region region;
+		final double latitude;
+		final double longitude;
+		final Imt imt;
+		final Vs30 vs30;
+
+		private RequestData(
+				Edition edition,
+				Region region,
+				double longitude,
+				double latitude,
+				Imt imt,
+				Vs30 vs30) {
+
+			this.edition = edition;
+			this.region = region;
+			this.latitude = latitude;
+			this.longitude = longitude;
+			this.imt = imt;
+			this.vs30 = vs30;
+		}
+	}
+
+	private final static class ResponseData {
+
+		final Edition edition;
+		final Region region;
+		final double latitude;
+		final double longitude;
+		final Imt imt;
+		final Vs30 vs30;
+		final String xlabel = "Ground Motion (g)";
+		final String ylabel = "Annual Frequency of Exceedence";
+		final List<Double> xvals;
+
+		ResponseData(RequestData request, List<Double> xvals) {
+			this.edition = request.edition;
+			this.region = request.region;
+			this.longitude = request.longitude;
+			this.latitude = request.latitude;
+			this.imt = request.imt;
+			this.vs30 = request.vs30;
+			this.xvals = xvals;
+		}
+	}
+
+	private final static class Response {
+
+		final ResponseData metadata;
+		final List<Curve> data;
+
+		Response(ResponseData metadata, List<Curve> data) {
+			this.metadata = metadata;
+			this.data = data;
+		}
+	}
+
+	private final static class Curve {
+
+		final String component;
+		final List<Double> yvals;
+
+		Curve(String component, List<Double> yvals) {
+			this.component = component;
+			this.yvals = yvals;
+		}
+	}
+
+	private static class Result {
+
+		final String status = "success";
+		final String date = ServletUtil.formatDate(new Date()); // TODO time
+		final String url;
+		final List<Response> response;
+
+		Result(String url, RequestData requestData, HazardResult hazResult) {
+
+			this.url = url;
+
+			ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+
+			Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotals =
+				Results.totalsByType(hazResult);
+
+			for (Entry<Imt, ArrayXY_Sequence> imtTotal : hazResult.curves().entrySet()) {
+				Imt imt = imtTotal.getKey();
+				ArrayXY_Sequence sequence = imtTotal.getValue();
+				ImmutableList.Builder<Curve> typeCurvesBuilder = ImmutableList.builder();
+
+				// total curve
+				Curve totalCurve = new Curve("Total", sequence.yValues());
+				typeCurvesBuilder.add(totalCurve);
+
+				// component curves
+				for (Entry<SourceType, ArrayXY_Sequence> typeTotal : typeTotals.get(imt).entrySet()) {
+					String component = typeTotal.getKey().toString();
+					Curve componentCurve = new Curve(component, typeTotal.getValue().yValues());
+					typeCurvesBuilder.add(componentCurve);
+				}
+
+				// metadata
+				ResponseData rData = new ResponseData(requestData, sequence.xValues());
+				Response r = new Response(rData, typeCurvesBuilder.build());
+				responseListBuilder.add(r);
+			}
+
+			this.response = responseListBuilder.build();
+		}
 	}
 
 }
