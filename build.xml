@@ -7,14 +7,13 @@
 
 	<!-- Building nshmp-haz-ws depends on:
 			- the presence of lib/nshmp-haz.jar
-			  (build prompts to create this if missing
-			   and fails if nshmp-haz project is missing;
-			   see nshmp-haz.dir property)
+			  (build prompts to create this if missing)
 			- a valid servlet.lib.dir property
 			- the correct paths to the 2008 and 2014 NSHMP models
 			  (see the model.dir.cous2008 and model.dir.cous2014 properties
 	-->
 	
+	<property environment="env" />
 	<property name="src.dir" value="src/" />
 	<property name="lib.dir" value="lib/" />
 	<property name="classes.dir" value="classes/" />
@@ -25,21 +24,18 @@
 	<property name="web.file" value="${web-inf.dir}web.xml" />
 	<property name="war.file" value="${dist.dir}nshmp-haz-ws.war" />
 	
-	<property name="servlet.lib.dir"
-			  value="/Users/pmpowers/Library/Tomcat/apache-tomcat-8.0.20/lib" />
-
+	
+	<!-- ========================= -->
+	<!--  These properties may be  -->
+	<!--  different depending on   -->
+	<!--     your environment.     -->
+	<!-- ========================= -->
+	<property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
 	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
-	<property name="nshmp-haz.build" value="${nshmp-haz.dir}build.xml" />
-	<property name="nshmp-haz.project" value="${nshmp-haz.dir}.project" />
-	<property name="nshmp-haz.jar" value="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" />
-
-	<!--
 	<property name="model.dir.cous2008" value="../nshmp-model-cous-2008/" />
 	<property name="model.dir.cous2014" value="../nshmp-model-cous-2014/" />
-	-->
-	<property name="model.dir.cous2008" value="../hazard-models/US/2008/" />
-	<property name="model.dir.cous2014" value="../hazard-models/US/2014/" />
-	
+
+
 	
 	<!-- Build project assuming nshmp-haz exists -->
 	<target name="build" 
@@ -48,12 +44,13 @@
 				
 		<war destfile="${war.file}" webxml="${web.file}">
 			<fileset dir="${htdocs.dir}" />
-			<zipfileset dir="${model.dir.cous2008}" prefix="models"/>
-			<zipfileset dir="${model.dir.cous2014}" prefix="models"/>
+			<zipfileset dir="${model.dir.cous2008}" prefix="models/2008"/>
+			<zipfileset dir="${model.dir.cous2014}" prefix="models/2014"/>
 			<lib dir="${lib.dir}" />
 			<classes dir="${classes.dir}" />
 		</war>
 	</target>
+	
 	
 	
 	<!-- Force nshmp-haz dependency update before build -->
@@ -63,6 +60,7 @@
 		<antcall target="refresh.nshmp-haz"/>
 		<antcall target="build"/>
 	</target>
+	
 	
 	
 	<target name="compile" depends="build.nshmp-haz">
@@ -101,6 +99,7 @@
 	</target>
 	
 	
+	
 	<!-- Build and copy nshmp-haz.jar if necessesary -->
 	<target name="build.nshmp-haz"
 	        depends="check.nshmp-haz-jar.exists"
@@ -134,12 +133,12 @@
 		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
 
 		<delete file="${lib}nshmp-haz.jar}" />
-		<ant antfile="${nshmp-haz.build}" useNativeBasedir="true" />
-		<copy file="${nshmp-haz.jar}" todir="${lib.dir}" />
+		<ant dir="${nshmp-haz.dir}" />
+		<copy file="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" todir="${lib.dir}" />
 	</target>
 	
 	<target name="check.nshmp-haz.exists">
-		<available file="${nshmp-haz.project}" property="nshmp-haz.exists" />
+		<available file="${nshmp-haz.dir}.project" property="nshmp-haz.exists" />
 		<echo message="${nshmp-haz.exists}" />
 	</target>
 
