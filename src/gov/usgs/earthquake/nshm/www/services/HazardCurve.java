@@ -266,7 +266,8 @@ public class HazardCurve extends HttpServlet {
 				}
 
 				// metadata
-				ResponseData rData = new ResponseData(requestData, sequence.xValues());
+				List<Double> xValsLinear = hazResult.config().modelCurve(imt).xValues();
+				ResponseData rData = new ResponseData(requestData, xValsLinear);
 				Response r = new Response(rData, typeCurvesBuilder.build());
 				responseListBuilder.add(r);
 			}
