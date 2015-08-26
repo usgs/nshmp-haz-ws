@@ -1,11 +1,6 @@
 package gov.usgs.earthquake.nshm.www.services.meta;
 
-import static org.opensha2.gmm.Imt.PGA;
-import static org.opensha2.gmm.Imt.SA0P2;
-import static org.opensha2.gmm.Imt.SA1P0;
-
 import java.lang.reflect.Type;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,19 +17,16 @@ import com.google.gson.JsonSerializer;
 @SuppressWarnings("javadoc")
 public final class Util {
 
-	static final Set<Imt> IMTS = EnumSet.of(PGA, SA0P2, SA1P0);
-
-	static final Set<Vs30> CEUS_VS = EnumSet.of(Vs30.VS_2000, Vs30.VS_760);
-
-	static final Set<Vs30> COUS_VS = EnumSet.of(Vs30.VS_760);
-
-	static final Set<Vs30> WUS_VS = EnumSet.of(Vs30.VS_1150, Vs30.VS_760, Vs30.VS_537, Vs30.VS_360,
-		Vs30.VS_259, Vs30.VS_180);
-
 	static <E extends Enum<E>> List<String> enumToString(Set<E> values,
 			Function<E, String> function) {
 		return FluentIterable.from(values).transform(function).toList();
 	}
+	
+	static final Function<Region, String> REGION_TO_STR = new Function<Region, String>() {
+		@Override public String apply(Region region) {
+			return region.name();
+		}
+	};
 
 	static final Function<Imt, String> IMT_TO_STR = new Function<Imt, String>() {
 		@Override public String apply(Imt imt) {
@@ -61,10 +53,19 @@ public final class Util {
 			jObj.addProperty("display", src.toString());
 			jObj.addProperty("displayOrder", src.ordinal());
 
+			if (src instanceof Region) {
+				Region region = (Region) src;
+				jObj.addProperty("minlatitude", region.minlatitude);
+				jObj.addProperty("maxlatitude", region.maxlatitude);
+				jObj.addProperty("minlongitude", region.minlongitude);
+				jObj.addProperty("maxlongitude", region.maxlongitude);
+			}
+
 			if (src instanceof Constrained) {
 				Constrained cSrc = (Constrained) src;
 				jObj.add("supports", context.serialize(cSrc.constraints()));
 			}
+			
 
 			return jObj;
 		}
@@ -72,23 +73,19 @@ public final class Util {
 
 	/* Constrain all doubles to 8 decimal places */
 	public static final class DoubleSerializer implements JsonSerializer<Double> {
-
 		@Override public JsonElement serialize(Double d, Type type,
 				JsonSerializationContext context) {
 			double dOut = Double.valueOf(String.format("%.8g", d));
 			return new JsonPrimitive(dOut);
 		}
-		
 	}
 	
-	// TODO clean?
-	static class ParamTypeSerializer implements JsonSerializer<ParamType> {
+	/* Serialize param type enum as lowercase */
+	public static class ParamTypeSerializer implements JsonSerializer<ParamType> {
 		@Override public JsonElement serialize(ParamType paramType, Type type,
 				JsonSerializationContext context) {
 			return new JsonPrimitive(paramType.name().toLowerCase());
 		}
 	}
 	
-	
-
 }

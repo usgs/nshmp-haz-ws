@@ -202,16 +202,16 @@ public class HazardCurve extends HttpServlet {
 		final Vs30 vs30;
 		final String xlabel = "Ground Motion (g)";
 		final String ylabel = "Annual Frequency of Exceedence";
-		final List<Double> xvals;
+		final List<Double> xvalues;
 
-		ResponseData(RequestData request, Imt imt, List<Double> xvals) {
+		ResponseData(RequestData request, Imt imt, List<Double> xvalues) {
 			this.edition = request.edition;
 			this.region = request.region;
 			this.longitude = request.longitude;
 			this.latitude = request.latitude;
 			this.imt = imt;
 			this.vs30 = request.vs30;
-			this.xvals = xvals;
+			this.xvalues = xvalues;
 		}
 	}
 
@@ -229,11 +229,11 @@ public class HazardCurve extends HttpServlet {
 	private final static class Curve {
 
 		final String component;
-		final List<Double> yvals;
+		final List<Double> yvalues;
 
-		Curve(String component, List<Double> yvals) {
+		Curve(String component, List<Double> yvalues) {
 			this.component = component;
-			this.yvals = yvals;
+			this.yvalues = yvalues;
 		}
 	}
 

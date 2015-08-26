@@ -21,28 +21,7 @@ import com.google.gson.GsonBuilder;
 @SuppressWarnings("javadoc")
 public class Metadata {
 
-	public static final String HAZARD_CURVE_USAGE;
-
-	static {
-		// TODO clean
-//		GSON = new GsonBuilder()
-//			.setPrettyPrinting()
-//			.disableHtmlEscaping()
-//			.create();
-//
-//		Gson gson = new GsonBuilder()
-//			.registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
-//			.registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
-//			.registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
-//			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
-//			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
-//			.disableHtmlEscaping()
-//			.serializeNulls()
-//			.setPrettyPrinting()
-//			.create();
-
-		HAZARD_CURVE_USAGE = ServletUtil.GSON.toJson(new HazardCurve());
-	}
+	public static final String HAZARD_CURVE_USAGE = ServletUtil.GSON.toJson(new HazardCurve());
 
 	@SuppressWarnings("unused")
 	private static class HazardCurve {
@@ -54,43 +33,45 @@ public class Metadata {
 
 		private class Parameters {
 
-			final Parameter<Edition> edition;
-			final Parameter<Region> region;
-			final Parameter<Double> longitude;
-			final Parameter<Double> latitude;
-			final Parameter<Imt> imt;
-			final Parameter<Vs30> vs30;
+			final EnumParameter<Edition> edition;
+			final EnumParameter<Region> region;
+			final DoubleParameter<Double> longitude;
+			final DoubleParameter<Double> latitude;
+			final EnumParameter<Imt> imt;
+			final EnumParameter<Vs30> vs30;
 
 			Parameters() {
 
-				edition = new Parameter<>(
+				edition = new EnumParameter<>(
 					"Model edition",
-					ParamType.INTEGER,
+					ParamType.STRING,
 					EnumSet.allOf(Edition.class));
 
-				region = new Parameter<>(
+				region = new EnumParameter<>(
 					"Model region",
-					ParamType.INTEGER,
+					ParamType.STRING,
 					EnumSet.allOf(Region.class));
 
-				longitude = new Parameter<>(
+				longitude = new DoubleParameter<>(
 					"Longitude (in decimal degrees)",
 					ParamType.NUMBER,
-					ImmutableSet.of(GeoTools.MIN_LON, GeoTools.MAX_LON));
+					GeoTools.MIN_LON,
+					GeoTools.MAX_LON);
 
-				latitude = new Parameter<>(
+				latitude = new DoubleParameter<>(
 					"Latitude (in decimal degrees)",
 					ParamType.NUMBER,
-					ImmutableSet.of(GeoTools.MIN_LAT, GeoTools.MAX_LAT));
+					GeoTools.MIN_LAT,
+					GeoTools.MAX_LAT);
 
-				imt = new Parameter<>(
+				imt = new EnumParameter<>(
 					"Intensity measure type",
-					ParamType.INTEGER,
+					ParamType.STRING,
 					EnumSet.of(PGA, SA0P2, SA1P0));
 
-				vs30 = new Parameter<>(
+				vs30 = new EnumParameter<>(
 					"Site soil (Vs30)",
-					ParamType.INTEGER,
+					ParamType.STRING,
 					EnumSet.allOf(Vs30.class));
 			}
 		}
@@ -114,7 +95,7 @@ public class Metadata {
 			String trace = Throwables.getStackTraceAsString(e);
 			trace = trace.replaceAll("\n", "<br/>");
 			trace = trace.replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-			this.trace =  "<br/>" + trace;
+			this.trace = "<br/>" + trace;
 		}
 	}
 
