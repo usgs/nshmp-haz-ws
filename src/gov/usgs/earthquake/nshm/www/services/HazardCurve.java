@@ -4,6 +4,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshm.www.services.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshm.www.services.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshm.www.services.Util.readValue;
+import static gov.usgs.earthquake.nshm.www.services.Util.readValues;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.EDITION;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.IMT;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.LATITUDE;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.calc.CalcConfig;
+import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.HazardResult;
 import org.opensha2.calc.Results;
 import org.opensha2.calc.Site;
@@ -103,12 +105,16 @@ public class HazardCurve extends HttpServlet {
 
 	/* Reduce query string key-value pairs */
 	private RequestData buildRequest(Map<String, String[]> paramMap) {
+		Optional<Set<Imt>> imts = paramMap.containsKey(IMT.toString()) ?
+			Optional.of(readValues(paramMap, IMT, Imt.class)) :
+			Optional.<Set<Imt>> absent();
+
 		return new RequestData(
 			readValue(paramMap, EDITION, Edition.class),
 			readValue(paramMap, REGION, Region.class),
 			readDoubleValue(paramMap, LONGITUDE),
 			readDoubleValue(paramMap, LATITUDE),
-			readValue(paramMap, IMT, Imt.class),
+			imts,
 			Vs30.fromValue(readDoubleValue(paramMap, VS30)));
 	}
 
@@ -119,7 +125,7 @@ public class HazardCurve extends HttpServlet {
 			readValue(params.get(1), Region.class),
 			Double.valueOf(params.get(2)),
 			Double.valueOf(params.get(3)),
-			readValue(params.get(4), Imt.class),
+			Optional.of(readValues(params.get(4), Imt.class)),
 			Vs30.fromValue(Double.valueOf(params.get(5))));
 	}
 
@@ -137,11 +143,9 @@ public class HazardCurve extends HttpServlet {
 		Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
 
 		// calculate
-		Set<Imt> imts = Sets.immutableEnumSet(data.imt);
-		CalcConfig config = CalcConfig.builder()
-			.copy(model.config())
-			.imts(imts)
-			.build();
+		Builder configBuilder = CalcConfig.builder().copy(model.config());
+		if (data.imts.isPresent()) configBuilder.imts(data.imts.get());
+		CalcConfig config = configBuilder.build();
 
 		Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
 		HazardResult hazResult = calc(model, config, site, executor);
@@ -168,7 +172,7 @@ public class HazardCurve extends HttpServlet {
 		final Region region;
 		final double latitude;
 		final double longitude;
-		final Imt imt;
+		final Optional<Set<Imt>> imts;
 		final Vs30 vs30;
 
 		private RequestData(
@@ -176,14 +180,14 @@ public class HazardCurve extends HttpServlet {
 				Region region,
 				double longitude,
 				double latitude,
-				Imt imt,
+				Optional<Set<Imt>> imts,
 				Vs30 vs30) {
 
 			this.edition = edition;
 			this.region = region;
 			this.latitude = latitude;
 			this.longitude = longitude;
-			this.imt = imt;
+			this.imts = imts;
 			this.vs30 = vs30;
 		}
 	}
@@ -200,12 +204,12 @@ public class HazardCurve extends HttpServlet {
 		final String ylabel = "Annual Frequency of Exceedence";
 		final List<Double> xvals;
 
-		ResponseData(RequestData request, List<Double> xvals) {
+		ResponseData(RequestData request, Imt imt, List<Double> xvals) {
 			this.edition = request.edition;
 			this.region = request.region;
 			this.longitude = request.longitude;
 			this.latitude = request.latitude;
-			this.imt = request.imt;
+			this.imt = imt;
 			this.vs30 = request.vs30;
 			this.xvals = xvals;
 		}
@@ -266,7 +270,8 @@ public class HazardCurve extends HttpServlet {
 				}
 
 				// metadata
-				ResponseData rData = new ResponseData(requestData, sequence.xValues());
+				List<Double> xValsLinear = hazResult.config().modelCurve(imt).xValues();
+				ResponseData rData = new ResponseData(requestData, imt, xValsLinear);
 				Response r = new Response(rData, typeCurvesBuilder.build());
 				responseListBuilder.add(r);
 			}
