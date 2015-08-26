@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshm.www.services;
 import static java.lang.Runtime.getRuntime;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
+import gov.usgs.earthquake.nshm.www.services.meta.ParamType;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
 import gov.usgs.earthquake.nshm.www.services.meta.Util;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
@@ -62,6 +63,7 @@ public class ServletUtil implements ServletContextListener {
 			.registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
 			.registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
 			.registerTypeAdapter(Double.class, new Util.DoubleSerializer())
+			.registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
 			.disableHtmlEscaping()
 			.setPrettyPrinting()
 			.create();
