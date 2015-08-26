@@ -13,7 +13,7 @@
 
 	A USGS hazard curve may be computed by supplying a slash-delimited<br/>
 	or name-value pair query consisting of edition, region, longitude,<br/>
-	latitude, intensity measure type (imt), and Vs30 value. For <a href="/nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
+	latitude, intensity measure type (IMT), and Vs30 value. For <a href="/nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
 
 	<code>
 	http://.../nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760<br/>
@@ -22,13 +22,17 @@
 	<br/>
 	http://.../nshmp-haz-ws/HazardCurve?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760<br/>
 	<br/>
-	&nbsp;&nbsp;&nbsp; – where –<br/>
+	&nbsp; – where –<br/>
 	<br/>
 	edition = [E2008, E2014]<br/>
 	region = [COUS, WUS, CEUS]<br/>
 	vs30 = [180, 259, 360, 537, 1150, 2000]<br/>
 	imt = [PGA, SA0P2, SA1P0]<br/>
 	</code>
+	<br/>
+	For both forms, multiple, comma-delimited IMTs may be supplied; for <br/>
+	the name-value pair format, IMT may be omitted and the service will<br/>
+	return curves for all supported IMTs.<br/>
 	<br/>
 	See <a href="/nshmp-haz-ws/HazardCurve">usage</a> for parameter dependencies.
 
