@@ -125,7 +125,7 @@ public class HazardCurve extends HttpServlet {
 	/* Reduce slash-delimited request */
 	private RequestData buildRequest(List<String> params) {
 		Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any")) ?
-			Optional.<Set<Imt> absent() :
+			Optional.<Set<Imt>> absent() :
 			Optional.of(readValues(params.get(4), Imt.class));
 
 		return new RequestData(
