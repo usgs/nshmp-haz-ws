@@ -86,10 +86,6 @@ public class HazardCurve extends HttpServlet {
 				requestData = buildRequest(request.getParameterMap());
 			} else { // process slash-delimited request
 				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
-				java.util.Iterator<String> it = params.iterator();
-				while (it.hasNext()) {
-					System.out.println(it.next());
-				}
 				if (params.size() < 6) {
 					response.getWriter().print(HAZARD_CURVE_USAGE);
 					return;
