@@ -54,10 +54,10 @@ public enum Region implements Constrained {
 	final double minlongitude;
 	final double maxlongitude;
 
-	final double minuilatitude;
-	final double maxuilatitude;
-	final double minuilongitude;
-	final double maxuilongitude;
+	final double uiminlatitude;
+	final double uimaxlatitude;
+	final double uiminlongitude;
+	final double uimaxlongitude;
 
 	final Constraints constraints;
 
