@@ -120,12 +120,16 @@ public class HazardCurve extends HttpServlet {
 
 	/* Reduce slash-delimited request */
 	private RequestData buildRequest(List<String> params) {
+		Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any")) ?
+			Optional.<Set<Imt>> absent() :
+			Optional.of(readValues(params.get(4), Imt.class));
+
 		return new RequestData(
 			readValue(params.get(0), Edition.class),
 			readValue(params.get(1), Region.class),
 			Double.valueOf(params.get(2)),
 			Double.valueOf(params.get(3)),
-			Optional.of(readValues(params.get(4), Imt.class)),
+			imts,
 			Vs30.fromValue(Double.valueOf(params.get(5))));
 	}
 
@@ -156,13 +160,13 @@ public class HazardCurve extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 * 
+	 *
 	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
 	 * because we'll only be running the most current model, as opposed to a
 	 * specific release)
-	 * 
+	 *
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 * 
+	 *
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
