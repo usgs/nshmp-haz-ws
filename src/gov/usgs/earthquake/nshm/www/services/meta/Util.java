@@ -21,7 +21,7 @@ public final class Util {
 			Function<E, String> function) {
 		return FluentIterable.from(values).transform(function).toList();
 	}
-	
+
 	static final Function<Region, String> REGION_TO_STR = new Function<Region, String>() {
 		@Override public String apply(Region region) {
 			return region.name();
@@ -59,13 +59,18 @@ public final class Util {
 				jObj.addProperty("maxlatitude", region.maxlatitude);
 				jObj.addProperty("minlongitude", region.minlongitude);
 				jObj.addProperty("maxlongitude", region.maxlongitude);
+
+				jObj.addProperty("minuilatitude", region.minuilatitude);
+				jObj.addProperty("maxuilatitude", region.maxuilatitude);
+				jObj.addProperty("minuilongitude", region.minuilongitude);
+				jObj.addProperty("maxuilongitude", region.maxuilongitude);
 			}
 
 			if (src instanceof Constrained) {
 				Constrained cSrc = (Constrained) src;
 				jObj.add("supports", context.serialize(cSrc.constraints()));
 			}
-			
+
 
 			return jObj;
 		}
@@ -79,7 +84,7 @@ public final class Util {
 			return new JsonPrimitive(dOut);
 		}
 	}
-	
+
 	/* Serialize param type enum as lowercase */
 	public static class ParamTypeSerializer implements JsonSerializer<ParamType> {
 		@Override public JsonElement serialize(ParamType paramType, Type type,
@@ -87,5 +92,5 @@ public final class Util {
 			return new JsonPrimitive(paramType.name().toLowerCase());
 		}
 	}
-	
+
 }
