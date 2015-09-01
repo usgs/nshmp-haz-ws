@@ -16,10 +16,22 @@ import java.util.EnumSet;
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
 
+	COUS(
+			"Conterminous US",
+			new double[] {24.6, 50.0},
+			new double[] {-125.0, -65.0},
+			new double[] {24.6, 50.0},
+			new double[] {-125.0, -65.0},
+			new RegionConstraints(
+				EnumSet.of(VS_760),
+				EnumSet.of(PGA, SA0P2, SA1P0))),
+
 	CEUS(
 			"Central & Eastern US",
 			new double[] {24.6, 50.0},
 			new double[] {-115.0, -65.0},
+			new double[] {24.6, 50.0},
+			new double[] {-110.0, -65.0},
 			new RegionConstraints(
 				EnumSet.of(VS_2000, VS_760),
 				EnumSet.of(PGA, SA0P2, SA1P0))),
@@ -28,35 +40,47 @@ public enum Region implements Constrained {
 			"Western US",
 			new double[] {24.6, 50.0},
 			new double[] {-125.0, -100.0},
+			new double[] {24.6, 50.0},
+			new double[] {-125.0, -115.0},
 			new RegionConstraints(
 				EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180),
-				EnumSet.of(PGA, SA0P2, SA1P0))),
-
-	COUS(
-			"Conterminous US",
-			new double[] {24.6, 50.0},
-			new double[] {-125.0, -65.0},
-			new RegionConstraints(
-				EnumSet.of(VS_760),
 				EnumSet.of(PGA, SA0P2, SA1P0)));
 
+
 	final String label;
+
 	final double minlatitude;
 	final double maxlatitude;
 	final double minlongitude;
 	final double maxlongitude;
+
+	final double minuilatitude;
+	final double maxuilatitude;
+	final double minuilongitude;
+	final double maxuilongitude;
+
 	final Constraints constraints;
 
 	private Region(
 			String label,
 			double[] latRange,
-			double[] lonRange, Constraints constraints) {
+			double[] lonRange,
+			double[] latUiRange,
+			double[] lonUiRange,
+			Constraints constraints) {
 
 		this.label = label;
+
 		this.minlatitude = latRange[0];
 		this.maxlatitude = latRange[1];
 		this.minlongitude = lonRange[0];
 		this.maxlongitude = lonRange[1];
+
+		this.minuilatitude = latUiRange[0];
+		this.maxuilatitude = latUiRange[1];
+		this.minuilongitude = lonUiRange[0];
+		this.maxuilongitude = lonUiRange[1];
+
 		this.constraints = constraints;
 	}
 
