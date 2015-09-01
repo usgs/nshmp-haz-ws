@@ -28,7 +28,7 @@ public class Metadata {
 
 		final String status = "usage";
 		final String description = "Computes hazard curve data for an input location";
-		final String syntax = "http://localhost:8080/nshmp-haz-ws/HazardCurve/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}";
+		final String syntax = "http://%s/nshmp-haz-ws/HazardCurve/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}";
 		final Parameters parameters = new Parameters();
 
 		private class Parameters {
