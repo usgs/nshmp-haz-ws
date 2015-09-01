@@ -60,10 +60,10 @@ public final class Util {
 				jObj.addProperty("minlongitude", region.minlongitude);
 				jObj.addProperty("maxlongitude", region.maxlongitude);
 
-				jObj.addProperty("minuilatitude", region.minuilatitude);
-				jObj.addProperty("maxuilatitude", region.maxuilatitude);
-				jObj.addProperty("minuilongitude", region.minuilongitude);
-				jObj.addProperty("maxuilongitude", region.maxuilongitude);
+				jObj.addProperty("uiminlatitude", region.uiminlatitude);
+				jObj.addProperty("uimaxlatitude", region.uimaxlatitude);
+				jObj.addProperty("uiminlongitude", region.uiminlongitude);
+				jObj.addProperty("uimaxlongitude", region.uimaxlongitude);
 			}
 
 			if (src instanceof Constrained) {

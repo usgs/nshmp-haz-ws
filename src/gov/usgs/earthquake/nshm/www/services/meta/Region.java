@@ -65,8 +65,8 @@ public enum Region implements Constrained {
 			String label,
 			double[] latRange,
 			double[] lonRange,
-			double[] latUiRange,
-			double[] lonUiRange,
+			double[] uiLatRange,
+			double[] uiLonRange,
 			Constraints constraints) {
 
 		this.label = label;
@@ -76,10 +76,10 @@ public enum Region implements Constrained {
 		this.minlongitude = lonRange[0];
 		this.maxlongitude = lonRange[1];
 
-		this.minuilatitude = latUiRange[0];
-		this.maxuilatitude = latUiRange[1];
-		this.minuilongitude = lonUiRange[0];
-		this.maxuilongitude = lonUiRange[1];
+		this.uiminlatitude = uiLatRange[0];
+		this.uimaxlatitude = uiLatRange[1];
+		this.uiminlongitude = uiLonRange[0];
+		this.uimaxlongitude = uiLonRange[1];
 
 		this.constraints = constraints;
 	}
