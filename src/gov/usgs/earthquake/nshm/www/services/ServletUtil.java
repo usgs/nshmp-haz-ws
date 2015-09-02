@@ -8,6 +8,7 @@ import gov.usgs.earthquake.nshm.www.services.meta.Region;
 import gov.usgs.earthquake.nshm.www.services.meta.Util;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URI;
@@ -143,8 +144,11 @@ public class ServletUtil implements ServletContextListener {
 			}
 
 			return HazardModel.load(path);
-		} catch (Exception e) {
+		} catch (URISyntaxException | MalformedURLException e) {
 			Throwables.propagate(e);
+			return null;
+		} catch (IOException iox) {
+			Throwables.propagate(iox);
 			return null;
 		}
 	}
