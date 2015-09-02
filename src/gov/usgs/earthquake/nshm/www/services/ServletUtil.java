@@ -8,13 +8,19 @@ import gov.usgs.earthquake.nshm.www.services.meta.Region;
 import gov.usgs.earthquake.nshm.www.services.meta.Util;
 import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -35,7 +41,7 @@ import com.google.gson.GsonBuilder;
 
 /**
  * Servlet utility objects and methods.
- * 
+ *
  * @author Peter Powers
  */
 @SuppressWarnings("javadoc")
@@ -54,7 +60,7 @@ public class ServletUtil implements ServletContextListener {
 	public static final Gson GSON;
 
 	static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
-	
+
 	static {
 		EXEC = newFixedThreadPool(getRuntime().availableProcessors());
 		GSON = new GsonBuilder()
@@ -74,7 +80,7 @@ public class ServletUtil implements ServletContextListener {
 	}
 
 	@Override public void contextInitialized(ServletContextEvent e) {
-		
+
 		final ServletContext context = e.getServletContext();
 
 		final LoadingCache<Model, HazardModel> modelCache = CacheBuilder.newBuilder().build(
@@ -84,7 +90,7 @@ public class ServletUtil implements ServletContextListener {
 				}
 			});
 		context.setAttribute(MODEL_CACHE_CONTEXT_ID, modelCache);
-		
+
 		// possibly fill (preload) cache
 		boolean preload = Boolean.valueOf(context.getInitParameter("preloadModels"));
 		System.out.println("preload: " + preload);
@@ -101,16 +107,52 @@ public class ServletUtil implements ServletContextListener {
 	}
 
 	private static HazardModel loadModel(ServletContext context, Model model) {
+		Path path;
+		URL url;
+		URI uri;
+		String uriString;
+		String [] uriParts;
+		FileSystem fs;
+
 		try {
-			URL url = context.getResource(model.path);
-			Path path = Paths.get(url.toURI());
+			url = context.getResource(model.path);
+			uri = new URI(url.toString().replace(" ", "%20"));
+			uriString = uri.toString();
+
+			// When the web sevice is deployed inside a WAR file (and not unpacked by
+			// the servlet container) model resources will not exist on disk as
+			// otherwise expected. In this case, load the resources directly out of
+			// the WAR file as well. This is slower, but with the preload option
+			// enabled it may be less of an issue if the models are already in memory.
+
+			if (uriString.indexOf("!") != -1) {
+				uriParts = uri.toString().split("!");
+
+				try {
+					fs = FileSystems.getFileSystem(
+							URI.create(uriParts[0]));
+				} catch (FileSystemNotFoundException fnx) {
+					fs = FileSystems.newFileSystem(
+							URI.create(uriParts[0]),
+							new HashMap<String, String>()
+					);
+				}
+
+				path = fs.getPath(uriParts[1].replaceAll("%20", " "));
+			} else {
+				path = Paths.get(uri);
+			}
+
 			return HazardModel.load(path);
 		} catch (URISyntaxException | MalformedURLException e) {
 			Throwables.propagate(e);
 			return null;
+		} catch (IOException iox) {
+			Throwables.propagate(iox);
+			return null;
 		}
 	}
-		
+
 	static String formatDate(Date d) {
 		// TODO switch to Java 8 time
 		synchronized (dateFormat) {
