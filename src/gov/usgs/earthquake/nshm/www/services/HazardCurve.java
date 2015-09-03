@@ -71,7 +71,8 @@ public class HazardCurve extends HttpServlet {
 		String pathInfo = request.getPathInfo();
 
 		if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-			response.getWriter().print(HAZARD_CURVE_USAGE);
+			response.getWriter().printf(HAZARD_CURVE_USAGE, request.getLocalName() +
+					":" + request.getLocalPort());
 			return;
 		}
 
@@ -86,7 +87,8 @@ public class HazardCurve extends HttpServlet {
 			} else { // process slash-delimited request
 				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
 				if (params.size() < 6) {
-					response.getWriter().print(HAZARD_CURVE_USAGE);
+					response.getWriter().printf(HAZARD_CURVE_USAGE,
+							request.getLocalName() + ":" + request.getLocalPort());
 					return;
 				}
 				requestData = buildRequest(params);
