@@ -11,9 +11,6 @@ import org.opensha2.geo.GeoTools;
 import org.opensha2.gmm.Imt;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * Service metadata, parameterization, and constraint strings, in JSON format.
@@ -75,7 +72,6 @@ public class Metadata {
 					EnumSet.allOf(Vs30.class));
 			}
 		}
-
 	}
 
 	public static String errorMessage(String url, Throwable e) {
@@ -92,10 +88,7 @@ public class Metadata {
 
 		private Error(String request, Throwable e) {
 			this.request = request;
-			String trace = Throwables.getStackTraceAsString(e);
-			trace = trace.replaceAll("\n", "<br/>");
-			trace = trace.replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-			this.trace = "<br/>" + trace;
+			this.trace = Throwables.getStackTraceAsString(e);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package gov.usgs.earthquake.nshm.www.services;
 
+import gov.usgs.earthquake.nshm.www.services.meta.Region;
+
 import java.nio.file.Paths;
 
 import org.opensha2.util.Parsing;
@@ -27,6 +29,10 @@ enum Model {
 		name = Parsing.join(
 			ImmutableList.of(year, "NSHM", region, "Hazard Model"),
 			Delimiter.SPACE);
+	}
+	
+	static Model valueOf(Region region, int year) {
+		return valueOf(region.name() + "_" + year);
 	}
 	
 	public static void main(String[] args) {
