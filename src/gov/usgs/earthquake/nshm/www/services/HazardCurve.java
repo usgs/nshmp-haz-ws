@@ -71,8 +71,8 @@ public class HazardCurve extends HttpServlet {
 		String pathInfo = request.getPathInfo();
 
 		if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-			response.getWriter().printf(HAZARD_CURVE_USAGE, request.getLocalName() +
-					":" + request.getLocalPort());
+			response.getWriter().printf(HAZARD_CURVE_USAGE,
+					request.getServerName() + ":" + request.getServerPort());
 			return;
 		}
 
@@ -88,7 +88,7 @@ public class HazardCurve extends HttpServlet {
 				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
 				if (params.size() < 6) {
 					response.getWriter().printf(HAZARD_CURVE_USAGE,
-							request.getLocalName() + ":" + request.getLocalPort());
+							request.getServerName() + ":" + request.getServerPort());
 					return;
 				}
 				requestData = buildRequest(params);
@@ -179,13 +179,13 @@ public class HazardCurve extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 * 
+	 *
 	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
 	 * because we'll only be running the most current model, as opposed to a
 	 * specific release)
-	 * 
+	 *
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 * 
+	 *
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
