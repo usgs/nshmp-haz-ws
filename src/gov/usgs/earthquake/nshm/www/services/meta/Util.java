@@ -21,7 +21,7 @@ public final class Util {
 			Function<E, String> function) {
 		return FluentIterable.from(values).transform(function).toList();
 	}
-	
+
 	static final Function<Region, String> REGION_TO_STR = new Function<Region, String>() {
 		@Override public String apply(Region region) {
 			return region.name();
@@ -46,12 +46,13 @@ public final class Util {
 				JsonSerializationContext context) {
 
 			String value = (src instanceof Vs30) ? src.name().substring(3) : src.name();
+			int displayOrder = (src instanceof Edition) ? ((Edition) src).displayOrder : src.ordinal();
 
 			JsonObject jObj = new JsonObject();
 			jObj.addProperty("id", src.ordinal());
 			jObj.addProperty("value", value);
 			jObj.addProperty("display", src.toString());
-			jObj.addProperty("displayOrder", src.ordinal());
+			jObj.addProperty("displayorder", displayOrder);
 
 			if (src instanceof Region) {
 				Region region = (Region) src;
@@ -59,13 +60,18 @@ public final class Util {
 				jObj.addProperty("maxlatitude", region.maxlatitude);
 				jObj.addProperty("minlongitude", region.minlongitude);
 				jObj.addProperty("maxlongitude", region.maxlongitude);
+
+				jObj.addProperty("uiminlatitude", region.uiminlatitude);
+				jObj.addProperty("uimaxlatitude", region.uimaxlatitude);
+				jObj.addProperty("uiminlongitude", region.uiminlongitude);
+				jObj.addProperty("uimaxlongitude", region.uimaxlongitude);
 			}
 
 			if (src instanceof Constrained) {
 				Constrained cSrc = (Constrained) src;
 				jObj.add("supports", context.serialize(cSrc.constraints()));
 			}
-			
+
 
 			return jObj;
 		}
@@ -79,7 +85,7 @@ public final class Util {
 			return new JsonPrimitive(dOut);
 		}
 	}
-	
+
 	/* Serialize param type enum as lowercase */
 	public static class ParamTypeSerializer implements JsonSerializer<ParamType> {
 		@Override public JsonElement serialize(ParamType paramType, Type type,
@@ -87,5 +93,5 @@ public final class Util {
 			return new JsonPrimitive(paramType.name().toLowerCase());
 		}
 	}
-	
+
 }
