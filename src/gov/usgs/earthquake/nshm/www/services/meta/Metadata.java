@@ -11,9 +11,6 @@ import org.opensha2.geo.GeoTools;
 import org.opensha2.gmm.Imt;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * Service metadata, parameterization, and constraint strings, in JSON format.
@@ -28,7 +25,7 @@ public class Metadata {
 
 		final String status = "usage";
 		final String description = "Computes hazard curve data for an input location";
-		final String syntax = "http://localhost:8080/nshmp-haz-ws/HazardCurve/edition/region/lon/lat/imt/vs30";
+		final String syntax = "http://localhost:8080/nshmp-haz-ws/HazardCurve/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}";
 		final Parameters parameters = new Parameters();
 
 		private class Parameters {
@@ -75,7 +72,6 @@ public class Metadata {
 					EnumSet.allOf(Vs30.class));
 			}
 		}
-
 	}
 
 	public static String errorMessage(String url, Throwable e) {
@@ -92,10 +88,7 @@ public class Metadata {
 
 		private Error(String request, Throwable e) {
 			this.request = request;
-			String trace = Throwables.getStackTraceAsString(e);
-			trace = trace.replaceAll("\n", "<br/>");
-			trace = trace.replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-			this.trace = "<br/>" + trace;
+			this.trace = Throwables.getStackTraceAsString(e);
 		}
 	}
 

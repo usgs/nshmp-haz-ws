@@ -13,6 +13,7 @@ import static gov.usgs.earthquake.nshm.www.services.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_CURVE_USAGE;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
+import static org.opensha2.calc.Results.totalsByType;
 import static org.opensha2.programs.HazardCurve.calc;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
@@ -20,9 +21,9 @@ import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -35,7 +36,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.HazardResult;
-import org.opensha2.calc.Results;
 import org.opensha2.calc.Site;
 import org.opensha2.data.ArrayXY_Sequence;
 import org.opensha2.eq.model.HazardModel;
@@ -48,7 +48,6 @@ import org.opensha2.util.Parsing.Delimiter;
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * Hazard curve service.
@@ -92,7 +91,7 @@ public class HazardCurve extends HttpServlet {
 				}
 				requestData = buildRequest(params);
 			}
-			Result result = processCalculation(url, requestData);
+			Result result = process(url, requestData);
 
 			String resultStr = ServletUtil.GSON.toJson(result);
 			response.getWriter().print(resultStr);
@@ -120,37 +119,59 @@ public class HazardCurve extends HttpServlet {
 
 	/* Reduce slash-delimited request */
 	private RequestData buildRequest(List<String> params) {
+		Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any")) ?
+			Optional.<Set<Imt>> absent() :
+			Optional.of(readValues(params.get(4), Imt.class));
+
 		return new RequestData(
 			readValue(params.get(0), Edition.class),
 			readValue(params.get(1), Region.class),
 			Double.valueOf(params.get(2)),
 			Double.valueOf(params.get(3)),
-			Optional.of(readValues(params.get(4), Imt.class)),
+			imts,
 			Vs30.fromValue(Double.valueOf(params.get(5))));
 	}
 
-	private Result processCalculation(String url, RequestData data) {
-		String modelStr = data.region.name() + "_" + data.edition.year();
-		Model modelId = Model.valueOf(modelStr);
-
-		@SuppressWarnings("unchecked")
-		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
-			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
-		// TODO improve or log; should be using get(id) instead (checked)
-		HazardModel model = modelCache.getUnchecked(modelId);
+	private Result process(String url, RequestData data) {
 
 		Location loc = Location.create(data.latitude, data.longitude);
 		Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
 
-		// calculate
+		Result.Builder resultBuilder = new Result.Builder()
+			.requestData(data)
+			.url(url);
+
+		if (data.region == Region.COUS) {
+
+			Model wusId = Model.valueOf(Region.WUS, data.edition.year());
+			HazardResult wusResult = process(wusId, site, data);
+			resultBuilder.addResult(wusResult);
+
+			Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
+			HazardResult ceusResult = process(ceusId, site, data);
+			resultBuilder.addResult(ceusResult);
+
+		} else {
+			Model modelId = Model.valueOf(data.region, data.edition.year());
+			HazardResult result = process(modelId, site, data);
+			resultBuilder.addResult(result);
+		}
+
+		return resultBuilder.build();
+	}
+
+	private HazardResult process(Model modelId, Site site, RequestData data) {
+		@SuppressWarnings("unchecked")
+		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
+			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
+
+		// TODO should be using checked get(id)
+		HazardModel model = modelCache.getUnchecked(modelId);
 		Builder configBuilder = CalcConfig.builder().copy(model.config());
 		if (data.imts.isPresent()) configBuilder.imts(data.imts.get());
 		CalcConfig config = configBuilder.build();
-
 		Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
-		HazardResult hazResult = calc(model, config, site, executor);
-
-		return new Result(url, data, hazResult);
+		return calc(model, config, site, executor);
 	}
 
 	/*
@@ -237,6 +258,8 @@ public class HazardCurve extends HttpServlet {
 		}
 	}
 
+	private static final String TOTAL_KEY = "Total";
+
 	private static class Result {
 
 		final String status = "success";
@@ -244,39 +267,103 @@ public class HazardCurve extends HttpServlet {
 		final String url;
 		final List<Response> response;
 
-		Result(String url, RequestData requestData, HazardResult hazResult) {
-
+		Result(String url, List<Response> response) {
 			this.url = url;
+			this.response = response;
+		}
 
-			ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+		static final class Builder {
 
-			Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotals =
-				Results.totalsByType(hazResult);
+			private String url;
+			private RequestData request;
 
-			for (Entry<Imt, ArrayXY_Sequence> imtTotal : hazResult.curves().entrySet()) {
-				Imt imt = imtTotal.getKey();
-				ArrayXY_Sequence sequence = imtTotal.getValue();
-				ImmutableList.Builder<Curve> typeCurvesBuilder = ImmutableList.builder();
+			Map<Imt, Map<SourceType, ArrayXY_Sequence>> componentMaps = new EnumMap<>(Imt.class);
+			Map<Imt, ArrayXY_Sequence> totalMap = new EnumMap<>(Imt.class);
+			Map<Imt, List<Double>> xValuesLinearMap = new EnumMap<>(Imt.class);
 
-				// total curve
-				Curve totalCurve = new Curve("Total", sequence.yValues());
-				typeCurvesBuilder.add(totalCurve);
+			Builder addResult(HazardResult hazardResult) {
 
-				// component curves
-				for (Entry<SourceType, ArrayXY_Sequence> typeTotal : typeTotals.get(imt).entrySet()) {
-					String component = typeTotal.getKey().toString();
-					Curve componentCurve = new Curve(component, typeTotal.getValue().yValues());
-					typeCurvesBuilder.add(componentCurve);
+				Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotalMaps =
+					totalsByType(hazardResult);
+
+				for (Imt imt : hazardResult.curves().keySet()) {
+
+					// total curve
+					addOrPut(totalMap, imt, hazardResult.curves().get(imt));
+
+					// component curves
+					Map<SourceType, ArrayXY_Sequence> typeTotalMap = typeTotalMaps.get(imt);
+					Map<SourceType, ArrayXY_Sequence> componentMap = componentMaps.get(imt);
+					if (componentMap == null) {
+						componentMap = new EnumMap<>(SourceType.class);
+						componentMaps.put(imt, componentMap);
+					}
+
+					for (SourceType type : typeTotalMap.keySet()) {
+						addOrPut(componentMap, type, typeTotalMap.get(type));
+					}
+
+					xValuesLinearMap.put(imt, hazardResult.config().modelCurve(imt).xValues());
 				}
-
-				// metadata
-				List<Double> xValsLinear = hazResult.config().modelCurve(imt).xValues();
-				ResponseData rData = new ResponseData(requestData, imt, xValsLinear);
-				Response r = new Response(rData, typeCurvesBuilder.build());
-				responseListBuilder.add(r);
+				return this;
 			}
 
-			this.response = responseListBuilder.build();
+			Builder url(String url) {
+				this.url = url;
+				return this;
+			}
+
+			Builder requestData(RequestData request) {
+				this.request = request;
+				return this;
+			}
+
+			Result build() {
+
+				ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+
+				for (Imt imt : totalMap.keySet()) {
+
+					ResponseData responseData = new ResponseData(
+						request,
+						imt,
+						xValuesLinearMap.get(imt));
+
+					ImmutableList.Builder<Curve> curveListBuilder = ImmutableList.builder();
+
+					// total curve
+					Curve totalCurve = new Curve(
+						TOTAL_KEY,
+						totalMap.get(imt).yValues());
+					curveListBuilder.add(totalCurve);
+
+					// component curves
+					Map<SourceType, ArrayXY_Sequence> typeMap = componentMaps.get(imt);
+					for (SourceType type : typeMap.keySet()) {
+						Curve curve = new Curve(
+							type.toString(),
+							typeMap.get(type).yValues());
+						curveListBuilder.add(curve);
+					}
+
+					Response response = new Response(responseData, curveListBuilder.build());
+					responseListBuilder.add(response);
+				}
+				return new Result(url, responseListBuilder.build());
+			}
+
+			private static <E extends Enum<E>> void addOrPut(
+					Map<E, ArrayXY_Sequence> map,
+					E key,
+					ArrayXY_Sequence sequence) {
+
+				if (map.containsKey(key)) {
+					map.get(key).add(sequence);
+				} else {
+					map.put(key, ArrayXY_Sequence.copyOf(sequence));
+				}
+			}
+
 		}
 	}
 
