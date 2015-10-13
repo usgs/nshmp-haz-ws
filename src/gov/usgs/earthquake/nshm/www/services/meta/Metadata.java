@@ -7,6 +7,7 @@ import gov.usgs.earthquake.nshm.www.services.ServletUtil;
 
 import java.util.EnumSet;
 
+import org.opensha2.calc.Vs30;
 import org.opensha2.geo.GeoTools;
 import org.opensha2.gmm.Imt;
 

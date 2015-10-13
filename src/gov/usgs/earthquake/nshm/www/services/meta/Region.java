@@ -1,12 +1,12 @@
 package gov.usgs.earthquake.nshm.www.services.meta;
 
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_1150;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_180;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_2000;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_259;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_360;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_537;
-import static gov.usgs.earthquake.nshm.www.services.meta.Vs30.VS_760;
+import static org.opensha2.calc.Vs30.VS_1150;
+import static org.opensha2.calc.Vs30.VS_180;
+import static org.opensha2.calc.Vs30.VS_2000;
+import static org.opensha2.calc.Vs30.VS_259;
+import static org.opensha2.calc.Vs30.VS_360;
+import static org.opensha2.calc.Vs30.VS_537;
+import static org.opensha2.calc.Vs30.VS_760;
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;

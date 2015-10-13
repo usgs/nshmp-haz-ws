@@ -3,8 +3,8 @@ package gov.usgs.earthquake.nshm.www.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opensha2.data.XY_Point;
-import org.opensha2.data.XY_Sequence;
+import org.opensha2.data.XyPoint;
+import org.opensha2.data.XySequence;
 import org.opensha2.util.Parsing;
 
 import com.google.common.primitives.Doubles;
@@ -38,7 +38,7 @@ public class XY_DataGroup {
 	}
 
 	/** Add a data sequence */
-	public XY_DataGroup add(String id, String name, XY_Sequence data) {
+	public XY_DataGroup add(String id, String name, XySequence data) {
 		series.add(new Series(id, name, data));
 		return this;
 	}
@@ -60,7 +60,7 @@ public class XY_DataGroup {
 		private final String name;
 		private final List<Double> yValues;
 
-		Series(String id, String name, XY_Sequence xy) {
+		Series(String id, String name, XySequence xy) {
 			this.id = id;
 			this.name = name;
 			this.yValues = xy.yValues();

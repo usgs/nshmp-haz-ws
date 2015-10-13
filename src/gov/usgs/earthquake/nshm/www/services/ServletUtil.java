@@ -6,7 +6,6 @@ import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.ParamType;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
 import gov.usgs.earthquake.nshm.www.services.meta.Util;
-import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,6 +28,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.opensha2.calc.Vs30;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.gmm.Imt;
 

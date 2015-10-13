@@ -17,7 +17,6 @@ import static org.opensha2.calc.Results.totalsByType;
 import static org.opensha2.programs.HazardCurve.calc;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
-import gov.usgs.earthquake.nshm.www.services.meta.Vs30;
 
 import java.io.IOException;
 import java.util.Date;
@@ -37,7 +36,8 @@ import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.HazardResult;
 import org.opensha2.calc.Site;
-import org.opensha2.data.ArrayXY_Sequence;
+import org.opensha2.calc.Vs30;
+import org.opensha2.data.XySequence;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.eq.model.SourceType;
 import org.opensha2.geo.Location;
@@ -279,13 +279,13 @@ public class HazardCurve extends HttpServlet {
 			private String url;
 			private RequestData request;
 
-			Map<Imt, Map<SourceType, ArrayXY_Sequence>> componentMaps = new EnumMap<>(Imt.class);
-			Map<Imt, ArrayXY_Sequence> totalMap = new EnumMap<>(Imt.class);
+			Map<Imt, Map<SourceType, XySequence>> componentMaps = new EnumMap<>(Imt.class);
+			Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
 			Map<Imt, List<Double>> xValuesLinearMap = new EnumMap<>(Imt.class);
 
 			Builder addResult(HazardResult hazardResult) {
 
-				Map<Imt, Map<SourceType, ArrayXY_Sequence>> typeTotalMaps =
+				Map<Imt, Map<SourceType, XySequence>> typeTotalMaps =
 					totalsByType(hazardResult);
 
 				for (Imt imt : hazardResult.curves().keySet()) {
@@ -294,8 +294,8 @@ public class HazardCurve extends HttpServlet {
 					addOrPut(totalMap, imt, hazardResult.curves().get(imt));
 
 					// component curves
-					Map<SourceType, ArrayXY_Sequence> typeTotalMap = typeTotalMaps.get(imt);
-					Map<SourceType, ArrayXY_Sequence> componentMap = componentMaps.get(imt);
+					Map<SourceType, XySequence> typeTotalMap = typeTotalMaps.get(imt);
+					Map<SourceType, XySequence> componentMap = componentMaps.get(imt);
 					if (componentMap == null) {
 						componentMap = new EnumMap<>(SourceType.class);
 						componentMaps.put(imt, componentMap);
@@ -340,7 +340,7 @@ public class HazardCurve extends HttpServlet {
 					curveListBuilder.add(totalCurve);
 
 					// component curves
-					Map<SourceType, ArrayXY_Sequence> typeMap = componentMaps.get(imt);
+					Map<SourceType, XySequence> typeMap = componentMaps.get(imt);
 					for (SourceType type : typeMap.keySet()) {
 						Curve curve = new Curve(
 							type.toString(),
@@ -355,14 +355,14 @@ public class HazardCurve extends HttpServlet {
 			}
 
 			private static <E extends Enum<E>> void addOrPut(
-					Map<E, ArrayXY_Sequence> map,
+					Map<E, XySequence> map,
 					E key,
-					ArrayXY_Sequence sequence) {
+					XySequence sequence) {
 
 				if (map.containsKey(key)) {
 					map.get(key).add(sequence);
 				} else {
-					map.put(key, ArrayXY_Sequence.copyOf(sequence));
+					map.put(key, XySequence.copyOf(sequence));
 				}
 			}
 
