@@ -58,7 +58,9 @@ svg {
 <script src="js/d3.min.js"></script>
 <script>
 
-var pp = {"ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"],"input":{"rate":0.0,"Mw":6.5,"rJB":10.0,"rRup":10.3,"rX":10.0,"dip":90.0,"width":14.0,"zTop":0.5,"zHyp":7.5,"rake":0.0,"vs30":760.0,"vsInf":true,"z2p5":NaN,"z1p0":NaN}};
+// var pp = {"ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"],"input":{"rate":0.0,"Mw":6.5,"rJB":10.0,"rRup":10.3,"rX":10.0,"dip":90.0,"width":14.0,"zTop":0.5,"zHyp":7.5,"rake":0.0,"vs30":760.0,"vsInf":true,"z2p5":NaN,"z1p0":NaN}};
+
+var pp = "http://localhost:8080/nshmp-haz-ws/DeterministicSpectra?ids=ZHAO_06_INTER,BCHYDRO_12_INTER,AM_09_INTER&mag=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
 
 var margin = {top: 10, right: 10, bottom: 40, left: 50},
     width = parseInt(d3.select("#plot").style("width")) - margin.left - margin.right, // 640,
@@ -102,9 +104,9 @@ var svg = d3.select("#plot")
 var seriesNames = [];
 var seriesData = [];
 
-d3.json("DeterministicSpectra")
+d3.json(pp, function(error, response) {
 //.header("Content-Type", "application/json")
-	.post(JSON.stringify(pp), function(error, response) {
+	// .post(JSON.stringify(pp), function(error, response) {
 		
 // 	document.getElementsByTagName('body')[0].innerHTML +=  JSON.stringify(response);
 	

@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshm.www.services.meta;
 import java.util.List;
 import java.util.Set;
 
+import org.opensha2.calc.Vs30;
 import org.opensha2.gmm.Imt;
 
 @SuppressWarnings("javadoc")
