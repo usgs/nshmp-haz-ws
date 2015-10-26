@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.opensha2.data.DataUtils;
+import org.opensha2.data.Data;
 import org.opensha2.gmm.Gmm;
 import org.opensha2.gmm.GmmInput;
 import org.opensha2.gmm.GmmInput.Builder;
@@ -198,7 +198,7 @@ public class DeterministicSpectra extends HttpServlet {
 		for (Gmm gmm : result.meanMap.keySet()) {
 			// result contains immutable lists so copy in order to modify
 			response.means.add(gmm.name(), gmm.toString(),
-				DataUtils.exp(new ArrayList<>(result.meanMap.get(gmm))));
+				Data.exp(new ArrayList<>(result.meanMap.get(gmm))));
 			response.sigmas.add(gmm.name(), gmm.toString(), result.sigmaMap.get(gmm));
 		}
 		return response;
