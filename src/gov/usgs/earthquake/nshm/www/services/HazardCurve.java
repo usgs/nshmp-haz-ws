@@ -14,7 +14,7 @@ import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_CURVE_USAGE;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
 import static org.opensha2.calc.Results.totalsByType;
-import static org.opensha2.programs.HazardCurve.calc;
+import static org.opensha2.programs.HazardCalc.calc;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
 

@@ -26,7 +26,7 @@ import static org.opensha2.gmm.GmmInput.Field.Z1P0;
 import static org.opensha2.gmm.GmmInput.Field.Z2P5;
 import static org.opensha2.gmm.GmmInput.Field.ZHYP;
 import static org.opensha2.gmm.GmmInput.Field.ZTOP;
-import static org.opensha2.programs.DeterministicSpectra.spectra;
+import static org.opensha2.programs.ResponseSpectra.spectra;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -47,7 +47,7 @@ import org.opensha2.gmm.Gmm;
 import org.opensha2.gmm.GmmInput;
 import org.opensha2.gmm.GmmInput.Builder;
 import org.opensha2.gmm.GmmInput.Field;
-import org.opensha2.programs.DeterministicSpectra.MultiResult;
+import org.opensha2.programs.ResponseSpectra.MultiResult;
 import org.opensha2.util.Parsing;
 import org.opensha2.util.Parsing.Delimiter;
 
