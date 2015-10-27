@@ -22,7 +22,8 @@ class Util {
 		VS30,
 		LATITUDE,
 		LONGITUDE,
-		IMT;
+		IMT,
+		RETURNPERIOD;
 
 		private String label;
 

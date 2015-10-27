@@ -10,14 +10,16 @@ import static gov.usgs.earthquake.nshm.www.services.Util.Key.IMT;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.REGION;
+import static gov.usgs.earthquake.nshm.www.services.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
-import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.HAZARD_USAGE;
+import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.DEAGG_USAGE;
 import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
 import static org.opensha2.calc.Results.totalsByType;
 import gov.usgs.earthquake.nshm.www.services.meta.Edition;
 import gov.usgs.earthquake.nshm.www.services.meta.Region;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
@@ -33,7 +35,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
+import org.opensha2.calc.Calcs;
+import org.opensha2.calc.Deaggregation;
+import org.opensha2.calc.Deaggregation.Exporter;
 import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.ReturnPeriod;
 import org.opensha2.calc.Site;
 import org.opensha2.calc.Vs30;
 import org.opensha2.data.XySequence;
@@ -48,6 +54,8 @@ import org.opensha2.util.Parsing.Delimiter;
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * Hazard curve service.
@@ -55,12 +63,12 @@ import com.google.common.collect.ImmutableList;
  */
 @SuppressWarnings("unused")
 @WebServlet(
-		name = "Hazard Curve Service",
-		description = "USGS NSHMP Hazard Curve Calculator",
+		name = "Hazard Deaggregation Service",
+		description = "USGS NSHMP Hazard Deaggregator",
 		urlPatterns = {
-			"/HazardCurve",
-			"/HazardCurve/*" })
-public class HazardCurve extends HttpServlet {
+			"/Deagg",
+			"/Deagg/*" })
+public class Deagg extends HttpServlet {
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -71,8 +79,8 @@ public class HazardCurve extends HttpServlet {
 		String pathInfo = request.getPathInfo();
 
 		if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-			response.getWriter().printf(HAZARD_USAGE,
-					request.getServerName() + ":" + request.getServerPort());
+			response.getWriter().printf(DEAGG_USAGE,
+				request.getServerName() + ":" + request.getServerPort());
 			return;
 		}
 
@@ -86,9 +94,9 @@ public class HazardCurve extends HttpServlet {
 				requestData = buildRequest(request.getParameterMap());
 			} else { // process slash-delimited request
 				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
-				if (params.size() < 6) {
-					response.getWriter().printf(HAZARD_USAGE,
-							request.getServerName() + ":" + request.getServerPort());
+				if (params.size() < 7) {
+					response.getWriter().printf(DEAGG_USAGE,
+						request.getServerName() + ":" + request.getServerPort());
 					return;
 				}
 				requestData = buildRequest(params);
@@ -106,32 +114,26 @@ public class HazardCurve extends HttpServlet {
 
 	/* Reduce query string key-value pairs */
 	private RequestData buildRequest(Map<String, String[]> paramMap) {
-		Optional<Set<Imt>> imts = paramMap.containsKey(IMT.toString()) ?
-			Optional.of(readValues(paramMap, IMT, Imt.class)) :
-			Optional.<Set<Imt>> absent();
-
 		return new RequestData(
 			readValue(paramMap, EDITION, Edition.class),
 			readValue(paramMap, REGION, Region.class),
 			readDoubleValue(paramMap, LONGITUDE),
 			readDoubleValue(paramMap, LATITUDE),
-			imts,
-			Vs30.fromValue(readDoubleValue(paramMap, VS30)));
+			readValue(paramMap, IMT, Imt.class),
+			Vs30.fromValue(readDoubleValue(paramMap, VS30)),
+			readDoubleValue(paramMap, RETURNPERIOD));
 	}
 
 	/* Reduce slash-delimited request */
 	private RequestData buildRequest(List<String> params) {
-		Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any")) ?
-			Optional.<Set<Imt>> absent() :
-			Optional.of(readValues(params.get(4), Imt.class));
-
 		return new RequestData(
 			readValue(params.get(0), Edition.class),
 			readValue(params.get(1), Region.class),
 			Double.valueOf(params.get(2)),
 			Double.valueOf(params.get(3)),
-			imts,
-			Vs30.fromValue(Double.valueOf(params.get(5))));
+			readValue(params.get(4), Imt.class),
+			Vs30.fromValue(Double.valueOf(params.get(5))),
+			Double.valueOf(params.get(6)));
 	}
 
 	private Result process(String url, RequestData data) {
@@ -147,16 +149,19 @@ public class HazardCurve extends HttpServlet {
 
 			Model wusId = Model.valueOf(Region.WUS, data.edition.year());
 			HazardResult wusResult = process(wusId, site, data);
-			resultBuilder.addResult(wusResult);
+			Deaggregation wusDeagg = Calcs.deaggregation(wusResult, data.returnPeriod);
+			resultBuilder.addResult(wusDeagg);
 
 			Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
 			HazardResult ceusResult = process(ceusId, site, data);
-			resultBuilder.addResult(ceusResult);
+			Deaggregation ceusDeagg = Calcs.deaggregation(ceusResult, data.returnPeriod);
+			resultBuilder.addResult(ceusDeagg);
 
 		} else {
 			Model modelId = Model.valueOf(data.region, data.edition.year());
 			HazardResult result = process(modelId, site, data);
-			resultBuilder.addResult(result);
+			Deaggregation deagg = Calcs.deaggregation(result, data.returnPeriod);
+			resultBuilder.addResult(deagg);
 		}
 
 		return resultBuilder.build();
@@ -169,8 +174,9 @@ public class HazardCurve extends HttpServlet {
 
 		// TODO should be using checked get(id)
 		HazardModel model = modelCache.getUnchecked(modelId);
-		Builder configBuilder = CalcConfig.builder().copy(model.config());
-		if (data.imts.isPresent()) configBuilder.imts(data.imts.get());
+		Builder configBuilder = CalcConfig.builder()
+			.copy(model.config())
+			.imts(ImmutableSet.of(data.imt));
 		CalcConfig config = configBuilder.build();
 		Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
 		return HazardCalc.calc(model, config, site, executor);
@@ -179,13 +185,13 @@ public class HazardCurve extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 *
+	 * 
 	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
 	 * because we'll only be running the most current model, as opposed to a
 	 * specific release)
-	 *
+	 * 
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 *
+	 * 
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
@@ -195,23 +201,26 @@ public class HazardCurve extends HttpServlet {
 		final Region region;
 		final double latitude;
 		final double longitude;
-		final Optional<Set<Imt>> imts;
+		final Imt imt;
 		final Vs30 vs30;
+		final double returnPeriod;
 
 		private RequestData(
 				Edition edition,
 				Region region,
 				double longitude,
 				double latitude,
-				Optional<Set<Imt>> imts,
-				Vs30 vs30) {
+				Imt imt,
+				Vs30 vs30,
+				double returnPeriod) {
 
 			this.edition = edition;
 			this.region = region;
 			this.latitude = latitude;
 			this.longitude = longitude;
-			this.imts = imts;
+			this.imt = imt;
 			this.vs30 = vs30;
+			this.returnPeriod = returnPeriod;
 		}
 	}
 
@@ -222,41 +231,41 @@ public class HazardCurve extends HttpServlet {
 		final double latitude;
 		final double longitude;
 		final Imt imt;
+		final double returnperiod;
 		final Vs30 vs30;
-		final String xlabel = "Ground Motion (g)";
-		final String ylabel = "Annual Frequency of Exceedence";
-		final List<Double> xvalues;
+		final String xlabel = "Closest Distance, rRup (km)";
+		final String ylabel = "Magnitude (Mw)";
+		final String zlabel = "% Contribution to Hazard";
+		final List<List<Double>> εbins;
 
-		ResponseData(RequestData request, Imt imt, List<Double> xvalues) {
+		ResponseData(RequestData request, Imt imt) {
 			this.edition = request.edition;
 			this.region = request.region;
 			this.longitude = request.longitude;
 			this.latitude = request.latitude;
 			this.imt = imt;
+			this.returnperiod = request.returnPeriod;
 			this.vs30 = request.vs30;
-			this.xvalues = xvalues;
+			
+			this.εbins = new ArrayList<List<Double>>();
+			double[] εCutoffs = {-3, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
+//			double εDelta = 0.5;
+			for (int i=0; i<εCutoffs.length - 1; i++) {
+				Double lo = (εCutoffs[i] == -3.0) ? null : εCutoffs[i];
+				Double hi = (εCutoffs[i+1] == 3.0) ? null : εCutoffs[i+1];
+				this.εbins.add(Lists.newArrayList(lo, hi));
+			}
 		}
 	}
 
 	private final static class Response {
 
 		final ResponseData metadata;
-		final List<Curve> data;
+		final List<Exporter> data;
 
-		Response(ResponseData metadata, List<Curve> data) {
+		Response(ResponseData metadata, List<Exporter> data) {
 			this.metadata = metadata;
 			this.data = data;
-		}
-	}
-
-	private final static class Curve {
-
-		final String component;
-		final List<Double> yvalues;
-
-		Curve(String component, List<Double> yvalues) {
-			this.component = component;
-			this.yvalues = yvalues;
 		}
 	}
 
@@ -279,35 +288,44 @@ public class HazardCurve extends HttpServlet {
 			private String url;
 			private RequestData request;
 
-			Map<Imt, Map<SourceType, XySequence>> componentMaps = new EnumMap<>(Imt.class);
-			Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
-			Map<Imt, List<Double>> xValuesLinearMap = new EnumMap<>(Imt.class);
+			// Map<Imt, Map<SourceType, XySequence>> componentMaps = new
+			// EnumMap<>(Imt.class);
+			// Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
+			// Map<Imt, List<Double>> xValuesLinearMap = new
+			// EnumMap<>(Imt.class);
 
-			Builder addResult(HazardResult hazardResult) {
+			private Deaggregation deagg;
 
-				Map<Imt, Map<SourceType, XySequence>> typeTotalMaps =
-					totalsByType(hazardResult);
-
-				for (Imt imt : hazardResult.curves().keySet()) {
-
-					// total curve
-					addOrPut(totalMap, imt, hazardResult.curves().get(imt));
-
-					// component curves
-					Map<SourceType, XySequence> typeTotalMap = typeTotalMaps.get(imt);
-					Map<SourceType, XySequence> componentMap = componentMaps.get(imt);
-					if (componentMap == null) {
-						componentMap = new EnumMap<>(SourceType.class);
-						componentMaps.put(imt, componentMap);
-					}
-
-					for (SourceType type : typeTotalMap.keySet()) {
-						addOrPut(componentMap, type, typeTotalMap.get(type));
-					}
-
-					xValuesLinearMap.put(imt, hazardResult.config().modelCurve(imt).xValues());
-				}
+			Builder addResult(Deaggregation deagg) {
+				this.deagg = deagg;
 				return this;
+
+				// // Map<Imt, Map<SourceType, XySequence>> typeTotalMaps =
+				// // totalsByType(hazardResult);
+				//
+				// for (Imt imt : hazardResult.curves().keySet()) {
+				//
+				// // total curve
+				// addOrPut(totalMap, imt, hazardResult.curves().get(imt));
+				//
+				// // component curves
+				// Map<SourceType, XySequence> typeTotalMap =
+				// typeTotalMaps.get(imt);
+				// Map<SourceType, XySequence> componentMap =
+				// componentMaps.get(imt);
+				// if (componentMap == null) {
+				// componentMap = new EnumMap<>(SourceType.class);
+				// componentMaps.put(imt, componentMap);
+				// }
+				//
+				// for (SourceType type : typeTotalMap.keySet()) {
+				// addOrPut(componentMap, type, typeTotalMap.get(type));
+				// }
+				//
+				// xValuesLinearMap.put(imt,
+				// hazardResult.config().modelCurve(imt).xValues());
+				// }
+				// return this;
 			}
 
 			Builder url(String url) {
@@ -323,35 +341,38 @@ public class HazardCurve extends HttpServlet {
 			Result build() {
 
 				ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+				//
+				// for (Imt imt : totalMap.keySet()) {
+				//
+				ResponseData responseData = new ResponseData(
+					request,
+					request.imt);
+				//
+				ImmutableList.Builder<Exporter> curveListBuilder = ImmutableList.builder();
+				//
+				// // total curve
+				// Curve totalCurve = new Curve(
+				// TOTAL_KEY,
+				// totalMap.get(imt).yValues());
+				// curveListBuilder.add(totalCurve);
+				//
+				// // component curves
+				// Map<SourceType, XySequence> typeMap = componentMaps.get(imt);
+				// for (SourceType type : typeMap.keySet()) {
+				// Curve curve = new Curve(
+				// type.toString(),
+				// typeMap.get(type).yValues());
+				// curveListBuilder.add(curve);
+				// }
+				curveListBuilder.add(deagg.export(request.imt));
+				
+				//
+				Response response = new Response(responseData, curveListBuilder.build());
+				responseListBuilder.add(response);
 
-				for (Imt imt : totalMap.keySet()) {
-
-					ResponseData responseData = new ResponseData(
-						request,
-						imt,
-						xValuesLinearMap.get(imt));
-
-					ImmutableList.Builder<Curve> curveListBuilder = ImmutableList.builder();
-
-					// total curve
-					Curve totalCurve = new Curve(
-						TOTAL_KEY,
-						totalMap.get(imt).yValues());
-					curveListBuilder.add(totalCurve);
-
-					// component curves
-					Map<SourceType, XySequence> typeMap = componentMaps.get(imt);
-					for (SourceType type : typeMap.keySet()) {
-						Curve curve = new Curve(
-							type.toString(),
-							typeMap.get(type).yValues());
-						curveListBuilder.add(curve);
-					}
-
-					Response response = new Response(responseData, curveListBuilder.build());
-					responseListBuilder.add(response);
-				}
-				return new Result(url, responseListBuilder.build());
+				return new Result(
+					url,
+					responseListBuilder.build());
 			}
 
 			private static <E extends Enum<E>> void addOrPut(
