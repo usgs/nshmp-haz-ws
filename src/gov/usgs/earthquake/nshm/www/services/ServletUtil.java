@@ -93,7 +93,7 @@ public class ServletUtil implements ServletContextListener {
 
 		// possibly fill (preload) cache
 		boolean preload = Boolean.valueOf(context.getInitParameter("preloadModels"));
-		System.out.println("preload: " + preload);
+//		System.out.println("preload: " + preload);
 
 		if (preload) {
 			for (final Model model : Model.values()) {
