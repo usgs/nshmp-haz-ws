@@ -233,9 +233,9 @@ public class Deagg extends HttpServlet {
 		final Imt imt;
 		final double returnperiod;
 		final Vs30 vs30;
-		final String xlabel = "Closest Distance, rRup (km)";
-		final String ylabel = "Magnitude (Mw)";
-		final String zlabel = "% Contribution to Hazard";
+		final String rlabel = "Closest Distance, rRup (km)";
+		final String mlabel = "Magnitude (Mw)";
+		final String εlabel = "% Contribution to Hazard";
 		final List<?> εbins;
 
 		ResponseData(Deaggregation deagg, RequestData request, Imt imt) {
