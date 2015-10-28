@@ -58,9 +58,9 @@ import com.google.common.collect.ImmutableList;
 		name = "Hazard Curve Service",
 		description = "USGS NSHMP Hazard Curve Calculator",
 		urlPatterns = {
-			"/HazardCurve",
-			"/HazardCurve/*" })
-public class HazardCurve extends HttpServlet {
+			"/hazard",
+			"/hazard/*" })
+public class Hazard extends HttpServlet {
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
