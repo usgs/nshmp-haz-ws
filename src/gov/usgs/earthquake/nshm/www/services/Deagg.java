@@ -66,8 +66,8 @@ import com.google.common.collect.Lists;
 		name = "Hazard Deaggregation Service",
 		description = "USGS NSHMP Hazard Deaggregator",
 		urlPatterns = {
-			"/Deagg",
-			"/Deagg/*" })
+			"/deagg",
+			"/deagg/*" })
 public class Deagg extends HttpServlet {
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
