@@ -236,9 +236,9 @@ public class Deagg extends HttpServlet {
 		final String xlabel = "Closest Distance, rRup (km)";
 		final String ylabel = "Magnitude (Mw)";
 		final String zlabel = "% Contribution to Hazard";
-		final List<List<Double>> εbins;
+		final List<?> εbins;
 
-		ResponseData(RequestData request, Imt imt) {
+		ResponseData(Deaggregation deagg, RequestData request, Imt imt) {
 			this.edition = request.edition;
 			this.region = request.region;
 			this.longitude = request.longitude;
@@ -247,14 +247,15 @@ public class Deagg extends HttpServlet {
 			this.returnperiod = request.returnPeriod;
 			this.vs30 = request.vs30;
 			
-			this.εbins = new ArrayList<List<Double>>();
-			double[] εCutoffs = {-3, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
-//			double εDelta = 0.5;
-			for (int i=0; i<εCutoffs.length - 1; i++) {
-				Double lo = (εCutoffs[i] == -3.0) ? null : εCutoffs[i];
-				Double hi = (εCutoffs[i+1] == 3.0) ? null : εCutoffs[i+1];
-				this.εbins.add(Lists.newArrayList(lo, hi));
-			}
+			this.εbins = deagg.εBins();
+//					new ArrayList<List<Double>>();
+//			double[] εCutoffs = {-3, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
+////			double εDelta = 0.5;
+//			for (int i=0; i<εCutoffs.length - 1; i++) {
+//				Double lo = (εCutoffs[i] == -3.0) ? null : εCutoffs[i];
+//				Double hi = (εCutoffs[i+1] == 3.0) ? null : εCutoffs[i+1];
+//				this.εbins.add(Lists.newArrayList(lo, hi));
+//			}
 		}
 	}
 
@@ -345,6 +346,7 @@ public class Deagg extends HttpServlet {
 				// for (Imt imt : totalMap.keySet()) {
 				//
 				ResponseData responseData = new ResponseData(
+					deagg,
 					request,
 					request.imt);
 				//

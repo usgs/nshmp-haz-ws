@@ -71,6 +71,7 @@ public class ServletUtil implements ServletContextListener {
 			.registerTypeAdapter(Double.class, new Util.DoubleSerializer())
 			.registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
 			.disableHtmlEscaping()
+			.serializeNulls()
 			.setPrettyPrinting()
 			.create();
 	}
