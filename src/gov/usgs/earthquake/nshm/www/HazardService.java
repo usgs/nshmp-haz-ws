@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.Hazard;
 import org.opensha2.calc.Site;
 import org.opensha2.calc.Vs30;
 import org.opensha2.data.XySequence;
@@ -146,23 +146,23 @@ public class HazardService extends HttpServlet {
 		if (data.region == Region.COUS) {
 
 			Model wusId = Model.valueOf(Region.WUS, data.edition.year());
-			HazardResult wusResult = process(wusId, site, data);
+			Hazard wusResult = process(wusId, site, data);
 			resultBuilder.addResult(wusResult);
 
 			Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
-			HazardResult ceusResult = process(ceusId, site, data);
+			Hazard ceusResult = process(ceusId, site, data);
 			resultBuilder.addResult(ceusResult);
 
 		} else {
 			Model modelId = Model.valueOf(data.region, data.edition.year());
-			HazardResult result = process(modelId, site, data);
+			Hazard result = process(modelId, site, data);
 			resultBuilder.addResult(result);
 		}
 
 		return resultBuilder.build();
 	}
 
-	private HazardResult process(Model modelId, Site site, RequestData data) {
+	private Hazard process(Model modelId, Site site, RequestData data) {
 		@SuppressWarnings("unchecked")
 		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
 			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
@@ -283,7 +283,7 @@ public class HazardService extends HttpServlet {
 			Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
 			Map<Imt, List<Double>> xValuesLinearMap = new EnumMap<>(Imt.class);
 
-			Builder addResult(HazardResult hazardResult) {
+			Builder addResult(Hazard hazardResult) {
 
 				Map<Imt, Map<SourceType, XySequence>> typeTotalMaps =
 					totalsByType(hazardResult);

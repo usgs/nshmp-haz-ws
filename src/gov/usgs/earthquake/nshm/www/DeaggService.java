@@ -38,7 +38,7 @@ import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.Calcs;
 import org.opensha2.calc.Deaggregation;
 import org.opensha2.calc.Deaggregation.Exporter;
-import org.opensha2.calc.HazardResult;
+import org.opensha2.calc.Hazard;
 import org.opensha2.calc.ReturnPeriod;
 import org.opensha2.calc.Site;
 import org.opensha2.calc.Vs30;
@@ -148,18 +148,18 @@ public class DeaggService extends HttpServlet {
 		if (data.region == Region.COUS) {
 
 			Model wusId = Model.valueOf(Region.WUS, data.edition.year());
-			HazardResult wusResult = process(wusId, site, data);
+			Hazard wusResult = process(wusId, site, data);
 			Deaggregation wusDeagg = Calcs.deaggregation(wusResult, data.returnPeriod);
 			resultBuilder.addResult(wusDeagg);
 
 			Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
-			HazardResult ceusResult = process(ceusId, site, data);
+			Hazard ceusResult = process(ceusId, site, data);
 			Deaggregation ceusDeagg = Calcs.deaggregation(ceusResult, data.returnPeriod);
 			resultBuilder.addResult(ceusDeagg);
 
 		} else {
 			Model modelId = Model.valueOf(data.region, data.edition.year());
-			HazardResult result = process(modelId, site, data);
+			Hazard result = process(modelId, site, data);
 			Deaggregation deagg = Calcs.deaggregation(result, data.returnPeriod);
 			resultBuilder.addResult(deagg);
 		}
@@ -167,7 +167,7 @@ public class DeaggService extends HttpServlet {
 		return resultBuilder.build();
 	}
 
-	private HazardResult process(Model modelId, Site site, RequestData data) {
+	private Hazard process(Model modelId, Site site, RequestData data) {
 		@SuppressWarnings("unchecked")
 		LoadingCache<Model, HazardModel> modelCache = (LoadingCache<Model, HazardModel>)
 			getServletContext().getAttribute(MODEL_CACHE_CONTEXT_ID);
