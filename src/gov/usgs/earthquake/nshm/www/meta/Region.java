@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services.meta;
+package gov.usgs.earthquake.nshm.www.meta;
 
 import static org.opensha2.calc.Vs30.VS_1150;
 import static org.opensha2.calc.Vs30.VS_180;

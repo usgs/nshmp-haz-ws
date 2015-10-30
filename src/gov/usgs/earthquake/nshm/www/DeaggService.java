@@ -1,22 +1,22 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static gov.usgs.earthquake.nshm.www.services.ServletUtil.MODEL_CACHE_CONTEXT_ID;
-import static gov.usgs.earthquake.nshm.www.services.Util.readDoubleValue;
-import static gov.usgs.earthquake.nshm.www.services.Util.readValue;
-import static gov.usgs.earthquake.nshm.www.services.Util.readValues;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.EDITION;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.IMT;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.LATITUDE;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.LONGITUDE;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.REGION;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.RETURNPERIOD;
-import static gov.usgs.earthquake.nshm.www.services.Util.Key.VS30;
-import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.DEAGG_USAGE;
-import static gov.usgs.earthquake.nshm.www.services.meta.Metadata.errorMessage;
+import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshm.www.Util.readValue;
+import static gov.usgs.earthquake.nshm.www.Util.readValues;
+import static gov.usgs.earthquake.nshm.www.Util.Key.EDITION;
+import static gov.usgs.earthquake.nshm.www.Util.Key.IMT;
+import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
+import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
+import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
+import static gov.usgs.earthquake.nshm.www.Util.Key.RETURNPERIOD;
+import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
+import static gov.usgs.earthquake.nshm.www.meta.Metadata.DEAGG_USAGE;
+import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
 import static org.opensha2.calc.Results.totalsByType;
-import gov.usgs.earthquake.nshm.www.services.meta.Edition;
-import gov.usgs.earthquake.nshm.www.services.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.Region;
 
 import java.io.IOException;
 import java.util.ArrayList;

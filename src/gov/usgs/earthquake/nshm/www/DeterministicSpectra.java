@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.opensha2.calc.Site.MAX_VS_30;

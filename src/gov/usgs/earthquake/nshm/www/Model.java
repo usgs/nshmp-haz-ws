@@ -1,6 +1,6 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
-import gov.usgs.earthquake.nshm.www.services.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Region;
 
 import java.nio.file.Paths;
 

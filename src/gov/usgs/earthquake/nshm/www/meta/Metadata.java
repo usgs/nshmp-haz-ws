@@ -1,9 +1,9 @@
-package gov.usgs.earthquake.nshm.www.services.meta;
+package gov.usgs.earthquake.nshm.www.meta;
 
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
-import gov.usgs.earthquake.nshm.www.services.ServletUtil;
+import gov.usgs.earthquake.nshm.www.ServletUtil;
 
 import java.util.EnumSet;
 

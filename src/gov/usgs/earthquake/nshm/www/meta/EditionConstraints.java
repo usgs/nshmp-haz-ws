@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services.meta;
+package gov.usgs.earthquake.nshm.www.meta;
 
 import java.util.List;
 import java.util.Set;

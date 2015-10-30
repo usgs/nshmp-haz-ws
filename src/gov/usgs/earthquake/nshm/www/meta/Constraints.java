@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services.meta;
+package gov.usgs.earthquake.nshm.www.meta;
 
 /**
  * Marker interface for supported parameter lists; individual enums provide

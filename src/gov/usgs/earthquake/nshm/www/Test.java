@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
 import java.io.IOException;
 import java.io.PrintWriter;

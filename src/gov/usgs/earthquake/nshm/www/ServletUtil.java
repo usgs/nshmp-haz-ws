@@ -1,11 +1,11 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
 import static java.lang.Runtime.getRuntime;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import gov.usgs.earthquake.nshm.www.services.meta.Edition;
-import gov.usgs.earthquake.nshm.www.services.meta.ParamType;
-import gov.usgs.earthquake.nshm.www.services.meta.Region;
-import gov.usgs.earthquake.nshm.www.services.meta.Util;
+import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.ParamType;
+import gov.usgs.earthquake.nshm.www.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Util;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
