@@ -60,7 +60,7 @@ import com.google.common.collect.ImmutableList;
 		urlPatterns = {
 			"/hazard",
 			"/hazard/*" })
-public class Hazard extends HttpServlet {
+public class HazardService extends HttpServlet {
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {

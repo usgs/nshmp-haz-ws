@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
 		urlPatterns = {
 			"/deagg",
 			"/deagg/*" })
-public class Deagg extends HttpServlet {
+public class DeaggService extends HttpServlet {
 
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {

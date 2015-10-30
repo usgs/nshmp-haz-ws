@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet implementation class Test
  */
+@Deprecated
 @WebServlet(
 		description = "HazWhiz test service", 
 		urlPatterns = { 
