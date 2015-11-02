@@ -94,7 +94,7 @@ public class ServletUtil implements ServletContextListener {
 
 		// possibly fill (preload) cache
 		boolean preload = Boolean.valueOf(context.getInitParameter("preloadModels"));
-//		System.out.println("preload: " + preload);
+		// System.out.println("preload: " + preload);
 
 		if (preload) {
 			for (final Model model : Model.values()) {
@@ -112,7 +112,7 @@ public class ServletUtil implements ServletContextListener {
 		URL url;
 		URI uri;
 		String uriString;
-		String [] uriParts;
+		String[] uriParts;
 		FileSystem fs;
 
 		try {
@@ -120,23 +120,25 @@ public class ServletUtil implements ServletContextListener {
 			uri = new URI(url.toString().replace(" ", "%20"));
 			uriString = uri.toString();
 
-			// When the web sevice is deployed inside a WAR file (and not unpacked by
-			// the servlet container) model resources will not exist on disk as
-			// otherwise expected. In this case, load the resources directly out of
-			// the WAR file as well. This is slower, but with the preload option
-			// enabled it may be less of an issue if the models are already in memory.
+			/*
+			 * When the web sevice is deployed inside a WAR file (and not
+			 * unpacked by the servlet container) model resources will not exist
+			 * on disk as otherwise expected. In this case, load the resources
+			 * directly out of the WAR file as well. This is slower, but with
+			 * the preload option enabled it may be less of an issue if the
+			 * models are already in memory.
+			 */
 
 			if (uriString.indexOf("!") != -1) {
 				uriParts = uri.toString().split("!");
 
 				try {
 					fs = FileSystems.getFileSystem(
-							URI.create(uriParts[0]));
+						URI.create(uriParts[0]));
 				} catch (FileSystemNotFoundException fnx) {
 					fs = FileSystems.newFileSystem(
-							URI.create(uriParts[0]),
-							new HashMap<String, String>()
-					);
+						URI.create(uriParts[0]),
+						new HashMap<String, String>());
 				}
 
 				path = fs.getPath(uriParts[1].replaceAll("%20", " "));

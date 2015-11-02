@@ -1,6 +1,7 @@
 package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshm.www.Util.readValue;
@@ -50,29 +51,32 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Hazard curve service.
+ * Probabilisitic seismic hazard service.
+ * 
  * @author Peter Powers
  */
 @SuppressWarnings("unused")
 @WebServlet(
-		name = "Hazard Curve Service",
+		name = "Hazard Service",
 		description = "USGS NSHMP Hazard Curve Calculator",
 		urlPatterns = {
 			"/hazard",
 			"/hazard/*" })
-public class HazardService extends HttpServlet {
+public final class HazardService extends HttpServlet {
 
-	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
+	@Override protected void doGet(
+			HttpServletRequest request,
+			HttpServletResponse response)
 			throws ServletException, IOException {
 
 		response.setContentType("application/json; charset=UTF-8");
 
 		String query = request.getQueryString();
 		String pathInfo = request.getPathInfo();
+		String host = request.getServerName() + ":" + request.getServerPort();
 
 		if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-			response.getWriter().printf(HAZARD_USAGE,
-					request.getServerName() + ":" + request.getServerPort());
+			response.getWriter().printf(HAZARD_USAGE, host);
 			return;
 		}
 
@@ -82,20 +86,21 @@ public class HazardService extends HttpServlet {
 
 		RequestData requestData;
 		try {
-			if (query != null) { // process query '?'
+			if (query != null) {
+				// process query '?' request
 				requestData = buildRequest(request.getParameterMap());
-			} else { // process slash-delimited request
+			} else {
+				// process slash-delimited request
 				List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
 				if (params.size() < 6) {
-					response.getWriter().printf(HAZARD_USAGE,
-							request.getServerName() + ":" + request.getServerPort());
+					response.getWriter().printf(HAZARD_USAGE, host);
 					return;
 				}
 				requestData = buildRequest(params);
 			}
 			Result result = process(url, requestData);
 
-			String resultStr = ServletUtil.GSON.toJson(result);
+			String resultStr = GSON.toJson(result);
 			response.getWriter().print(resultStr);
 
 		} catch (Exception e) {
@@ -179,17 +184,13 @@ public class HazardService extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 *
-	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
-	 * because we'll only be running the most current model, as opposed to a
-	 * specific release)
-	 *
+	 * 
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 *
+	 * 
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
-	private final static class RequestData {
+	private static final class RequestData {
 
 		final Edition edition;
 		final Region region;
@@ -198,7 +199,7 @@ public class HazardService extends HttpServlet {
 		final Optional<Set<Imt>> imts;
 		final Vs30 vs30;
 
-		private RequestData(
+		RequestData(
 				Edition edition,
 				Region region,
 				double longitude,
@@ -215,7 +216,7 @@ public class HazardService extends HttpServlet {
 		}
 	}
 
-	private final static class ResponseData {
+	private static final class ResponseData {
 
 		final Edition edition;
 		final Region region;
@@ -238,7 +239,7 @@ public class HazardService extends HttpServlet {
 		}
 	}
 
-	private final static class Response {
+	private static final class Response {
 
 		final ResponseData metadata;
 		final List<Curve> data;
@@ -249,7 +250,7 @@ public class HazardService extends HttpServlet {
 		}
 	}
 
-	private final static class Curve {
+	private static final class Curve {
 
 		final String component;
 		final List<Double> yvalues;
@@ -262,7 +263,7 @@ public class HazardService extends HttpServlet {
 
 	private static final String TOTAL_KEY = "Total";
 
-	private static class Result {
+	private static final class Result {
 
 		final String status = "success";
 		final String date = ServletUtil.formatDate(new Date()); // TODO time
@@ -276,8 +277,8 @@ public class HazardService extends HttpServlet {
 
 		static final class Builder {
 
-			private String url;
-			private RequestData request;
+			String url;
+			RequestData request;
 
 			Map<Imt, Map<SourceType, XySequence>> componentMaps = new EnumMap<>(Imt.class);
 			Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
@@ -365,8 +366,6 @@ public class HazardService extends HttpServlet {
 					map.put(key, XySequence.copyOf(sequence));
 				}
 			}
-
 		}
 	}
-
 }
