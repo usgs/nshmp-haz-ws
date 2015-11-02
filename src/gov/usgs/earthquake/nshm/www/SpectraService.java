@@ -63,10 +63,16 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 /**
- * DeterministicSpectra servlet implementation.
+ * Deterministic response spectra calculation service.
+ * 
+ * @author Peter Powers
  */
-@WebServlet("/DeterministicSpectra")
-public class DeterministicSpectra extends HttpServlet {
+@SuppressWarnings("unused")
+@WebServlet(
+	name = "Response Spectra Service",
+	description = "USGS NSHMP Response Spectra Calculator",
+	urlPatterns = "/spectra")
+public class SpectraService extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private static final String NAME = "DeterministicSpectra";
@@ -77,7 +83,7 @@ public class DeterministicSpectra extends HttpServlet {
 	private static final String Y_LABEL_MEDIAN = "Median ground motion (g)";
 	private static final String Y_LABEL_SIGMA = "Standard deviation";
 
-	private static final String KEY_IDS = "ids";
+	private static final String GMM_ID_KEY = "gmms";
 
 	private static final Gson GSON;
 
@@ -129,9 +135,9 @@ public class DeterministicSpectra extends HttpServlet {
 	@Override protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		response.setContentType("text/html");
+		response.setContentType("application/json; charset=UTF-8");
 
-		String gmmParam = request.getParameter(KEY_IDS);
+		String gmmParam = request.getParameter(GMM_ID_KEY);
 		if (gmmParam == null) {
 			response.getWriter().print(USAGE);
 			return;
@@ -205,8 +211,8 @@ public class DeterministicSpectra extends HttpServlet {
 	}
 
 	private static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
-		checkArgument(params.containsKey(KEY_IDS), "Missing ground motion model key: " + KEY_IDS);
-		Iterable<String> gmmStrings = Parsing.split(params.get(KEY_IDS)[0], Delimiter.COMMA);
+		checkArgument(params.containsKey(GMM_ID_KEY), "Missing ground motion model key: " + GMM_ID_KEY);
+		Iterable<String> gmmStrings = Parsing.split(params.get(GMM_ID_KEY)[0], Delimiter.COMMA);
 		Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
 		return Sets.newEnumSet(Iterables.transform(gmmStrings, converter), Gmm.class);
 	}
@@ -216,7 +222,7 @@ public class DeterministicSpectra extends HttpServlet {
 		Builder builder = GmmInput.builder().withDefaults();
 
 		for (Entry<String, String[]> entry : params.entrySet()) {
-			if (entry.getKey().equals(KEY_IDS)) continue;
+			if (entry.getKey().equals(GMM_ID_KEY)) continue;
 			String key = entry.getKey();
 			String value = entry.getValue()[0];
 			Field field = Field.fromString(key);

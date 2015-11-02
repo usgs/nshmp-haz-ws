@@ -51,7 +51,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Probabilisitic seismic hazard service.
+ * Probabilisitic seismic hazard calculation service.
  * 
  * @author Peter Powers
  */
