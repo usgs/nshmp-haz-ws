@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services;
+package gov.usgs.earthquake.nshm.www;
 
 import java.util.ArrayList;
 import java.util.List;

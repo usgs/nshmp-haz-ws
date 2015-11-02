@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.services.meta;
+package gov.usgs.earthquake.nshm.www.meta;
 
 /**
  * Interface implemented by enum parameters that impose restrictions on other

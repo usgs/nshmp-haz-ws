@@ -1,42 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link href="css/styles.css" rel="stylesheet" type="text/css" />
-
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" />
+  <link href="css/styles.css" rel="stylesheet" type="text/css">
 	<meta charset="UTF-8">
 	<title>NSHMP web services</title>
 </head>
 <body>
-	<h1>Services: nshmp-haz-ws</h1>
+	<div id="header">nshmp-haz-ws </div>
 
-	<h2>HazardCurve</h2>
+<!-- 
+  <div id="status" class="alert alert-danger" role="alert">
+    <strong>Services:</strong> <span id="statusValue">unavailable</span><br/>
+  </div>
+  <div id="model1" class="alert alert-success" role="alert">
+    <strong>Model:</strong> <span id="statusValue">WUS_2008</span><br/>
+  </div>
+  <div id="model2" class="alert alert-warning" role="alert">
+    <strong>Model:</strong> <span id="statusValue">WUS_2014</span><br/>
+  </div>
+ -->
 
-	A USGS hazard curve may be computed by supplying a slash-delimited<br/>
-	or name-value pair query consisting of edition, region, longitude,<br/>
-	latitude, intensity measure type (IMT), and Vs30 value. For <a href="/nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
+  <div class="service">
+    <a id="hazard"></a>
+    <h3>Service: hazard</h3>
+    <p>Compute probabilisitic seismic hazard curves at a site of interest. Supply a slash-delimited or name-value pair query consisting of:</p>
+    <ul>
+      <li>edition <code>[E2008, E2014]</code></li>
+      <li>region <code>[COUS, WUS, CEUS]</code></li>
+      <li>longitude</li>
+      <li>latitude</li>
+      <li>imt (intensity measure type) <code>[PGA, SA0P2, SA1P0]</code></li>
+      <li>vs30 <code>[180, 259, 360, 537, 1150, 2000]</code></li>
+    </ul>
+    <div class="serviceExample">
+      <div class="serviceLink">/hazard/E2008/WUS/-118.25/34.05/PGA/760</div>
+      <div class="serviceLink">/hazard?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760</div>
+    </div>
+    <p>For both forms, multiple, comma-delimited IMTs may be supplied. For the slash delimited format, 'any' may be supplied as the IMT id and the service will return curves for all supported IMTs. For the name-value pair format, omit the IMT aregument to return curves for all supported IMTs.</p>
+    <p>See <a href="/nshmp-haz-ws/hazard">usage</a> for parameter dependencies.</p>
+  </div>
 
-	<code>
-	http://.../nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760<br/>
-	<br/>
-	&nbsp;&nbsp;&nbsp; – or –<br/>
-	<br/>
-	http://.../nshmp-haz-ws/HazardCurve?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760<br/>
-	<br/>
-	&nbsp; – where –<br/>
-	<br/>
-	edition = [E2008, E2014]<br/>
-	region = [COUS, WUS, CEUS]<br/>
-	vs30 = [180, 259, 360, 537, 1150, 2000]<br/>
-	imt = [PGA, SA0P2, SA1P0]<br/>
-	</code>
-	<br/>
-	For both forms, multiple, comma-delimited IMTs may be supplied; for <br/>
-	the name-value pair format, IMT may be omitted and the service will<br/>
-	return curves for all supported IMTs.<br/>
-	<br/>
-	See <a href="/nshmp-haz-ws/HazardCurve">usage</a> for parameter dependencies.
-
-
+  <div class="service">
+    <h3>Service: deagg</h3>
+    <p>Deaggregate seismic hazard. Construct queries identical to those defined for <a href="#hazard">hazard</a>, above, with an additional parameter:</p>
+    <ul>
+      <li>returnperiod (in years)</li>
+    </ul>
+    <div class="serviceExample">
+      <div class="serviceLink">/deagg/E2008/WUS/-118.25/34.05/PGA/760/2475</div>
+      <div class="serviceLink">/deagg?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760&amp;returnperiod=2475</div>
+    </div>
+    <p>The deaggregation service only supports calculations for a single IMT, which <em>must</em> be specified.</p>
+    <p>See <a href="/nshmp-haz-ws/deagg">usage</a> for parameter dependencies.</p>
+  </div>
 
 	<!-- <ul>
 		<li><a href="DeterministicSpectra">DeterministicSpectra</a></li>
@@ -44,6 +62,59 @@
 	</ul>
 	See each page above for instructions on use.
 	-->
+
+  <div class="service">
+    <h3>Service: spectra</h3>
+    <p>Compute determinisitic reponse spectra. Supply a name-value pair query consisting of:</p>
+    <ul>
+      <li>ids</li>
+      <li>mag</li>
+      <li>rjb</li>
+      <li>rrup</li>
+      <li>rx</li>
+      <li>dip</li>
+      <li>width</li>
+      <li>ztop</li>
+      <li>zhyp</li>
+      <li>rake</li>
+      <li>vs30</li>
+      <li>vsinf</li>
+      <li>z2p5</li>
+      <li>z1p0</li>
+    </ul>
+    <div class="serviceExample">
+      <div class="serviceLink">/spectra?ids=ZHAO_06_INTER,BCHYDRO_12_INTER,AM_09_INTER&amp;mag=8.8&amp;rjb=8.0&amp;rrup=30.0&amp;rx=35.0&amp;dip=30.0&amp;width=25.0&amp;ztop=20.0&amp;zhyp=20.0&amp;rake=90.0&amp;vs30=760.0&amp;vsinf=true&amp;z2p5=NaN&amp;z1p0=NaN</div>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script>
+
+$(function(){
+
+  var urlPrefix = window.location.protocol + "//" + window.location.host;
+  $(".serviceLink").each(function() {
+    // alert(this);
+    var serviceUrl = urlPrefix + $(this).text();
+    // alert(serviceUrl);
+    $(this).empty().append($("<a>")
+      .attr("href", serviceUrl)
+      .text(serviceUrl));
+  });
+
+  //.attr("href", serviceUrl).text(serviceUrl);
+  // var serviceUrl = urlPrefix + $(".serviceLink")
+  // $(".serviceLink").prepend(urlPrefix);
+  // var 
+
+  // alert(urlPrefix);
+
+});
+
+
+
+</script>
+
 
 </body>
 </html>
