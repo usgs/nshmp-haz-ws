@@ -21,12 +21,12 @@ public final class Metadata {
 
 	public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Hazard(
 		"Computes hazard curve data for an input location",
-		"http://%s/nshmp-haz-ws/HazardCurve/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
+		"http://%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
 		new HazardParameters()));
-	
+
 	public static final String DEAGG_USAGE = ServletUtil.GSON.toJson(new Deagg(
 		"Deaggregate hazard at an input location",
-		"http://%s/nshmp-haz-ws/Deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
+		"http://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
 		new DeaggParameters()));
 
 	@SuppressWarnings("unused")
@@ -46,9 +46,9 @@ public final class Metadata {
 			this.syntax = syntax;
 			this.parameters = parameters;
 		}
-		
+
 	}
-	
+
 	@SuppressWarnings("unused")
 	private static class HazardParameters {
 
@@ -103,7 +103,7 @@ public final class Metadata {
 			super(description, syntax, parameters);
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private static class DeaggParameters extends HazardParameters {
 
