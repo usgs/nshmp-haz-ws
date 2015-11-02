@@ -178,9 +178,9 @@ public final class DeaggService extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 * 
+	 *
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 * 
+	 *
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
