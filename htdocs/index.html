@@ -9,18 +9,19 @@
 <body>
 	<h1>Services: nshmp-haz-ws</h1>
 
-	<h2>HazardCurve</h2>
+	<h2>Hazard Curve</h2>
 
 	A USGS hazard curve may be computed by supplying a slash-delimited<br/>
 	or name-value pair query consisting of edition, region, longitude,<br/>
-	latitude, intensity measure type (IMT), and Vs30 value. For <a href="/nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
+	latitude, intensity measure type (IMT), and Vs30 value. For
+	<a href="/nshmp-haz-ws/hazard/E2008/WUS/-118.25/34.05/PGA/760">example</a>:<br/><br/>
 
 	<code>
-	http://.../nshmp-haz-ws/HazardCurve/E2008/WUS/-118.25/34.05/PGA/760<br/>
+	http://.../nshmp-haz-ws/hazard/E2008/WUS/-118.25/34.05/PGA/760<br/>
 	<br/>
 	&nbsp;&nbsp;&nbsp; – or –<br/>
 	<br/>
-	http://.../nshmp-haz-ws/HazardCurve?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760<br/>
+	http://.../nshmp-haz-ws/hazard?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760<br/>
 	<br/>
 	&nbsp; – where –<br/>
 	<br/>
@@ -34,13 +35,37 @@
 	the name-value pair format, IMT may be omitted and the service will<br/>
 	return curves for all supported IMTs.<br/>
 	<br/>
-	See <a href="/nshmp-haz-ws/HazardCurve">usage</a> for parameter dependencies.
+	See <a href="/nshmp-haz-ws/hazard">usage</a> for parameter dependencies.
 
+	<h2>Deaggregation</h2>
 
+	A USGS deaggregation may be computed by supplying a slash-delimited<br/>
+	or name-value pair query consisting of edition, region, longitude,<br/>
+	latitude, intensity measure type (IMT), Vs30 value and return period. For
+	<a href="/nshmp-haz-ws/deagg/E2008/WUS/-118.25/34.05/PGA/760/2475">example</a>:<br/><br/>
+
+	<code>
+	http://.../nshmp-haz-ws/deagg/E2008/WUS/-118.25/34.05/PGA/760/2475<br/>
+	<br/>
+	&nbsp;&nbsp;&nbsp; – or –<br/>
+	<br/>
+	http://.../nshmp-haz-ws/deagg?edition=E2008&amp;region=WUS&amp;longitude=-118.25&amp;latitude=34.05&amp;imt=PGA&amp;vs30=760&amp;returnPeriod=2475<br/>
+	<br/>
+	&nbsp; – where –<br/>
+	<br/>
+	edition = [E2008, E2014]<br/>
+	region = [COUS, WUS, CEUS]<br/>
+	vs30 = [180, 259, 360, 537, 1150, 2000]<br/>
+	imt = [PGA, SA0P2, SA1P0]<br/>
+	returnPeriod = [1, 5,000]<br/>
+	</code>
+	<br/>
+	<br/>
+	See <a href="/nshmp-haz-ws/deagg">usage</a> for parameter dependencies.
 
 	<!-- <ul>
 		<li><a href="DeterministicSpectra">DeterministicSpectra</a></li>
-		<li><a href="HazardCurve">HazardCurve</a></li>
+		<li><a href="hazard">hazard</a></li>
 	</ul>
 	See each page above for instructions on use.
 	-->

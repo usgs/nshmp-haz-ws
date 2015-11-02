@@ -185,13 +185,13 @@ public class Deagg extends HttpServlet {
 	/*
 	 * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
 	 * polling all models and supports needs to be updated to specific models
-	 * 
+	 *
 	 * Editions: E2008, E2014 (maybe for dynamic calcs we just call this year
 	 * because we'll only be running the most current model, as opposed to a
 	 * specific release)
-	 * 
+	 *
 	 * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-	 * 
+	 *
 	 * vs30: 180, 259, 360, 537, 760, 1150, 2000
 	 */
 
@@ -246,7 +246,7 @@ public class Deagg extends HttpServlet {
 			this.imt = imt;
 			this.returnperiod = request.returnPeriod;
 			this.vs30 = request.vs30;
-			
+
 			this.εbins = deagg.εBins();
 //					new ArrayList<List<Double>>();
 //			double[] εCutoffs = {-3, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
@@ -367,7 +367,7 @@ public class Deagg extends HttpServlet {
 				// curveListBuilder.add(curve);
 				// }
 				curveListBuilder.add(deagg.export(request.imt));
-				
+
 				//
 				Response response = new Response(responseData, curveListBuilder.build());
 				responseListBuilder.add(response);
