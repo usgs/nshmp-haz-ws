@@ -1,11 +1,12 @@
 body {
-	/*font-weight: 300;*/
 	margin: 36px 12px 12px 12px;
 }
 
+/*
 h1, h2, h3 {
-	font-weight: 300;
+	font-weight: 500;
 }
+*/
 
 #header {
 	background: black url('../img/usgs_logo.png') 0px/84px no-repeat;
@@ -36,7 +37,12 @@ h1, h2, h3 {
 
 .service {
 	width: 640px;
+	margin-bottom: 24px;
 	border-bottom: 1px solid #ddd;
+}
+
+.service:last-of-type {
+	border: 0px;
 }
 
 .serviceExample {

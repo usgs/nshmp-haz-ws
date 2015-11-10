@@ -29,9 +29,11 @@ import static org.opensha2.gmm.GmmInput.Field.ZTOP;
 import static org.opensha2.programs.ResponseSpectra.spectra;
 
 import java.io.IOException;
+import java.io.ObjectInputStream.GetField;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -44,8 +46,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.data.Data;
 import org.opensha2.gmm.Gmm;
+import org.opensha2.gmm.Gmm.Group;
 import org.opensha2.gmm.GmmInput;
 import org.opensha2.gmm.GmmInput.Builder;
+import org.opensha2.gmm.GmmInput.Constraints;
 import org.opensha2.gmm.GmmInput.Field;
 import org.opensha2.programs.ResponseSpectra.MultiResult;
 import org.opensha2.util.Parsing;
@@ -53,8 +57,16 @@ import org.opensha2.util.Parsing.Delimiter;
 
 import com.google.common.base.Converter;
 import com.google.common.base.Enums;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Doubles;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -69,9 +81,9 @@ import com.google.gson.JsonSerializer;
  */
 @SuppressWarnings("unused")
 @WebServlet(
-	name = "Response Spectra Service",
-	description = "USGS NSHMP Response Spectra Calculator",
-	urlPatterns = "/spectra")
+		name = "Response Spectra Service",
+		description = "USGS NSHMP Response Spectra Calculator",
+		urlPatterns = "/spectra")
 public class SpectraService extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -83,48 +95,55 @@ public class SpectraService extends HttpServlet {
 	private static final String Y_LABEL_MEDIAN = "Median ground motion (g)";
 	private static final String Y_LABEL_SIGMA = "Standard deviation";
 
-	private static final String GMM_ID_KEY = "gmms";
+	private static final String GMM_KEY = "gmms";
+	private static final String GMM_NAME = "Ground Motion Models";
+	private static final String GMM_INFO = "Empirical models of ground motion";
 
 	private static final Gson GSON;
 
-	// @formatter:off
 	static {
-				
+
 		GSON = new GsonBuilder()
-			.serializeSpecialFloatingPointValues()
+			// .serializeSpecialFloatingPointValues()
 			.setPrettyPrinting()
-			.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
-				@Override public JsonElement serialize(Double src, Type typeOfSrc,
-						JsonSerializationContext context) {
-					if (src.isNaN() || src.isInfinite()) return new JsonPrimitive(src.toString());
-					return new JsonPrimitive(src);
-				}
-            })
+			.disableHtmlEscaping()
+			.serializeNulls()
+			// .registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
+			// @Override public JsonElement serialize(Double src, Type
+			// typeOfSrc,
+			// JsonSerializationContext context) {
+			// if (src.isNaN() || src.isInfinite()) return new
+			// JsonPrimitive(src.toString());
+			// return new JsonPrimitive(src);
+			// }
+			// })
 			.create();
 	}
-	
+
 	/*
-	 * TODO
-	 * This service was initially set up to take name-value pairs
-	 * 		- this approach does not provide necessary metadata
 	 * 
-	 * It will actually be much more complicated to provide services, that are dependent
-	 * on knowing which GMMs are intended to be used. However, perhaps the servlet is
-	 * structured to provide:
-	 * 		- absolute ranges (JSON meta) and the supported GMMs for nothing provided
-	 * 		- collective ranges (JSON meta)for 1 or more GMM supplied (only GMM suplied)
-	 * 		- a result for fully specified rupture-site-Gmms
+	 * service name value pairs TODO This service was initially set up to take
+	 * name-value pairs - this approach does not provide necessary metadata
+	 * 
+	 * It will actually be much more complicated to provide services, that are
+	 * dependent on knowing which GMMs are intended to be used. However, perhaps
+	 * the servlet is structured to provide: - absolute ranges (JSON meta) and
+	 * the supported GMMs for nothing provided - collective ranges (JSON
+	 * meta)for 1 or more GMM supplied (only GMM suplied) - a result for fully
+	 * specified rupture-site-Gmms
 	 */
 
 	/*
 	 * Example get requests:
-	 *  
+	 * 
 	 * DeterministicSpectra?ids=CB_14
 	 * DeterministicSpectra?ids=CB_14,BSSA_14,CB_14,CY_14,IDRISS_14
-	 * DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN
+	 * DeterministicSpectra
+	 * ?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=
+	 * 10.0&rrup=10.3&rx=10.0
+	 * &dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30
+	 * =760.0&vsinf=true&z2p5=NaN&z1p0=NaN
 	 */
-
-	// @formatter:on
 
 	/*
 	 * GET requests must have at least an "ids" key. The supplied key-values for
@@ -137,9 +156,20 @@ public class SpectraService extends HttpServlet {
 
 		response.setContentType("application/json; charset=UTF-8");
 
-		String gmmParam = request.getParameter(GMM_ID_KEY);
+		/* At a minimum, Gmms must be defined. */
+		String gmmParam = request.getParameter(GMM_KEY);
+
 		if (gmmParam == null) {
-			response.getWriter().print(USAGE);
+			/*
+			 * If they're not, check to see if a list of Gmm is supplied and
+			 * return the intersection of their input parameter constraints.
+			 */
+
+			/*
+			 * Otherwise, return usage with absolute constraints for each input
+			 * parameter.
+			 */
+			response.getWriter().print(USAGE_STR);
 			return;
 		}
 
@@ -158,22 +188,28 @@ public class SpectraService extends HttpServlet {
 
 	}
 
-	private static final String USAGE;
+	private static final String USAGE_STR;
 
 	static {
-		StringBuilder sb = new StringBuilder("DeterministicSpectra usage:<br/><br/>");
-		sb.append("At a minimum, ground motion model <a href=\"http://usgs.github.io/nshmp-haz/index.html?org/opensha/gmm/Gmm.html\">identifiers</a> must be supplied. For <a href=\"/nshmp-haz-ws/DeterministicSpectra?ids=CB_14\"</a>example</a>:<br/><br/>");
-		sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=CB_14</code><br/><br/>");
-		sb.append("'ids' may be a comma-separated list of model ids, no spaces.<br/><br/>");
-		sb.append("Additional parameters that may optionally be supplied, in order, are:<br/><br/>");
-		sb.append("&nbsp;&nbsp;<code>[mag, rJB, rRup, rX, dip, width, zTop, zHyp, rake, vs30, vsInf, z2p5, z1p0]</code><br/><br/>");
-		sb.append("For <a href=\"/nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN\">example</a>:<br/><br/>");
-		sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14...</code><br/>");
-		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5...</code><br/>");
-		sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN</code><br/><br/>");
-		sb.append("Default values will be used for any parameters not supplied.");
-		USAGE = sb.toString();
+		USAGE_STR = GSON.toJson(new Metadata());
+
 	}
+
+	// static {
+	// StringBuilder sb = new
+	// StringBuilder("DeterministicSpectra usage:<br/><br/>");
+	// sb.append("At a minimum, ground motion model <a href=\"http://usgs.github.io/nshmp-haz/index.html?org/opensha/gmm/Gmm.html\">identifiers</a> must be supplied. For <a href=\"/nshmp-haz-ws/DeterministicSpectra?ids=CB_14\"</a>example</a>:<br/><br/>");
+	// sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=CB_14</code><br/><br/>");
+	// sb.append("'ids' may be a comma-separated list of model ids, no spaces.<br/><br/>");
+	// sb.append("Additional parameters that may optionally be supplied, in order, are:<br/><br/>");
+	// sb.append("&nbsp;&nbsp;<code>[mag, rJB, rRup, rX, dip, width, zTop, zHyp, rake, vs30, vsInf, z2p5, z1p0]</code><br/><br/>");
+	// sb.append("For <a href=\"/nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN\">example</a>:<br/><br/>");
+	// sb.append("&nbsp;&nbsp;<code>http://.../nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14...</code><br/>");
+	// sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5...</code><br/>");
+	// sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN</code><br/><br/>");
+	// sb.append("Default values will be used for any parameters not supplied.");
+	// USAGE = sb.toString();
+	// }
 
 	static class RequestData {
 		Set<Gmm> gmms;
@@ -211,8 +247,9 @@ public class SpectraService extends HttpServlet {
 	}
 
 	private static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
-		checkArgument(params.containsKey(GMM_ID_KEY), "Missing ground motion model key: " + GMM_ID_KEY);
-		Iterable<String> gmmStrings = Parsing.split(params.get(GMM_ID_KEY)[0], Delimiter.COMMA);
+		checkArgument(params.containsKey(GMM_KEY), "Missing ground motion model key: " +
+			GMM_KEY);
+		Iterable<String> gmmStrings = Parsing.split(params.get(GMM_KEY)[0], Delimiter.COMMA);
 		Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
 		return Sets.newEnumSet(Iterables.transform(gmmStrings, converter), Gmm.class);
 	}
@@ -222,7 +259,7 @@ public class SpectraService extends HttpServlet {
 		Builder builder = GmmInput.builder().withDefaults();
 
 		for (Entry<String, String[]> entry : params.entrySet()) {
-			if (entry.getKey().equals(GMM_ID_KEY)) continue;
+			if (entry.getKey().equals(GMM_KEY)) continue;
 			String key = entry.getKey();
 			String value = entry.getValue()[0];
 			Field field = Field.fromString(key);
@@ -275,100 +312,184 @@ public class SpectraService extends HttpServlet {
 		return builder.build();
 	}
 
-	// TODO holding on to code below in the event that GET is updated to
-	// handle JSON requests.
 
-	/*
-	 * POST expects JSON of the form:
-	 * 
-	 * { "ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"], "input":{
-	 * "rate":0.0, "Mw":6.5, "rJB":10.0, "rRup":10.3, "rX":10.0, "dip":90.0,
-	 * "width":14.0, "zTop":0.5, "zHyp":7.5, "rake":0.0, "vs30":760.0,
-	 * "vsInf":true, "z2p5":NaN, "z1p0":NaN } };
-	 */
+	private static final String GROUPS_KEY = "groups";
+	private static final String GROUPS_NAME = "Ground Motion Model Groups";
+	private static final String GROUPS_INFO = "Groups of related ground motion models ";
 
-	// Old test POST implementation that would receive JSON
-	// @Override protected void doPost(HttpServletRequest request,
-	// HttpServletResponse response)
-	// throws ServletException, IOException {
-	//
-	// InputStream stream = request.getInputStream();
-	// String data = CharStreams.toString(new InputStreamReader(stream,
-	// Charsets.UTF_8));
-	// Closeables.closeQuietly(stream);
-	//
-	// Request svcRequest = GSON.fromJson(data, Request.class);
-	// Response svcResponse = processRequest(svcRequest);
-	// GSON.toJson(svcResponse, response.getWriter());
+	private static final String GMMS_KEY = "gmms";
+	private static final String GMMS_NAME = "Ground Motion Models";
+	private static final String GMMS_INFO = "Empirical models of ground motion";
+
+	public static void main(String[] args) {
+		new Metadata();
+	}
+	private static final class Metadata {
+
+		final Status status = Status.USAGE;
+		final String description = "Compute deterministic response spectra";
+		final String syntax = "http://%s/nshmp-haz-ws/spectra?gmms=CB_14";
+		final List<Param> parameters;
+
+		Metadata() {
+			parameters = new ArrayList<>();
+			
+			/* Add gmm groups. */
+			parameters.add(new GroupParam(
+				GROUPS_KEY, GROUPS_NAME, GROUPS_INFO,
+				EnumSet.allOf(Gmm.Group.class)));
+
+			/* Add only add those Gmms that belong to a Group. */
+			Set<Gmm> gmms = FluentIterable
+				.of(Gmm.Group.values())
+				.transformAndConcat(
+					new Function<Gmm.Group, List<Gmm>>() {
+						@Override public List<Gmm> apply(Group group) {
+							return group.gmms();
+						}
+					})
+				.toSortedSet(Ordering.usingToString());
+			parameters.add(new GmmParam(GMM_KEY, GMM_NAME, GMM_INFO, gmms));
+
+			/* Add all GmmInput fields. */
+			Constraints defaults = Constraints.defaults();
+			for (Field field : Field.values()) {
+				parameters.add(createGmmInputParam(field, defaults.get(field)));
+			}
+		}
+
+		static enum Status {
+			USAGE,
+			GMM_CONSTRAINTS,
+			SUCCESS,
+			FAILURE;
+		}
+	}
+
+	// public static void main(String[] args) {
+	// Set<Gmm> gmms = EnumSet.allOf(Gmm.class);
+	// System.out.println(gmms);
 	// }
 
-//	static class Parameters {
-//
-//		ParamList gmmParamList;
-//
-//		// @formatter:off
-//		
-//		Parameters() {
-//			
-//			Param<Gmm> gmmParam = Params.newEnumParam(
-//				"Ground Motion Model",
-//				"Choose a ground motion model",
-//				Gmm.ASK_14,
-//				EnumSet.of(Gmm.ASK_14, Gmm.BSSA_14, Gmm.CB_14, Gmm.CY_14, Gmm.IDRISS_14));
-//			
-//			// @formatter:on
-//
-//			// TODO this should really be polling the Gmms for supported
-//			// magnitude range
-//			Param<Double> magParam = Params.newDoubleParamWithBounds(MAG.label, MAG.info, MAG.unit,
-//				MAG.defaultValue, MIN_MAG, MAX_MAG);
-//
-//			Param<Double> rjbParam = Params.newDoubleParamWithBounds(RJB.label, RJB.label,
-//				RJB.unit, RJB.defaultValue, 0.0, 300.0);
-//
-//			Param<Double> rrupParam = Params.newDoubleParamWithBounds(RRUP.label, RRUP.info,
-//				RRUP.unit, RRUP.defaultValue, 0.0, 300.0);
-//
-//			Param<Double> rxParam = Params.newDoubleParamWithBounds(RX.label, RX.info, RX.unit,
-//				RX.defaultValue, 0.0, 300.0);
-//
-//			Param<Double> dipParam = Params.newDoubleParamWithBounds(DIP.label, DIP.info, DIP.unit,
-//				DIP.defaultValue, DIP_RANGE.lowerEndpoint(), DIP_RANGE.upperEndpoint());
-//
-//			Param<Double> widthParam = Params.newDoubleParamWithBounds(WIDTH.label, WIDTH.info,
-//				WIDTH.unit, WIDTH.defaultValue, INTERFACE_WIDTH_RANGE.lowerEndpoint(),
-//				INTERFACE_WIDTH_RANGE.upperEndpoint());
-//
-//			Param<Double> ztopParam = Params.newDoubleParamWithBounds(ZTOP.label, ZTOP.info,
-//				ZTOP.unit, ZTOP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
-//				CRUSTAL_DEPTH_RANGE.upperEndpoint());
-//
-//			Param<Double> zhypParam = Params.newDoubleParamWithBounds(ZHYP.label, ZHYP.info,
-//				ZHYP.unit, ZHYP.defaultValue, CRUSTAL_DEPTH_RANGE.lowerEndpoint(),
-//				CRUSTAL_DEPTH_RANGE.upperEndpoint());
-//
-//			Param<Double> rakeParam = Params.newDoubleParamWithBounds(RAKE.label, RAKE.info,
-//				RAKE.unit, RAKE.defaultValue, RAKE_RANGE.lowerEndpoint(),
-//				RAKE_RANGE.upperEndpoint());
-//
-//			Param<Double> vs30Param = Params.newDoubleParamWithBounds(VS30.label, VS30.info,
-//				VS30.unit, VS30.defaultValue, MIN_VS_30, MAX_VS_30);
-//
-//			Param<Boolean> vsinfParam = Params.newBooleanParam(VSINF.label, VSINF.info,
-//				VSINF.defaultValue > 0.0);
-//
-//			// TODO basin depth defaults; should
-//			Param<Double> z2p5Param = Params.newDoubleParamWithBounds(Z2P5.label, Z2P5.info,
-//				Z2P5.unit, Z2P5.defaultValue, MIN_Z2P5, MAX_Z2P5);
-//
-//			Param<Double> z1p0Param = Params.newDoubleParamWithBounds(Z1P0.label, Z1P0.info,
-//				Z1P0.unit, Z1P0.defaultValue, MIN_Z1P0, MAX_Z1P0);
-//
-//			gmmParamList = ParamList.of(gmmParam, magParam, rjbParam, rrupParam, rxParam, dipParam,
-//				widthParam, ztopParam, zhypParam, rakeParam, vs30Param, vsinfParam, z2p5Param,
-//				z1p0Param);
-//
-//		}
-//	}
+	@SuppressWarnings("unchecked") private static Param createGmmInputParam(
+			Field field,
+			Optional<?> constraint) {
+		return (field == VSINF) ?
+			new BooleanFieldParam(field) :
+			new NumberFieldParam(field, (Range<Double>) constraint.get());
+	}
+
+	/*
+	 * Marker interface for spectra parameters. This was previously implemented
+	 * as an abstract class for id, name, info, and units, but Gson serialized
+	 * subclass fields before parent fields. To maintain a preferred order, one
+	 * can write custom serializers or repeat these four fields in each
+	 * implementation.
+	 */
+	private static interface Param {}
+
+	private static final class NumberFieldParam implements Param {
+
+		final String id;
+		final String name;
+		final String info;
+		final String units;
+		final Double min;
+		final Double max;
+		final Double value;
+
+		NumberFieldParam(GmmInput.Field field, Range<Double> constraint) {
+			this(field, constraint, field.defaultValue);
+		}
+
+		NumberFieldParam(GmmInput.Field field, Range<Double> constraint, Double value) {
+			this.id = field.toString();
+			this.name = field.label;
+			this.info = field.info;
+			this.units = field.units.orNull();
+			this.min = constraint.lowerEndpoint();
+			this.max = constraint.upperEndpoint();
+			this.value = Doubles.isFinite(value) ? value : null;
+		}
+	}
+
+	private static final class BooleanFieldParam implements Param {
+
+		final String id;
+		final String name;
+		final String info;
+		final boolean value;
+
+		BooleanFieldParam(GmmInput.Field field) {
+			this(field, field.defaultValue == 1.0);
+		}
+
+		BooleanFieldParam(GmmInput.Field field, boolean value) {
+			this.id = field.toString();
+			this.name = field.label;
+			this.info = field.info;
+			this.value = value;
+		}
+	}
+
+	private static class GmmParam implements Param {
+
+		final String id;
+		final String name;
+		final String info;
+		final List<Value> values;
+
+		GmmParam(String id, String name, String info, Set<Gmm> values) {
+			this.id = id;
+			this.name = name;
+			this.info = info;
+			this.values = new ArrayList<>();
+			for (Gmm value : values) {
+				this.values.add(new Value(value));
+			}
+		}
+
+		private static class Value {
+
+			final String id;
+			final String name;
+
+			Value(Gmm gmm) {
+				this.id = gmm.name();
+				this.name = gmm.toString();
+			}
+		}
+	}
+
+	private static final class GroupParam implements Param {
+
+		final String id;
+		final String name;
+		final String info;
+		final List<Value> values;
+
+		GroupParam(String id, String name, String info, Set<Gmm.Group> groups) {
+			this.id = id;
+			this.name = name;
+			this.info = info;
+			this.values = new ArrayList<>();
+			for (Gmm.Group group : groups) {
+				this.values.add(new Value(group));
+			}
+		}
+
+		private static class Value {
+
+			final String id;
+			final String name;
+			final List<Gmm> data;
+
+			Value(Gmm.Group group) {
+				this.id = group.name();
+				this.name = group.toString();
+				this.data = group.gmms();
+			}
+		}
+	}
 
 }

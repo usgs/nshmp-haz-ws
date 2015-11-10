@@ -8,6 +8,7 @@
   <title>NSHMP Utilities</title>
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link href="css/test.css" rel="stylesheet" type="text/css">
 
   <!-- Optional theme -->
   <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
@@ -16,6 +17,26 @@
     width: 360px;
     margin: 20px;
   }
+
+/*  .form-control {
+    font-size: 12px;
+  }
+*/
+  .form-horizontal .form-group {
+    margin-right: -5px;
+    margin-left: -5px;
+    margin-bottom: 6px;
+  }
+
+  [class*="col-sm-"] {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+/*  .form-horizontal {
+    margin-right: 0
+  }
+*/
   </style>
 
 
@@ -28,17 +49,23 @@
 
   <div id="control">
 
-    <div class="btn-group btn-group-sm" data-toggle="buttons">
+
+<form>
+
+  <div>
+    <label for="gmms">Ground Motion Models:</label>
+ 
+    <div id="gmmsorter" class="btn-group btn-group-xs" data-toggle="buttons">
       <label class="btn btn-default active"
              data-toggle="tooltip"
              data-container="body"
-             title="Sort Alphabetically">
+             title="Sort by Group">
         <input type="radio"
                name="gmmsort"
-               value="alpha"
-               aria-label="Sort Alphabetically"
-               checked="">
-          <span class="glyphicon glyphicon-sort-by-alphabet"
+               value="group"
+               aria-label="List by Group"
+               checked="true">
+          <span class="glyphicon glyphicon-list"
                 aria-hidden="true">
           </span>
         </input>
@@ -46,35 +73,32 @@
       <label class="btn btn-default"
              data-toggle="tooltip"
              data-container="body"
-             title="Sort by Group">
+             title="Sort Alphabetically">
         <input type="radio"
                name="gmmsort"
-               value="group"
-               aria-label="List by Group">
-          <span class="glyphicon glyphicon-list"
+               value="alpha"
+               aria-label="Sort Alphabetically">
+          <span class="glyphicon glyphicon-sort-by-alphabet"
                 aria-hidden="true">
           </span>
         </input>
       </label>
     </div>
 
-<form>
 
-  <div class="form-group">
-    <label for="gmms">Ground motion models:</label>
-    <select class="form-control" id="gmms" size="28" multiple="">
-      <option class="WUS_08_CRUSTAL" value="BA_08">Boore &amp; Atkinson (2008)</option>
-      <option class="WUS_08_CRUSTAL" value="CB_08">Campbell &amp; Bozorgnia (2008)</option>
-      <option class="WUS_08_CRUSTAL" value="CY_08">Chiou &amp; Youngs (2008)</option>
-      <option class="WUS_14_CRUSTAL" value="ASK_14">Abrahamson, Silva &amp; Kamai (2014)</option>
-      <option class="WUS_14_CRUSTAL" value="BSSA_14">Boore, Stewart, Seyhan &amp; Atkinson (2014)</option>
-      <option class="WUS_14_CRUSTAL" value="CB_14">Campbell &amp; Bozorgnia (2014)</option>
-      <option class="WUS_14_CRUSTAL" value="CY_14">Chiou &amp; Youngs (2014)</option>
-      <option class="WUS_14_CRUSTAL" value="IDRISS_14">Idriss (2014)</option>
+    <select class="form-control input-sm" id="gmms" size="28" multiple="">
+      <option class="WUS_08_ACTIVE_CRUST" value="BA_08">Boore &amp; Atkinson (2008)</option>
+      <option class="WUS_08_ACTIVE_CRUST" value="CB_08">Campbell &amp; Bozorgnia (2008)</option>
+      <option class="WUS_08_ACTIVE_CRUST" value="CY_08">Chiou &amp; Youngs (2008)</option>
+      <option class="WUS_14_ACTIVE_CRUST" value="ASK_14">Abrahamson, Silva &amp; Kamai (2014)</option>
+      <option class="WUS_14_ACTIVE_CRUST" value="BSSA_14">Boore, Stewart, Seyhan &amp; Atkinson (2014)</option>
+      <option class="WUS_14_ACTIVE_CRUST" value="CB_14">Campbell &amp; Bozorgnia (2014)</option>
+      <option class="WUS_14_ACTIVE_CRUST" value="CY_14">Chiou &amp; Youngs (2014)</option>
+      <option class="WUS_14_ACTIVE_CRUST" value="IDRISS_14">Idriss (2014)</option>
       <option class="WUS_08_INTERFACE WUS_14_INTERFACE" value="AB_03_GLOB_INTER">Atkinson &amp; Boore (2003) : Global : Interface : SatMw=8.5</option>
       <option class="WUS_08_SLAB" value="AB_03_GLOB_SLAB">Atkinson &amp; Boore (2003) : Global : Slab : SatMw=8.0</option>
       <option class="WUS_14_SLAB" value="AB_03_GLOB_SLAB_LOW_SAT">Atkinson &amp; Boore (2003) : Global : Slab : SatMw=7.8</option>
-      <option value="AB_03_CASC_INTER">Atkinson &amp; Boore (2003) : Cascadia : Interface : SatMw=8.5</option>
+      <option class="OTHER" value="AB_03_CASC_INTER">Atkinson &amp; Boore (2003) : Cascadia : Interface : SatMw=8.5</option>
       <option class="WUS_08_SLAB" value="AB_03_CASC_SLAB">Atkinson &amp; Boore (2003) : Cascadia : Slab : SatMw=8.0</option>
       <option class="WUS_14_SLAB" value="AB_03_CASC_SLAB_LOW_SAT">Atkinson &amp; Boore (2003) : Cascadia : Slab : SatMw=7.8</option>
       <option class="WUS_14_INTERFACE" value="AM_09_INTER">Atkinson &amp; Macias (2009): Interface</option>
@@ -84,87 +108,139 @@
       <option class="WUS_08_SLAB" value="YOUNGS_97_SLAB">Youngs et al. (1997): Slab</option>
       <option class="WUS_08_INTERFACE WUS_14_INTERFACE" value="ZHAO_06_INTER">Zhao et al. (2006): Interface</option>
       <option class="WUS_14_SLAB" value="ZHAO_06_SLAB">Zhao et al. (2006): Slab</option>
-      <option class="CEUS_14_FAULT CEUS_14_GRID" value="AB_06_PRIME">Atkinson &amp; Boore (2006): Prime</option>
-      <option class="CEUS_08_FAULT" value="AB_06_140BAR">Atkinson &amp; Boore (2006): 140 bar</option>
-      <option class="CEUS_08_FAULT" value="AB_06_200BAR">Atkinson &amp; Boore (2006): 200 bar</option>
-      <option class="CEUS_14_FAULT CEUS_14_GRID" value="ATKINSON_08_PRIME">Atkinson (2008) Prime</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT CEUS_14_GRID" value="CAMPBELL_03">Campbell (2003)</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT CEUS_14_GRID" value="FRANKEL_96">Frankel et al. (1996)</option>
-      <option class="CEUS_14_FAULT CEUS_14_GRID" value="PEZESHK_11">Pezeshk et al. (2011)</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT CEUS_14_GRID" value="SILVA_02">Silva et al. (2002)</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT" value="SOMERVILLE_01">Somerville et al. (2001)</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT CEUS_14_GRID" value="TP_05">Tavakoli &amp; Pezeshk (2005)</option>
-      <option class="CEUS_08_FAULT CEUS_14_FAULT CEUS_14_GRID" value="TORO_97_MW">Toro et al. (1997): Mw</option>
+      <option class="CEUS_14_STABLE_CRUST" value="AB_06_PRIME">Atkinson &amp; Boore (2006): Prime</option>
+      <option class="CEUS_08_STABLE_CRUST" value="AB_06_140BAR">Atkinson &amp; Boore (2006): 140 bar</option>
+      <option class="CEUS_08_STABLE_CRUST" value="AB_06_200BAR">Atkinson &amp; Boore (2006): 200 bar</option>
+      <option class="CEUS_14_STABLE_CRUST" value="ATKINSON_08_PRIME">Atkinson (2008) Prime</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="CAMPBELL_03">Campbell (2003)</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="FRANKEL_96">Frankel et al. (1996)</option>
+      <option class="CEUS_14_STABLE_CRUST" value="PEZESHK_11">Pezeshk et al. (2011)</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="SILVA_02">Silva et al. (2002)</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="SOMERVILLE_01">Somerville et al. (2001)</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="TP_05">Tavakoli &amp; Pezeshk (2005)</option>
+      <option class="CEUS_08_STABLE_CRUST CEUS_14_STABLE_CRUST" value="TORO_97_MW">Toro et al. (1997): Mw</option>
       <option class="OTHER" value="SADIGH_97">Sadigh et al. (1997)</option>
       <option class="OTHER" value="MCVERRY_00_CRUSTAL">McVerry et al. (2000): Crustal</option>
       <option class="OTHER" value="MCVERRY_00_INTERFACE">McVerry et al. (2000): Interface</option>
       <option class="OTHER" value="MCVERRY_00_SLAB">McVerry et al. (2000): Slab</option>
       <option class="OTHER" value="MCVERRY_00_VOLCANIC">McVerry et al. (2000): Volcanic</option>
-
-      <!-- magnitude converting flavors can be added if required
-      <option class="CEUS_08_GRID_MB" value="AB_06_140BAR_J">Atkinson &amp; Boore (2006): 140 bar: mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="AB_06_200BAR_J">Atkinson &amp; Boore (2006): 200 bar: mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="CAMPBELL_03_J">Campbell (2003): mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="FRANKEL_96_J">Frankel et al. (1996): mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="SILVA_02_J">Silva et al. (2002): mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="TP_05_J">Tavakoli &amp; Pezeshk (2005): mb [J]</option>
-      <option class="CEUS_08_GRID_MB" value="AB_06_140BAR_AB">Atkinson &amp; Boore (2006): 140 bar: mb [AB]</option>
-      <option class="CEUS_08_GRID_MB" value="AB_06_200BAR_AB">Atkinson &amp; Boore (2006): 200 bar: mb [AB]</option>
-      <option class="CEUS_08_GRID_MB" value="CAMPBELL_03_AB">Campbell (2003): mb [AB]</option>
-      <option class="CEUS_08_GRID_MB" value="FRANKEL_96_AB">Frankel et al. (1996): mb [AB]</option>
-      <option class="CEUS_08_GRID_MB" value="SILVA_02_AB">Silva et al. (2002): mb [AB]</option>
-      <option class="CEUS_08_GRID_MB" value="TP_05_AB">Tavakoli &amp; Pezeshk (2005): mb [AB]</option>
-      <option class="CEUS_08_GRID_MB CEUS_08_GRID_AB" value="TORO_97_MB">Toro et al. (1997): mb</option>
-      -->
     </select>
   </div>
-</form>
 
-<div>
+<!--   <div class="form-horizontal">
+    <div class="form-group">
+      <label for="rjb" class"col-sm-2 control-label">rJB:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="rjb">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="rrup" class"col-sm-2 control-label">rRup:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="rrup">
+      </div>
+    </div>
+  </div>
+ -->
+
+</form>
+<br/>
+
+  <div class="form-horizontal">
+    <div class="form-group form-group-sm">
+      <label for="rjb" class="col-sm-8 control-label">Joyner-Boore Distance:</label>
+      <div class="col-sm-4">
+        <input type="text" class="form-control" id="rjb">
+      </div>
+    </div>
+    <div class="form-group form-group-sm">
+      <label for="rrup" class="col-sm-8 control-label">Rupture Distance:</label>
+      <div class="col-sm-4">
+        <input type="text" class="form-control" id="rrup">
+      </div>
+    </div>
+  </div>
+
+
+
+<div id="gmmInputs">
+
+  <!-- Gmm form input model -->
+  <div class="form-horizontal">
+    <div class="form-group form-group-sm">
+      <label for="" class="col-sm-8 control-label"></label>
+      <div class="col-sm-4">
+        <input type="text" class="form-control" id="">
+      </div>
+    </div>
+  </div>
+
+</div>
+  
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 
   <script>
+
+  /* process usage response */
+  function buildInputs(usage) {
+    var params = usage.parameters;
+    var inputs = $("#gmmInputs");
+    var model = $("#gmmInputs > div").detach();
+    console.log(model);
+    params.forEach(function(param, index) {
+      if (param.id === "groups") return;
+      var entry = model.clone();
+      entry.find("label").attr("for", param.id).text(param.name);
+      entry.find("input").attr("id", param.id);
+      inputs.append(entry);
+    });
+  }
+
   $(function(){
     $('[data-toggle="tooltip"]').tooltip(); 
 
     var gmmAlphaOptions = $('select#gmms option');
     // console.log(gmmAlphaOptions);
 
-  var gmmGroups = {
-    WUS_14_CRUSTAL : "2014 Active Crust (WUS)",
-    CEUS_14_CRUSTAL : "2014 Stable Crust (CEUS)",
-    WUS_14_INTERFACE : "2014 Subduction Interface (WUS)",
-    WUS_14_SLAB : "2014 WUS Subduction Intraslab (WUS)",
-    CEUS_08_CRUSTAL : "2008 Stable Crust (CEUS)",
-    WUS_08_CRUSTAL : "2008 Active Crust (WUS)",
-    WUS_08_INTERFACE : "2008 Subduction Interface (WUS)",
-    WUS_08_SLAB : "2008 Subduction Intraslab (WUS)",
-    OTHER : "Others"};
+    var gmmGroups = {
+      WUS_14_ACTIVE_CRUST : "2014 Active Crust (WUS)",
+      CEUS_14_STABLE_CRUST : "2014 Stable Crust (CEUS)",
+      WUS_14_INTERFACE : "2014 Subduction Interface (WUS)",
+      WUS_14_SLAB : "2014 WUS Subduction Intraslab (WUS)",
+      WUS_08_ACTIVE_CRUST : "2008 Active Crust (WUS)",
+      CEUS_08_STABLE_CRUST : "2008 Stable Crust (CEUS)",
+      WUS_08_INTERFACE : "2008 Subduction Interface (WUS)",
+      WUS_08_SLAB : "2008 Subduction Intraslab (WUS)",
+      OTHER : "Others"};
 
-    // magnitude converting flavors can be added if required
-    // CEUS_08_GRID_MB : "2008 CEUS Grid [mb -> Mw]",
-
+    /* Create option groups */
     var gmmGroupOptions = $();
     $.each(gmmGroups, function(key, value) {
-      // console.log(key + " : " + value);
-      var optGroup = $('<optgroup/>').attr('label', value);
+      var optGroup = $('<optgroup>').attr('label', value);
       gmmGroupOptions = gmmGroupOptions.add(optGroup);
       optGroup.append(gmmAlphaOptions.filter('.' + key).clone());
     });
 
+    /* Bind option views to sort buttons */
     $("input[name='gmmsort']").change(function() {
       var options = this.value === "alpha" ? gmmAlphaOptions : gmmGroupOptions;
       $("#gmms").empty().append(options);
       $("#gmms").scrollTop(0);
     });
 
+    /* Set initial view to groups */
+    $("#gmms").empty().append(gmmGroupOptions);
 
+    /* gimme some ajax */
+    $.ajax({
+      url: "http://localhost:8080/nshmp-haz-ws/spectra",
+      success: buildInputs
+    });
+    
 
-    // console.log(gmmGroupOptions);
-
-  // $('select#gmms').append(gmmGroupOpts);
 
 });
 
