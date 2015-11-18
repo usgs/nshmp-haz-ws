@@ -19,33 +19,33 @@ import org.opensha2.gmm.Imt;
 
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
+
+	COUS(
+			"Conterminous US",
+			new double[] { 24.6, 50.0 },
+			new double[] { -125.0, -65.0 },
+			new double[] { 24.6, 50.0 },
+			new double[] { -125.0, -65.0 },
+			EnumSet.of(PGA, SA0P2, SA1P0),
+			EnumSet.of(VS_760)),
+
 	CEUS(
 			"Central & Eastern US",
-			new double[] {24.6, 50.0},
-			new double[] {-115.0, -65.0},
-			new double[] {24.6, 50.0},
-			new double[] {-110.0, -65.0},
+			new double[] { 24.6, 50.0 },
+			new double[] { -115.0, -65.0 },
+			new double[] { 24.6, 50.0 },
+			new double[] { -110.0, -65.0 },
 			EnumSet.of(PGA, SA0P2, SA1P0),
 			EnumSet.of(VS_2000, VS_760)),
 
 	WUS(
 			"Western US",
-			new double[] {24.6, 50.0},
-			new double[] {-125.0, -100.0},
-			new double[] {24.6, 50.0},
-			new double[] {-125.0, -115.0},
+			new double[] { 24.6, 50.0 },
+			new double[] { -125.0, -100.0 },
+			new double[] { 24.6, 50.0 },
+			new double[] { -125.0, -115.0 },
 			EnumSet.of(PGA, SA0P2, SA1P0),
-			EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180)),
-
-	COUS(
-			"Conterminous US",
-			new double[] {24.6, 50.0},
-			new double[] {-125.0, -65.0},
-			new double[] {24.6, 50.0},
-			new double[] {-125.0, -65.0},
-			EnumSet.of(PGA, SA0P2, SA1P0),
-			EnumSet.of(VS_760));
-
+			EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180));
 
 	private final String label;
 
@@ -62,7 +62,7 @@ public enum Region implements Constrained {
 	/* not serialized */
 	final transient Set<Imt> imts;
 	final transient Set<Vs30> vs30s;
-	
+
 	private final Constraints constraints;
 
 	private Region(
@@ -85,7 +85,7 @@ public enum Region implements Constrained {
 		this.uimaxlatitude = uiLatRange[1];
 		this.uiminlongitude = uiLonRange[0];
 		this.uimaxlongitude = uiLonRange[1];
-		
+
 		this.imts = imts;
 		this.vs30s = vs30s;
 
