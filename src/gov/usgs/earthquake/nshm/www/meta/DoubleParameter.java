@@ -1,18 +1,19 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
+@SuppressWarnings("unused")
 final class DoubleParameter<T> {
 
-	final String label;
-	final ParamType type;
-	final Values values;
+	private final String label;
+	private final ParamType type;
+	private final Values values;
 
-	public DoubleParameter(String label, ParamType type, double min, double max) {
+	DoubleParameter(String label, ParamType type, double min, double max) {
 		this.label = label;
 		this.type = type;
 		this.values = new Values(min, max);
 	}
 	
-	final static class Values {
+	private final static class Values {
 		
 		final double minimum;
 		final double maximum;

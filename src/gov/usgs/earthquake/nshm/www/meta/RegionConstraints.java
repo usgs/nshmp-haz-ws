@@ -7,7 +7,7 @@ import org.opensha2.calc.Vs30;
 import org.opensha2.gmm.Imt;
 
 @SuppressWarnings("javadoc")
-public class RegionConstraints implements Constraints {
+class RegionConstraints implements Constraints {
 
 	final List<String> imt;
 	final List<String> vs30;

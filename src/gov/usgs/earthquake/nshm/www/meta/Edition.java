@@ -19,10 +19,11 @@ public enum Edition implements Constrained {
 			new EditionConstraints(
 				EnumSet.allOf(Region.class)));
 
-	final String label;
-	final int year;
+	private final String label;
+	private final int year;
+	private final Constraints constraints;
+
 	final int displayOrder;
-	final Constraints constraints;
 
 	private Edition(String label, int year, int displayOrder,
 			Constraints constraints) {
@@ -39,7 +40,7 @@ public enum Edition implements Constrained {
 	public int year() {
 		return year;
 	}
-
+	
 	@Override public Constraints constraints() {
 		return constraints;
 	}

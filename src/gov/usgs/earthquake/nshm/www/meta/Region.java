@@ -46,7 +46,8 @@ public enum Region implements Constrained {
 				EnumSet.of(PGA, SA0P2, SA1P0)));
 
 
-	final String label;
+	private final String label;
+	private final Constraints constraints;
 
 	final double minlatitude;
 	final double maxlatitude;
@@ -58,7 +59,6 @@ public enum Region implements Constrained {
 	final double uiminlongitude;
 	final double uimaxlongitude;
 
-	final Constraints constraints;
 
 	private Region(
 			String label,
