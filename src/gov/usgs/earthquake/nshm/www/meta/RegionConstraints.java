@@ -6,11 +6,11 @@ import java.util.Set;
 import org.opensha2.calc.Vs30;
 import org.opensha2.gmm.Imt;
 
-@SuppressWarnings("javadoc")
+@SuppressWarnings("unused")
 class RegionConstraints implements Constraints {
 
-	final List<String> imt;
-	final List<String> vs30;
+	private final List<String> imt;
+	private final List<String> vs30;
 
 	RegionConstraints(Set<Vs30> vs30, Set<Imt> imt) {
 		// converting to Strings here, otherwise EnumSerializer will be used

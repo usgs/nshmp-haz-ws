@@ -3,10 +3,10 @@ package gov.usgs.earthquake.nshm.www.meta;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("javadoc")
+@SuppressWarnings("unused")
 class EditionConstraints implements Constraints {
 
-	final List<String> region;
+	private final List<String> region;
 
 	EditionConstraints(Set<Region> region) {
 		// converting to Strings here, otherwise EnumSerializer will be used
