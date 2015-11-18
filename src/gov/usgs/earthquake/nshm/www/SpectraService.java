@@ -231,9 +231,17 @@ public class SpectraService extends HttpServlet {
 		ResponseData response = new ResponseData();
 		response.request = request;
 		response.name = RESULT_NAME;
-		response.means = XY_DataGroup.create(GROUP_NAME_MEAN, X_LABEL, Y_LABEL_MEDIAN,
+		
+		response.means = XY_DataGroup.create(
+			GROUP_NAME_MEAN, 
+			X_LABEL, 
+			Y_LABEL_MEDIAN,
 			result.periods);
-		response.sigmas = XY_DataGroup.create(GROUP_NAME_SIGMA, X_LABEL, Y_LABEL_SIGMA,
+		
+		response.sigmas = XY_DataGroup.create(
+			GROUP_NAME_SIGMA, 
+			X_LABEL, 
+			Y_LABEL_SIGMA,
 			result.periods);
 
 		// populate response
@@ -392,6 +400,7 @@ public class SpectraService extends HttpServlet {
 
 		final String id;
 		final String name;
+		final String shortName;
 		final String info;
 		final String units;
 		final Double min;
@@ -405,6 +414,7 @@ public class SpectraService extends HttpServlet {
 		NumberFieldParam(GmmInput.Field field, Range<Double> constraint, Double value) {
 			this.id = field.toString();
 			this.name = field.label;
+			this.shortName = field.shortLabel;
 			this.info = field.info;
 			this.units = field.units.orNull();
 			this.min = constraint.lowerEndpoint();

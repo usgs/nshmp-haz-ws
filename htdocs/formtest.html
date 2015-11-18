@@ -8,7 +8,7 @@
   <title>NSHMP Utilities</title>
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-  <link href="css/test.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="css/test.css" type="text/css">
 
   <!-- Optional theme -->
   <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
@@ -28,15 +28,51 @@
     margin-bottom: 6px;
   }
 
-  [class*="col-sm-"] {
-    padding-left: 5px;
-    padding-right: 5px;
+  .form-horizontal .form-group-sm .control-label {
+    padding-top: 3px;
   }
 
-/*  .form-horizontal {
-    margin-right: 0
+  .form-group-sm .form-control {
+    height: 24px;
+    padding: 2px 4px;
   }
-*/
+
+  .input-group-sm .input-group-addon {
+    height: 24px;
+    padding: 2px 4px;
+  }
+
+  [class*="col-sm-"] {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .form-horizontal .form-group-sm .units {
+    text-align: left;
+    padding-top: 4px;
+  }
+
+  .secondary-input {
+    font-weight: normal;
+  }
+
+  .disabled {
+    color: #aaa;
+  }
+
+  .spacer {
+    margin-top: 8px;
+  }
+
+  .btn-group {
+    padding-top: 1px;
+  }
+
+  label {
+    font-weight: 500;
+    /*padding-top: 6px;*/
+  }
+
   </style>
 
 
@@ -47,12 +83,11 @@
 
   <br/>
 
-  <div id="control">
-
-
+<div id="control">
 <form>
 
-  <div>
+
+  <!-- <div class="col-sm-6"> -->
     <label for="gmms">Ground Motion Models:</label>
  
     <div id="gmmsorter" class="btn-group btn-group-xs" data-toggle="buttons">
@@ -63,12 +98,10 @@
         <input type="radio"
                name="gmmsort"
                value="group"
-               aria-label="List by Group"
-               checked="true">
-          <span class="glyphicon glyphicon-list"
-                aria-hidden="true">
-          </span>
-        </input>
+               aria-label="Sort by Group"
+               checked="true" />
+        <span class="glyphicon glyphicon-list"
+              aria-hidden="true" />
       </label>
       <label class="btn btn-default"
              data-toggle="tooltip"
@@ -77,16 +110,14 @@
         <input type="radio"
                name="gmmsort"
                value="alpha"
-               aria-label="Sort Alphabetically">
+               aria-label="Sort Alphabetically" />
           <span class="glyphicon glyphicon-sort-by-alphabet"
-                aria-hidden="true">
-          </span>
+                aria-hidden="true" />
         </input>
       </label>
     </div>
 
-
-    <select class="form-control input-sm" id="gmms" size="28" multiple="">
+    <select class="form-control input-sm" id="gmms" size="16" multiple="true">
       <option class="WUS_08_ACTIVE_CRUST" value="BA_08">Boore &amp; Atkinson (2008)</option>
       <option class="WUS_08_ACTIVE_CRUST" value="CB_08">Campbell &amp; Bozorgnia (2008)</option>
       <option class="WUS_08_ACTIVE_CRUST" value="CY_08">Chiou &amp; Youngs (2008)</option>
@@ -125,58 +156,181 @@
       <option class="OTHER" value="MCVERRY_00_SLAB">McVerry et al. (2000): Slab</option>
       <option class="OTHER" value="MCVERRY_00_VOLCANIC">McVerry et al. (2000): Volcanic</option>
     </select>
-  </div>
+  <!-- </div> -->
 
-<!--   <div class="form-horizontal">
-    <div class="form-group">
-      <label for="rjb" class"col-sm-2 control-label">rJB:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="rjb">
+
+  <div class="form-horizontal">
+    
+    <label class="spacer">Event Parameters:</label>
+    <div class="form-group form-group-sm show-grid">
+      <label class="col-sm-2 control-label">M<sub>W</sub></label>
+      <div class="col-sm-3">
+        <input type="text" class="form-control">
       </div>
     </div>
-    <div class="form-group">
-      <label for="rrup" class"col-sm-2 control-label">rRup:</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="rrup">
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">Rake</label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">°</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-sm-offset-1">
+        <div id="fault-style" class="btn-group btn-group-xs" data-toggle="buttons">
+          <label class="btn btn-default active" title="Strike-Slip">Strike-Slip
+            <input type="radio" name="fault-style" value="strike-slip" checked="true">
+          </label>
+          <label class="btn btn-default" title="Normal">Normal
+            <input type="radio" name="fault-style" value="normal">
+          </label>
+          <label class="btn btn-default" title="Reverse">Reverse
+            <input type="radio" name="fault-style" value="reverse">
+          </label>
+        </div>
       </div>
     </div>
-  </div>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">Z<sub>HYP</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-sm-offset-1">
+        <label class="control-label secondary-input">
+          <input type="checkbox" checked="true">
+          Centered down-dip
+        </label>
+      </div>
+    </div>
+
+    <label class="spacer">Source Geometry:</label>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">Z<sub>TOP</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <label class="col-sm-1 control-label">Dip</label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="number" class="form-control">
+          <span class="input-group-addon">°</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">Width</label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+    </div>
+
+<!--   </div>
+
+  <div class="col-sm-4 form-horizontal">
  -->
+    <label class="spacer">Path Parameters:</label>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">R<sub>X</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <label class="col-sm-1 control-label disabled">R<sub>Y</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control" disabled="true">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">R<sub>RUP</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <div class="col-sm-1"></div>
+      <div class="col-sm-6">
+        <label class="control-label secondary-input">
+          <input type="checkbox" checked="true">
+          Derive R<sub>JB</sub> and R<sub>RUP</sub>
+        </label>
+      </div>
+    </div>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">R<sub>JB</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-sm-offset-1">
+        <div id="hw-fw" class="btn-group btn-group-xs" data-toggle="buttons">
+          <label class="btn btn-default active" title="Hanging Wall">Hanging Wall
+            <input type="radio" name="hw-fw" value="hw" checked="true">
+          </label>
+          <label class="btn btn-default" title="Foot Wall">Foot Wall
+            <input type="radio" name="hw-fw" value="fw">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <label class="spacer">Site &amp; Basin:</label>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">V<sub>S</sub>30</label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon"><sup>m</sup>⁄<sub>s</sub></span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-sm-offset-1">
+        <div id="vs-infer" class="btn-group btn-group-xs" data-toggle="buttons">
+          <label class="btn btn-default active" title="Vs30 Measured">Measured
+            <input type="radio" name="vs-infer" value="measured" checked="true">
+          </label>
+          <label class="btn btn-default" title="Vs30 Inferred">Inferred
+            <input type="radio" name="vs-infer" value="inferred">
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group form-group-sm">
+      <label class="col-sm-2 control-label">Z<sub>1.0</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+      <label class="col-sm-1 control-label">Z<sub>2.5</sub></label>
+      <div class="col-sm-3">
+        <div class="input-group input-group-sm">
+          <input type="text" class="form-control">
+          <span class="input-group-addon">km</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
 </form>
-<br/>
-
-  <div class="form-horizontal">
-    <div class="form-group form-group-sm">
-      <label for="rjb" class="col-sm-8 control-label">Joyner-Boore Distance:</label>
-      <div class="col-sm-4">
-        <input type="text" class="form-control" id="rjb">
-      </div>
-    </div>
-    <div class="form-group form-group-sm">
-      <label for="rrup" class="col-sm-8 control-label">Rupture Distance:</label>
-      <div class="col-sm-4">
-        <input type="text" class="form-control" id="rrup">
-      </div>
-    </div>
-  </div>
-
-
-
-<div id="gmmInputs">
-
-  <!-- Gmm form input model -->
-  <div class="form-horizontal">
-    <div class="form-group form-group-sm">
-      <label for="" class="col-sm-8 control-label"></label>
-      <div class="col-sm-4">
-        <input type="text" class="form-control" id="">
-      </div>
-    </div>
-  </div>
-
 </div>
-  
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -189,14 +343,23 @@
     var params = usage.parameters;
     var inputs = $("#gmmInputs");
     var model = $("#gmmInputs > div").detach();
-    console.log(model);
-    params.forEach(function(param, index) {
-      if (param.id === "groups") return;
+    // console.log(model);
+
+    $(params).filter(function (index, param) {
+      if (param.id === "gmms") return false;
+      if (param.id === "groups") return false;
+      return true;
+    }).each(function (index, param) {
+    // params.forEach(function(param, index) {
+      // if (param.id === "groups") return false;
       var entry = model.clone();
-      entry.find("label").attr("for", param.id).text(param.name);
-      entry.find("input").attr("id", param.id);
+      entry.find("label").attr("for", param.id).text(param.shortName + ":");
+      var input = entry.find("input").attr("id", param.id);
+      if (typeof(param.value) === 'boolean') input.attr("type", "checkbox");
+      if (param.units) entry.find("div.units").text(param.units);
       inputs.append(entry);
     });
+
   }
 
   $(function(){
@@ -235,10 +398,10 @@
     $("#gmms").empty().append(gmmGroupOptions);
 
     /* gimme some ajax */
-    $.ajax({
-      url: "http://localhost:8080/nshmp-haz-ws/spectra",
-      success: buildInputs
-    });
+    // $.ajax({
+    //   url: "http://localhost:8080/nshmp-haz-ws/spectra",
+    //   success: buildInputs
+    // });
     
 
 
