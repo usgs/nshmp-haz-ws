@@ -47,7 +47,8 @@ public final class Util {
 				JsonSerializationContext context) {
 
 			String value = (src instanceof Vs30) ? src.name().substring(3) : src.name();
-			int displayOrder = (src instanceof Edition) ? ((Edition) src).displayOrder : src.ordinal();
+			int displayOrder = (src instanceof Edition) ?
+				((Edition) src).displayOrder : src.ordinal();
 
 			JsonObject jObj = new JsonObject();
 			jObj.addProperty("id", src.ordinal());
@@ -72,7 +73,6 @@ public final class Util {
 				Constrained cSrc = (Constrained) src;
 				jObj.add("supports", context.serialize(cSrc.constraints()));
 			}
-
 
 			return jObj;
 		}
