@@ -143,6 +143,17 @@ public class SpectraService extends HttpServlet {
 	 * 10.0&rrup=10.3&rx=10.0
 	 * &dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30
 	 * =760.0&vsinf=true&z2p5=NaN&z1p0=NaN
+	 * 
+	 * Refactor ids to gmms.
+	 * 
+	 * No args and error: usage, includes default ranges for params
+	 * 
+	 * Just gmms: return valid ranges for gmms, need constraints intersection
+	 * 
+	 * All required args: result
+	 * 
+	 * For analysis purposes, we probably want to be able force gmms outside
+	 * their recommended ranges
 	 */
 
 	/*
