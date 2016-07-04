@@ -2,12 +2,6 @@ package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.opensha2.ResponseSpectra.spectra;
-import static org.opensha2.calc.Site.VS_30_MAX;
-import static org.opensha2.calc.Site.Z1P0_MAX;
-import static org.opensha2.calc.Site.Z2P5_MAX;
-import static org.opensha2.calc.Site.VS_30_MIN;
-import static org.opensha2.calc.Site.Z1P0_MIN;
-import static org.opensha2.calc.Site.Z2P5_MIN;
 import static org.opensha2.eq.Magnitudes.MAX_MAG;
 import static org.opensha2.eq.Magnitudes.MIN_MAG;
 import static org.opensha2.eq.fault.Faults.DIP_RANGE;
@@ -27,6 +21,12 @@ import static org.opensha2.gmm.GmmInput.Field.Z1P0;
 import static org.opensha2.gmm.GmmInput.Field.Z2P5;
 import static org.opensha2.gmm.GmmInput.Field.ZHYP;
 import static org.opensha2.gmm.GmmInput.Field.ZTOP;
+import static org.opensha2.util.Site.VS_30_MAX;
+import static org.opensha2.util.Site.VS_30_MIN;
+import static org.opensha2.util.Site.Z1P0_MAX;
+import static org.opensha2.util.Site.Z1P0_MIN;
+import static org.opensha2.util.Site.Z2P5_MAX;
+import static org.opensha2.util.Site.Z2P5_MIN;
 
 import java.io.IOException;
 import java.io.ObjectInputStream.GetField;
@@ -52,8 +52,8 @@ import org.opensha2.gmm.GmmInput;
 import org.opensha2.gmm.GmmInput.Builder;
 import org.opensha2.gmm.GmmInput.Constraints;
 import org.opensha2.gmm.GmmInput.Field;
-import org.opensha2.util.Parsing;
-import org.opensha2.util.Parsing.Delimiter;
+import org.opensha2.internal.Parsing;
+import org.opensha2.internal.Parsing.Delimiter;
 
 import com.google.common.base.Converter;
 import com.google.common.base.Enums;

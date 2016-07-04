@@ -1,21 +1,21 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
-import static org.opensha2.calc.Vs30.VS_1150;
-import static org.opensha2.calc.Vs30.VS_180;
-import static org.opensha2.calc.Vs30.VS_2000;
-import static org.opensha2.calc.Vs30.VS_259;
-import static org.opensha2.calc.Vs30.VS_360;
-import static org.opensha2.calc.Vs30.VS_537;
-import static org.opensha2.calc.Vs30.VS_760;
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
+import static org.opensha2.util.Vs30.VS_1150;
+import static org.opensha2.util.Vs30.VS_180;
+import static org.opensha2.util.Vs30.VS_2000;
+import static org.opensha2.util.Vs30.VS_259;
+import static org.opensha2.util.Vs30.VS_360;
+import static org.opensha2.util.Vs30.VS_537;
+import static org.opensha2.util.Vs30.VS_760;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.opensha2.calc.Vs30;
 import org.opensha2.gmm.Imt;
+import org.opensha2.util.Vs30;
 
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
