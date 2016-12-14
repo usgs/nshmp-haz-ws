@@ -14,7 +14,7 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 import static gov.usgs.earthquake.nshm.www.meta.Metadata.HAZARD_USAGE;
 import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
-import static org.opensha2.calc.Results.curvesBySource;
+import static org.opensha2.calc.ResultHandler.curvesBySource;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Region;
 
@@ -36,6 +36,8 @@ import org.opensha2.HazardCalc;
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.Hazard;
+import org.opensha2.calc.Site;
+import org.opensha2.calc.Vs30;
 import org.opensha2.data.XySequence;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.eq.model.SourceType;
@@ -43,8 +45,6 @@ import org.opensha2.geo.Location;
 import org.opensha2.gmm.Imt;
 import org.opensha2.internal.Parsing;
 import org.opensha2.internal.Parsing.Delimiter;
-import org.opensha2.util.Site;
-import org.opensha2.util.Vs30;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;

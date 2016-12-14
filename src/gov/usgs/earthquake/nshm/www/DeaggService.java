@@ -37,15 +37,14 @@ import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
 import org.opensha2.calc.Calcs;
 import org.opensha2.calc.Deaggregation;
-import org.opensha2.calc.Deaggregation.Exporter;
 import org.opensha2.calc.Hazard;
+import org.opensha2.calc.Site;
+import org.opensha2.calc.Vs30;
 import org.opensha2.data.XySequence;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.geo.Location;
 import org.opensha2.gmm.Imt;
 import org.opensha2.internal.Parsing;
-import org.opensha2.util.Site;
-import org.opensha2.util.Vs30;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -230,7 +229,7 @@ public final class DeaggService extends HttpServlet {
     final String rlabel = "Closest Distance, rRup (km)";
     final String mlabel = "Magnitude (Mw)";
     final String εlabel = "% Contribution to Hazard";
-    final List<?> εbins;
+    final Object εbins;
 
     ResponseData(Deaggregation deagg, RequestData request, Imt imt) {
       this.edition = request.edition;
@@ -240,7 +239,6 @@ public final class DeaggService extends HttpServlet {
       this.imt = imt;
       this.returnperiod = request.returnPeriod;
       this.vs30 = request.vs30;
-
       this.εbins = deagg.εBins();
     }
   }
@@ -248,14 +246,14 @@ public final class DeaggService extends HttpServlet {
   private static final class Response {
 
     final ResponseData metadata;
-    final List<Exporter> data;
+    final Object data;
 
-    Response(ResponseData metadata, List<Exporter> data) {
+    Response(ResponseData metadata, Object data) {
       this.metadata = metadata;
       this.data = data;
     }
   }
-
+  
   private static final String TOTAL_KEY = "Total";
 
   private static final class Result {
@@ -298,9 +296,13 @@ public final class DeaggService extends HttpServlet {
             deagg,
             request,
             request.imt);
-        ImmutableList.Builder<Exporter> curveListBuilder = ImmutableList.builder();
-        curveListBuilder.add(deagg.export(request.imt));
-        Response response = new Response(responseData, curveListBuilder.build());
+        
+//        ImmutableList.Builder<Exporter> curveListBuilder = ImmutableList.builder();
+//        curveListBuilder.add(deagg.export(request.imt)); // TODO clean rename curveList...
+//        curveListBuilder.add(new Exporter());
+//        curveListBuilder.add(new Exporter());
+        Object deaggs = deagg.toJson(request.imt);
+        Response response = new Response(responseData, deaggs);
         responseListBuilder.add(response);
 
         return new Result(
