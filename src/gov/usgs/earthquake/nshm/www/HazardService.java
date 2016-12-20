@@ -1,5 +1,6 @@
 package gov.usgs.earthquake.nshm.www;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
@@ -142,28 +143,24 @@ public final class HazardService extends HttpServlet {
 
     Location loc = Location.create(data.latitude, data.longitude);
     Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
-
-    Result.Builder resultBuilder = new Result.Builder()
-        .requestData(data)
-        .url(url);
+    Hazard hazard;
 
     if (data.region == Region.COUS) {
-
       Model wusId = Model.valueOf(Region.WUS, data.edition.year());
       Hazard wusResult = process(wusId, site, data);
-      resultBuilder.addResult(wusResult);
-
       Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
       Hazard ceusResult = process(ceusId, site, data);
-      resultBuilder.addResult(ceusResult);
-
+      hazard = Hazard.merge(wusResult, ceusResult);
     } else {
       Model modelId = Model.valueOf(data.region, data.edition.year());
-      Hazard result = process(modelId, site, data);
-      resultBuilder.addResult(result);
+      hazard = process(modelId, site, data);
     }
 
-    return resultBuilder.build();
+    return new Result.Builder()
+        .requestData(data)
+        .url(url)
+        .hazard(hazard)
+        .build();
   }
 
   private Hazard process(Model modelId, Site site, RequestData data) {
@@ -188,6 +185,11 @@ public final class HazardService extends HttpServlet {
    * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
    * 
    * vs30: 180, 259, 360, 537, 760, 1150, 2000
+   * 
+   * 2014 updated values
+   * 
+   * vs30: 185, 260, 365, 530, 760, 1080, 2000 
+   * 
    */
 
   private static final class RequestData {
@@ -280,12 +282,17 @@ public final class HazardService extends HttpServlet {
       String url;
       RequestData request;
 
-      Map<Imt, Map<SourceType, XySequence>> componentMaps = new EnumMap<>(Imt.class);
-      Map<Imt, XySequence> totalMap = new EnumMap<>(Imt.class);
-      Map<Imt, List<Double>> xValuesLinearMap = new EnumMap<>(Imt.class);
-
-      Builder addResult(Hazard hazardResult) {
-
+      Map<Imt, Map<SourceType, XySequence>> componentMaps;
+      Map<Imt, XySequence> totalMap;
+      Map<Imt, List<Double>> xValuesLinearMap;
+      
+      Builder hazard(Hazard hazardResult) {
+        checkState(totalMap == null, "Hazard has already bneen added to this builder");
+        
+        componentMaps = new EnumMap<>(Imt.class);
+        totalMap = new EnumMap<>(Imt.class);
+        xValuesLinearMap = new EnumMap<>(Imt.class);
+        
         Map<Imt, Map<SourceType, XySequence>> typeTotalMaps = curvesBySource(hazardResult);
 
         for (Imt imt : hazardResult.curves().keySet()) {

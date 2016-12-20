@@ -136,31 +136,26 @@ public final class DeaggService extends HttpServlet {
 
     Location loc = Location.create(data.latitude, data.longitude);
     Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
-
-    Result.Builder resultBuilder = new Result.Builder()
-        .requestData(data)
-        .url(url);
+    Hazard hazard;
 
     if (data.region == Region.COUS) {
-
       Model wusId = Model.valueOf(Region.WUS, data.edition.year());
       Hazard wusResult = process(wusId, site, data);
-      Deaggregation wusDeagg = Calcs.deaggregation(wusResult, data.returnPeriod);
-      resultBuilder.addResult(wusDeagg);
-
       Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
       Hazard ceusResult = process(ceusId, site, data);
-      Deaggregation ceusDeagg = Calcs.deaggregation(ceusResult, data.returnPeriod);
-      resultBuilder.addResult(ceusDeagg);
-
+      hazard = Hazard.merge(wusResult, ceusResult);
     } else {
       Model modelId = Model.valueOf(data.region, data.edition.year());
-      Hazard result = process(modelId, site, data);
-      Deaggregation deagg = Calcs.deaggregation(result, data.returnPeriod);
-      resultBuilder.addResult(deagg);
+      hazard = process(modelId, site, data);
     }
 
-    return resultBuilder.build();
+    Deaggregation deagg = Calcs.deaggregation(hazard, data.returnPeriod);
+    
+    return new Result.Builder()
+        .requestData(data)
+        .url(url)
+        .deagg(deagg)
+        .build();
   }
 
   private Hazard process(Model modelId, Site site, RequestData data) {
@@ -253,7 +248,7 @@ public final class DeaggService extends HttpServlet {
       this.data = data;
     }
   }
-  
+
   private static final String TOTAL_KEY = "Total";
 
   private static final class Result {
@@ -274,7 +269,7 @@ public final class DeaggService extends HttpServlet {
       RequestData request;
       Deaggregation deagg;
 
-      Builder addResult(Deaggregation deagg) {
+      Builder deagg(Deaggregation deagg) {
         this.deagg = deagg;
         return this;
       }
@@ -296,11 +291,6 @@ public final class DeaggService extends HttpServlet {
             deagg,
             request,
             request.imt);
-        
-//        ImmutableList.Builder<Exporter> curveListBuilder = ImmutableList.builder();
-//        curveListBuilder.add(deagg.export(request.imt)); // TODO clean rename curveList...
-//        curveListBuilder.add(new Exporter());
-//        curveListBuilder.add(new Exporter());
         Object deaggs = deagg.toJson(request.imt);
         Response response = new Response(responseData, deaggs);
         responseListBuilder.add(response);
