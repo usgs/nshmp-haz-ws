@@ -4,8 +4,8 @@ import gov.usgs.earthquake.nshm.www.meta.Region;
 
 import java.nio.file.Paths;
 
-import org.opensha2.util.Parsing;
-import org.opensha2.util.Parsing.Delimiter;
+import org.opensha2.internal.Parsing;
+import org.opensha2.internal.Parsing.Delimiter;
 
 import com.google.common.collect.ImmutableList;
 

@@ -86,7 +86,7 @@ public class ServletUtil implements ServletContextListener {
 
 		final LoadingCache<Model, HazardModel> modelCache = CacheBuilder.newBuilder().build(
 			new CacheLoader<Model, HazardModel>() {
-				@Override public HazardModel load(Model model) throws Exception {
+				@Override public HazardModel load(Model model) {
 					return loadModel(context, model);
 				}
 			});
@@ -148,11 +148,9 @@ public class ServletUtil implements ServletContextListener {
 
 			return HazardModel.load(path);
 		} catch (URISyntaxException | MalformedURLException e) {
-			Throwables.propagate(e);
-			return null;
+		  throw new RuntimeException(e);
 		} catch (IOException iox) {
-			Throwables.propagate(iox);
-			return null;
+      throw new RuntimeException(iox);
 		}
 	}
 
