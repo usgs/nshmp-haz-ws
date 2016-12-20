@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.opensha2.data.XyPoint;
 import org.opensha2.data.XySequence;
-import org.opensha2.util.Parsing;
+import org.opensha2.internal.Parsing;
 
 import com.google.common.primitives.Doubles;
 
