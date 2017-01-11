@@ -29,25 +29,33 @@ svg {
 .legend line,
 .lines {
 	fill: none;
-	stroke-width: 1.5px;
+	stroke-width: 2px;
 	stroke-linejoin: round;
 	stroke-linecap: round;
 }
 
+.series-line {
+
+}
+
+.series-point {
+
+}
+
 </style>
 
-<title>ServiceTest</title>
+<title>SpectraTest</title>
 </head>
 <body>
 
-<h1>Response Spectra Plot</h1>
+<h1 contentEditable="true">Response Spectra</h1>
 
 <script src="js/d3.min.js"></script>
 <script>
 
 // var pp = {"ids":["ASK_14","BSSA_14","CB_14","CY_14","IDRISS_14"],"input":{"rate":0.0,"Mw":6.5,"rJB":10.0,"rRup":10.3,"rX":10.0,"dip":90.0,"width":14.0,"zTop":0.5,"zHyp":7.5,"rake":0.0,"vs30":760.0,"vsInf":true,"z2p5":NaN,"z1p0":NaN}};
 // var pp = "http://localhost:8080/nshmp-haz-ws/DeterministicSpectra?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=10.0&rrup=10.3&rx=10.0&dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
-var pp = "http://localhost:8080/nshmp-haz-ws/spectra?ids=ZHAO_06_INTER,BCHYDRO_12_INTER,AM_09_INTER&mag=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
+var pp = "http://localhost:8080/nshmp-haz-ws/spectra?gmm=ZHAO_06_INTER,BCHYDRO_12_INTER,AM_09_INTER&mag=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
 
 
 var margin = {top: 10, right: 10, bottom: 40, left: 50},
@@ -58,8 +66,8 @@ var margin = {top: 10, right: 10, bottom: 40, left: 50},
 //     .domain([0.1, 100])
 //     .range([0, width]);
 
-var x = d3.scale.linear().range([0, width]),
-	y = d3.scale.linear().range([height, 0]);
+var x = d3.scale.linear().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
 
 var color = d3.scale.category10();
 
@@ -101,9 +109,12 @@ d3.json(pp, function(error, response) {
 // 	document.getElementsByTagName('body')[0].innerHTML += JSON.stringify(response);
 	
 	var dataset = response.means;
+	// alert(response.status);
+	var pp = response.request.input.Mw;
+	// alert(pp);
 	var series = dataset.series;
 	
- 	x.domain(d3.extent(dataset.xValues)).nice();
+	x.domain(d3.extent(dataset.xValues)).nice();
 	y.domain([d3.min(series, function(d) { return d3.min(d.yValues); }),
 			  d3.max(series, function(d) { return d3.max(d.yValues); })]).nice();
 // 	alert(y.domain());
@@ -115,14 +126,70 @@ d3.json(pp, function(error, response) {
 	});
 	
 	
-	svg.append("g")
-		.attr("class", "lines")
-		.attr("clip-path", "url(#clip)")
-	  .selectAll("path")
+	// var enter
+	// console.log(seriesData);
+
+	var seriesEnter = svg.append("g")
+		// .attr("clip-path", "url(#clip)")
+	  .selectAll("g")
 		.data(seriesData)
-	  .enter().append("path")
-		.style("stroke", function(d, i) { return color(i); })
+		.enter()
+		.append("g")
+		.attr("class", "lines");
+
+	seriesEnter.append("path")
+		.style("stroke", function(d, i) { 
+			return color(i); })
 		.attr("d", line);
+
+	// console.log(seriesEnter.data());
+	// console.log(seriesData);
+
+	// seriesEnter.ea
+	// for (var i = 0; i < Things.length; i++) {
+	// 	Things[i]
+
+	// };
+
+	seriesEnter.selectAll("dot")
+			.data(function(d, i) { return d; })
+			.enter()
+			.append("circle")
+			.attr("class", "dot")
+  		.attr("cx", line.x())
+  		.attr("cy", line.y())
+  		.attr("r", 3)
+  		.style("fill", function(d, i, j) { return color(j); });
+  
+  // seriesEnter.selectAll("circle")
+  // 	.data(seriesEnter.data(), function(d, i) { return seriesEnter.data()[i]; })
+  // 	.enter()
+  // 	.append("circle")
+  // 	.attr("cx", function(d) { return d[0];  })
+  // 	.attr("cy", function(d) { return d[1];  })
+  // 	.attr("r", 2)
+  // 	.style("fill", function(d, i) { return color(i); });
+
+  // seriesEnter.append("circle")
+  // 	.attr("cx", function(d) { return d[0][0]; })
+  // 	.attr("cy", function(d) { return d[0][1]; })
+  // 	.attr("r", 2)
+  // 	.style("fill", function(d, i) { return color(i); });
+
+	// svg.append("g")
+	// 	.attr("class", "lines")
+	// 	// .attr("clip-path", "url(#clip)")
+	//   .selectAll("path")
+	// 	.data(seriesData).enter()
+	//   .append("path")
+	// 		.style("stroke", function(d, i) { return color(i); })
+	// 		.attr("d", line)
+ //    .append("circle")
+ //  		.attr("cx", function(d) { return d[0][0];  })
+ //  		.attr("cy", function(d) { return d[0][1];  })
+ //  		.attr("r", 2)
+ //  		.style("stroke", function(d, i) { return color(i); });
+
 
 	svg.append("g")
 		.attr("class", "x axis")
