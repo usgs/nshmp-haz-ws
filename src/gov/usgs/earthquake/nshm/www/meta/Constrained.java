@@ -6,5 +6,5 @@ package gov.usgs.earthquake.nshm.www.meta;
  */
 @SuppressWarnings("javadoc")
 public interface Constrained {
-	public Constraints constraints();
+  public Constraints constraints();
 }

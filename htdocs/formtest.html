@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NSHMP Utilities</title>
+  <title>FormTest</title>
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/test.css" type="text/css">
@@ -74,17 +74,12 @@
   }
 
   </style>
-
-
 </head>
 
 <body>
 
-
-  <br/>
-
 <div id="control">
-<form>
+
 
 
   <!-- <div class="col-sm-6"> -->
@@ -96,8 +91,8 @@
              data-container="body"
              title="Sort by Group">
         <input type="radio"
-               name="gmmsort"
                value="group"
+               name="gmmsort"
                aria-label="Sort by Group"
                checked="true" />
         <span class="glyphicon glyphicon-list"
@@ -108,8 +103,8 @@
              data-container="body"
              title="Sort Alphabetically">
         <input type="radio"
-               name="gmmsort"
                value="alpha"
+               name="gmmsort"
                aria-label="Sort Alphabetically" />
           <span class="glyphicon glyphicon-sort-by-alphabet"
                 aria-hidden="true" />
@@ -117,6 +112,7 @@
       </label>
     </div>
 
+<form action="spectra" method="get">
     <select class="form-control input-sm" id="gmms" size="16" multiple="true">
       <option class="WUS_08_ACTIVE_CRUST" value="BA_08">Boore &amp; Atkinson (2008)</option>
       <option class="WUS_08_ACTIVE_CRUST" value="CB_08">Campbell &amp; Bozorgnia (2008)</option>
@@ -158,21 +154,20 @@
     </select>
   <!-- </div> -->
 
-
   <div class="form-horizontal">
     
     <label class="spacer">Event Parameters:</label>
     <div class="form-group form-group-sm show-grid">
       <label class="col-sm-2 control-label">M<sub>W</sub></label>
       <div class="col-sm-3">
-        <input type="text" class="form-control">
+        <input type="text" class="form-control" name="Mw">
       </div>
     </div>
     <div class="form-group form-group-sm">
       <label class="col-sm-2 control-label">Rake</label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="rake">
           <span class="input-group-addon">°</span>
         </div>
       </div>
@@ -194,7 +189,7 @@
       <label class="col-sm-2 control-label">Z<sub>HYP</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="zHyp">
           <span class="input-group-addon">km</span>
         </div>
       </div>
@@ -211,14 +206,14 @@
       <label class="col-sm-2 control-label">Z<sub>TOP</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="zTop">
           <span class="input-group-addon">km</span>
         </div>
       </div>
       <label class="col-sm-1 control-label">Dip</label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="number" class="form-control">
+          <input type="number" class="form-control" name="dip">
           <span class="input-group-addon">°</span>
         </div>
       </div>
@@ -227,29 +222,25 @@
       <label class="col-sm-2 control-label">Width</label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="width">
           <span class="input-group-addon">km</span>
         </div>
       </div>
     </div>
 
-<!--   </div>
-
-  <div class="col-sm-4 form-horizontal">
- -->
     <label class="spacer">Path Parameters:</label>
     <div class="form-group form-group-sm">
       <label class="col-sm-2 control-label">R<sub>X</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="rX">
           <span class="input-group-addon">km</span>
         </div>
       </div>
       <label class="col-sm-1 control-label disabled">R<sub>Y</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control" disabled="true">
+          <input type="text" class="form-control" disabled="true" name="rY">
           <span class="input-group-addon">km</span>
         </div>
       </div>
@@ -258,7 +249,7 @@
       <label class="col-sm-2 control-label">R<sub>RUP</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="rRup">
           <span class="input-group-addon">km</span>
         </div>
       </div>
@@ -274,7 +265,7 @@
       <label class="col-sm-2 control-label">R<sub>JB</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="rJB">
           <span class="input-group-addon">km</span>
         </div>
       </div>
@@ -295,17 +286,17 @@
       <label class="col-sm-2 control-label">V<sub>S</sub>30</label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" name="vs30">
           <span class="input-group-addon"><sup>m</sup>⁄<sub>s</sub></span>
         </div>
       </div>
       <div class="col-sm-6 col-sm-offset-1">
         <div id="vs-infer" class="btn-group btn-group-xs" data-toggle="buttons">
-          <label class="btn btn-default active" title="Vs30 Measured">Measured
-            <input type="radio" name="vs-infer" value="measured" checked="true">
+          <label class="btn btn-default" title="Vs30 Measured">Measured
+            <input type="radio" name="vs-infer" value="measured">
           </label>
-          <label class="btn btn-default" title="Vs30 Inferred">Inferred
-            <input type="radio" name="vs-infer" value="inferred">
+          <label class="btn btn-default active" title="Vs30 Inferred">Inferred
+            <input type="radio" name="vs-infer" value="inferred" checked="true">
           </label>
         </div>
       </div>
@@ -314,20 +305,23 @@
       <label class="col-sm-2 control-label">Z<sub>1.0</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" placeholder="default" name="z1p0">
           <span class="input-group-addon">km</span>
         </div>
       </div>
       <label class="col-sm-1 control-label">Z<sub>2.5</sub></label>
       <div class="col-sm-3">
         <div class="input-group input-group-sm">
-          <input type="text" class="form-control">
+          <input type="text" class="form-control" placeholder="default" name="z2p5">
           <span class="input-group-addon">km</span>
         </div>
       </div>
     </div>
 
   </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+
+  <div id="gmmInputs"></div>
 
 </form>
 </div>
@@ -341,23 +335,37 @@
   /* process usage response */
   function buildInputs(usage) {
     var params = usage.parameters;
+
     var inputs = $("#gmmInputs");
     var model = $("#gmmInputs > div").detach();
-    // console.log(model);
+    // console.log(params.rRup.info);
+
+    Object.keys(params)
+      .filter(function (key) {
+        if (key === "gmms") return false;
+        if (key === "groups") return false;
+        return true;
+      })
+      .forEach(function (key, index) {
+        // console.log(params[key].value);
+        $("input[name='" + key + "']").val(params[key].value);
+        console.log(key + ": " + params[key].value);
+      });
 
     $(params).filter(function (index, param) {
-      if (param.id === "gmms") return false;
-      if (param.id === "groups") return false;
+      // if (param.id === "gmms") return false;
+      // if (param.id === "groups") return false;
       return true;
     }).each(function (index, param) {
+      console.log(param);
     // params.forEach(function(param, index) {
       // if (param.id === "groups") return false;
-      var entry = model.clone();
-      entry.find("label").attr("for", param.id).text(param.shortName + ":");
-      var input = entry.find("input").attr("id", param.id);
-      if (typeof(param.value) === 'boolean') input.attr("type", "checkbox");
-      if (param.units) entry.find("div.units").text(param.units);
-      inputs.append(entry);
+      // var entry = model.clone();
+      // entry.find("label").attr("for", param.id).text(param.shortName + ":");
+      // var input = entry.find("input").attr("id", param.id);
+      // if (typeof(param.value) === 'boolean') input.attr("type", "checkbox");
+      // if (param.units) entry.find("div.units").text(param.units);
+      // inputs.append(entry);
     });
 
   }
@@ -388,7 +396,9 @@
     });
 
     /* Bind option views to sort buttons */
-    $("input[name='gmmsort']").change(function() {
+    $("#gmmsorter input").change(function() {
+      console.log("clickshit: " + this.value);
+    // $("input[name='gmmsort']").change(function() {
       var options = this.value === "alpha" ? gmmAlphaOptions : gmmGroupOptions;
       $("#gmms").empty().append(options);
       $("#gmms").scrollTop(0);
@@ -398,18 +408,13 @@
     $("#gmms").empty().append(gmmGroupOptions);
 
     /* gimme some ajax */
-    // $.ajax({
-    //   url: "http://localhost:8080/nshmp-haz-ws/spectra",
-    //   success: buildInputs
-    // });
+    $.ajax({
+      url: "http://localhost:8080/nshmp-haz-ws/spectra",
+      success: buildInputs
+    });
     
-
-
-});
-
-
-
-</script>
+  });
+  </script>
 
 </body>
 </html>
