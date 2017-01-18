@@ -1,6 +1,7 @@
 package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
 
 import static org.opensha2.ResponseSpectra.spectra;
 import static org.opensha2.calc.Site.VS_30_MAX;
@@ -16,7 +17,7 @@ import static org.opensha2.eq.fault.Faults.RAKE_RANGE;
 import static org.opensha2.eq.fault.Faults.INTERFACE_WIDTH_RANGE;
 import static org.opensha2.eq.fault.Faults.CRUSTAL_DEPTH_RANGE;
 import static org.opensha2.gmm.GmmInput.Field.DIP;
-import static org.opensha2.gmm.GmmInput.Field.MAG;
+import static org.opensha2.gmm.GmmInput.Field.MW;
 import static org.opensha2.gmm.GmmInput.Field.RAKE;
 import static org.opensha2.gmm.GmmInput.Field.RJB;
 import static org.opensha2.gmm.GmmInput.Field.RRUP;
@@ -49,6 +50,7 @@ import gov.usgs.earthquake.nshm.www.meta.Status;
 
 import org.opensha2.ResponseSpectra.MultiResult;
 import org.opensha2.data.Data;
+import org.opensha2.data.XySequence;
 import org.opensha2.gmm.Gmm;
 import org.opensha2.gmm.Gmm.Group;
 import org.opensha2.gmm.GmmInput;
@@ -97,7 +99,7 @@ import com.google.gson.stream.JsonWriter;
 public class SpectraService extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
-  private static final String NAME = "DeterministicSpectra";
+  private static final String NAME = "Deterministic Response Spectra";
   private static final String RESULT_NAME = NAME + " Results";
   private static final String GROUP_NAME_MEAN = "Means";
   private static final String GROUP_NAME_SIGMA = "Sigmas";
@@ -192,23 +194,21 @@ public class SpectraService extends HttpServlet {
 
     response.setContentType("application/json; charset=UTF-8");
 
-    /* At a minimum, Gmms must be defined. */
-    String gmmParam = request.getParameter(Metadata.GMM_KEY);
+    String query = request.getQueryString();
+    String pathInfo = request.getPathInfo();
     String host = request.getServerName() + ":" + request.getServerPort();
 
-    if (gmmParam == null) {
-      /*
-       * If they're not, check to see if a list of Gmm is supplied and return
-       * the intersection of their input parameter constraints.
-       */
+    /* At a minimum, Gmms must be defined. */
+    String gmmParam = request.getParameter(Metadata.GMM_KEY);
 
-      /*
-       * Otherwise, return usage with absolute constraints for each input
-       * parameter.
-       */
+    if (gmmParam == null) {
       response.getWriter().printf(USAGE_STR, host);
       return;
     }
+
+    StringBuffer urlBuf = request.getRequestURL();
+    if (query != null) urlBuf.append('?').append(query);
+    String url = urlBuf.toString();
 
     RequestData requestData = new RequestData();
     Map<String, String[]> params = request.getParameterMap();
@@ -216,13 +216,12 @@ public class SpectraService extends HttpServlet {
       requestData.gmms = buildGmmSet(params);
       requestData.input = buildInput(params);
     } catch (Exception e) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-      // TODO stack trace?
+      String message = errorMessage(url, e, false);
+      response.getWriter().print(message);
     }
 
     ResponseData svcResponse = processRequest(requestData);
     GSON.toJson(svcResponse, response.getWriter());
-
   }
 
   private static final String USAGE_STR = GSON.toJson(new Metadata());
@@ -251,39 +250,58 @@ public class SpectraService extends HttpServlet {
     response.means = XY_DataGroup.create(
         GROUP_NAME_MEAN,
         X_LABEL,
-        Y_LABEL_MEDIAN,
-        result.periods);
+        Y_LABEL_MEDIAN);
 
     response.sigmas = XY_DataGroup.create(
         GROUP_NAME_SIGMA,
         X_LABEL,
-        Y_LABEL_SIGMA,
-        result.periods);
+        Y_LABEL_SIGMA);
 
     // populate response
     for (Gmm gmm : result.meanMap.keySet()) {
+
       // result contains immutable lists so copy in order to modify
-      response.means.add(gmm.name(), gmm.toString(),
+      XySequence xyMeans = XySequence.create(
+          result.periods,
           Data.exp(new ArrayList<>(result.meanMap.get(gmm))));
-      response.sigmas.add(gmm.name(), gmm.toString(), result.sigmaMap.get(gmm));
+      response.means.add(gmm.name(), gmm.toString(), xyMeans);
+
+      XySequence xySigmas = XySequence.create(
+          result.periods,
+          result.sigmaMap.get(gmm));
+      response.sigmas.add(gmm.name(), gmm.toString(), xySigmas);
     }
+
     return response;
   }
 
   private static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
-    checkArgument(params.containsKey(Metadata.GMM_KEY), "Missing ground motion model key: " +
-        Metadata.GMM_KEY);
-    Iterable<String> gmmStrings = Parsing.split(params.get(Metadata.GMM_KEY)[0], Delimiter.COMMA);
-    Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
-    return Sets.newEnumSet(Iterables.transform(gmmStrings, converter), Gmm.class);
+    checkArgument(params.containsKey(Metadata.GMM_KEY),
+        "Missing ground motion model key: " +
+            Metadata.GMM_KEY);
+    return Sets.newEnumSet(
+        FluentIterable
+            .from(params.get(Metadata.GMM_KEY))
+            .transform(Enums.stringConverter(Gmm.class)),
+        Gmm.class);
+
+    // TODO clean
+    // Iterable<String> gmmStrings =
+    // Parsing.split(params.get(Metadata.GMM_KEY)[0], Delimiter.COMMA);
+    // Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
+    // return Sets.newEnumSet(Iterables.transform(gmmStrings, converter),
+    // Gmm.class);
   }
 
   private static GmmInput buildInput(Map<String, String[]> params) {
     Builder builder = GmmInput.builder().withDefaults();
     for (Entry<String, String[]> entry : params.entrySet()) {
       if (entry.getKey().equals(Metadata.GMM_KEY)) continue;
-      String value = entry.getValue()[0];
       Field id = Field.fromString(entry.getKey());
+      String value = entry.getValue()[0];
+      if (value.equals("")) {
+        continue;
+      }
       builder.set(id, value);
     }
     return builder.build();
@@ -300,7 +318,7 @@ public class SpectraService extends HttpServlet {
     @Override
     public JsonElement serialize(GmmInput input, Type type, JsonSerializationContext context) {
       JsonObject root = new JsonObject();
-      root.addProperty(MAG.toString(), input.Mw);
+      root.addProperty(MW.toString(), input.Mw);
       root.addProperty(RJB.toString(), input.rJB);
       root.addProperty(RRUP.toString(), input.rRup);
       root.addProperty(RX.toString(), input.rX);
@@ -416,7 +434,7 @@ public class SpectraService extends HttpServlet {
 
     private static final class BooleanParam implements Param {
 
-      final String name;
+      final String label;
       final String info;
       final boolean value;
 
@@ -425,7 +443,7 @@ public class SpectraService extends HttpServlet {
       }
 
       BooleanParam(GmmInput.Field field, boolean value) {
-        this.name = field.label;
+        this.label = field.label;
         this.info = field.info;
         this.value = value;
       }
@@ -453,11 +471,11 @@ public class SpectraService extends HttpServlet {
       private static class Value {
 
         final String id;
-        final String name;
+        final String label;
 
         Value(Gmm gmm) {
           this.id = gmm.name();
-          this.name = gmm.toString();
+          this.label = gmm.toString();
         }
       }
     }
@@ -467,29 +485,29 @@ public class SpectraService extends HttpServlet {
     private static final String GROUP_INFO = "Groups of related ground motion models ";
 
     private static final class GroupParam implements Param {
-
-      final String label;
-      final String info;
+ 
+      final String label;  
+      final String info;  
       final List<Value> values;
 
       GroupParam(String label, String info, Set<Gmm.Group> groups) {
         this.label = label;
-        this.info = info;
-        this.values = new ArrayList<>();
-        for (Gmm.Group group : groups) {
+        this.info = info; 
+        this.values = new ArrayList<>(); 
+        for (Gmm.Group group : groups) { 
           this.values.add(new Value(group));
         }
       }
 
       private static class Value {
 
-        final String id;
-        final String name;
-        final List<Gmm> data;
-
-        Value(Gmm.Group group) {
-          this.id = group.name();
-          this.name = group.toString();
+        final String id; 
+        final String label;
+        final List<Gmm> data; 
+ 
+        Value(Gmm.Group group) {  
+          this.id = group.name();  
+          this.label = group.toString();
           this.data = group.gmms();
         }
       }

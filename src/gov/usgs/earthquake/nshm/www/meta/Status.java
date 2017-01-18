@@ -10,7 +10,7 @@ public enum Status {
   
   USAGE,
   SUCCESS,
-  FAILURE;
+  ERROR;
 
   @Override
   public String toString() {

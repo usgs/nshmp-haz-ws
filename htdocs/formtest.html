@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FormTest</title>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/test.css" type="text/css">
 
   <!-- Optional theme -->
@@ -173,14 +173,14 @@
       </div>
       <div class="col-sm-6 col-sm-offset-1">
         <div id="fault-style" class="btn-group btn-group-xs" data-toggle="buttons">
-          <label class="btn btn-default active" title="Strike-Slip">Strike-Slip
-            <input type="radio" name="fault-style" value="strike-slip" checked="true">
+          <label class="btn btn-default active disabled" title="Strike-Slip">Strike-Slip
+            <input type="radio" value="strike-slip" checked="true">
           </label>
-          <label class="btn btn-default" title="Normal">Normal
-            <input type="radio" name="fault-style" value="normal">
+          <label class="btn btn-default disabled" title="Normal">Normal
+            <input type="radio" value="normal">
           </label>
-          <label class="btn btn-default" title="Reverse">Reverse
-            <input type="radio" name="fault-style" value="reverse">
+          <label class="btn btn-default disabled" title="Reverse">Reverse
+            <input type="radio" value="reverse">
           </label>
         </div>
       </div>
@@ -271,11 +271,11 @@
       </div>
       <div class="col-sm-6 col-sm-offset-1">
         <div id="hw-fw" class="btn-group btn-group-xs" data-toggle="buttons">
-          <label class="btn btn-default active" title="Hanging Wall">Hanging
-            <input type="radio" name="hw-fw" value="hw" checked="true">
+          <label class="btn btn-default active disabled" title="Hanging Wall">Hanging
+            <input type="radio" value="hw" checked="true">
           </label>
-          <label class="btn btn-default" title="Foot Wall">Foot Wall
-            <input type="radio" name="hw-fw" value="fw">
+          <label class="btn btn-default disabled" title="Foot Wall">Foot Wall
+            <input type="radio" value="fw">
           </label>
         </div>
       </div>
@@ -293,10 +293,10 @@
       <div class="col-sm-6 col-sm-offset-1">
         <div id="vs-infer" class="btn-group btn-group-xs" data-toggle="buttons">
           <label class="btn btn-default" title="Vs30 Measured">Measured
-            <input type="radio" name="vs-infer" value="measured">
+            <input type="radio" name="vsInf" value="measured">
           </label>
           <label class="btn btn-default active" title="Vs30 Inferred">Inferred
-            <input type="radio" name="vs-infer" value="inferred" checked="true">
+            <input type="radio" name="vsInf" value="inferred" checked="true">
           </label>
         </div>
       </div>
