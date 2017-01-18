@@ -1,0 +1,50 @@
+body {
+	margin: 36px 12px 12px 12px;
+}
+
+#status, #model1, #model2 {
+	float: right;
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 12px;
+	clear: right;
+}
+
+.service {
+	width: 640px;
+	margin-bottom: 24px;
+	border-bottom: 1px solid #ddd;
+}
+
+.service:last-of-type {
+	border: 0px;
+}
+
+.serviceExample {
+  position: relative;
+  padding: 45px 15px 0px;
+  margin: 20px 32px 20px 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05)
+}
+
+.serviceExample:after {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #959595;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  content: "Examples";
+  box-sizing: border-box;
+}
+
+.serviceLink {
+	word-wrap: break-word;
+	word-break: break-all;
+	padding-bottom: 6px;
+}

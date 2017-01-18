@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSHMP Response Spectra Application</title>
+
+  <!-- 
+      Do not upgrade to Bootstrap 3.3.7; focus ring shows up on radio
+      button groups and interferes with tooltip visibility.
+    -->
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="css/header.css" type="text/css">
+  <link rel="stylesheet" href="css/spectra.css" type="text/css">
+</head>
+
+<body>
+  <div id="header">Response Spectra Application</div>
+
+    <div id="control">
+    
+      <label for="gmms">Ground Motion Models:</label>
+     
+      <div id="gmmsorter" class="btn-group btn-group-xs" data-toggle="buttons">
+        <label class="btn btn-default active"
+               data-toggle="tooltip"
+               data-container="body"
+               title="Sort by Group">
+          <input type="radio"
+                 value="group"
+                 name="gmmsort"
+                 aria-label="Sort by Group"
+                 checked="true" />
+          <span class="glyphicon glyphicon-list"
+                aria-hidden="true" />
+        </label>
+        <label class="btn btn-default"
+               data-toggle="tooltip"
+               data-container="body"
+               title="Sort Alphabetically">
+          <input type="radio"
+                 value="alpha"
+                 name="gmmsort"
+                 aria-label="Sort Alphabetically" />
+            <span class="glyphicon glyphicon-sort-by-alphabet"
+                  aria-hidden="true" />
+          </input>
+        </label>
+      </div>
+    
+      <form id="inputs">
+        <select class="form-control input-sm" name="gmm" id="gmms" size="16" multiple="true"></select>
+      
+        <div class="form-horizontal">
+          
+          <label class="spacer">Event Parameters:</label>
+          <div class="form-group form-group-sm show-grid">
+            <label class="col-sm-2 control-label">M<sub>W</sub></label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" name="Mw">
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">Rake</label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="rake">
+                <span class="input-group-addon">°</span>
+              </div>
+            </div>
+            <div class="col-sm-6 col-sm-offset-1">
+              <div id="fault-style" class="btn-group btn-group-xs" data-toggle="buttons">
+                <label class="btn btn-default active disabled" title="Strike-Slip">Strike-Slip
+                  <input type="radio" value="strike-slip" checked="true">
+                </label>
+                <label class="btn btn-default disabled" title="Normal">Normal
+                  <input type="radio" value="normal">
+                </label>
+                <label class="btn btn-default disabled" title="Reverse">Reverse
+                  <input type="radio" value="reverse">
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">Z<sub>HYP</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="zHyp">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <div class="col-sm-6 col-sm-offset-1">
+              <label class="control-label secondary-input">
+                <input type="checkbox" checked="true">
+                Centered down-dip
+              </label>
+            </div>
+          </div>
+      
+          <label class="spacer">Source Geometry:</label>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">Z<sub>TOP</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="zTop">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <label class="col-sm-1 control-label">Dip</label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control" name="dip">
+                <span class="input-group-addon">°</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">Width</label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="width">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+          </div>
+      
+          <label class="spacer">Path Parameters:</label>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">R<sub>X</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="rX">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <label class="col-sm-1 control-label disabled">R<sub>Y</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" disabled="true" name="rY">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">R<sub>RUP</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="rRup">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <div class="col-sm-1"></div>
+            <div class="col-sm-6">
+              <label class="control-label secondary-input">
+                <input type="checkbox" checked="true">
+                Derive R<sub>JB</sub> and R<sub>RUP</sub>
+              </label>
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">R<sub>JB</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="rJB">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <div class="col-sm-6 col-sm-offset-1">
+              <div id="hw-fw" class="btn-group btn-group-xs" data-toggle="buttons">
+                <label class="btn btn-default active disabled" title="Hanging Wall">Hanging
+                  <input type="radio" value="hw" checked="true">
+                </label>
+                <label class="btn btn-default disabled" title="Foot Wall">Foot Wall
+                  <input type="radio" value="fw">
+                </label>
+              </div>
+            </div>
+          </div>
+      
+          <label class="spacer">Site &amp; Basin:</label>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">V<sub>S</sub>30</label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="vs30">
+                <span class="input-group-addon"><sup>m</sup>⁄<sub>s</sub></span>
+              </div>
+            </div>
+            <div class="col-sm-6 col-sm-offset-1">
+              <div id="vs-infer" class="btn-group btn-group-xs" data-toggle="buttons">
+                <label class="btn btn-default" title="Vs30 Measured">Measured
+                  <input type="radio" name="vsInf" value="measured">
+                </label>
+                <label class="btn btn-default active" title="Vs30 Inferred">Inferred
+                  <input type="radio" name="vsInf" value="inferred" checked="true">
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group form-group-sm">
+            <label class="col-sm-2 control-label">Z<sub>1.0</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" placeholder="default" name="z1p0">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+            <label class="col-sm-1 control-label">Z<sub>2.5</sub></label>
+            <div class="col-sm-3">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" placeholder="default" name="z2p5">
+                <span class="input-group-addon">km</span>
+              </div>
+            </div>
+          </div>
+      
+        </div>
+      </form>
+
+      <div id="buttons">
+        <button id="submit" class="btn btn-sm btn-primary">Update</button>
+      </div>
+
+    </div>
+  
+    <div id="content">
+      <div id="plot">
+        <h2 id="plot-title" contentEditable="true">Response Spectra</h2>
+      </div>
+    </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript" charset="UTF-8"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" type="text/javascript" charset="UTF-8"></script> -->
+  <script src="js/d3.min.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/spectra.js" type="text/javascript" charset="UTF-8"></script>
+
+  <script type="text/javascript">
+
+function calcWidth() {
+  return parseInt(d3.select("#plot").style("width")) - margin.left - margin.right;
+};
+
+function calcHeight() {
+  // this uses jQuery to get the true height of the plot title
+  var plotHeight = parseInt(d3.select("#plot").style("height")) - $("#plot-title").outerHeight(true);
+  return plotHeight - margin.top - margin.bottom;
+};
+
+function translateLegend(i, width) {
+  return "translate(" + (width - 300) + "," + (40 + i * 20) + ")"; 
+}
+
+function xDomain(data) {
+  return [
+    d3.min(data, function(d) { return d3.min(d.data.xs); }),
+    d3.max(data, function(d) { return d3.max(d.data.xs); })
+  ];
+}
+
+function yDomain(data) {
+  return [
+    d3.min(data, function(d) { return d3.min(d.data.ys); }),
+    d3.max(data, function(d) { return d3.max(d.data.ys); })
+  ];
+}
+
+function resize() {
+
+  /* update viewport size */
+  width = calcWidth();
+  height = calcHeight();
+
+  /* Update the range of the scale with new width/height */
+  x.range([0, width]).nice();
+  y.range([height, 0]).nice();
+
+  d3.select("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+
+  /* Update the axis with the new scale */
+  svg.select(".x.axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.select(".x.axis-label")
+    .attr("x", width / 2)
+    .attr("y", height + margin.bottom - 10);
+
+  svg.select(".y.axis")
+    .call(yAxis);
+
+  svg.select(".y.axis-label")
+    .attr("x", 0 - (height / 2));
+
+  /* Redraw lines */
+  svg.selectAll(".lines path")
+    .attr("d", line);
+
+  /* Redraw dots */
+  svg.selectAll(".dot")
+    .attr("cx", line.x())
+    .attr("cy", line.y())
+
+  svg.selectAll(".legend g")
+    .attr("transform", function(d, i) { return translateLegend(i, width); });
+}
+
+// var x = d3.scale.log()
+//     .domain([0.1, 100])
+//     .range([0, width]);
+
+var pp = "http://localhost:8080/nshmp-haz-ws/spectra?gmm=ZHAO_06_INTER&gmm=BCHYDRO_12_INTER&gmm=AM_09_INTER&mw=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
+var margin = {top: 24, right: 32, bottom: 56, left: 76};
+var width = calcWidth();
+var height = calcHeight();
+var x = d3.scale.linear().range([0, width]).nice();
+var y = d3.scale.linear().range([height, 0]).nice();
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d[0]); })
+    .y(function(d) { return y(d[1]); });
+
+var svg = d3.select("#plot").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// reduced data for plotting 
+var seriesLabels = [];
+var seriesData = [];
+
+$("#submit").click(function () {
+  console.log("peter");
+  console.log($("#inputs").serialize());
+});
+
+// function submit(event) {
+//   event.preventDefault();
+//   console.log("peter");
+//   console.log($("form").serialize());
+//   return false;
+// }
+
+
+d3.json(pp, function(error, response) {
+  if (error) return console.warn(error);
+
+  var dataset = response.means;
+  var series = dataset.data;
+  
+  x.domain(xDomain(series)).nice();
+  y.domain(yDomain(series)).nice();
+
+  // x.domain(d3.extent(dataset.xValues)).nice();
+  // y.domain([
+  //     d3.min(series, function(d) { return d3.min(d.yValues); }),
+  //     d3.max(series, function(d) { return d3.max(d.yValues); })])
+  //   .nice();
+
+  series.forEach(function(d, i) {
+    seriesLabels.push(d.label);
+    seriesData.push(d3.zip(d.data.xs, d.data.ys));
+    // alternate approach is to convert data local coords if plot is fixed size
+    // requires getting rid of x(fn) y(fn) on line var.
+    // seriesData.push(d3.zip(dataset.xValues.map(x), d.yValues.map(y)));
+  });
+
+  var seriesEnter = svg.append("g")
+    // .attr("clip-path", "url(#clip)")
+    .selectAll("g")
+    .data(seriesData)
+    .enter()
+    .append("g")
+    .attr("class", "lines");
+
+  seriesEnter.append("path")
+    .style("stroke", function(d, i) { 
+      return color(i); })
+    .attr("d", line);
+
+  seriesEnter.selectAll(".dot")
+      .data(function(d, i) { return d; })
+      .enter()
+      .append("circle")
+      .attr("class", "dot")
+      .attr("cx", line.x())
+      .attr("cy", line.y())
+      .attr("r", 3)
+      .style("fill", function(d, i, j) { return color(j); });
+
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis);
+  
+  /* x-axis label */
+  svg.append("text")
+    .attr("y", height + margin.bottom - 4)
+    .attr("x", width / 2)
+    .attr("class", "x axis-label")
+    .text(dataset.xLabel);
+
+  /* y-axis label */
+  svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .attr("class", "y axis-label")
+    .text(dataset.yLabel);
+
+  var legend = svg.append("g")
+      .attr("class", "legend")
+    .selectAll("g")
+      .data(seriesLabels)
+    .enter().append("g")
+      .attr("transform", function(d, i) { return translateLegend(i, width); });
+
+  legend.append("line")
+    .style("stroke", function(d, i) { return color(i); })
+    .attr("x2", 20);
+
+  legend.append("text")
+    .attr("dy", ".35em")
+    .attr("x", 26)
+    .text(function(d, i) { return d; });
+
+
+
+  d3.select(window).on("resize", resize); 
+
+  // resize();
+
+});
+
+
+
+  </script>
+
+</body>
+</html>
