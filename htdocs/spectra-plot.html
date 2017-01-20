@@ -221,7 +221,7 @@
       </form>
 
       <div id="buttons">
-        <button id="submit" class="btn btn-sm btn-primary">Update</button>
+        <button id="submit" class="btn btn-sm btn-primary" disabled>Update</button>
       </div>
 
     </div>
@@ -251,7 +251,7 @@ function calcHeight() {
 };
 
 function translateLegend(i, width) {
-  return "translate(" + (width - 300) + "," + (40 + i * 20) + ")"; 
+  return "translate(" + (width - 360) + "," + (40 + i * 20) + ")"; 
 }
 
 function xDomain(data) {
@@ -314,7 +314,7 @@ function resize() {
 //     .domain([0.1, 100])
 //     .range([0, width]);
 
-var pp = "http://localhost:8080/nshmp-haz-ws/spectra?gmm=ZHAO_06_INTER&gmm=BCHYDRO_12_INTER&gmm=AM_09_INTER&mw=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
+// var pp = "http://localhost:8080/nshmp-haz-ws/spectra?gmm=ZHAO_06_INTER&gmm=BCHYDRO_12_INTER&gmm=AM_09_INTER&mw=8.8&rjb=8.0&rrup=30.0&rx=35.0&dip=30.0&width=25.0&ztop=20.0&zhyp=20.0&rake=90.0&vs30=760.0&vsinf=true&z2p5=NaN&z1p0=NaN";
 var margin = {top: 24, right: 32, bottom: 56, left: 76};
 var width = calcWidth();
 var height = calcHeight();
@@ -340,117 +340,124 @@ var svg = d3.select("#plot").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// reduced data for plotting 
-var seriesLabels = [];
-var seriesData = [];
-
 $("#submit").click(function () {
-  console.log("peter");
-  console.log($("#inputs").serialize());
+  updatePlot("/nshmp-haz-ws/spectra?" + $("#inputs").serialize());
 });
 
-// function submit(event) {
-//   event.preventDefault();
-//   console.log("peter");
-//   console.log($("form").serialize());
-//   return false;
-// }
+$("#gmms").change(function() {
+  if ($(":selected", this).length > 0) {
+    $("#submit").prop("disabled", false);
+  } else {
+    $("#submit").prop("disabled", true);
+  }
+});
 
+d3.select(window).on("resize", resize); 
 
-d3.json(pp, function(error, response) {
-  if (error) return console.warn(error);
+function updatePlot(url) {
+  svg.selectAll("*").remove();
 
-  var dataset = response.means;
-  var series = dataset.data;
+  d3.json(url, function(error, response) {
+    if (error) return console.warn(error);
+    if (response.status == "ERROR") {
+      svg.append("text")
+          .attr("y", margin.top)
+          .attr("x", margin.left)
+          .text(response.message);
+      return;
+    }  
+
+    var dataset = response.means;
+    var series = dataset.data;
+
+    // reduced data for plotting 
+    var seriesLabels = [];
+    var seriesData = [];
+
+    
+    x.domain(xDomain(series)).nice();
+    y.domain(yDomain(series)).nice();
   
-  x.domain(xDomain(series)).nice();
-  y.domain(yDomain(series)).nice();
-
-  // x.domain(d3.extent(dataset.xValues)).nice();
-  // y.domain([
-  //     d3.min(series, function(d) { return d3.min(d.yValues); }),
-  //     d3.max(series, function(d) { return d3.max(d.yValues); })])
-  //   .nice();
-
-  series.forEach(function(d, i) {
-    seriesLabels.push(d.label);
-    seriesData.push(d3.zip(d.data.xs, d.data.ys));
-    // alternate approach is to convert data local coords if plot is fixed size
-    // requires getting rid of x(fn) y(fn) on line var.
-    // seriesData.push(d3.zip(dataset.xValues.map(x), d.yValues.map(y)));
-  });
-
-  var seriesEnter = svg.append("g")
-    // .attr("clip-path", "url(#clip)")
-    .selectAll("g")
-    .data(seriesData)
-    .enter()
-    .append("g")
-    .attr("class", "lines");
-
-  seriesEnter.append("path")
-    .style("stroke", function(d, i) { 
-      return color(i); })
-    .attr("d", line);
-
-  seriesEnter.selectAll(".dot")
-      .data(function(d, i) { return d; })
+    // x.domain(d3.extent(dataset.xValues)).nice();
+    // y.domain([
+    //     d3.min(series, function(d) { return d3.min(d.yValues); }),
+    //     d3.max(series, function(d) { return d3.max(d.yValues); })])
+    //   .nice();
+  
+    series.forEach(function(d, i) {
+      seriesLabels.push(d.label);
+      seriesData.push(d3.zip(d.data.xs, d.data.ys));
+      // alternate approach is to convert data local coords if plot is fixed size
+      // requires getting rid of x(fn) y(fn) on line var.
+      // seriesData.push(d3.zip(dataset.xValues.map(x), d.yValues.map(y)));
+    });
+  
+    var seriesEnter = svg.append("g")
+      // .attr("clip-path", "url(#clip)")
+      .selectAll("g")
+      .data(seriesData)
       .enter()
-      .append("circle")
-      .attr("class", "dot")
-      .attr("cx", line.x())
-      .attr("cy", line.y())
-      .attr("r", 3)
-      .style("fill", function(d, i, j) { return color(j); });
-
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
+      .append("g")
+      .attr("class", "lines");
   
-  /* x-axis label */
-  svg.append("text")
-    .attr("y", height + margin.bottom - 4)
-    .attr("x", width / 2)
-    .attr("class", "x axis-label")
-    .text(dataset.xLabel);
-
-  /* y-axis label */
-  svg.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 0 - margin.left)
-    .attr("x", 0 - (height / 2))
-    .attr("dy", "1em")
-    .attr("class", "y axis-label")
-    .text(dataset.yLabel);
-
-  var legend = svg.append("g")
-      .attr("class", "legend")
-    .selectAll("g")
-      .data(seriesLabels)
-    .enter().append("g")
-      .attr("transform", function(d, i) { return translateLegend(i, width); });
-
-  legend.append("line")
-    .style("stroke", function(d, i) { return color(i); })
-    .attr("x2", 20);
-
-  legend.append("text")
-    .attr("dy", ".35em")
-    .attr("x", 26)
-    .text(function(d, i) { return d; });
-
-
-
-  d3.select(window).on("resize", resize); 
-
-  // resize();
-
-});
+    seriesEnter.append("path")
+      .style("stroke", function(d, i) { 
+        return color(i); })
+      .attr("d", line);
+  
+    seriesEnter.selectAll(".dot")
+        .data(function(d, i) { return d; })
+        .enter()
+        .append("circle")
+        .attr("class", "dot")
+        .attr("cx", line.x())
+        .attr("cy", line.y())
+        .attr("r", 3)
+        .style("fill", function(d, i, j) { return color(j); });
+  
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+  
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+    
+    /* x-axis label */
+    svg.append("text")
+      .attr("y", height + margin.bottom - 4)
+      .attr("x", width / 2)
+      .attr("class", "x axis-label")
+      .text(dataset.xLabel);
+  
+    /* y-axis label */
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x", 0 - (height / 2))
+      .attr("dy", "1em")
+      .attr("class", "y axis-label")
+      .text(dataset.yLabel);
+  
+    var legend = svg.append("g")
+        .attr("class", "legend")
+      .selectAll("g")
+        .data(seriesLabels)
+      .enter().append("g")
+        .attr("transform", function(d, i) { return translateLegend(i, width); });
+  
+    legend.append("line")
+      .style("stroke", function(d, i) { return color(i); })
+      .attr("x2", 20);
+  
+    legend.append("text")
+      .attr("dy", ".35em")
+      .attr("x", 26)
+      .text(function(d, i) { return d; });
+  
+  });
+}
 
 
 

@@ -125,38 +125,6 @@ public class SpectraService extends HttpServlet {
 
   // TODO cache json usage once created?
 
-  /*
-   * 
-   * service name value pairs TODO This service was initially set up to take
-   * name-value pairs - this approach does not provide necessary metadata
-   * 
-   * It will actually be much more complicated to provide services, that are
-   * dependent on knowing which GMMs are intended to be used. However, perhaps
-   * the servlet is structured to provide: - absolute ranges (JSON meta) and the
-   * supported GMMs for nothing provided - collective ranges (JSON meta)for 1 or
-   * more GMM supplied (only GMM suplied) - a result for fully specified
-   * rupture-site-Gmms
-   */
-
-  /*
-   * Example get requests:
-   * 
-   * DeterministicSpectra?ids=CB_14
-   * DeterministicSpectra?ids=CB_14,BSSA_14,CB_14,CY_14,IDRISS_14
-   * DeterministicSpectra ?ids=ASK_14,BSSA_14,CB_14,CY_14,IDRISS_14&mag=6.5&rjb=
-   * 10.0&rrup=10.3&rx=10.0 &dip=90.0&width=14.0&ztop=0.5&zhyp=7.5&rake=0.0&vs30
-   * =760.0&vsinf=true&z2p5=NaN&z1p0=NaN
-   * 
-   * No args and error: usage, includes default ranges for params
-   * 
-   * Just gmms: return valid ranges for gmms, need constraints intersection
-   * 
-   * All required args: result
-   * 
-   * For analysis purposes, we probably want to be able force gmms outside their
-   * recommended ranges
-   */
-
   // TODO clean - move to service index page docs
   // static {
   // StringBuilder sb = new
@@ -215,13 +183,13 @@ public class SpectraService extends HttpServlet {
     try {
       requestData.gmms = buildGmmSet(params);
       requestData.input = buildInput(params);
+      ResponseData svcResponse = processRequest(requestData);
+      GSON.toJson(svcResponse, response.getWriter());
     } catch (Exception e) {
       String message = errorMessage(url, e, false);
       response.getWriter().print(message);
+      e.printStackTrace();
     }
-
-    ResponseData svcResponse = processRequest(requestData);
-    GSON.toJson(svcResponse, response.getWriter());
   }
 
   private static final String USAGE_STR = GSON.toJson(new Metadata());
@@ -240,7 +208,7 @@ public class SpectraService extends HttpServlet {
 
   private static ResponseData processRequest(final RequestData request) {
 
-    MultiResult result = spectra(request.gmms, request.input);
+    MultiResult result = spectra(request.gmms, request.input, false);
 
     // set up response
     ResponseData response = new ResponseData();
@@ -258,17 +226,17 @@ public class SpectraService extends HttpServlet {
         Y_LABEL_SIGMA);
 
     // populate response
-    for (Gmm gmm : result.meanMap.keySet()) {
+    for (Gmm gmm : result.means.keySet()) {
 
       // result contains immutable lists so copy in order to modify
       XySequence xyMeans = XySequence.create(
-          result.periods,
-          Data.exp(new ArrayList<>(result.meanMap.get(gmm))));
+          result.periods.get(gmm),
+          Data.exp(new ArrayList<>(result.means.get(gmm))));
       response.means.add(gmm.name(), gmm.toString(), xyMeans);
 
       XySequence xySigmas = XySequence.create(
-          result.periods,
-          result.sigmaMap.get(gmm));
+          result.periods.get(gmm),
+          result.sigmas.get(gmm));
       response.sigmas.add(gmm.name(), gmm.toString(), xySigmas);
     }
 
@@ -485,28 +453,28 @@ public class SpectraService extends HttpServlet {
     private static final String GROUP_INFO = "Groups of related ground motion models ";
 
     private static final class GroupParam implements Param {
- 
-      final String label;  
-      final String info;  
+
+      final String label;
+      final String info;
       final List<Value> values;
 
       GroupParam(String label, String info, Set<Gmm.Group> groups) {
         this.label = label;
-        this.info = info; 
-        this.values = new ArrayList<>(); 
-        for (Gmm.Group group : groups) { 
+        this.info = info;
+        this.values = new ArrayList<>();
+        for (Gmm.Group group : groups) {
           this.values.add(new Value(group));
         }
       }
 
       private static class Value {
 
-        final String id; 
+        final String id;
         final String label;
-        final List<Gmm> data; 
- 
-        Value(Gmm.Group group) {  
-          this.id = group.name();  
+        final List<Gmm> data;
+
+        Value(Gmm.Group group) {
+          this.id = group.name();
           this.label = group.toString();
           this.data = group.gmms();
         }

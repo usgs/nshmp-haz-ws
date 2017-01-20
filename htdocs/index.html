@@ -61,7 +61,7 @@
     <h3>Service: spectra</h3>
     <p>Compute determinisitic reponse spectra. Supply a name-value pair query consisting of:</p>
     <ul>
-      <li>ids</li>
+      <li>gmm (one or more)</li>
       <li>mag</li>
       <li>rjb</li>
       <li>rrup</li>
@@ -77,8 +77,9 @@
       <li>z1p0</li>
     </ul>
     <div class="serviceExample">
-      <div class="serviceLink">/spectra?ids=ZHAO_06_INTER,BCHYDRO_12_INTER,AM_09_INTER&amp;mag=8.8&amp;rjb=8.0&amp;rrup=30.0&amp;rx=35.0&amp;dip=30.0&amp;width=25.0&amp;ztop=20.0&amp;zhyp=20.0&amp;rake=90.0&amp;vs30=760.0&amp;vsinf=true&amp;z2p5=NaN&amp;z1p0=NaN</div>
+      <div class="serviceLink">/spectra?gmm=ZHAO_06_INTER&amp;gmm=BCHYDRO_12_INTER&amp;gmm=AM_09_INTER&amp;mw=87.8&amp;rjb=10.0&amp;rrup=23.0&amp;rx=32.0&amp;dip=30.0&amp;width=25.0&amp;ztop=10.0&amp;zhyp=20.0&amp;rake=90.0&amp;vs30=760.0&amp;vsinf=true&amp;z2p5=NaN&amp;z1p0=NaN</div>
     </div>
+    <p>Not all parameters are used by every grounf motion model (gmm). At least one 'gmm' must be specified. Default values will be used for any parameters not specified. will See <a href="/nshmp-haz-ws/spectra">usage</a> for parameter dependencies.</p>
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
