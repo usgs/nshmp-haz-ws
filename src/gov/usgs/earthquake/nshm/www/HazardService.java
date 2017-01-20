@@ -13,10 +13,9 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
-import static gov.usgs.earthquake.nshm.www.meta.Metadata.HAZARD_USAGE;
-import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
 import static org.opensha2.calc.ResultHandler.curvesBySource;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
 
 import java.io.IOException;
@@ -78,7 +77,7 @@ public final class HazardService extends HttpServlet {
     String host = request.getServerName() + ":" + request.getServerPort();
 
     if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-      response.getWriter().printf(HAZARD_USAGE, host);
+      response.getWriter().printf(Metadata.HAZARD_USAGE, host);
       return;
     }
 
@@ -95,7 +94,7 @@ public final class HazardService extends HttpServlet {
         // process slash-delimited request
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 6) {
-          response.getWriter().printf(HAZARD_USAGE, host);
+          response.getWriter().printf(Metadata.HAZARD_USAGE, host);
           return;
         }
         requestData = buildRequest(params);
@@ -106,7 +105,7 @@ public final class HazardService extends HttpServlet {
       response.getWriter().print(resultStr);
 
     } catch (Exception e) {
-      String message = errorMessage(url, e);
+      String message = Metadata.errorMessage(url, e, false);
       response.getWriter().print(message);
     }
   }

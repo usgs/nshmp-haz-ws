@@ -119,21 +119,25 @@ public final class Metadata {
     }
   }
 
-  public static String errorMessage(String url, Throwable e) {
-    Error error = new Error(url, e);
+  public static String errorMessage(String url, Throwable e, boolean trace) {
+    Error error = new Error(url, e, trace);
     return ServletUtil.GSON.toJson(error);
   }
-
+ 
   @SuppressWarnings("unused")
   private static class Error {
 
-    final String status = "error";
-    final String request;
-    final String trace;
+    final Status status = Status.ERROR;
+    final String request; 
+    final String message; 
 
-    private Error(String request, Throwable e) {
+    private Error(String request, Throwable e, boolean trace) {
       this.request = request;
-      this.trace = Throwables.getStackTraceAsString(e);
+      String message = e.getMessage() + " (see logs)";
+      if (trace) {
+        message += "\n" + Throwables.getStackTraceAsString(e);
+      }
+      this.message = message;
     }
   }
 
