@@ -1,7 +1,6 @@
 package gov.usgs.earthquake.nshm.www;
 
 import static java.lang.Runtime.getRuntime;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.ParamType;
 import gov.usgs.earthquake.nshm.www.meta.Region;
@@ -22,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -56,13 +56,16 @@ public class ServletUtil implements ServletContextListener {
   private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssXXX");
 
-  static final ExecutorService EXEC;
+  static final ExecutorService CALC_EXECUTOR;
+  static final ExecutorService TASK_EXECUTOR;
+  
   public static final Gson GSON;
 
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
 
   static {
-    EXEC = newFixedThreadPool(getRuntime().availableProcessors());
+    CALC_EXECUTOR = Executors.newFixedThreadPool(getRuntime().availableProcessors());
+    TASK_EXECUTOR = Executors.newSingleThreadExecutor();
     GSON = new GsonBuilder()
         .registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
         .registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
@@ -78,7 +81,8 @@ public class ServletUtil implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent e) {
-    EXEC.shutdown();
+    CALC_EXECUTOR.shutdown();
+    TASK_EXECUTOR.shutdown();
   }
 
   @Override
@@ -101,7 +105,7 @@ public class ServletUtil implements ServletContextListener {
 
     if (preload) {
       for (final Model model : Model.values()) {
-        EXEC.submit(new Callable<HazardModel>() {
+        CALC_EXECUTOR.submit(new Callable<HazardModel>() {
           @Override
           public HazardModel call() throws Exception {
             return modelCache.getUnchecked(model);
