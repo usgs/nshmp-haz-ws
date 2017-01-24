@@ -43,7 +43,7 @@ public final class Metadata {
         String description,
         String syntax,
         HazardParameters parameters) {
-      this.status = "usage";
+      this.status = Status.USAGE.toString();
       this.description = description;
       this.syntax = syntax;
       this.parameters = parameters;
@@ -127,7 +127,7 @@ public final class Metadata {
   @SuppressWarnings("unused")
   private static class Error {
 
-    final Status status = Status.ERROR;
+    final String status = Status.ERROR.toString();
     final String request; 
     final String message; 
 

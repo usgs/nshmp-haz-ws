@@ -4,7 +4,7 @@ $(function() {
 
   /* Fetch parameter data. */
   $.ajax({
-    url: "http://localhost:8080/nshmp-haz-ws/spectra",
+    url: "/nshmp-haz-ws/spectra",
     success: buildInputs
   });
 });

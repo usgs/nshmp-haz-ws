@@ -13,24 +13,6 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import static org.opensha2.internal.Parsing.Delimiter.SLASH;
-
 import org.opensha2.HazardCalc;
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
@@ -44,11 +26,34 @@ import org.opensha2.eq.model.HazardModel;
 import org.opensha2.geo.Location;
 import org.opensha2.gmm.Imt;
 import org.opensha2.internal.Parsing;
+import org.opensha2.internal.Parsing.Delimiter;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import gov.usgs.earthquake.nshm.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.Metadata;
+import gov.usgs.earthquake.nshm.www.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Status;
 
 /**
  * Hazard deaggregation service.
@@ -64,8 +69,12 @@ import com.google.common.collect.ImmutableSet;
         "/deagg/*" })
 public final class DeaggService extends HttpServlet {
 
+  /* Developer notes: See HazardService. */
+
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+  protected void doGet(
+      HttpServletRequest request,
+      HttpServletResponse response)
       throws ServletException, IOException {
 
     response.setContentType("application/json; charset=UTF-8");
@@ -85,18 +94,22 @@ public final class DeaggService extends HttpServlet {
 
     RequestData requestData;
     try {
-      if (query != null) { // process query '?'
+      if (query != null) {
+        /* process query '?' request */
         requestData = buildRequest(request.getParameterMap());
-      } else { // process slash-delimited request
-        List<String> params = Parsing.splitToList(pathInfo, SLASH);
+      } else {
+        /* process slash-delimited request */
+        List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 7) {
           response.getWriter().printf(Metadata.DEAGG_USAGE, host);
           return;
         }
         requestData = buildRequest(params);
       }
-      Result result = process(url, requestData);
 
+      /* Submit as task to job executor */
+      DeaggTask task = new DeaggTask(url, requestData, getServletContext());
+      Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
 
@@ -108,106 +121,58 @@ public final class DeaggService extends HttpServlet {
 
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
+    /* Deagg imts will always be a singleton Set. */
+    Set<Imt> imts = Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class));
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
         readValue(paramMap, REGION, Region.class),
         readDoubleValue(paramMap, LONGITUDE),
         readDoubleValue(paramMap, LATITUDE),
-        readValue(paramMap, IMT, Imt.class),
+        Optional.of(imts),
         Vs30.fromValue(readDoubleValue(paramMap, VS30)),
-        readDoubleValue(paramMap, RETURNPERIOD));
+        Optional.of(readDoubleValue(paramMap, RETURNPERIOD)));
   }
 
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
+    /* Deagg imts will always be a singleton Set. */
+    Set<Imt> imts = Sets.immutableEnumSet(readValue(params.get(4), Imt.class));
     return new RequestData(
         readValue(params.get(0), Edition.class),
         readValue(params.get(1), Region.class),
         Double.valueOf(params.get(2)),
         Double.valueOf(params.get(3)),
-        readValue(params.get(4), Imt.class),
+        Optional.of(imts),
         Vs30.fromValue(Double.valueOf(params.get(5))),
-        Double.valueOf(params.get(6)));
+        Optional.of(Double.valueOf(params.get(6))));
   }
 
-  private Result process(String url, RequestData data) {
+  private static class DeaggTask implements Callable<Result> {
 
-    Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
-    Hazard hazard;
+    final String url;
+    final RequestData data;
+    final ServletContext context;
 
-    if (data.region == Region.COUS) {
-      Model wusId = Model.valueOf(Region.WUS, data.edition.year());
-      Hazard wusResult = process(wusId, site, data);
-      Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
-      Hazard ceusResult = process(ceusId, site, data);
-      hazard = Hazard.merge(wusResult, ceusResult);
-    } else {
-      Model modelId = Model.valueOf(data.region, data.edition.year());
-      hazard = process(modelId, site, data);
+    DeaggTask(String url, RequestData data, ServletContext context) {
+      this.url = url;
+      this.data = data;
+      this.context = context;
     }
 
-    Deaggregation deagg = Calcs.deaggregation(hazard, data.returnPeriod);
-    
+    @Override
+    public Result call() throws Exception {
+      return process(url, data, context);
+    }
+  }
+
+  private static Result process(String url, RequestData data, ServletContext context) {
+    Hazard hazard = HazardService.calcHazard(data, context);
+    Deaggregation deagg = Calcs.deaggregation(hazard, data.returnPeriod.get());
     return new Result.Builder()
         .requestData(data)
         .url(url)
         .deagg(deagg)
         .build();
-  }
-
-  private Hazard process(Model modelId, Site site, RequestData data) {
-    @SuppressWarnings("unchecked")
-    LoadingCache<Model, HazardModel> modelCache =
-        (LoadingCache<Model, HazardModel>) getServletContext()
-            .getAttribute(MODEL_CACHE_CONTEXT_ID);
-
-    // TODO should be using checked get(id)
-    HazardModel model = modelCache.getUnchecked(modelId);
-    Builder configBuilder = CalcConfig.Builder
-        .copyOf(model.config())
-        .imts(ImmutableSet.of(data.imt));
-    CalcConfig config = configBuilder.build();
-    Optional<Executor> executor = Optional.<Executor> of(ServletUtil.EXEC);
-    return HazardCalc.calc(model, config, site, executor);
-  }
-
-  /*
-   * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
-   * polling all models and supports needs to be updated to specific models
-   *
-   * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-   *
-   * vs30: 180, 259, 360, 537, 760, 1150, 2000
-   */
-
-  private static final class RequestData {
-
-    final Edition edition;
-    final Region region;
-    final double latitude;
-    final double longitude;
-    final Imt imt;
-    final Vs30 vs30;
-    final double returnPeriod;
-
-    RequestData(
-        Edition edition,
-        Region region,
-        double longitude,
-        double latitude,
-        Imt imt,
-        Vs30 vs30,
-        double returnPeriod) {
-
-      this.edition = edition;
-      this.region = region;
-      this.latitude = latitude;
-      this.longitude = longitude;
-      this.imt = imt;
-      this.vs30 = vs30;
-      this.returnPeriod = returnPeriod;
-    }
   }
 
   private static final class ResponseData {
@@ -230,7 +195,7 @@ public final class DeaggService extends HttpServlet {
       this.longitude = request.longitude;
       this.latitude = request.latitude;
       this.imt = imt;
-      this.returnperiod = request.returnPeriod;
+      this.returnperiod = request.returnPeriod.get();
       this.vs30 = request.vs30;
       this.εbins = deagg.εBins();
     }
@@ -251,7 +216,7 @@ public final class DeaggService extends HttpServlet {
 
   private static final class Result {
 
-    final String status = "success";
+    final String status = Status.SUCCESS.toString();
     final String date = ServletUtil.formatDate(new Date()); // TODO time
     final String url;
     final List<Response> response;
@@ -285,11 +250,12 @@ public final class DeaggService extends HttpServlet {
       Result build() {
 
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
+        Imt imt = Iterables.getOnlyElement(request.imts.get());
         ResponseData responseData = new ResponseData(
             deagg,
             request,
-            request.imt);
-        Object deaggs = deagg.toJson(request.imt);
+            imt);
+        Object deaggs = deagg.toJson(imt);
         Response response = new Response(responseData, deaggs);
         responseListBuilder.add(response);
 
@@ -311,4 +277,5 @@ public final class DeaggService extends HttpServlet {
       }
     }
   }
+
 }
