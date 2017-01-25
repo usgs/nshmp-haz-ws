@@ -102,6 +102,8 @@ public final class DeaggService extends HttpServlet {
     if (query != null) urlBuf.append('?').append(query);
     String url = urlBuf.toString();
 
+    url = url.replace("http://", protocol + "://");
+
     RequestData requestData;
     try {
       if (query != null) {
