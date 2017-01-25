@@ -23,12 +23,12 @@ public final class Metadata {
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Hazard(
       "Compute hazard curve data for an input location",
-      "http://%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
+      "%s%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
       new HazardParameters()));
 
   public static final String DEAGG_USAGE = ServletUtil.GSON.toJson(new Deagg(
       "Deaggregate hazard at an input location",
-      "http://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
+      "%s%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
       new DeaggParameters()));
 
   @SuppressWarnings("unused")

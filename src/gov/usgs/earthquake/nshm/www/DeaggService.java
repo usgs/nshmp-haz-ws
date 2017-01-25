@@ -57,7 +57,7 @@ import gov.usgs.earthquake.nshm.www.meta.Status;
 
 /**
  * Hazard deaggregation service.
- * 
+ *
  * @author Peter Powers
  */
 @SuppressWarnings("unused")
@@ -81,10 +81,17 @@ public final class DeaggService extends HttpServlet {
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName() + ":" + request.getServerPort();
+    String host = request.getServerName();
+    String protocol = request.getHeader("X_FORWARDED_FOR");
+
+    if (protocol == null) {
+      // Not a forwarded request. Honor reported protocol and port
+      protocol = request.getScheme() + "://";
+      host += ":" + request.getServerPort();
+    }
 
     if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-      response.getWriter().printf(Metadata.DEAGG_USAGE, host);
+      response.getWriter().printf(Metadata.DEAGG_USAGE, protocol, host);
       return;
     }
 
@@ -101,7 +108,7 @@ public final class DeaggService extends HttpServlet {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 7) {
-          response.getWriter().printf(Metadata.DEAGG_USAGE, host);
+          response.getWriter().printf(Metadata.DEAGG_USAGE, protocol, host);
           return;
         }
         requestData = buildRequest(params);
