@@ -82,11 +82,14 @@ public final class DeaggService extends HttpServlet {
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
-    String protocol = request.getHeader("X_FORWARDED_FOR");
+
+    // Checking custom header for a forwarded protocol so generated links
+    // can use the same protocol and not cause mixed content errors.
+    String protocol = request.getHeader("X-FORWARDED-PROTO");
 
     if (protocol == null) {
       // Not a forwarded request. Honor reported protocol and port
-      protocol = request.getScheme() + "://";
+      protocol = request.getScheme();
       host += ":" + request.getServerPort();
     }
 
