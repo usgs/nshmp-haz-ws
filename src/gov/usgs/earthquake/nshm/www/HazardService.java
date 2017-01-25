@@ -56,7 +56,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Probabilisitic seismic hazard calculation service.
- * 
+ *
  * @author Peter Powers
  */
 @SuppressWarnings("unused")
@@ -70,7 +70,7 @@ public final class HazardService extends HttpServlet {
 
   /*
    * Developer notes:
-   * 
+   *
    * The HazardService and DeaggService are very similar. Deagg delegates to a
    * package method HazardService.haardCalc() to obtain a Hazard object, which
    * it then deaggregates. This method may combine Hazard objects from CEUS and
@@ -78,7 +78,7 @@ public final class HazardService extends HttpServlet {
    * objects are common to both services, with the understanding that Optional
    * fields (1) 'imts' will always contain a Set<Imt> with a single entry for
    * deagg, and that (2) 'returnPeriod' will be absent for hazard.
-   * 
+   *
    * Nshmp-haz calculations are designed to leverage all available processors by
    * default distributing work using the ServletUtil.CALC_EXECUTOR. This can
    * create problems in a servlet environment, however, because Tomcat does not
@@ -89,7 +89,7 @@ public final class HazardService extends HttpServlet {
    * attempt to run hazard or deagg calculations simultaneously. The net effect
    * is that there can be out of memory problesm as too many results are
    * retained, and multiple requests do not return until all are finished.
-   * 
+   *
    * To address this, requests of HazardService and DeaggService are submitted
    * as tasks to the single-threaded ServletUtil.TASK_EXECUTOR and are processed
    * one-at-a-time in the order received.
@@ -98,15 +98,15 @@ public final class HazardService extends HttpServlet {
   /*
    * IMTs: PGA, SA0P20, SA1P00 TODO this need to be updated to the result of
    * polling all models and supports needs to be updated to specific models
-   * 
+   *
    * Regions: COUS, WUS, CEUS, [HI, AK, GM, AS, SAM, ...]
-   * 
+   *
    * vs30: 180, 259, 360, 537, 760, 1150, 2000
-   * 
+   *
    * 2014 updated values
-   * 
+   *
    * vs30: 185, 260, 365, 530, 760, 1080, 2000
-   * 
+   *
    */
 
   @Override
@@ -119,10 +119,17 @@ public final class HazardService extends HttpServlet {
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName() + ":" + request.getServerPort();
+    String host = request.getServerName();
+    String protocol = request.getHeader("X_FORWARDED_PROTO");
+
+    if (protocol == null) {
+      // Not a forwarded request. Honor reported protocol and port
+      protocol = request.getScheme() + "://";
+      host += ":" + request.getServerPort();
+    }
 
     if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-      response.getWriter().printf(Metadata.HAZARD_USAGE, host);
+      response.getWriter().printf(Metadata.HAZARD_USAGE, protocol, host);
       return;
     }
 
@@ -139,7 +146,7 @@ public final class HazardService extends HttpServlet {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 6) {
-          response.getWriter().printf(Metadata.HAZARD_USAGE, host);
+          response.getWriter().printf(Metadata.HAZARD_USAGE, protocol, host);
           return;
         }
         requestData = buildRequest(params);
@@ -250,6 +257,7 @@ public final class HazardService extends HttpServlet {
     Optional<Executor> executor = Optional.<Executor> of(ServletUtil.CALC_EXECUTOR);
     return HazardCalc.calc(model, config, site, executor);
   }
+
 
   static final class RequestData {
 
