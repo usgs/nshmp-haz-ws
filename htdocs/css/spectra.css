@@ -1,10 +1,13 @@
 
 html,body {
     height: 100%;
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 #plot-title {
   font-family: 'HelveticaNeue-Light', sans-serif;
+  font-size: 2.4em;
+  line-height: 1.2;
 }
 
 optgroup {
@@ -15,23 +18,8 @@ option {
   color: black;
 }
 
-#gmmsorter {
+#gmm-sorter {
   float: right;
-}
-
-#control {
-  float: left;
-  width: 400px;
-  height: 100%;
-  padding: 48px 20px 20px 20px;
-  border-right: 1px solid #dddddd;
-  background-color: #f7f7f7;
-}
-
-#content {
-  height: 100%;
-  padding: 22px 20px 20px 20px;
-  margin-left: 400px;
 }
 
 #plot {
@@ -47,9 +35,9 @@ option {
 }
 */
 
-#buttons {
+#addata {
   float: right;
-  margin-top: 20px;
+  /*margin-top: 20px;*/
 }
 
 .form-horizontal .form-group {
@@ -90,10 +78,6 @@ option {
   color: #aaa;
 }
 
-.spacer {
-  margin-top: 8px;
-}
-
 .btn-group {
   padding-top: 1px;
 }
@@ -102,8 +86,12 @@ label {
   font-weight: 500;
 }
 
-label.spacer {
+label.control-group {
   font-weight: 700;
+}
+
+label.control-spacer {
+  margin-top: 8px;
 }
 
 /* plot */
