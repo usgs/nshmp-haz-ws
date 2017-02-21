@@ -9,11 +9,13 @@
 			- the presence of lib/nshmp-haz.jar
 			  (build prompts to create this if missing)
 			- a valid servlet.lib.dir property
-			- the correct paths to the 2008 and 2014 NSHMP models
-			  (see the model.dir.cous2008 and model.dir.cous2014 properties
+			- the correct paths to required models
+			  (e.g. see the model.cous2008 and model.cous2014 properties)
+			  (these may also be set using ~/.ant.properties)
 	-->
 	
 	<property environment="env" />
+	<property file="${user.home}/.ant.properties" />
 	<property name="src.dir" value="src/" />
 	<property name="lib.dir" value="lib/" />
 	<property name="classes.dir" value="classes/" />
@@ -32,25 +34,40 @@
 	<!-- ========================= -->
 	<property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
 	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
-	<property name="model.dir.cous2008" value="../nshmp-model-cous-2008/" />
-	<property name="model.dir.cous2014" value="../nshmp-model-cous-2014/" />
+	<property name="model.cous2008" value="../nshmp-model-cous-2008/" />
+	<property name="model.cous2014" value="../nshmp-model-cous-2014/" />
 
 
-	
 	<!-- Build project assuming nshmp-haz exists -->
 	<target name="build" 
-			depends="compile"
-			description="Builds a nshmp-haz-ws WAR file">
-				
+	        depends="compile"
+	        description="Builds a nshmp-haz-ws WAR file">
+	
 		<war destfile="${war.file}" webxml="${web.file}">
 			<fileset dir="${htdocs.dir}" />
-			<zipfileset dir="${model.dir.cous2008}" prefix="models/2008"/>
-			<zipfileset dir="${model.dir.cous2014}" prefix="models/2014"/>
+			<zipfileset dir="${model.cous2008}" prefix="models/2008"/>
+			<zipfileset dir="${model.cous2014}" prefix="models/2014"/>
 			<lib dir="${lib.dir}" />
 			<classes dir="${classes.dir}" />
 		</war>
+		<antcall target="deploy" />
 	</target>
 	
+	
+	<!-- Deploy if a webapps directory has been specified -->
+	<target name="deploy"
+	        if="webapps.dir.set"
+	        depends="check.webapps.dir.set">
+	  <echo message="Deploying to: ${webapps.dir}" />
+	  <copy file="${war.file}" todir="${webapps.dir}" />
+	</target>
+	
+	<target name="check.webapps.dir.set">
+		<condition property="webapps.dir.set" else="false">
+			<isset property="webapps.dir"/>
+		</condition>
+		<echo message="${webapps.dir.set}" />
+	</target>
 	
 	
 	<!-- Force nshmp-haz dependency update before build -->
@@ -60,7 +77,6 @@
 		<antcall target="refresh.nshmp-haz"/>
 		<antcall target="build"/>
 	</target>
-	
 	
 	
 	<target name="compile" depends="build.nshmp-haz">
@@ -99,7 +115,6 @@
 	</target>
 	
 	
-	
 	<!-- Build and copy nshmp-haz.jar if necessesary -->
 	<target name="build.nshmp-haz"
 	        depends="check.nshmp-haz-jar.exists"
@@ -123,7 +138,6 @@
 	</target>
 	
 	
-	
 	<!-- Update nshmp-haz, which includes Guava and Gson libs -->
 	<target name="refresh.nshmp-haz"
 			depends="check.nshmp-haz.exists">
@@ -141,7 +155,6 @@
 		<available file="${nshmp-haz.dir}.project" property="nshmp-haz.exists" />
 		<echo message="${nshmp-haz.exists}" />
 	</target>
-
 
 </project>
 
