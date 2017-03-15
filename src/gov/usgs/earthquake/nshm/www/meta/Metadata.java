@@ -10,7 +10,7 @@ import gov.usgs.earthquake.nshm.www.ServletUtil;
 
 import java.util.EnumSet;
 
-import org.opensha2.geo.GeoTools;
+import org.opensha2.geo.Coordinates;
 import org.opensha2.gmm.Imt;
 
 import com.google.common.base.Throwables;
@@ -75,14 +75,14 @@ public final class Metadata {
       longitude = new DoubleParameter<>(
           "Longitude (in decimal degrees)",
           ParamType.NUMBER,
-          GeoTools.MIN_LON,
-          GeoTools.MAX_LON);
+          Coordinates.LON_RANGE.lowerEndpoint(),
+          Coordinates.LON_RANGE.upperEndpoint());
 
       latitude = new DoubleParameter<>(
           "Latitude (in decimal degrees)",
           ParamType.NUMBER,
-          GeoTools.MIN_LAT,
-          GeoTools.MAX_LAT);
+          Coordinates.LAT_RANGE.lowerEndpoint(),
+          Coordinates.LAT_RANGE.upperEndpoint());
 
       imt = new EnumParameter<>(
           "Intensity measure type",
