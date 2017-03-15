@@ -123,6 +123,7 @@ public final class DeaggService extends HttpServlet {
     } catch (Exception e) {
       String message = Metadata.errorMessage(url, e, false);
       response.getWriter().print(message);
+      getServletContext().log(url, e);
     }
   }
 
