@@ -4,18 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
 
 import static org.opensha2.ResponseSpectra.spectra;
-import static org.opensha2.calc.Site.VS_30_MAX;
-import static org.opensha2.calc.Site.VS_30_MIN;
-import static org.opensha2.calc.Site.Z1P0_MAX;
-import static org.opensha2.calc.Site.Z1P0_MIN;
-import static org.opensha2.calc.Site.Z2P5_MAX;
-import static org.opensha2.calc.Site.Z2P5_MIN;
-import static org.opensha2.eq.Magnitudes.MAX_MAG;
-import static org.opensha2.eq.Magnitudes.MIN_MAG;
-import static org.opensha2.eq.fault.Faults.DIP_RANGE;
-import static org.opensha2.eq.fault.Faults.RAKE_RANGE;
-import static org.opensha2.eq.fault.Faults.INTERFACE_WIDTH_RANGE;
-import static org.opensha2.eq.fault.Faults.CRUSTAL_DEPTH_RANGE;
 import static org.opensha2.gmm.GmmInput.Field.DIP;
 import static org.opensha2.gmm.GmmInput.Field.MW;
 import static org.opensha2.gmm.GmmInput.Field.RAKE;
@@ -30,8 +18,32 @@ import static org.opensha2.gmm.GmmInput.Field.Z2P5;
 import static org.opensha2.gmm.GmmInput.Field.ZHYP;
 import static org.opensha2.gmm.GmmInput.Field.ZTOP;
 
+import org.opensha2.ResponseSpectra.MultiResult;
+import org.opensha2.data.Data;
+import org.opensha2.data.XySequence;
+import org.opensha2.gmm.Gmm;
+import org.opensha2.gmm.Gmm.Group;
+import org.opensha2.gmm.GmmInput;
+import org.opensha2.gmm.GmmInput.Builder;
+import org.opensha2.gmm.GmmInput.Constraints;
+import org.opensha2.gmm.GmmInput.Field;
+
+import com.google.common.base.Enums;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Doubles;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
 import java.io.IOException;
-import java.io.ObjectInputStream.GetField;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -47,44 +59,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshm.www.meta.Status;
-
-import org.opensha2.ResponseSpectra.MultiResult;
-import org.opensha2.data.Data;
-import org.opensha2.data.XySequence;
-import org.opensha2.gmm.Gmm;
-import org.opensha2.gmm.Gmm.Group;
-import org.opensha2.gmm.GmmInput;
-import org.opensha2.gmm.GmmInput.Builder;
-import org.opensha2.gmm.GmmInput.Constraints;
-import org.opensha2.gmm.GmmInput.Field;
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
-
-import com.google.common.base.Converter;
-import com.google.common.base.Enums;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableRangeSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Doubles;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 
 /**
  * Deterministic response spectra calculation service.

@@ -43,8 +43,11 @@
 	        depends="compile"
 	        description="Builds a nshmp-haz-ws WAR file">
 	
+		<echo message="With model: ${model.cous2008}" />
+		<echo message="With model: ${model.cous2014}" />
 		<war destfile="${war.file}" webxml="${web.file}">
 			<fileset dir="${htdocs.dir}" />
+			<!-- zipfileset: does not zip files, just copies to 'prefix' -->
 			<zipfileset dir="${model.cous2008}" prefix="models/2008"/>
 			<zipfileset dir="${model.cous2014}" prefix="models/2014"/>
 			<lib dir="${lib.dir}" />
