@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshm.www.meta;
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
+import static org.opensha2.gmm.Imt.SA2P0;
 
 import org.opensha2.calc.Vs30;
 
@@ -87,7 +88,7 @@ public final class Metadata {
       imt = new EnumParameter<>(
           "Intensity measure type",
           ParamType.STRING,
-          EnumSet.of(PGA, SA0P2, SA1P0));
+          EnumSet.of(PGA, SA0P2, SA1P0, SA2P0));
 
       vs30 = new EnumParameter<>(
           "Site soil (Vs30)",

@@ -10,6 +10,7 @@ import static org.opensha2.calc.Vs30.VS_760;
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
+import static org.opensha2.gmm.Imt.SA2P0;
 
 import org.opensha2.calc.Vs30;
 
@@ -27,7 +28,7 @@ public enum Region implements Constrained {
 			new double[] { -125.0, -65.0 },
 			new double[] { 24.6, 50.0 },
 			new double[] { -125.0, -65.0 },
-			EnumSet.of(PGA, SA0P2, SA1P0),
+			EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
 			EnumSet.of(VS_760)),
 
 	CEUS(
@@ -36,7 +37,7 @@ public enum Region implements Constrained {
 			new double[] { -115.0, -65.0 },
 			new double[] { 24.6, 50.0 },
 			new double[] { -110.0, -65.0 },
-			EnumSet.of(PGA, SA0P2, SA1P0),
+			EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
 			EnumSet.of(VS_2000, VS_760)),
 
 	WUS(
@@ -45,7 +46,7 @@ public enum Region implements Constrained {
 			new double[] { -125.0, -100.0 },
 			new double[] { 24.6, 50.0 },
 			new double[] { -125.0, -115.0 },
-			EnumSet.of(PGA, SA0P2, SA1P0),
+			EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
 			EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180));
 
 	private final String label;
