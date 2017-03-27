@@ -24,6 +24,8 @@ import com.google.gson.annotations.SerializedName;
 @SuppressWarnings("javadoc")
 public final class Metadata {
 
+  public static final Object VERSION = new Version();
+
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Hazard(
       "Compute hazard curve data for an input location",
       "%s://%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
@@ -33,8 +35,6 @@ public final class Metadata {
       "Deaggregate hazard at an input location",
       "%s://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
       new DeaggParameters()));
-
-  public static final Object VERSION = new Version();
 
   @SuppressWarnings("unused")
   private static class Hazard {
