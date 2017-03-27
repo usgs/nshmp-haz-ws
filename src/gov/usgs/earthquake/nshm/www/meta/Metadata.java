@@ -27,6 +27,43 @@ import gov.usgs.earthquake.nshm.www.ServletUtil;
 @SuppressWarnings("javadoc")
 public final class Metadata {
 
+  static final String NSHMP_HAZ_VERSION = HazardCalc.VERSION;
+  static final String NSHMP_HAZ_WS_VERSION;
+  static final Map<Edition, String> MODEL_VERSIONS;
+
+  static {
+    String nshmpHazWsVersion = "unknown";
+    ImmutableMap.Builder<Edition, String> modelMap = ImmutableMap.builder();
+
+    /* Always runs from a war (possibly unpacked). */
+    InputStream in = null;
+    try {
+      /* Web-services version. */
+      in = Metadata.class.getResourceAsStream("/service.properties");
+      Properties props = new Properties();
+      props.load(in);
+      in.close();
+      nshmpHazWsVersion = props.getProperty("app.version");
+
+      /* Model versions. */
+      for (Edition edition : Edition.values()) {
+        String modelKey = edition.name() + ".version";
+        String modelVersion = props.getProperty(modelKey);
+        modelMap.put(edition, modelVersion);
+      }
+
+    } catch (Exception e1) {
+      /* Probably running outside standard webservice environment. */
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e2) {}
+      }
+    }
+    NSHMP_HAZ_WS_VERSION = nshmpHazWsVersion;
+    MODEL_VERSIONS = modelMap.build();
+  }
+
   public static final Object VERSION = new AppVersion();
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Hazard(
@@ -156,43 +193,6 @@ public final class Metadata {
       }
       this.message = message;
     }
-  }
-
-  static final String NSHMP_HAZ_VERSION = HazardCalc.VERSION;
-  static final String NSHMP_HAZ_WS_VERSION;
-  static final Map<Edition, String> MODEL_VERSIONS;
-
-  static {
-    String nshmpHazWsVersion = "unkown";
-    ImmutableMap.Builder<Edition, String> modelMap = ImmutableMap.builder();
-
-    /* Always runs from a war (possibly unpacked). */
-    InputStream in = null;
-    try {
-      /* Web-services version. */
-      in = Metadata.class.getResourceAsStream("/service.properties");
-      Properties props = new Properties();
-      props.load(in);
-      in.close();
-      nshmpHazWsVersion = props.getProperty("app.version");
-
-      /* Model versions. */
-      for (Edition edition : Edition.values()) {
-        String modelKey = edition.name() + ".version";
-        String modelVersion = props.getProperty(modelKey);
-        modelMap.put(edition, modelVersion);
-      }
-
-    } catch (Exception e1) {
-      /* Probably running outside standard webservice environment. */
-      if (in != null) {
-        try {
-          in.close();
-        } catch (Exception e2) {}
-      }
-    }
-    NSHMP_HAZ_WS_VERSION = nshmpHazWsVersion;
-    MODEL_VERSIONS = modelMap.build();
   }
 
 }
