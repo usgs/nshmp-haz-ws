@@ -1,153 +1,197 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="nshmp-haz-ws" default="build" basedir=".">
 
-	<description>
+  <description>
 		nshmp-haz-ws are web services built on top of nshmp-haz
 	</description>
 
-	<!-- Building nshmp-haz-ws depends on:
-			- the presence of lib/nshmp-haz.jar
-			  (build prompts to create this if missing)
-			- a valid servlet.lib.dir property
-			- the correct paths to required models
-			  (e.g. see the model.cous2008 and model.cous2014 properties)
-			  (these may also be set using ~/.ant.properties)
+  <!-- Building nshmp-haz-ws depends on:
+        - the presence of lib/nshmp-haz.jar
+          (build prompts to create this if missing)
+        - a valid servlet.lib.dir property
+        - the correct paths to required models
+          (e.g. see the model.cous2008 and model.cous2014 properties)
+          (these may also be set using ~/.ant.properties)
 	-->
-	
-	<property environment="env" />
-	<property file="${user.home}/.ant.properties" />
-	<property name="src.dir" value="src/" />
-	<property name="lib.dir" value="lib/" />
-	<property name="classes.dir" value="classes/" />
-	<property name="dist.dir" value="dist/" />
-	<property name="htdocs.dir" value="htdocs/" />
-	<property name="web-inf.dir" value="WebContent/WEB-INF/" />
-	
-	<property name="web.file" value="${web-inf.dir}web.xml" />
-	<property name="war.file" value="${dist.dir}nshmp-haz-ws.war" />
-	
-	
-	<!-- ========================= -->
-	<!--  These properties may be  -->
-	<!--  different depending on   -->
-	<!--     your environment.     -->
-	<!-- ========================= -->
-	<property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
-	<property name="nshmp-haz.dir" value="../nshmp-haz/" />
-	<property name="model.cous2008" value="../nshmp-model-cous-2008/" />
-	<property name="model.cous2014" value="../nshmp-model-cous-2014/" />
+
+  <property environment="env" />
+  <property file="${user.home}/.ant.properties" />
+  <property name="src.dir" value="src/" />
+  <property name="lib.dir" value="lib/" />
+  <property name="classes.dir" value="classes/" />
+  <property name="dist.dir" value="dist/" />
+  <property name="htdocs.dir" value="htdocs/" />
+  <property name="web-inf.dir" value="WebContent/WEB-INF/" />
+
+  <property name="web.file" value="${web-inf.dir}web.xml" />
+  <property name="war.file" value="${dist.dir}nshmp-haz-ws.war" />
+
+  <property name="app.properties" location="${dist.dir}/app.properties" />
+  <property name="tstamp.format" value="yyyy-MM-dd'T'HH:mm:ssXXX" />
+
+  <!-- ========================= -->
+  <!--  These properties may be  -->
+  <!--  different depending on   -->
+  <!--     your environment.     -->
+  <!-- ========================= -->
+  <property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
+  <property name="nshmp-haz.dir" value="../nshmp-haz/" />
+  <property name="model.cous2008" value="../nshmp-model-cous-2008" />
+  <property name="model.cous2014" value="../nshmp-model-cous-2014" />
 
 
-	<!-- Build project assuming nshmp-haz exists -->
-	<target name="build" 
-	        depends="compile"
-	        description="Builds a nshmp-haz-ws WAR file">
-	
-		<echo message="With model: ${model.cous2008}" />
-		<echo message="With model: ${model.cous2014}" />
-		<war destfile="${war.file}" webxml="${web.file}">
-			<fileset dir="${htdocs.dir}" />
-			<!-- zipfileset: does not zip files, just copies to 'prefix' -->
-			<zipfileset dir="${model.cous2008}" prefix="models/2008"/>
-			<zipfileset dir="${model.cous2014}" prefix="models/2014"/>
-			<lib dir="${lib.dir}" />
-			<classes dir="${classes.dir}" />
-		</war>
-		<antcall target="deploy" />
-	</target>
-	
-	
-	<!-- Deploy if a webapps directory has been specified -->
-	<target name="deploy" if="webapps.dir">
-	  <echo message="Deploying to: ${webapps.dir}" />
-	  <copy file="${war.file}" todir="${webapps.dir}" />
-	</target>
-	
-	<!-- Force nshmp-haz dependency update before build -->
-	<target name="build.all"
-			description="Builds a nshmp-haz-ws WAR file, including dependencies">
-	
-		<antcall target="refresh.nshmp-haz"/>
-		<antcall target="build"/>
-	</target>
-	
-	
-	<target name="compile" depends="build.nshmp-haz">
+  <!-- Build project assuming nshmp-haz exists -->
+  <target name="build"
+          depends="compile,set.app.properties"
+          description="Builds a nshmp-haz-ws WAR file">
 
-		<path id="library.classpath">
-			<fileset dir="${lib.dir}">
-				<include name="**/*.jar" />
-			</fileset>
-			<fileset dir="${servlet.lib.dir}">
-				<include name="**/*.jar" />
-			</fileset>
-		</path>
+    <echo message="With model: ${model.cous2008}" />
+    <echo message="With model: ${model.cous2014}" />
+    <war destfile="${war.file}" webxml="${web.file}">
+      <fileset dir="${htdocs.dir}" />
+      <!-- zipfileset: does not zip files, just copies to 'prefix' -->
+      <zipfileset dir="${model.cous2008}" prefix="models/2008" />
+      <zipfileset dir="${model.cous2014}" prefix="models/2014" />
+      <lib dir="${lib.dir}" />
+      <classes dir="${classes.dir}" />
+      <zipfileset file="${app.properties}" prefix="WEB-INF/classes" />
+    </war>
+    <antcall target="deploy" />
+  </target>
 
-		<!-- Clean the classes/ directory -->
-		<delete dir="${classes.dir}" />
-		<mkdir dir="${classes.dir}" />
+  <!-- Assumes that all code and models are repositories -->
+  <target name="set.app.properties">
+    <tstamp>
+      <format property="build.date" pattern="${tstamp.format}" />
+    </tstamp>
+    <echo>build.date=${build.date}</echo>
+    <echo file="${app.properties}">build.date=${build.date}</echo>
+    <echo file="${app.properties}" append="true">${line.separator}</echo>
+    
+    <!-- nshmp-haz-ws -->
+    <antcall target="git.version">
+      <param name="param.git.dir" value="." />
+      <param name="param.version.key" value="app.version" />
+    </antcall>
 
-		<!-- Compile to classes/  -->
-		<javac srcdir="${src.dir}"
-		       destdir="${classes.dir}"
-		       classpathref="library.classpath"
-		       nowarn="true"
-		       fork="true"
-		       source="1.7"
-		       target="1.7"
-		       encoding="UTF-8"
-		       debug="true"
-		       includeantruntime="false"
-		       createMissingPackageInfoClass="false" />
+    <!-- Model: COUS 2008 -->
+    <antcall target="git.version">
+      <param name="param.git.dir" value="${model.cous2008}" />
+      <param name="param.version.key" value="E2008.version" />
+    </antcall>
 
-		<!-- Copy any non-Java resources -->
-		<copy todir="${classes.dir}" includeEmptyDirs="false">
-			<fileset dir="${src.dir}" excludes="**/*.java" />
-		</copy>
+    <!-- Model: COUS 2014 -->
+    <antcall target="git.version">
+      <param name="param.git.dir" value="${model.cous2014}" />
+      <param name="param.version.key" value="E2014.version" />
+    </antcall>
+  </target>
 
-	</target>
-	
-	
-	<!-- Build and copy nshmp-haz.jar if necessesary -->
-	<target name="build.nshmp-haz"
-	        depends="check.nshmp-haz-jar.exists"
-	        unless="nshmp-haz-jar.exists">
+  <!-- get version and write to app.properties -->
+  <target name="git.version">
+    <exec executable="git"
+          outputproperty="git.tag"
+          failifexecutionfails="false">
+      <arg value="--git-dir=${param.git.dir}/.git" />
+      <arg value="describe" />
+      <arg value="--tags" />
+    </exec>
+    <echo>${param.version.key}=${git.tag}</echo>
+    <echo file="${app.properties}" append="true">${param.version.key}=${git.tag}</echo>
+    <echo file="${app.properties}" append="true">${line.separator}</echo>
+  </target>
+  
+  <!-- Deploy if a webapps directory has been specified -->
+  <target name="deploy" if="webapps.dir">
+    <echo message="Deploying to: ${webapps.dir}" />
+    <copy file="${war.file}" todir="${webapps.dir}" />
+  </target>
 
-		<!-- Confirm nshmp-haz.jar build with user -->
-		<input message="lib/nshmp-haz.jar is missing. Would you like to build it now (y/n)?"
-		       validargs="y,n"
-		       addproperty="abort.build" />
-		<condition property="abort">
-			<equals arg1="n" arg2="${abort.build}" />
-		</condition>
-		<fail if="abort" message="Build aborted by user" />
+  <!-- Force nshmp-haz dependency update before build -->
+  <target name="build.all"
+          description="Builds a nshmp-haz-ws WAR file, including dependencies">
 
-		<antcall target="refresh.nshmp-haz" />
-	</target>
+    <antcall target="refresh.nshmp-haz" />
+    <antcall target="build" />
+  </target>
 
-	<target name="check.nshmp-haz-jar.exists">
-		<available file="${lib.dir}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
-		<echo message="${nshmp-haz-jar.exists}" />
-	</target>
-	
-	
-	<!-- Update nshmp-haz, which includes Guava and Gson libs -->
-	<target name="refresh.nshmp-haz"
-			depends="check.nshmp-haz.exists">
-	
-		<!-- Abort if nshmp-haz project is missing -->
-		<fail unless="nshmp-haz.exists"
-		      message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
 
-		<delete file="${lib}nshmp-haz.jar}" />
-		<ant dir="${nshmp-haz.dir}" />
-		<copy file="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" todir="${lib.dir}" />
-	</target>
-	
-	<target name="check.nshmp-haz.exists">
-		<available file="${nshmp-haz.dir}.project" property="nshmp-haz.exists" />
-		<echo message="${nshmp-haz.exists}" />
-	</target>
+
+  <target name="compile" depends="build.nshmp-haz">
+
+    <path id="library.classpath">
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar" />
+      </fileset>
+      <fileset dir="${servlet.lib.dir}">
+        <include name="**/*.jar" />
+      </fileset>
+    </path>
+
+    <!-- Clean the classes/ directory -->
+    <delete dir="${classes.dir}" />
+    <mkdir dir="${classes.dir}" />
+
+    <!-- Compile to classes/  -->
+    <javac srcdir="${src.dir}"
+           destdir="${classes.dir}"
+           classpathref="library.classpath"
+           nowarn="true"
+           fork="true"
+           source="1.7"
+           target="1.7"
+           encoding="UTF-8"
+           debug="true"
+           includeantruntime="false"
+           createMissingPackageInfoClass="false" />
+
+    <!-- Copy any non-Java resources -->
+    <copy todir="${classes.dir}" includeEmptyDirs="false">
+      <fileset dir="${src.dir}" excludes="**/*.java" />
+    </copy>
+
+  </target>
+
+
+  <!-- Build and copy nshmp-haz.jar if necessesary -->
+  <target name="build.nshmp-haz"
+          depends="check.nshmp-haz-jar.exists"
+          unless="nshmp-haz-jar.exists">
+
+    <!-- Confirm nshmp-haz.jar build with user -->
+    <input message="lib/nshmp-haz.jar is missing. Would you like to build it now (y/n)?"
+           validargs="y,n"
+           addproperty="abort.build" />
+    <condition property="abort">
+      <equals arg1="n" arg2="${abort.build}" />
+    </condition>
+    <fail if="abort" message="Build aborted by user" />
+
+    <antcall target="refresh.nshmp-haz" />
+  </target>
+
+  <target name="check.nshmp-haz-jar.exists">
+    <available file="${lib.dir}nshmp-haz.jar" property="nshmp-haz-jar.exists" />
+    <echo message="${nshmp-haz-jar.exists}" />
+  </target>
+
+
+  <!-- Update nshmp-haz, which includes Guava and Gson libs -->
+  <target name="refresh.nshmp-haz" depends="check.nshmp-haz.exists">
+
+    <!-- Abort if nshmp-haz project is missing -->
+    <fail unless="nshmp-haz.exists"
+          message="nshmp-haz missing; please checkout project to: ${nshmp-haz.dir}" />
+
+    <delete file="${lib}nshmp-haz.jar}" />
+    <ant dir="${nshmp-haz.dir}" />
+    <copy file="${nshmp-haz.dir}${dist.dir}nshmp-haz.jar" todir="${lib.dir}" />
+  </target>
+
+  <target name="check.nshmp-haz.exists">
+    <available file="${nshmp-haz.dir}.project" property="nshmp-haz.exists" />
+    <echo message="${nshmp-haz.exists}" />
+  </target>
 
 </project>
 
