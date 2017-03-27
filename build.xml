@@ -26,8 +26,7 @@
   <property name="web.file" value="${web-inf.dir}web.xml" />
   <property name="war.file" value="${dist.dir}nshmp-haz-ws.war" />
 
-  <property name="app.properties" location="${dist.dir}/app.properties" />
-  <property name="tstamp.format" value="yyyy-MM-dd'T'HH:mm:ssXXX" />
+  <property name="service.properties" location="${dist.dir}/service.properties" />
 
   <!-- ========================= -->
   <!--  These properties may be  -->
@@ -42,7 +41,7 @@
 
   <!-- Build project assuming nshmp-haz exists -->
   <target name="build"
-          depends="compile,set.app.properties"
+          depends="compile,set.service.properties"
           description="Builds a nshmp-haz-ws WAR file">
 
     <echo message="With model: ${model.cous2008}" />
@@ -54,19 +53,14 @@
       <zipfileset dir="${model.cous2014}" prefix="models/2014" />
       <lib dir="${lib.dir}" />
       <classes dir="${classes.dir}" />
-      <zipfileset file="${app.properties}" prefix="WEB-INF/classes" />
+      <zipfileset file="${service.properties}" prefix="WEB-INF/classes" />
     </war>
+    <delete file="${service.properties}" />
     <antcall target="deploy" />
   </target>
 
   <!-- Assumes that all code and models are repositories -->
-  <target name="set.app.properties">
-    <tstamp>
-      <format property="build.date" pattern="${tstamp.format}" />
-    </tstamp>
-    <echo>build.date=${build.date}</echo>
-    <echo file="${app.properties}">build.date=${build.date}</echo>
-    <echo file="${app.properties}" append="true">${line.separator}</echo>
+  <target name="set.service.properties">
     
     <!-- nshmp-haz-ws -->
     <antcall target="git.version">
@@ -87,7 +81,7 @@
     </antcall>
   </target>
 
-  <!-- get version and write to app.properties -->
+  <!-- get version and write to service.properties -->
   <target name="git.version">
     <exec executable="git"
           outputproperty="git.tag"
@@ -97,8 +91,8 @@
       <arg value="--tags" />
     </exec>
     <echo>${param.version.key}=${git.tag}</echo>
-    <echo file="${app.properties}" append="true">${param.version.key}=${git.tag}</echo>
-    <echo file="${app.properties}" append="true">${line.separator}</echo>
+    <echo file="${service.properties}" append="true">${param.version.key}=${git.tag}</echo>
+    <echo file="${service.properties}" append="true">${line.separator}</echo>
   </target>
   
   <!-- Deploy if a webapps directory has been specified -->

@@ -264,7 +264,6 @@ public final class HazardService extends HttpServlet {
     return HazardCalc.calc(model, config, site, executor);
   }
 
-
   static final class RequestData {
 
     final Edition edition;

@@ -25,7 +25,7 @@ public class XY_DataGroup {
 
   private XY_DataGroup(String label, String xLabel, String yLabel) {
     this.label = label;
-    this.xLabel = xLabel;  
+    this.xLabel = xLabel;
     this.yLabel = yLabel;
     this.data = new ArrayList<>();
   }
