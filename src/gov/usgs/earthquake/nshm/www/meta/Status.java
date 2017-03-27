@@ -7,7 +7,7 @@ package gov.usgs.earthquake.nshm.www.meta;
  */
 @SuppressWarnings("javadoc")
 public enum Status {
-  
+
   USAGE,
   SUCCESS,
   ERROR;

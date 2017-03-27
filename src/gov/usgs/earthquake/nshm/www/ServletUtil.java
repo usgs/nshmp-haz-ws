@@ -58,7 +58,7 @@ public class ServletUtil implements ServletContextListener {
 
   static final ExecutorService CALC_EXECUTOR;
   static final ExecutorService TASK_EXECUTOR;
-  
+
   public static final Gson GSON;
 
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
