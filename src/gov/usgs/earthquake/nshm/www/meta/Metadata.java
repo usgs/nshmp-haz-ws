@@ -7,6 +7,7 @@ import static org.opensha2.gmm.Imt.SA2P0;
 
 import org.opensha2.calc.Vs30;
 
+import gov.usgs.earthquake.nshm.util.Versions;
 import gov.usgs.earthquake.nshm.www.ServletUtil;
 
 import java.util.EnumSet;
@@ -15,6 +16,7 @@ import org.opensha2.geo.Coordinates;
 import org.opensha2.gmm.Imt;
 
 import com.google.common.base.Throwables;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Service metadata, parameterization, and constraint strings, in JSON format.
@@ -32,12 +34,15 @@ public final class Metadata {
       "%s://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
       new DeaggParameters()));
 
+  public static final Object VERSION = new Version();
+
   @SuppressWarnings("unused")
   private static class Hazard {
 
     final String status;
     final String description;
     final String syntax;
+    final Object version;
     final HazardParameters parameters;
 
     private Hazard(
@@ -47,8 +52,16 @@ public final class Metadata {
       this.status = Status.USAGE.toString();
       this.description = description;
       this.syntax = syntax;
+      this.version = VERSION;
       this.parameters = parameters;
     }
+  }
+
+  private static class Version {
+    @SerializedName("nshmp-haz")
+    final String nshmpHaz = Versions.NSHMP_HAZ_VERSION;
+    @SerializedName("nshmp-haz-ws")
+    final String nshmpHazWs = Versions.NSHMP_HAZ_WS_VERSION;
   }
 
   @SuppressWarnings("unused")

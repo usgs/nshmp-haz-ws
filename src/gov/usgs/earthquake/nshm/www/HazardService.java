@@ -346,6 +346,7 @@ public final class HazardService extends HttpServlet {
     final String status = Status.SUCCESS.toString();
     final String date = ServletUtil.formatDate(new Date()); // TODO time
     final String url;
+    final Object version = Metadata.VERSION;
     final List<Response> response;
 
     Result(String url, List<Response> response) {
