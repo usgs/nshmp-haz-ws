@@ -56,7 +56,7 @@ public final class Util {
       jObj.addProperty("id", src.ordinal());
       jObj.addProperty("value", value);
       if (src instanceof Edition) {
-        jObj.addProperty("version", Metadata.MODEL_VERSIONS.get(src.name()));
+        jObj.addProperty("version", Metadata.MODEL_VERSIONS.get(src));
       }
       jObj.addProperty("display", src.toString());
       jObj.addProperty("displayorder", displayOrder);
