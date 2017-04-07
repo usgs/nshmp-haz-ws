@@ -28,6 +28,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.opensha2.calc.CurveValue;
 import org.opensha2.calc.Vs30;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.gmm.Imt;
@@ -36,6 +37,8 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -56,7 +59,7 @@ public class ServletUtil implements ServletContextListener {
   private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssXXX");
 
-  static final ExecutorService CALC_EXECUTOR;
+  static final ListeningExecutorService CALC_EXECUTOR;
   static final ExecutorService TASK_EXECUTOR;
 
   public static final Gson GSON;
@@ -64,13 +67,15 @@ public class ServletUtil implements ServletContextListener {
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
 
   static {
-    CALC_EXECUTOR = Executors.newFixedThreadPool(getRuntime().availableProcessors());
+    CALC_EXECUTOR = MoreExecutors.listeningDecorator(
+        Executors.newFixedThreadPool(getRuntime().availableProcessors()));
     TASK_EXECUTOR = Executors.newSingleThreadExecutor();
     GSON = new GsonBuilder()
         .registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
         .registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
         .registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
+        .registerTypeAdapter(CurveValue.class, new Util.EnumSerializer<CurveValue>())
         .registerTypeAdapter(Double.class, new Util.DoubleSerializer())
         .registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
         .disableHtmlEscaping()
@@ -101,7 +106,6 @@ public class ServletUtil implements ServletContextListener {
 
     // possibly fill (preload) cache
     boolean preload = Boolean.valueOf(context.getInitParameter("preloadModels"));
-    // System.out.println("preload: " + preload);
 
     if (preload) {
       for (final Model model : Model.values()) {
