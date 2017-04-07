@@ -23,7 +23,10 @@ class Util {
     LATITUDE,
     LONGITUDE,
     IMT,
-    RETURNPERIOD;
+    RETURNPERIOD,
+    DISTANCE,
+    FORMAT,
+    TIMESPAN;
 
     private String label;
 
