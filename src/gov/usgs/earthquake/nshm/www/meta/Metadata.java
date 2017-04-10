@@ -13,12 +13,14 @@ import org.opensha2.mfd.Mfds;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import gov.usgs.earthquake.nshm.www.ServletUtil;
 
@@ -31,6 +33,12 @@ public final class Metadata {
   static final String NSHMP_HAZ_VERSION = HazardCalc.VERSION;
   static final String NSHMP_HAZ_WS_VERSION;
   static final Map<Edition, String> MODEL_VERSIONS;
+
+  /*
+   * TODO: Ultimately this should come from the intersection of those IMTs
+   * supported by a model.
+   */
+  public static final Set<Imt> HAZARD_IMTS = Sets.immutableEnumSet(PGA, SA0P2, SA1P0, SA2P0);
 
   static {
     String nshmpHazWsVersion = "unknown";
@@ -84,7 +92,7 @@ public final class Metadata {
 
   public static final String PROBABILITY_USAGE = ServletUtil.GSON.toJson(new Probability(
       "Compute earthquake probabilities at an input location",
-      "%s://%s/nshmp-haz-ws/probability/{edition}/{region}/{longitude}/{latitude}/{distance}/{format}/{timespan}",
+      "%s://%s/nshmp-haz-ws/probability/{edition}/{region}/{longitude}/{latitude}/{distance}/{timespan}",
       new ProbabilityParameters()));
 
   @SuppressWarnings("unused")
@@ -160,7 +168,7 @@ public final class Metadata {
       imt = new EnumParameter<>(
           "Intensity measure type",
           ParamType.STRING,
-          EnumSet.of(PGA, SA0P2, SA1P0, SA2P0));
+          HAZARD_IMTS);
 
       vs30 = new EnumParameter<>(
           "Site soil (Vs30)",
