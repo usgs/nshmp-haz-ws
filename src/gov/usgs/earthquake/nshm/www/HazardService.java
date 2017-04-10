@@ -173,8 +173,8 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
-    Optional<Set<Imt>> imts = paramMap.containsKey(IMT.toString())
-        ? Optional.of(readValues(paramMap, IMT, Imt.class)) : Optional.<Set<Imt>> absent();
+    Set<Imt> imts = paramMap.containsKey(IMT.toString())
+        ? readValues(paramMap, IMT, Imt.class) : Metadata.HAZARD_IMTS;
 
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
@@ -188,8 +188,9 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
-    Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any"))
-        ? Optional.<Set<Imt>> absent() : Optional.of(readValues(params.get(4), Imt.class));
+    
+    Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
+        ? Metadata.HAZARD_IMTS : readValues(params.get(4), Imt.class);
 
     return new RequestData(
         readValue(params.get(0), Edition.class),
@@ -254,11 +255,9 @@ public final class HazardService extends HttpServlet {
     return process(model, site, data.imts);
   }
 
-  private static Hazard process(HazardModel model, Site site, Optional<Set<Imt>> imts) {
+  private static Hazard process(HazardModel model, Site site, Set<Imt> imts) {
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
-    if (imts.isPresent()) {
-      configBuilder.imts(imts.get());
-    }
+    configBuilder.imts(imts);
     CalcConfig config = configBuilder.build();
     Optional<Executor> executor = Optional.<Executor> of(ServletUtil.CALC_EXECUTOR);
     return HazardCalc.calc(model, config, site, executor);
@@ -270,7 +269,7 @@ public final class HazardService extends HttpServlet {
     final Region region;
     final double latitude;
     final double longitude;
-    final Optional<Set<Imt>> imts;
+    final Set<Imt> imts;
     final Vs30 vs30;
     final Optional<Double> returnPeriod;
 
@@ -279,7 +278,7 @@ public final class HazardService extends HttpServlet {
         Region region,
         double longitude,
         double latitude,
-        Optional<Set<Imt>> imts,
+        Set<Imt> imts,
         Vs30 vs30,
         Optional<Double> returnPeriod) {
 

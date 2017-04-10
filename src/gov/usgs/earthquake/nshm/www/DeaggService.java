@@ -136,13 +136,12 @@ public final class DeaggService extends HttpServlet {
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
     /* Deagg imts will always be a singleton Set. */
-    Set<Imt> imts = Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class));
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
         readValue(paramMap, REGION, Region.class),
         readDoubleValue(paramMap, LONGITUDE),
         readDoubleValue(paramMap, LATITUDE),
-        Optional.of(imts),
+        Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class)),
         Vs30.fromValue(readDoubleValue(paramMap, VS30)),
         Optional.of(readDoubleValue(paramMap, RETURNPERIOD)));
   }
@@ -150,13 +149,12 @@ public final class DeaggService extends HttpServlet {
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
     /* Deagg imts will always be a singleton Set. */
-    Set<Imt> imts = Sets.immutableEnumSet(readValue(params.get(4), Imt.class));
     return new RequestData(
         readValue(params.get(0), Edition.class),
         readValue(params.get(1), Region.class),
         Double.valueOf(params.get(2)),
         Double.valueOf(params.get(3)),
-        Optional.of(imts),
+        Sets.immutableEnumSet(readValue(params.get(4), Imt.class)),
         Vs30.fromValue(Double.valueOf(params.get(5))),
         Optional.of(Double.valueOf(params.get(6))));
   }
@@ -264,7 +262,7 @@ public final class DeaggService extends HttpServlet {
       Result build() {
 
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
-        Imt imt = Iterables.getOnlyElement(request.imts.get());
+        Imt imt = Iterables.getOnlyElement(request.imts);
         ResponseData responseData = new ResponseData(
             deagg,
             request,
