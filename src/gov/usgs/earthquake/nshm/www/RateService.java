@@ -94,6 +94,7 @@ public final class RateService extends HttpServlet {
 
     CurveValue format = service.equals("/rate") ? ANNUAL_RATE : POISSON_PROBABILITY;
     String usage = (format == ANNUAL_RATE) ? Metadata.RATE_USAGE : Metadata.PROBABILITY_USAGE;
+    int paramCount = (format == ANNUAL_RATE) ? 5 : 6;
 
     /*
      * Checking custom header for a forwarded protocol so generated links can
@@ -126,7 +127,7 @@ public final class RateService extends HttpServlet {
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
-        if (params.size() < 6) {
+        if (params.size() < paramCount) {
           response.getWriter().printf(usage, protocol, host);
           return;
         }
@@ -357,7 +358,8 @@ public final class RateService extends HttpServlet {
       EqRate rates;
 
       Builder rates(EqRate rates) {
-        checkState(rates == null, "Rate data has already been added to this builder");
+        checkState(this.rates == null, "Rate data has already been added to this builder");
+        this.rates = rates;
         return this;
       }
 
