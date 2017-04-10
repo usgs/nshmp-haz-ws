@@ -326,7 +326,7 @@ public final class HazardService extends HttpServlet {
     }
   }
 
-  static final class Curve {
+  private static final class Curve {
 
     final String component;
     final List<Double> yvalues;

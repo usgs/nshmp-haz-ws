@@ -48,7 +48,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.HazardService.Curve;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
@@ -310,9 +309,8 @@ public final class RateService extends HttpServlet {
 
     final String xlabel = "Magnitude (Mw)";
     final String ylabel;
-    final List<Double> xvalues;
 
-    ResponseData(RequestData request, List<Double> xvalues) {
+    ResponseData(RequestData request) {
       boolean isProbability = request.timespan.isPresent();
       this.edition = request.edition;
       this.region = request.region;
@@ -321,18 +319,34 @@ public final class RateService extends HttpServlet {
       this.distance = request.distance;
       this.ylabel = isProbability ? "Probability" : "Annual Rate (yr⁻¹)";
       this.timespan = request.timespan.orNull();
-      this.xvalues = xvalues;
     }
   }
 
   private static final class Response {
 
     final ResponseData metadata;
-    final List<Curve> data;
+    final List<Sequence> data;
 
-    Response(ResponseData metadata, List<Curve> data) {
+    Response(ResponseData metadata, List<Sequence> data) {
       this.metadata = metadata;
       this.data = data;
+    }
+  }
+
+  /*
+   * TODO would rather use this a general container for mfds and hazard curves.
+   * See HazardService.Curve
+   */
+  private static class Sequence {
+
+    final String component;
+    final List<Double> xvalues;
+    final List<Double> yvalues;
+
+    Sequence(String component, List<Double> xvalues, List<Double> yvalues) {
+      this.component = component;
+      this.xvalues = xvalues;
+      this.yvalues = yvalues;
     }
   }
 
@@ -375,26 +389,26 @@ public final class RateService extends HttpServlet {
 
       Result build() {
 
-        ImmutableList.Builder<Curve> curveListBuilder = ImmutableList.builder();
+        ImmutableList.Builder<Sequence> sequenceListBuilder = ImmutableList.builder();
 
         /* Total mfd. */
-        Curve totalCurve = new Curve(
+        Sequence total = new Sequence(
             TOTAL_KEY,
+            rates.totalMfd.xValues(),
             rates.totalMfd.yValues());
-        curveListBuilder.add(totalCurve);
+        sequenceListBuilder.add(total);
 
         /* Source type mfds. */
         for (Entry<SourceType, XySequence> entry : rates.typeMfds.entrySet()) {
-          Curve curve = new Curve(
+          Sequence curve = new Sequence(
               entry.getKey().toString(),
+              entry.getValue().xValues(),
               entry.getValue().yValues());
-          curveListBuilder.add(curve);
+          sequenceListBuilder.add(curve);
         }
 
-        ResponseData responseData = new ResponseData(
-            request,
-            rates.totalMfd.xValues());
-        Response response = new Response(responseData, curveListBuilder.build());
+        ResponseData responseData = new ResponseData(request);
+        Response response = new Response(responseData, sequenceListBuilder.build());
         return new Result(url, response);
       }
     }
