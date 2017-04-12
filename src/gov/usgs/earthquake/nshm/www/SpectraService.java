@@ -46,6 +46,7 @@ import com.google.gson.JsonSerializer;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Status;
 
 /**
@@ -97,8 +99,6 @@ public class SpectraService extends HttpServlet {
         .create();
   }
 
-  // TODO cache json usage once created?
-
   // TODO clean - move to service index page docs
   // static {
   // StringBuilder sb = new
@@ -125,10 +125,9 @@ public class SpectraService extends HttpServlet {
   //
 
   /*
-   * GET requests must have at least an "ids" key. The supplied key-values for
+   * GET requests must have at least an "gmms" key. The supplied key-values for
    * GmmInput parameters will be mapped to GmmInput fields as appropriate, using
-   * defaults for all missing key-value pairs. An exception will be thrown for
-   * keys that do not match "ids" or any of the GmmInput fields.
+   * defaults for all missing key-value pairs.
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -138,19 +137,30 @@ public class SpectraService extends HttpServlet {
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName() + ":" + request.getServerPort();
+    String host = request.getServerName();
+
+    /*
+     * Checking custom header for a forwarded protocol so generated links can
+     * use the same protocol and not cause mixed content errors.
+     */
+    String protocol = request.getHeader("X-FORWARDED-PROTO");
+    if (protocol == null) {
+      /* Not a forwarded request. Honor reported protocol and port. */
+      protocol = request.getScheme();
+      host += ":" + request.getServerPort();
+    }
 
     /* At a minimum, Gmms must be defined. */
     String gmmParam = request.getParameter(Metadata.GMM_KEY);
-
     if (gmmParam == null) {
       response.getWriter().printf(USAGE_STR, host);
       return;
     }
 
-    StringBuffer urlBuf = request.getRequestURL();
-    if (query != null) urlBuf.append('?').append(query);
-    String url = urlBuf.toString();
+    String url = request.getRequestURL()
+        .append('?')
+        .append(query)
+        .toString();
 
     RequestData requestData = new RequestData();
     Map<String, String[]> params = request.getParameterMap();
@@ -158,7 +168,9 @@ public class SpectraService extends HttpServlet {
       requestData.gmms = buildGmmSet(params);
       requestData.input = buildInput(params);
       ResponseData svcResponse = processRequest(requestData);
-      GSON.toJson(svcResponse, response.getWriter());
+      svcResponse.url = url;
+      String resultStr = GSON.toJson(svcResponse);
+      response.getWriter().print(resultStr);
     } catch (Exception e) {
       String message = errorMessage(url, e, false);
       response.getWriter().print(message);
@@ -174,7 +186,11 @@ public class SpectraService extends HttpServlet {
   }
 
   static class ResponseData {
-    String name;
+    String name = RESULT_NAME;
+    String status = Status.SUCCESS.toString();;
+    String date = ServletUtil.formatDate(new Date()); // TODO time
+    String url;
+    final Object version = gov.usgs.earthquake.nshm.www.meta.Metadata.VERSION;
     RequestData request;
     XY_DataGroup means;
     XY_DataGroup sigmas;
@@ -187,7 +203,6 @@ public class SpectraService extends HttpServlet {
     // set up response
     ResponseData response = new ResponseData();
     response.request = request;
-    response.name = RESULT_NAME;
 
     response.means = XY_DataGroup.create(
         GROUP_NAME_MEAN,
@@ -226,13 +241,6 @@ public class SpectraService extends HttpServlet {
             .from(params.get(Metadata.GMM_KEY))
             .transform(Enums.stringConverter(Gmm.class)),
         Gmm.class);
-
-    // TODO clean
-    // Iterable<String> gmmStrings =
-    // Parsing.split(params.get(Metadata.GMM_KEY)[0], Delimiter.COMMA);
-    // Converter<String, Gmm> converter = Enums.stringConverter(Gmm.class);
-    // return Sets.newEnumSet(Iterables.transform(gmmStrings, converter),
-    // Gmm.class);
   }
 
   private static GmmInput buildInput(Map<String, String[]> params) {
@@ -252,7 +260,7 @@ public class SpectraService extends HttpServlet {
   /*
    * Custom serializer is used to handle commonly used basin terms defaults:
    * z1p0=NaN and z2p5=NaN. This ends up being a little cleaner than registering
-   * a custom type adapter that would then apply to all DOubles. Perhaps
+   * a custom type adapter that would then apply to all doubles. Perhaps
    * relocate to GmmInput if broader need required.
    */
   private static final class InputSerializer implements JsonSerializer<GmmInput> {
@@ -331,7 +339,6 @@ public class SpectraService extends HttpServlet {
           return root;
         }
       }
-
     };
 
     @SuppressWarnings("unchecked")

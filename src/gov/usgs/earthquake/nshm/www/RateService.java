@@ -223,8 +223,9 @@ public final class RateService extends HttpServlet {
     EqRate rates;
 
     /*
-     * Because we need to combine model results, intially calculate annual rates
-     * and only then convert at the end if probability service has been called.
+     * Because we need to combine model results, intially calculate incremental
+     * annual rates and only convert to cumulative probabilities at the end if
+     * probability service has been called.
      */
     Optional<Double> emptyTimespan = Optional.<Double> absent();
 
@@ -241,14 +242,13 @@ public final class RateService extends HttpServlet {
       rates = EqRate.combine(wusRates.get(), ceusRates.get());
 
     } else {
-
       Model modelId = Model.valueOf(data.region, data.edition.year());
       HazardModel model = modelCache.get(modelId);
       rates = process(model, site, distance, emptyTimespan).get();
     }
 
-    rates = EqRate.toCumulative(rates);
     if (data.timespan.isPresent()) {
+      rates = EqRate.toCumulative(rates);
       rates = EqRate.toPoissonProbability(rates, data.timespan.get());
     }
     return rates;
@@ -392,19 +392,25 @@ public final class RateService extends HttpServlet {
         ImmutableList.Builder<Sequence> sequenceListBuilder = ImmutableList.builder();
 
         /* Total mfd. */
-        Sequence total = new Sequence(
+        XySequence total = (!rates.totalMfd.isClear()) ? rates.totalMfd.trim() : rates.totalMfd;
+        Sequence totalOut = new Sequence(
             TOTAL_KEY,
-            rates.totalMfd.xValues(),
-            rates.totalMfd.yValues());
-        sequenceListBuilder.add(total);
+            total.xValues(),
+            total.yValues());
+        sequenceListBuilder.add(totalOut);
 
         /* Source type mfds. */
         for (Entry<SourceType, XySequence> entry : rates.typeMfds.entrySet()) {
-          Sequence curve = new Sequence(
+          XySequence type = entry.getValue();
+          if (type.isClear()) {
+            continue;
+          }
+          type = type.trim();
+          Sequence typeOut = new Sequence(
               entry.getKey().toString(),
-              entry.getValue().xValues(),
-              entry.getValue().yValues());
-          sequenceListBuilder.add(curve);
+              type.xValues(),
+              type.yValues());
+          sequenceListBuilder.add(typeOut);
         }
 
         ResponseData responseData = new ResponseData(request);

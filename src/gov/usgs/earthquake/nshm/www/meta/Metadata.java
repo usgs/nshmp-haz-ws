@@ -76,22 +76,22 @@ public final class Metadata {
   public static final Object VERSION = new AppVersion();
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Default(
-      "Compute hazard curve data for an input location",
+      "Compute hazard curve data at a location",
       "%s://%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
       new HazardParameters()));
 
   public static final String DEAGG_USAGE = ServletUtil.GSON.toJson(new Deagg(
-      "Deaggregate hazard at an input location",
+      "Deaggregate hazard at a location",
       "%s://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
       new DeaggParameters()));
 
   public static final String RATE_USAGE = ServletUtil.GSON.toJson(new Rate(
-      "Compute earthquake rates at an input location",
+      "Compute incremental earthquake annual-rates at a location",
       "%s://%s/nshmp-haz-ws/rate/{edition}/{region}/{longitude}/{latitude}/{distance}",
       new RateParameters()));
 
   public static final String PROBABILITY_USAGE = ServletUtil.GSON.toJson(new Probability(
-      "Compute earthquake probabilities at an input location",
+      "Compute cumulative earthquake probabilities P(M ≥ x) at a location",
       "%s://%s/nshmp-haz-ws/probability/{edition}/{region}/{longitude}/{latitude}/{distance}/{timespan}",
       new ProbabilityParameters()));
 
