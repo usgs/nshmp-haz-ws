@@ -13,12 +13,12 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.TIMESPAN;
 
-import static org.opensha2.calc.CurveValue.ANNUAL_RATE;
-import static org.opensha2.calc.CurveValue.POISSON_PROBABILITY;
+import static org.opensha2.calc.ValueFormat.ANNUAL_RATE;
+import static org.opensha2.calc.ValueFormat.POISSON_PROBABILITY;
 
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.CurveValue;
+import org.opensha2.calc.ValueFormat;
 import org.opensha2.calc.EqRate;
 import org.opensha2.calc.Site;
 import org.opensha2.data.XySequence;
@@ -91,7 +91,7 @@ public final class RateService extends HttpServlet {
     String host = request.getServerName();
     String service = request.getServletPath();
 
-    CurveValue format = service.equals("/rate") ? ANNUAL_RATE : POISSON_PROBABILITY;
+    ValueFormat format = service.equals("/rate") ? ANNUAL_RATE : POISSON_PROBABILITY;
     String usage = (format == ANNUAL_RATE) ? Metadata.RATE_USAGE : Metadata.PROBABILITY_USAGE;
     int paramCount = (format == ANNUAL_RATE) ? 5 : 6;
 
@@ -150,7 +150,7 @@ public final class RateService extends HttpServlet {
   }
 
   /* Reduce query string key-value pairs */
-  private RequestData buildRequest(Map<String, String[]> paramMap, CurveValue format) {
+  private RequestData buildRequest(Map<String, String[]> paramMap, ValueFormat format) {
 
     Optional<Double> timespan = (format == POISSON_PROBABILITY)
         ? Optional.of(readDoubleValue(paramMap, TIMESPAN)) : Optional.<Double> absent();
@@ -165,7 +165,7 @@ public final class RateService extends HttpServlet {
   }
 
   /* Reduce slash-delimited request */
-  private RequestData buildRequest(List<String> params, CurveValue format) {
+  private RequestData buildRequest(List<String> params, ValueFormat format) {
 
     Optional<Double> timespan = (format == POISSON_PROBABILITY)
         ? Optional.of(Double.valueOf(params.get(5))) : Optional.<Double> absent();

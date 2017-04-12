@@ -28,7 +28,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.opensha2.calc.CurveValue;
+import org.opensha2.calc.ValueFormat;
 import org.opensha2.calc.Vs30;
 import org.opensha2.eq.model.HazardModel;
 import org.opensha2.gmm.Imt;
@@ -75,7 +75,7 @@ public class ServletUtil implements ServletContextListener {
         .registerTypeAdapter(Region.class, new Util.EnumSerializer<Region>())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
         .registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
-        .registerTypeAdapter(CurveValue.class, new Util.EnumSerializer<CurveValue>())
+        .registerTypeAdapter(ValueFormat.class, new Util.EnumSerializer<ValueFormat>())
         .registerTypeAdapter(Double.class, new Util.DoubleSerializer())
         .registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
         .disableHtmlEscaping()
