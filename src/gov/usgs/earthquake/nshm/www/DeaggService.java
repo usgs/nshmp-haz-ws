@@ -16,7 +16,7 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 import org.opensha2.HazardCalc;
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.Calcs;
+import org.opensha2.calc.HazardCalcs;
 import org.opensha2.calc.Deaggregation;
 import org.opensha2.calc.Hazard;
 import org.opensha2.calc.Site;
@@ -179,7 +179,7 @@ public final class DeaggService extends HttpServlet {
 
   private static Result process(String url, RequestData data, ServletContext context) {
     Hazard hazard = HazardService.calcHazard(data, context);
-    Deaggregation deagg = Calcs.deaggregation(hazard, data.returnPeriod.get());
+    Deaggregation deagg = HazardCalcs.deaggregation(hazard, data.returnPeriod.get());
     return new Result.Builder()
         .requestData(data)
         .url(url)
