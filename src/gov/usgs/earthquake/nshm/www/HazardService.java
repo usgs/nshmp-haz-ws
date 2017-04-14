@@ -389,7 +389,7 @@ public final class HazardService extends HttpServlet {
 
           xValuesLinearMap.put(
               imt,
-              hazardResult.config().curve.modelCurve(imt).xValues());
+              hazardResult.config().hazard.modelCurve(imt).xValues());
         }
         return this;
       }
