@@ -7,13 +7,13 @@ import java.util.Set;
 public enum Edition implements Constrained {
 
   E2008(
-      "Dynamic: Conterminous U.S. 2008 (v3.3.0)",
+      "Dynamic: Conterminous U.S. 2008 (v3.3.1)",
       2008,
       100,
       EnumSet.allOf(Region.class)),
 
   E2014(
-      "Dynamic: Conterminous U.S. 2014 (v4.1.0)",
+      "Dynamic: Conterminous U.S. 2014 (v4.1.1)",
       2014,
       0,
       EnumSet.allOf(Region.class));
