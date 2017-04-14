@@ -16,7 +16,7 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 import org.opensha2.HazardCalc;
 import org.opensha2.calc.CalcConfig;
 import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.Calcs;
+import org.opensha2.calc.HazardCalcs;
 import org.opensha2.calc.Deaggregation;
 import org.opensha2.calc.Hazard;
 import org.opensha2.calc.Site;
@@ -83,12 +83,13 @@ public final class DeaggService extends HttpServlet {
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
 
-    // Checking custom header for a forwarded protocol so generated links
-    // can use the same protocol and not cause mixed content errors.
+    /*
+     * Checking custom header for a forwarded protocol so generated links can
+     * use the same protocol and not cause mixed content errors.
+     */
     String protocol = request.getHeader("X-FORWARDED-PROTO");
-
     if (protocol == null) {
-      // Not a forwarded request. Honor reported protocol and port
+      /* Not a forwarded request. Honor reported protocol and port. */
       protocol = request.getScheme();
       host += ":" + request.getServerPort();
     }
@@ -135,13 +136,12 @@ public final class DeaggService extends HttpServlet {
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
     /* Deagg imts will always be a singleton Set. */
-    Set<Imt> imts = Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class));
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
         readValue(paramMap, REGION, Region.class),
         readDoubleValue(paramMap, LONGITUDE),
         readDoubleValue(paramMap, LATITUDE),
-        Optional.of(imts),
+        Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class)),
         Vs30.fromValue(readDoubleValue(paramMap, VS30)),
         Optional.of(readDoubleValue(paramMap, RETURNPERIOD)));
   }
@@ -149,13 +149,12 @@ public final class DeaggService extends HttpServlet {
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
     /* Deagg imts will always be a singleton Set. */
-    Set<Imt> imts = Sets.immutableEnumSet(readValue(params.get(4), Imt.class));
     return new RequestData(
         readValue(params.get(0), Edition.class),
         readValue(params.get(1), Region.class),
         Double.valueOf(params.get(2)),
         Double.valueOf(params.get(3)),
-        Optional.of(imts),
+        Sets.immutableEnumSet(readValue(params.get(4), Imt.class)),
         Vs30.fromValue(Double.valueOf(params.get(5))),
         Optional.of(Double.valueOf(params.get(6))));
   }
@@ -180,7 +179,7 @@ public final class DeaggService extends HttpServlet {
 
   private static Result process(String url, RequestData data, ServletContext context) {
     Hazard hazard = HazardService.calcHazard(data, context);
-    Deaggregation deagg = Calcs.deaggregation(hazard, data.returnPeriod.get());
+    Deaggregation deagg = HazardCalcs.deaggregation(hazard, data.returnPeriod.get());
     return new Result.Builder()
         .requestData(data)
         .url(url)
@@ -263,7 +262,7 @@ public final class DeaggService extends HttpServlet {
       Result build() {
 
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
-        Imt imt = Iterables.getOnlyElement(request.imts.get());
+        Imt imt = Iterables.getOnlyElement(request.imts);
         ResponseData responseData = new ResponseData(
             deagg,
             request,
@@ -275,18 +274,6 @@ public final class DeaggService extends HttpServlet {
         return new Result(
             url,
             responseListBuilder.build());
-      }
-
-      private static <E extends Enum<E>> void addOrPut(
-          Map<E, XySequence> map,
-          E key,
-          XySequence sequence) {
-
-        if (map.containsKey(key)) {
-          map.get(key).add(sequence);
-        } else {
-          map.put(key, XySequence.copyOf(sequence));
-        }
       }
     }
   }

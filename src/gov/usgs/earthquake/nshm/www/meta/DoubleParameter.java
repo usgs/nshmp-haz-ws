@@ -1,7 +1,7 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
 @SuppressWarnings("unused")
-final class DoubleParameter<T> {
+final class DoubleParameter {
 
   private final String label;
   private final ParamType type;

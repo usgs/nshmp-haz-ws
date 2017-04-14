@@ -9,15 +9,18 @@ import org.opensha2.HazardCalc;
 import org.opensha2.calc.Vs30;
 import org.opensha2.geo.Coordinates;
 import org.opensha2.gmm.Imt;
+import org.opensha2.mfd.Mfds;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import gov.usgs.earthquake.nshm.www.ServletUtil;
 
@@ -30,6 +33,12 @@ public final class Metadata {
   static final String NSHMP_HAZ_VERSION = HazardCalc.VERSION;
   static final String NSHMP_HAZ_WS_VERSION;
   static final Map<Edition, String> MODEL_VERSIONS;
+
+  /*
+   * TODO: Ultimately this should come from the intersection of those IMTs
+   * supported by a model.
+   */
+  public static final Set<Imt> HAZARD_IMTS = Sets.immutableEnumSet(PGA, SA0P2, SA1P0, SA2P0);
 
   static {
     String nshmpHazWsVersion = "unknown";
@@ -66,29 +75,39 @@ public final class Metadata {
 
   public static final Object VERSION = new AppVersion();
 
-  public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Hazard(
-      "Compute hazard curve data for an input location",
+  public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Default(
+      "Compute hazard curve data at a location",
       "%s://%s/nshmp-haz-ws/hazard/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}",
       new HazardParameters()));
 
   public static final String DEAGG_USAGE = ServletUtil.GSON.toJson(new Deagg(
-      "Deaggregate hazard at an input location",
+      "Deaggregate hazard at a location",
       "%s://%s/nshmp-haz-ws/deagg/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}",
       new DeaggParameters()));
 
+  public static final String RATE_USAGE = ServletUtil.GSON.toJson(new Rate(
+      "Compute incremental earthquake annual-rates at a location",
+      "%s://%s/nshmp-haz-ws/rate/{edition}/{region}/{longitude}/{latitude}/{distance}",
+      new RateParameters()));
+
+  public static final String PROBABILITY_USAGE = ServletUtil.GSON.toJson(new Probability(
+      "Compute cumulative earthquake probabilities P(M ≥ x) at a location",
+      "%s://%s/nshmp-haz-ws/probability/{edition}/{region}/{longitude}/{latitude}/{distance}/{timespan}",
+      new ProbabilityParameters()));
+
   @SuppressWarnings("unused")
-  private static class Hazard {
+  private static class Default {
 
     final String status;
     final String description;
     final String syntax;
     final Object version;
-    final HazardParameters parameters;
+    final DefaultParameters parameters;
 
-    private Hazard(
+    private Default(
         String description,
         String syntax,
-        HazardParameters parameters) {
+        DefaultParameters parameters) {
       this.status = Status.USAGE.toString();
       this.description = description;
       this.syntax = syntax;
@@ -105,16 +124,14 @@ public final class Metadata {
   }
 
   @SuppressWarnings("unused")
-  private static class HazardParameters {
+  private static class DefaultParameters {
 
     final EnumParameter<Edition> edition;
     final EnumParameter<Region> region;
-    final DoubleParameter<Double> longitude;
-    final DoubleParameter<Double> latitude;
-    final EnumParameter<Imt> imt;
-    final EnumParameter<Vs30> vs30;
+    final DoubleParameter longitude;
+    final DoubleParameter latitude;
 
-    HazardParameters() {
+    DefaultParameters() {
 
       edition = new EnumParameter<>(
           "Model edition",
@@ -126,22 +143,32 @@ public final class Metadata {
           ParamType.STRING,
           EnumSet.allOf(Region.class));
 
-      longitude = new DoubleParameter<>(
+      longitude = new DoubleParameter(
           "Longitude (in decimal degrees)",
           ParamType.NUMBER,
           Coordinates.LON_RANGE.lowerEndpoint(),
           Coordinates.LON_RANGE.upperEndpoint());
 
-      latitude = new DoubleParameter<>(
+      latitude = new DoubleParameter(
           "Latitude (in decimal degrees)",
           ParamType.NUMBER,
           Coordinates.LAT_RANGE.lowerEndpoint(),
           Coordinates.LAT_RANGE.upperEndpoint());
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static class HazardParameters extends DefaultParameters {
+
+    final EnumParameter<Imt> imt;
+    final EnumParameter<Vs30> vs30;
+
+    HazardParameters() {
 
       imt = new EnumParameter<>(
           "Intensity measure type",
           ParamType.STRING,
-          EnumSet.of(PGA, SA0P2, SA1P0, SA2P0));
+          HAZARD_IMTS);
 
       vs30 = new EnumParameter<>(
           "Site soil (Vs30)",
@@ -150,7 +177,7 @@ public final class Metadata {
     }
   }
 
-  private static class Deagg extends Hazard {
+  private static class Deagg extends Default {
     private Deagg(
         String description,
         String syntax,
@@ -162,14 +189,61 @@ public final class Metadata {
   @SuppressWarnings("unused")
   private static class DeaggParameters extends HazardParameters {
 
-    final DoubleParameter<Double> returnPeriod;
+    final DoubleParameter returnPeriod;
 
     DeaggParameters() {
-      returnPeriod = new DoubleParameter<>(
+
+      returnPeriod = new DoubleParameter(
           "Return period (in years)",
           ParamType.NUMBER,
           1.0,
           4000.0);
+    }
+  }
+
+  private static class Rate extends Default {
+    private Rate(
+        String description,
+        String syntax,
+        RateParameters parameters) {
+      super(description, syntax, parameters);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static class RateParameters extends DefaultParameters {
+
+    final DoubleParameter distance;
+
+    RateParameters() {
+      distance = new DoubleParameter(
+          "Cutoff distance (in km)",
+          ParamType.NUMBER,
+          0.01,
+          1000.0);
+    }
+  }
+
+  private static class Probability extends Default {
+    private Probability(
+        String description,
+        String syntax,
+        ProbabilityParameters parameters) {
+      super(description, syntax, parameters);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static class ProbabilityParameters extends RateParameters {
+
+    final DoubleParameter timespan;
+
+    ProbabilityParameters() {
+      timespan = new DoubleParameter(
+          "Forecast time span (in years)",
+          ParamType.NUMBER,
+          Mfds.TIMESPAN_RANGE.lowerEndpoint(),
+          Mfds.TIMESPAN_RANGE.upperEndpoint());
     }
   }
 

@@ -13,7 +13,7 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
-import static org.opensha2.calc.ResultHandler.curvesBySource;
+import static org.opensha2.calc.HazardExport.curvesBySource;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
@@ -84,10 +84,10 @@ public final class HazardService extends HttpServlet {
    * create problems in a servlet environment, however, because Tomcat does not
    * support a single threaded request queue where requests are processed as
    * they are received with the next task starting only once the prior has
-   * finished. One can really only limit the maximum number of somultaneous
+   * finished. One can really only limit the maximum number of simultaneous
    * requests. When multiple requests are received in a short span, Tomcat will
    * attempt to run hazard or deagg calculations simultaneously. The net effect
-   * is that there can be out of memory problesm as too many results are
+   * is that there can be out of memory problems as too many results are
    * retained, and multiple requests do not return until all are finished.
    *
    * To address this, requests of HazardService and DeaggService are submitted
@@ -121,12 +121,13 @@ public final class HazardService extends HttpServlet {
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
 
-    // Checking custom header for a forwarded protocol so generated links
-    // can use the same protocol and not cause mixed content errors.
+    /*
+     * Checking custom header for a forwarded protocol so generated links can
+     * use the same protocol and not cause mixed content errors.
+     */
     String protocol = request.getHeader("X-FORWARDED-PROTO");
-
     if (protocol == null) {
-      // Not a forwarded request. Honor reported protocol and port
+      /* Not a forwarded request. Honor reported protocol and port. */
       protocol = request.getScheme();
       host += ":" + request.getServerPort();
     }
@@ -172,8 +173,8 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
-    Optional<Set<Imt>> imts = paramMap.containsKey(IMT.toString())
-        ? Optional.of(readValues(paramMap, IMT, Imt.class)) : Optional.<Set<Imt>> absent();
+    Set<Imt> imts = paramMap.containsKey(IMT.toString())
+        ? readValues(paramMap, IMT, Imt.class) : Metadata.HAZARD_IMTS;
 
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
@@ -187,8 +188,9 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
-    Optional<Set<Imt>> imts = (params.get(4).equalsIgnoreCase("any"))
-        ? Optional.<Set<Imt>> absent() : Optional.of(readValues(params.get(4), Imt.class));
+    
+    Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
+        ? Metadata.HAZARD_IMTS : readValues(params.get(4), Imt.class);
 
     return new RequestData(
         readValue(params.get(0), Edition.class),
@@ -232,7 +234,6 @@ public final class HazardService extends HttpServlet {
     @SuppressWarnings("unchecked")
     LoadingCache<Model, HazardModel> modelCache =
         (LoadingCache<Model, HazardModel>) context.getAttribute(MODEL_CACHE_CONTEXT_ID);
-    Hazard hazard;
 
     // TODO cache calls should be using checked get(id)
 
@@ -254,11 +255,9 @@ public final class HazardService extends HttpServlet {
     return process(model, site, data.imts);
   }
 
-  private static Hazard process(HazardModel model, Site site, Optional<Set<Imt>> imts) {
+  private static Hazard process(HazardModel model, Site site, Set<Imt> imts) {
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
-    if (imts.isPresent()) {
-      configBuilder.imts(imts.get());
-    }
+    configBuilder.imts(imts);
     CalcConfig config = configBuilder.build();
     Optional<Executor> executor = Optional.<Executor> of(ServletUtil.CALC_EXECUTOR);
     return HazardCalc.calc(model, config, site, executor);
@@ -270,7 +269,7 @@ public final class HazardService extends HttpServlet {
     final Region region;
     final double latitude;
     final double longitude;
-    final Optional<Set<Imt>> imts;
+    final Set<Imt> imts;
     final Vs30 vs30;
     final Optional<Double> returnPeriod;
 
@@ -279,7 +278,7 @@ public final class HazardService extends HttpServlet {
         Region region,
         double longitude,
         double latitude,
-        Optional<Set<Imt>> imts,
+        Set<Imt> imts,
         Vs30 vs30,
         Optional<Double> returnPeriod) {
 
@@ -374,7 +373,7 @@ public final class HazardService extends HttpServlet {
         for (Imt imt : hazardResult.curves().keySet()) {
 
           // total curve
-          addOrPut(totalMap, imt, hazardResult.curves().get(imt));
+          hazardResult.curves().get(imt).addToMap(imt, totalMap);
 
           // component curves
           Map<SourceType, XySequence> typeTotalMap = typeTotalMaps.get(imt);
@@ -385,12 +384,12 @@ public final class HazardService extends HttpServlet {
           }
 
           for (SourceType type : typeTotalMap.keySet()) {
-            addOrPut(componentMap, type, typeTotalMap.get(type));
+            typeTotalMap.get(type).addToMap(type, componentMap);
           }
 
           xValuesLinearMap.put(
               imt,
-              hazardResult.config().curve.modelCurve(imt).xValues());
+              hazardResult.config().hazard.modelCurve(imt).xValues());
         }
         return this;
       }
@@ -439,17 +438,18 @@ public final class HazardService extends HttpServlet {
         return new Result(url, responseListBuilder.build());
       }
 
-      private static <E extends Enum<E>> void addOrPut(
-          Map<E, XySequence> map,
-          E key,
-          XySequence sequence) {
-
-        if (map.containsKey(key)) {
-          map.get(key).add(sequence);
-        } else {
-          map.put(key, XySequence.copyOf(sequence));
-        }
-      }
+//      // TODO replace with XySequence.addToMap
+//      private static <E extends Enum<E>> void addOrPut(
+//          Map<E, XySequence> map,
+//          E key,
+//          XySequence sequence) {
+//
+//        if (map.containsKey(key)) {
+//          map.get(key).add(sequence);
+//        } else {
+//          map.put(key, XySequence.copyOf(sequence));
+//        }
+//      }
     }
   }
 }
