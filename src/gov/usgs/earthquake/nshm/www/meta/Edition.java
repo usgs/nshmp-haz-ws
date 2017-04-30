@@ -1,5 +1,7 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
+import static gov.usgs.earthquake.nshm.www.meta.Region.*;
+
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -10,13 +12,20 @@ public enum Edition implements Constrained {
       "Dynamic: Conterminous U.S. 2008 (v3.3.1)",
       2008,
       100,
-      EnumSet.allOf(Region.class)),
+      EnumSet.of(COUS, CEUS, WUS)),
 
   E2014(
       "Dynamic: Conterminous U.S. 2014 (v4.1.1)",
       2014,
       0,
-      EnumSet.allOf(Region.class));
+      EnumSet.of(COUS, CEUS, WUS)),
+
+  E2007(
+      "Dynamic: Alaska 2007 (v2.1.0)",
+      2007,
+      -100,
+      EnumSet.of(AK));
+
 
   private final String label;
   private final int year;
