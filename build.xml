@@ -35,6 +35,7 @@
   <!-- ========================= -->
   <property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
   <property name="nshmp-haz.dir" value="../nshmp-haz/" />
+  <property name="model.ak2007" value="../nshmp-model-ak-2007" />
   <property name="model.cous2008" value="../nshmp-model-cous-2008" />
   <property name="model.cous2014" value="../nshmp-model-cous-2014" />
 
@@ -44,13 +45,15 @@
           depends="compile,set.service.properties"
           description="Builds a nshmp-haz-ws WAR file">
 
+    <echo message="With model: ${model.ak2007}" />
     <echo message="With model: ${model.cous2008}" />
     <echo message="With model: ${model.cous2014}" />
     <war destfile="${war.file}" webxml="${web.file}">
       <fileset dir="${htdocs.dir}" />
       <!-- zipfileset: does not zip files, just copies to 'prefix' -->
-      <zipfileset dir="${model.cous2008}" prefix="models/2008" />
-      <zipfileset dir="${model.cous2014}" prefix="models/2014" />
+      <zipfileset dir="${model.ak2007}" prefix="models/ak/2007" />
+      <zipfileset dir="${model.cous2008}" prefix="models/cous/2008" />
+      <zipfileset dir="${model.cous2014}" prefix="models/cous/2014" />
       <lib dir="${lib.dir}" />
       <classes dir="${classes.dir}" />
       <zipfileset file="${service.properties}" prefix="WEB-INF/classes" />
@@ -66,6 +69,12 @@
     <antcall target="git.version">
       <param name="param.git.dir" value="." />
       <param name="param.version.key" value="app.version" />
+    </antcall>
+
+    <!-- Model: AK 2007 -->
+    <antcall target="git.version">
+      <param name="param.git.dir" value="${model.ak2007}" />
+      <param name="param.version.key" value="E2007.version" />
     </antcall>
 
     <!-- Model: COUS 2008 -->

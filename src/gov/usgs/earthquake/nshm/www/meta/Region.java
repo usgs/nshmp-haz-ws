@@ -22,6 +22,15 @@ import org.opensha2.gmm.Imt;
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
 
+  AK(
+      "Alaska",
+      new double[] { 48.0, 72.0 },
+      new double[] { -200.0, -125.0 },
+      new double[] { 48.0, 72.0 },
+      new double[] { -200.0, -125.0 },
+      EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
+      EnumSet.of(VS_760)),
+
   COUS(
       "Conterminous US",
       new double[] { 24.6, 50.0 },
