@@ -28,6 +28,11 @@
 	<filter>
 		<filter-name>CorsFilter</filter-name>
 		<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+		<init-param>
+			<!-- need to disable credentials for wildcard allow-origin. -->
+			<param-name>cors.support.credentials</param-name>
+			<param-value>false</param-value>
+		</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>CorsFilter</filter-name>
