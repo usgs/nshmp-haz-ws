@@ -20,6 +20,7 @@ import gov.usgs.earthquake.nshm.www.meta.Region;
 import gov.usgs.earthquake.nshm.www.meta.Status;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
@@ -115,7 +116,7 @@ public final class HazardService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    response.setContentType("application/json; charset=UTF-8");
+    ServletUtil.setCorsHeadersAndContentType(response);
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
@@ -188,7 +189,7 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
-    
+
     Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
         ? Metadata.HAZARD_IMTS : readValues(params.get(4), Imt.class);
 
@@ -437,19 +438,6 @@ public final class HazardService extends HttpServlet {
         }
         return new Result(url, responseListBuilder.build());
       }
-
-//      // TODO replace with XySequence.addToMap
-//      private static <E extends Enum<E>> void addOrPut(
-//          Map<E, XySequence> map,
-//          E key,
-//          XySequence sequence) {
-//
-//        if (map.containsKey(key)) {
-//          map.get(key).add(sequence);
-//        } else {
-//          map.put(key, XySequence.copyOf(sequence));
-//        }
-//      }
     }
   }
 }

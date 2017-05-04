@@ -84,7 +84,7 @@ public final class RateService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    response.setContentType("application/json; charset=UTF-8");
+    ServletUtil.setCorsHeadersAndContentType(response);
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
