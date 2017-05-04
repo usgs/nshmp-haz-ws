@@ -23,7 +23,7 @@ public class AdminService extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    response.setContentType("application/json; charset=UTF-8");
+    ServletUtil.setCorsHeadersAndContentType(response);
     response.getWriter().print("{\"hello\" : \"admin\"}");
   }
 }
