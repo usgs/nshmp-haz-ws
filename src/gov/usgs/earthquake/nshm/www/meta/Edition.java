@@ -9,19 +9,19 @@ import java.util.Set;
 public enum Edition implements Constrained {
 
   E2008(
-      "Dynamic: Conterminous U.S. 2008 (v3.3.1)",
+      "Dynamic: Conterminous U.S. 2008",
       2008,
       100,
       EnumSet.of(COUS, CEUS, WUS)),
 
   E2014(
-      "Dynamic: Conterminous U.S. 2014 (v4.1.1)",
+      "Dynamic: Conterminous U.S. 2014",
       2014,
       0,
       EnumSet.of(COUS, CEUS, WUS)),
 
   E2007(
-      "Dynamic: Alaska 2007 (v2.1.0)",
+      "Dynamic: Alaska 2007",
       2007,
       -100,
       EnumSet.of(AK));
@@ -44,7 +44,7 @@ public enum Edition implements Constrained {
       Set<Region> regions) {
 
     this.year = year;
-    this.label = label;
+    this.label = label + " (" + Metadata.MODEL_VERSIONS.get(this) + ")";
     this.displayOrder = displayOrder;
     this.regions = regions;
     this.constraints = new EditionConstraints(regions);

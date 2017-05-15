@@ -48,6 +48,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
@@ -85,7 +86,8 @@ public final class RateService extends HttpServlet {
       throws ServletException, IOException {
 
     ServletUtil.setCorsHeadersAndContentType(response);
-
+    Timer timer = ServletUtil.timer();
+    
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
@@ -137,6 +139,7 @@ public final class RateService extends HttpServlet {
       Result result = new Result.Builder()
           .requestData(requestData)
           .url(url)
+          .timer(timer)
           .rates(rates)
           .build();
       String resultStr = GSON.toJson(result);
@@ -190,11 +193,13 @@ public final class RateService extends HttpServlet {
     final String url;
     final RequestData data;
     final ServletContext context;
+    final Timer timer;
 
     RateTask(String url, RequestData data, ServletContext context) {
       this.url = url;
       this.data = data;
       this.context = context;
+      this.timer = ServletUtil.timer();
     }
 
     @Override
@@ -203,6 +208,7 @@ public final class RateService extends HttpServlet {
       return new Result.Builder()
           .requestData(data)
           .url(url)
+          .timer(timer)
           .rates(rates)
           .build();
     }
@@ -357,17 +363,19 @@ public final class RateService extends HttpServlet {
     final String status = Status.SUCCESS.toString();
     final String date = ServletUtil.formatDate(new Date()); // TODO time
     final String url;
-    final Object version = Metadata.VERSION;
+    final Object server;
     final Response response;
 
-    Result(String url, Response response) {
+    Result(String url, Object server, Response response) {
       this.url = url;
+      this.server = server;
       this.response = response;
     }
 
     static final class Builder {
 
       String url;
+      Timer timer;
       RequestData request;
       EqRate rates;
 
@@ -379,6 +387,11 @@ public final class RateService extends HttpServlet {
 
       Builder url(String url) {
         this.url = url;
+        return this;
+      }
+
+      Builder timer(Timer timer) {
+        this.timer = timer;
         return this;
       }
 
@@ -414,8 +427,10 @@ public final class RateService extends HttpServlet {
         }
 
         ResponseData responseData = new ResponseData(request);
+        Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);
         Response response = new Response(responseData, sequenceListBuilder.build());
-        return new Result(url, response);
+
+        return new Result(url, server, response);
       }
     }
   }

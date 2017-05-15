@@ -2,7 +2,6 @@ package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshm.www.Util.readValue;
 import static gov.usgs.earthquake.nshm.www.Util.Key.EDITION;
@@ -13,23 +12,15 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 
-import org.opensha2.HazardCalc;
-import org.opensha2.calc.CalcConfig;
-import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.HazardCalcs;
 import org.opensha2.calc.Deaggregation;
 import org.opensha2.calc.Hazard;
-import org.opensha2.calc.Site;
+import org.opensha2.calc.HazardCalcs;
 import org.opensha2.calc.Vs30;
-import org.opensha2.data.XySequence;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.geo.Location;
 import org.opensha2.gmm.Imt;
 import org.opensha2.internal.Parsing;
 import org.opensha2.internal.Parsing.Delimiter;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -38,9 +29,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -50,6 +38,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshm.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshm.www.ServletUtil.TimedTask;
+import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
@@ -159,32 +149,23 @@ public final class DeaggService extends HttpServlet {
         Optional.of(Double.valueOf(params.get(6))));
   }
 
-  private static class DeaggTask implements Callable<Result> {
-
-    final String url;
-    final RequestData data;
-    final ServletContext context;
+  private static class DeaggTask extends TimedTask<Result> {
 
     DeaggTask(String url, RequestData data, ServletContext context) {
-      this.url = url;
-      this.data = data;
-      this.context = context;
+      super(url, data, context);
     }
 
     @Override
-    public Result call() throws Exception {
-      return process(url, data, context);
+    Result calc() throws Exception {
+      Hazard hazard = HazardService.calcHazard(data, context);
+      Deaggregation deagg = HazardCalcs.deaggregation(hazard, data.returnPeriod.get());
+      return new Result.Builder()
+          .requestData(data)
+          .url(url)
+          .timer(timer)
+          .deagg(deagg)
+          .build();
     }
-  }
-
-  private static Result process(String url, RequestData data, ServletContext context) {
-    Hazard hazard = HazardService.calcHazard(data, context);
-    Deaggregation deagg = HazardCalcs.deaggregation(hazard, data.returnPeriod.get());
-    return new Result.Builder()
-        .requestData(data)
-        .url(url)
-        .deagg(deagg)
-        .build();
   }
 
   private static final class ResponseData {
@@ -231,16 +212,19 @@ public final class DeaggService extends HttpServlet {
     final String status = Status.SUCCESS.toString();
     final String date = ServletUtil.formatDate(new Date()); // TODO time
     final String url;
+    final Object server;
     final List<Response> response;
 
-    Result(String url, List<Response> response) {
+    Result(String url, Object server, List<Response> response) {
       this.url = url;
+      this.server = server;
       this.response = response;
     }
 
     static final class Builder {
 
       String url;
+      Timer timer;
       RequestData request;
       Deaggregation deagg;
 
@@ -251,6 +235,11 @@ public final class DeaggService extends HttpServlet {
 
       Builder url(String url) {
         this.url = url;
+        return this;
+      }
+
+      Builder timer(Timer timer) {
+        this.timer = timer;
         return this;
       }
 
@@ -271,9 +260,10 @@ public final class DeaggService extends HttpServlet {
         Response response = new Response(responseData, deaggs);
         responseListBuilder.add(response);
 
-        return new Result(
-            url,
-            responseListBuilder.build());
+        List<Response> responseList = responseListBuilder.build();
+        Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);
+
+        return new Result(url, server, responseList);
       }
     }
   }
