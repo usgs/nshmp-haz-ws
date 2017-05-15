@@ -1,5 +1,7 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
+import static gov.usgs.earthquake.nshm.www.meta.Region.*;
+
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
@@ -305,6 +307,14 @@ public final class Metadata {
       }
       this.message = message;
     }
+  }
+  
+  public static Region checkRegion(double lon) {
+    return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
+  }
+  
+  public static void main(String[] args) {
+    System.out.println(checkRegion(-122));
   }
 
 }

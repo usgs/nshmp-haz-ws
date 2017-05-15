@@ -13,11 +13,10 @@ import static org.opensha2.gmm.Imt.SA1P0;
 import static org.opensha2.gmm.Imt.SA2P0;
 
 import org.opensha2.calc.Vs30;
+import org.opensha2.gmm.Imt;
 
 import java.util.EnumSet;
 import java.util.Set;
-
-import org.opensha2.gmm.Imt;
 
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
