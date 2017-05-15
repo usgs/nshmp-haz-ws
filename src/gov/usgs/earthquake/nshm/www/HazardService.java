@@ -13,29 +13,8 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
+
 import static org.opensha2.calc.HazardExport.curvesBySource;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Status;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.opensha2.HazardCalc;
 import org.opensha2.calc.CalcConfig;
@@ -55,6 +34,28 @@ import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executor;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import gov.usgs.earthquake.nshm.www.ServletUtil.TimedTask;
+import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.Metadata;
+import gov.usgs.earthquake.nshm.www.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Status;
+
 /**
  * Probabilisitic seismic hazard calculation service.
  *
@@ -73,7 +74,7 @@ public final class HazardService extends HttpServlet {
    * Developer notes:
    *
    * The HazardService and DeaggService are very similar. Deagg delegates to a
-   * package method HazardService.haardCalc() to obtain a Hazard object, which
+   * package method HazardService.hazardCalc() to obtain a Hazard object, which
    * it then deaggregates. This method may combine Hazard objects from CEUS and
    * WUS models, otherwise it runs a single model. HazardService.RequestData
    * objects are common to both services, with the understanding that Optional
@@ -162,6 +163,7 @@ public final class HazardService extends HttpServlet {
       /* Submit as task to job executor */
       HazardTask task = new HazardTask(url, requestData, getServletContext());
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
+      // GSON.toJson(result, response.getWriter()); TODO test and use elsewhere?
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
 
@@ -203,24 +205,19 @@ public final class HazardService extends HttpServlet {
         Optional.<Double> absent());
   }
 
-  private static class HazardTask implements Callable<Result> {
-
-    final String url;
-    final RequestData data;
-    final ServletContext context;
+  private static class HazardTask extends TimedTask<Result> {
 
     HazardTask(String url, RequestData data, ServletContext context) {
-      this.url = url;
-      this.data = data;
-      this.context = context;
+      super(url, data, context);
     }
 
     @Override
-    public Result call() throws Exception {
+    Result calc() throws Exception {
       Hazard hazard = calcHazard(data, context);
       return new Result.Builder()
           .requestData(data)
           .url(url)
+          .timer(timer)
           .hazard(hazard)
           .build();
     }
@@ -345,17 +342,19 @@ public final class HazardService extends HttpServlet {
     final String status = Status.SUCCESS.toString();
     final String date = ServletUtil.formatDate(new Date()); // TODO time
     final String url;
-    final Object version = Metadata.VERSION;
+    final Object server;
     final List<Response> response;
 
-    Result(String url, List<Response> response) {
+    Result(String url, Object server, List<Response> response) {
       this.url = url;
+      this.server = server;
       this.response = response;
     }
 
     static final class Builder {
 
       String url;
+      Timer timer;
       RequestData request;
 
       Map<Imt, Map<SourceType, XySequence>> componentMaps;
@@ -400,13 +399,17 @@ public final class HazardService extends HttpServlet {
         return this;
       }
 
+      Builder timer(Timer timer) {
+        this.timer = timer;
+        return this;
+      }
+
       Builder requestData(RequestData request) {
         this.request = request;
         return this;
       }
 
       Result build() {
-
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
 
         for (Imt imt : totalMap.keySet()) {
@@ -436,7 +439,11 @@ public final class HazardService extends HttpServlet {
           Response response = new Response(responseData, curveListBuilder.build());
           responseListBuilder.add(response);
         }
-        return new Result(url, responseListBuilder.build());
+
+        List<Response> responseList = responseListBuilder.build();
+        Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);
+
+        return new Result(url, server, responseList);
       }
     }
   }

@@ -190,7 +190,7 @@ public class SpectraService extends HttpServlet {
     String status = Status.SUCCESS.toString();;
     String date = ServletUtil.formatDate(new Date()); // TODO time
     String url;
-    final Object version = gov.usgs.earthquake.nshm.www.meta.Metadata.VERSION;
+    Object server;
     RequestData request;
     XY_DataGroup means;
     XY_DataGroup sigmas;
@@ -203,6 +203,7 @@ public class SpectraService extends HttpServlet {
     // set up response
     ResponseData response = new ResponseData();
     response.request = request;
+    response.server = gov.usgs.earthquake.nshm.www.meta.Metadata.serverData(1, null);
 
     response.means = XY_DataGroup.create(
         GROUP_NAME_MEAN,

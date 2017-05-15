@@ -1,19 +1,29 @@
 package gov.usgs.earthquake.nshm.www;
 
 import static java.lang.Runtime.getRuntime;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.ParamType;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Util;
+
+import org.opensha2.calc.ValueFormat;
+import org.opensha2.calc.Vs30;
+import org.opensha2.eq.model.HazardModel;
+import org.opensha2.gmm.Imt;
+
+import com.google.common.base.Stopwatch;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -29,19 +39,11 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletResponse;
 
-import org.opensha2.calc.ValueFormat;
-import org.opensha2.calc.Vs30;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.gmm.Imt;
-
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import gov.usgs.earthquake.nshm.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshm.www.meta.Edition;
+import gov.usgs.earthquake.nshm.www.meta.ParamType;
+import gov.usgs.earthquake.nshm.www.meta.Region;
+import gov.usgs.earthquake.nshm.www.meta.Util;
 
 /**
  * Servlet utility objects and methods.
@@ -63,13 +65,15 @@ public class ServletUtil implements ServletContextListener {
   static final ListeningExecutorService CALC_EXECUTOR;
   static final ExecutorService TASK_EXECUTOR;
 
+  static final int THREAD_COUNT;
+
   public static final Gson GSON;
 
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
 
   static {
-    CALC_EXECUTOR = MoreExecutors.listeningDecorator(
-        Executors.newFixedThreadPool(getRuntime().availableProcessors()));
+    THREAD_COUNT = getRuntime().availableProcessors();
+    CALC_EXECUTOR = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(THREAD_COUNT));
     TASK_EXECUTOR = Executors.newSingleThreadExecutor();
     GSON = new GsonBuilder()
         .registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
@@ -185,6 +189,56 @@ public class ServletUtil implements ServletContextListener {
     // TODO switch to Java 8 time
     synchronized (dateFormat) {
       return dateFormat.format(d);
+    }
+  }
+
+  static Timer timer() {
+    return new Timer();
+  }
+
+  /*
+   * Simple timer object. The servlet timer just runs. The calculation timer can
+   * be started later.
+   */
+  public static final class Timer {
+
+    Stopwatch servlet = Stopwatch.createStarted();
+    Stopwatch calc = Stopwatch.createUnstarted();
+
+    Timer start() {
+      calc.start();
+      return this;
+    }
+
+    public String servletTime() {
+      return servlet.toString();
+    }
+
+    public String calcTime() {
+      return calc.toString();
+    }
+  }
+
+  abstract static class TimedTask<T> implements Callable<T> {
+
+    final String url;
+    final RequestData data;
+    final ServletContext context;
+    final Timer timer;
+
+    TimedTask(String url, RequestData data, ServletContext context) {
+      this.url = url;
+      this.data = data;
+      this.context = context;
+      this.timer = ServletUtil.timer();
+    }
+
+    abstract T calc() throws Exception;
+
+    @Override
+    public T call() throws Exception {
+      timer.start();
+      return calc();
     }
   }
 
