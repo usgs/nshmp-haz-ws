@@ -13,6 +13,7 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
+import static gov.usgs.earthquake.nshm.www.meta.Region.*;
 
 import static org.opensha2.calc.HazardExport.curvesBySource;
 
@@ -235,20 +236,26 @@ public final class HazardService extends HttpServlet {
 
     // TODO cache calls should be using checked get(id)
 
-    if (data.region == Region.COUS) {
+    /*
+     * Although client checks that selected region is valid for selected
+     * edition, it can't divine whether to use CEUS or WUS exclusively.
+     */
+    Region region = (data.region == COUS) ? Metadata.checkRegion(data.longitude) : data.region;
 
-      Model wusId = Model.valueOf(Region.WUS, data.edition.year());
+    if (region == COUS) {
+
+      Model wusId = Model.valueOf(WUS, data.edition.year());
       HazardModel wusModel = modelCache.getUnchecked(wusId);
       Hazard wusResult = process(wusModel, site, data.imts);
 
-      Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
+      Model ceusId = Model.valueOf(CEUS, data.edition.year());
       HazardModel ceusModel = modelCache.getUnchecked(ceusId);
       Hazard ceusResult = process(ceusModel, site, data.imts);
 
       return Hazard.merge(wusResult, ceusResult);
     }
 
-    Model modelId = Model.valueOf(data.region, data.edition.year());
+    Model modelId = Model.valueOf(region, data.edition.year());
     HazardModel model = modelCache.getUnchecked(modelId);
     return process(model, site, data.imts);
   }

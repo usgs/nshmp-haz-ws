@@ -13,11 +13,10 @@ import static org.opensha2.gmm.Imt.SA1P0;
 import static org.opensha2.gmm.Imt.SA2P0;
 
 import org.opensha2.calc.Vs30;
+import org.opensha2.gmm.Imt;
 
 import java.util.EnumSet;
 import java.util.Set;
-
-import org.opensha2.gmm.Imt;
 
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {
@@ -45,7 +44,7 @@ public enum Region implements Constrained {
       new double[] { 24.6, 50.0 },
       new double[] { -115.0, -65.0 },
       new double[] { 24.6, 50.0 },
-      new double[] { -110.0, -65.0 },
+      new double[] { -100.0, -65.0 },
       EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
       EnumSet.of(VS_2000, VS_760)),
 
