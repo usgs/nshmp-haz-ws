@@ -1,11 +1,14 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.*;
+import static gov.usgs.earthquake.nshm.www.meta.Region.AK;
+import static gov.usgs.earthquake.nshm.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshm.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshm.www.meta.Region.WUS;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "unused" })
 public enum Edition implements Constrained {
 
   E2008(
@@ -26,12 +29,12 @@ public enum Edition implements Constrained {
       -100,
       EnumSet.of(AK));
 
-
   private final String label;
   private final int year;
 
   /* not serialized */
-  final transient Set<Region> regions;
+  private final transient String version;
+  private final transient Set<Region> regions;
 
   private final Constraints constraints;
 
@@ -44,7 +47,8 @@ public enum Edition implements Constrained {
       Set<Region> regions) {
 
     this.year = year;
-    this.label = label + " (" + Metadata.MODEL_VERSIONS.get(this) + ")";
+    this.version = Versions.modelVersion(name());
+    this.label = label + " (" + version + ")";
     this.displayOrder = displayOrder;
     this.regions = regions;
     this.constraints = new EditionConstraints(regions);
@@ -57,6 +61,10 @@ public enum Edition implements Constrained {
 
   public int year() {
     return year;
+  }
+
+  public String version() {
+    return version;
   }
 
   @Override
