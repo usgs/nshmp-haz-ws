@@ -1,27 +1,24 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.*;
+import static gov.usgs.earthquake.nshm.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshm.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshm.www.meta.Region.WUS;
 
 import static org.opensha2.gmm.Imt.PGA;
 import static org.opensha2.gmm.Imt.SA0P2;
 import static org.opensha2.gmm.Imt.SA1P0;
 import static org.opensha2.gmm.Imt.SA2P0;
 
-import org.opensha2.HazardCalc;
 import org.opensha2.calc.Vs30;
 import org.opensha2.geo.Coordinates;
 import org.opensha2.gmm.Imt;
 import org.opensha2.mfd.Mfds;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.InputStream;
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import gov.usgs.earthquake.nshm.www.ServletUtil;
@@ -34,49 +31,13 @@ import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
 public final class Metadata {
 
   static final String NSHMP_HAZ_URL = "https://github.com/usgs/nshmp-haz";
-  static final String NSHMP_HAZ_VERSION = HazardCalc.VERSION;
   static final String NSHMP_HAZ_WS_URL = "https://github.com/usgs/nshmp-haz-ws";
-  static final String NSHMP_HAZ_WS_VERSION;
-  static final Map<Edition, String> MODEL_VERSIONS;
 
   /*
    * TODO: Ultimately this should come from the intersection of those IMTs
    * supported by a model.
    */
   public static final Set<Imt> HAZARD_IMTS = Sets.immutableEnumSet(PGA, SA0P2, SA1P0, SA2P0);
-
-  static {
-    String nshmpHazWsVersion = "unknown";
-    ImmutableMap.Builder<Edition, String> modelMap = ImmutableMap.builder();
-
-    /* Always runs from a war (possibly unpacked). */
-    InputStream in = null;
-    try {
-      /* Web-services version. */
-      in = Metadata.class.getResourceAsStream("/service.properties");
-      Properties props = new Properties();
-      props.load(in);
-      in.close();
-      nshmpHazWsVersion = props.getProperty("app.version");
-
-      /* Model versions. */
-      for (Edition edition : Edition.values()) {
-        String modelKey = edition.name() + ".version";
-        String modelVersion = props.getProperty(modelKey);
-        modelMap.put(edition, modelVersion);
-      }
-
-    } catch (Exception e1) {
-      /* Probably running outside standard webservice environment. */
-      if (in != null) {
-        try {
-          in.close();
-        } catch (Exception e2) {}
-      }
-    }
-    NSHMP_HAZ_WS_VERSION = nshmpHazWsVersion;
-    MODEL_VERSIONS = modelMap.build();
-  }
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Default(
       "Compute hazard curve data at a location",
@@ -144,11 +105,11 @@ public final class Metadata {
 
     static Component NSHMP_HAZ_COMPONENT = new Component(
         NSHMP_HAZ_URL,
-        NSHMP_HAZ_VERSION);
+        Versions.NSHMP_HAZ_VERSION);
 
     static Component NSHMP_HAZ_WS_COMPONENT = new Component(
         NSHMP_HAZ_WS_URL,
-        NSHMP_HAZ_VERSION);
+        Versions.NSHMP_HAZ_WS_VERSION);
 
     static final class Component {
 
@@ -160,7 +121,6 @@ public final class Metadata {
         this.version = version;
       }
     }
-
   }
 
   @SuppressWarnings("unused")
