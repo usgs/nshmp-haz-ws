@@ -237,11 +237,23 @@ public final class HazardService extends HttpServlet {
     // TODO cache calls should be using checked get(id)
 
     /*
-     * Although client checks that selected region is valid for selected
-     * edition, it can't divine whether to use CEUS or WUS exclusively.
+     * Although client checks that selected location is valid for selected
+     * edition, it doesn't use the uimin-max constraints to be more specific
+     * about which region to use, so we select it here.
      */
     Region region = (data.region == COUS) ? Metadata.checkRegion(data.longitude) : data.region;
 
+    /*
+     * When combining (merging) Hazard, the config from the first supplied
+     * Hazard is used for the result. This means, for example, the exceedance
+     * model used for deaggregation may be different than that used to compute
+     * the original hazard curves. Because the CEUS exceedance model,
+     * NSHM_CEUS_MAX_INTENSITY, is really just a 3σ truncation model except
+     * close to New Madrid when fixed maximum values apply, it is okay to just
+     * use the WUS 3σ truncation exceedance model in the CEUS-WUS overlap zone.
+     * However, it is important to have the WUS result be first in the merge()
+     * call below.
+     */
     if (region == COUS) {
 
       Model wusId = Model.valueOf(WUS, data.edition.year());
