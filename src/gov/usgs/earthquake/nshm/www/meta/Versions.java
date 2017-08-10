@@ -1,12 +1,12 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
-import org.opensha2.HazardCalc;
-
 import com.google.common.collect.ImmutableMap;
 
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
+
+import gov.usgs.earthquake.nshmp.HazardCalc;
 
 /*
  * Application and model version data. References are string-based as opposed to

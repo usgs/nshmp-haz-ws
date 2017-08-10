@@ -3,16 +3,10 @@ package gov.usgs.earthquake.nshm.www.meta;
 import static gov.usgs.earthquake.nshm.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshm.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshm.www.meta.Region.WUS;
-
-import static org.opensha2.gmm.Imt.PGA;
-import static org.opensha2.gmm.Imt.SA0P2;
-import static org.opensha2.gmm.Imt.SA1P0;
-import static org.opensha2.gmm.Imt.SA2P0;
-
-import org.opensha2.calc.Vs30;
-import org.opensha2.geo.Coordinates;
-import org.opensha2.gmm.Imt;
-import org.opensha2.mfd.Mfds;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
@@ -23,6 +17,10 @@ import java.util.Set;
 
 import gov.usgs.earthquake.nshm.www.ServletUtil;
 import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.geo.Coordinates;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.mfd.Mfds;
 
 /**
  * Service metadata, parameterization, and constraint strings, in JSON format.

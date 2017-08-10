@@ -3,12 +3,12 @@ package gov.usgs.earthquake.nshm.www;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;

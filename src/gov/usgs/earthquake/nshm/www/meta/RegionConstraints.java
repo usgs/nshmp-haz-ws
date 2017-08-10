@@ -3,8 +3,8 @@ package gov.usgs.earthquake.nshm.www.meta;
 import java.util.List;
 import java.util.Set;
 
-import org.opensha2.calc.Vs30;
-import org.opensha2.gmm.Imt;
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
 
 @SuppressWarnings("unused")
 class RegionConstraints implements Constraints {

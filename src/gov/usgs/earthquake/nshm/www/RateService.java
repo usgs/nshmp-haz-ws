@@ -12,21 +12,8 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.TIMESPAN;
-
-import static org.opensha2.calc.ValueFormat.ANNUAL_RATE;
-import static org.opensha2.calc.ValueFormat.POISSON_PROBABILITY;
-
-import org.opensha2.calc.CalcConfig;
-import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.ValueFormat;
-import org.opensha2.calc.EqRate;
-import org.opensha2.calc.Site;
-import org.opensha2.data.XySequence;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.eq.model.SourceType;
-import org.opensha2.geo.Location;
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
+import static gov.usgs.earthquake.nshmp.calc.ValueFormat.ANNUAL_RATE;
+import static gov.usgs.earthquake.nshmp.calc.ValueFormat.POISSON_PROBABILITY;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -53,6 +40,17 @@ import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
 import gov.usgs.earthquake.nshm.www.meta.Status;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig;
+import gov.usgs.earthquake.nshmp.calc.EqRate;
+import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.calc.ValueFormat;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
+import gov.usgs.earthquake.nshmp.data.XySequence;
+import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
+import gov.usgs.earthquake.nshmp.eq.model.SourceType;
+import gov.usgs.earthquake.nshmp.geo.Location;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 
 /**
  * Earthquake probability and rate calculation service.

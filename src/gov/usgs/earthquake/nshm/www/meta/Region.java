@@ -1,22 +1,22 @@
 package gov.usgs.earthquake.nshm.www.meta;
 
-import static org.opensha2.calc.Vs30.VS_1150;
-import static org.opensha2.calc.Vs30.VS_180;
-import static org.opensha2.calc.Vs30.VS_2000;
-import static org.opensha2.calc.Vs30.VS_259;
-import static org.opensha2.calc.Vs30.VS_360;
-import static org.opensha2.calc.Vs30.VS_537;
-import static org.opensha2.calc.Vs30.VS_760;
-import static org.opensha2.gmm.Imt.PGA;
-import static org.opensha2.gmm.Imt.SA0P2;
-import static org.opensha2.gmm.Imt.SA1P0;
-import static org.opensha2.gmm.Imt.SA2P0;
-
-import org.opensha2.calc.Vs30;
-import org.opensha2.gmm.Imt;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_1150;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_180;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_2000;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_259;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_360;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_537;
+import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_760;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
 
 import java.util.EnumSet;
 import java.util.Set;
+
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
 
 @SuppressWarnings("javadoc")
 public enum Region implements Constrained {

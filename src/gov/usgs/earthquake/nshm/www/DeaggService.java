@@ -12,14 +12,6 @@ import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshm.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
 
-import org.opensha2.calc.Deaggregation;
-import org.opensha2.calc.Hazard;
-import org.opensha2.calc.HazardCalcs;
-import org.opensha2.calc.Vs30;
-import org.opensha2.gmm.Imt;
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -44,6 +36,13 @@ import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Region;
 import gov.usgs.earthquake.nshm.www.meta.Status;
+import gov.usgs.earthquake.nshmp.calc.Deaggregation;
+import gov.usgs.earthquake.nshmp.calc.Hazard;
+import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 
 /**
  * Hazard deaggregation service.

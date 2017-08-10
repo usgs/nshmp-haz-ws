@@ -2,11 +2,6 @@ package gov.usgs.earthquake.nshm.www;
 
 import static java.lang.Runtime.getRuntime;
 
-import org.opensha2.calc.ValueFormat;
-import org.opensha2.calc.Vs30;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.gmm.Imt;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -44,6 +39,10 @@ import gov.usgs.earthquake.nshm.www.meta.Edition;
 import gov.usgs.earthquake.nshm.www.meta.ParamType;
 import gov.usgs.earthquake.nshm.www.meta.Region;
 import gov.usgs.earthquake.nshm.www.meta.Util;
+import gov.usgs.earthquake.nshmp.calc.ValueFormat;
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
 
 /**
  * Servlet utility objects and methods.

@@ -2,31 +2,20 @@ package gov.usgs.earthquake.nshm.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
-
-import static org.opensha2.ResponseSpectra.spectra;
-import static org.opensha2.gmm.GmmInput.Field.DIP;
-import static org.opensha2.gmm.GmmInput.Field.MW;
-import static org.opensha2.gmm.GmmInput.Field.RAKE;
-import static org.opensha2.gmm.GmmInput.Field.RJB;
-import static org.opensha2.gmm.GmmInput.Field.RRUP;
-import static org.opensha2.gmm.GmmInput.Field.RX;
-import static org.opensha2.gmm.GmmInput.Field.VS30;
-import static org.opensha2.gmm.GmmInput.Field.VSINF;
-import static org.opensha2.gmm.GmmInput.Field.WIDTH;
-import static org.opensha2.gmm.GmmInput.Field.Z1P0;
-import static org.opensha2.gmm.GmmInput.Field.Z2P5;
-import static org.opensha2.gmm.GmmInput.Field.ZHYP;
-import static org.opensha2.gmm.GmmInput.Field.ZTOP;
-
-import org.opensha2.ResponseSpectra.MultiResult;
-import org.opensha2.data.Data;
-import org.opensha2.data.XySequence;
-import org.opensha2.gmm.Gmm;
-import org.opensha2.gmm.Gmm.Group;
-import org.opensha2.gmm.GmmInput;
-import org.opensha2.gmm.GmmInput.Builder;
-import org.opensha2.gmm.GmmInput.Constraints;
-import org.opensha2.gmm.GmmInput.Field;
+import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RAKE;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RJB;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RRUP;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RX;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.VS30;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.VSINF;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.WIDTH;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z1P0;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z2P5;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZHYP;
+import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZTOP;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Function;
@@ -61,6 +50,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshm.www.meta.Metadata;
 import gov.usgs.earthquake.nshm.www.meta.Status;
+import gov.usgs.earthquake.nshmp.ResponseSpectra.MultiResult;
+import gov.usgs.earthquake.nshmp.data.Data;
+import gov.usgs.earthquake.nshmp.data.XySequence;
+import gov.usgs.earthquake.nshmp.gmm.Gmm;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput;
+import gov.usgs.earthquake.nshmp.gmm.Gmm.Group;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput.Builder;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput.Constraints;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
 
 /**
  * Deterministic response spectra calculation service.

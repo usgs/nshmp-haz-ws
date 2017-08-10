@@ -3,12 +3,11 @@ package gov.usgs.earthquake.nshm.www;
 import static gov.usgs.earthquake.nshm.www.meta.Region.*;
 
 import gov.usgs.earthquake.nshm.www.meta.Region;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
 
 import com.google.common.collect.ImmutableList;
 
