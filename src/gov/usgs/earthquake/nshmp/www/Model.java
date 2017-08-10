@@ -1,15 +1,17 @@
 package gov.usgs.earthquake.nshmp.www;
 
-import gov.usgs.earthquake.nshmp.internal.Parsing;
-import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.meta.Region;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
+
+import com.google.common.collect.ImmutableList;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static gov.usgs.earthquake.nshmp.www.meta.Region.*;
-
-import com.google.common.collect.ImmutableList;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 enum Model {
   AK_2007,

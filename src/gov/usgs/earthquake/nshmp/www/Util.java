@@ -3,16 +3,16 @@ package gov.usgs.earthquake.nshmp.www;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 
 class Util {
 

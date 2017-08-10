@@ -3,11 +3,7 @@ package gov.usgs.earthquake.nshmp.www;
 import java.util.ArrayList;
 import java.util.List;
 
-import gov.usgs.earthquake.nshmp.data.XyPoint;
 import gov.usgs.earthquake.nshmp.data.XySequence;
-import gov.usgs.earthquake.nshmp.internal.Parsing;
-
-import com.google.common.primitives.Doubles;
 
 /**
  * Container class of XY data sequences prior to Json serialization. This

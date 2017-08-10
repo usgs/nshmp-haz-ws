@@ -14,7 +14,9 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
-import static gov.usgs.earthquake.nshmp.www.meta.Region.*;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -37,10 +39,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshmp.HazardCalc;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
-import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.data.XySequence;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.eq.model.SourceType;
