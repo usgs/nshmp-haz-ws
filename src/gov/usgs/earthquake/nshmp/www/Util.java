@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;

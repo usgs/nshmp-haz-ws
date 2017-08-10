@@ -1,12 +1,12 @@
-package gov.usgs.earthquake.nshm.www.meta;
+package gov.usgs.earthquake.nshmp.www.meta;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.CEUS;
-import static gov.usgs.earthquake.nshm.www.meta.Region.COUS;
-import static gov.usgs.earthquake.nshm.www.meta.Region.WUS;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
@@ -15,12 +15,12 @@ import com.google.gson.annotations.SerializedName;
 import java.util.EnumSet;
 import java.util.Set;
 
-import gov.usgs.earthquake.nshm.www.ServletUtil;
-import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.geo.Coordinates;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.mfd.Mfds;
+import gov.usgs.earthquake.nshmp.www.ServletUtil;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 
 /**
  * Service metadata, parameterization, and constraint strings, in JSON format.

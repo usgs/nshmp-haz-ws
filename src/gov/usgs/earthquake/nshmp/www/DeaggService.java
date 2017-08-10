@@ -1,16 +1,16 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
-import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
-import static gov.usgs.earthquake.nshm.www.Util.readValue;
-import static gov.usgs.earthquake.nshm.www.Util.Key.EDITION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.IMT;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.RETURNPERIOD;
-import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
+import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -29,13 +29,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.HazardService.RequestData;
-import gov.usgs.earthquake.nshm.www.ServletUtil.TimedTask;
-import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Status;
 import gov.usgs.earthquake.nshmp.calc.Deaggregation;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
 import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
@@ -43,6 +36,13 @@ import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshmp.www.meta.Edition;
+import gov.usgs.earthquake.nshmp.www.meta.Metadata;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
+import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
  * Hazard deaggregation service.

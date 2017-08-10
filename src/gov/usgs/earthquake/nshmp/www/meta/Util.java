@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.meta;
+package gov.usgs.earthquake.nshmp.www.meta;
 
 import java.lang.reflect.Type;
 import java.util.List;

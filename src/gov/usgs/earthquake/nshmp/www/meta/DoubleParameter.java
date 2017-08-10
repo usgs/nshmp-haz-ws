@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.meta;
+package gov.usgs.earthquake.nshmp.www.meta;
 
 @SuppressWarnings("unused")
 final class DoubleParameter {

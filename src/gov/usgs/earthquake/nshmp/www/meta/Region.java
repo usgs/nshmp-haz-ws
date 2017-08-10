@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www.meta;
+package gov.usgs.earthquake.nshmp.www.meta;
 
 import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_1150;
 import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_180;

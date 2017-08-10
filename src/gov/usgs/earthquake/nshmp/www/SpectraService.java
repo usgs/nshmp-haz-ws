@@ -1,7 +1,6 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static gov.usgs.earthquake.nshm.www.meta.Metadata.errorMessage;
 import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
@@ -16,6 +15,7 @@ import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z1P0;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z2P5;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZHYP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZTOP;
+import static gov.usgs.earthquake.nshmp.www.meta.Metadata.errorMessage;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Function;
@@ -48,8 +48,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Status;
 import gov.usgs.earthquake.nshmp.ResponseSpectra.MultiResult;
 import gov.usgs.earthquake.nshmp.data.Data;
 import gov.usgs.earthquake.nshmp.data.XySequence;
@@ -59,6 +57,8 @@ import gov.usgs.earthquake.nshmp.gmm.Gmm.Group;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Builder;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Constraints;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
+import gov.usgs.earthquake.nshmp.www.meta.Metadata;
+import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
  * Deterministic response spectra calculation service.
@@ -201,7 +201,7 @@ public class SpectraService extends HttpServlet {
     // set up response
     ResponseData response = new ResponseData();
     response.request = request;
-    response.server = gov.usgs.earthquake.nshm.www.meta.Metadata.serverData(1, ServletUtil.timer());
+    response.server = gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
 
     response.means = XY_DataGroup.create(
         GROUP_NAME_MEAN,

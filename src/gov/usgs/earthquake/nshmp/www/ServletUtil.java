@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static java.lang.Runtime.getRuntime;
 
@@ -34,15 +34,15 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.HazardService.RequestData;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.ParamType;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Util;
 import gov.usgs.earthquake.nshmp.calc.ValueFormat;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshmp.www.meta.Edition;
+import gov.usgs.earthquake.nshmp.www.meta.ParamType;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
+import gov.usgs.earthquake.nshmp.www.meta.Util;
 
 /**
  * Servlet utility objects and methods.

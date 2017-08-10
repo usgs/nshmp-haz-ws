@@ -1,9 +1,9 @@
-package gov.usgs.earthquake.nshm.www.meta;
+package gov.usgs.earthquake.nshmp.www.meta;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.AK;
-import static gov.usgs.earthquake.nshm.www.meta.Region.CEUS;
-import static gov.usgs.earthquake.nshm.www.meta.Region.COUS;
-import static gov.usgs.earthquake.nshm.www.meta.Region.WUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
 import java.util.EnumSet;
 import java.util.Set;

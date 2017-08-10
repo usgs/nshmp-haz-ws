@@ -1,13 +1,13 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.*;
-
-import gov.usgs.earthquake.nshm.www.meta.Region;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static gov.usgs.earthquake.nshmp.www.meta.Region.*;
 
 import com.google.common.collect.ImmutableList;
 
