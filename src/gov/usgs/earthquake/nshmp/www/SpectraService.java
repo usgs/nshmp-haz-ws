@@ -200,7 +200,8 @@ public class SpectraService extends HttpServlet {
     // set up response
     ResponseData response = new ResponseData();
     response.request = request;
-    response.server = gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
+    response.server =
+        gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
 
     response.means = XY_DataGroup.create(
         GROUP_NAME_MEAN,

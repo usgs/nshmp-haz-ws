@@ -85,7 +85,7 @@ public final class RateService extends HttpServlet {
 
     ServletUtil.setCorsHeadersAndContentType(response);
     Timer timer = ServletUtil.timer();
-    
+
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();

@@ -266,11 +266,11 @@ public final class Metadata {
       this.message = message;
     }
   }
-  
+
   public static Region checkRegion(double lon) {
     return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
   }
-  
+
   public static void main(String[] args) {
     System.out.println(checkRegion(-122));
   }

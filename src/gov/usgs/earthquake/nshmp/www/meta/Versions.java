@@ -51,7 +51,7 @@ class Versions {
     NSHMP_HAZ_WS_VERSION = nshmpHazWsVersion;
     MODEL_VERSIONS = modelMap.build();
   }
-  
+
   static String modelVersion(String id) {
     String version = MODEL_VERSIONS.get(id + ".version");
     return (version == null) ? "unknown" : version;

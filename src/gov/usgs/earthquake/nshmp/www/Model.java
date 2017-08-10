@@ -41,7 +41,7 @@ enum Model {
   private static Region deriveRegion(String s) {
     return s.startsWith("AK") ? AK : s.startsWith("WUS") ? WUS : CEUS;
   }
-  
+
   private static String deriveRegionName(Region region) {
     return (region == AK) ? AK_NAME : (region == WUS) ? WUS_NAME : CEUS_NAME;
   }
@@ -55,7 +55,7 @@ enum Model {
     }
     return dir.toString();
   }
-  
+
   static Model valueOf(Region region, int year) {
     return valueOf(region.name() + "_" + year);
   }
