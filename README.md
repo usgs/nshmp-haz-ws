@@ -1,7 +1,7 @@
 nshmp-haz-ws
 ============
 
-USGS National Seismic Hazard Mapping Project (NSHMP) web service code.
+[USGS](https://www.usgs.gov) National Seismic Hazard Mapping Project ([NSHMP](https://earthquake.usgs.gov/hazards/)) web service code.
 
 Build requirements:
 * Build of *[nshmp-haz](https://github.com/usgs/nshmp-haz)* (nshmp-haz.jar)
