@@ -35,9 +35,9 @@
   <!-- ========================= -->
   <property name="servlet.lib.dir" value="${env.CATALINA_HOME}/lib" />
   <property name="nshmp-haz.dir" value="../nshmp-haz/" />
-  <property name="model.ak2007" value="../nshmp-model-ak-2007" />
-  <property name="model.cous2008" value="../nshmp-model-cous-2008" />
-  <property name="model.cous2014" value="../nshmp-model-cous-2014" />
+  <property name="model.ak2007" value="../nshm-ak-2007" />
+  <property name="model.cous2008" value="../nshm-cous-2008" />
+  <property name="model.cous2014" value="../nshm-cous-2014" />
 
 
   <!-- Build project assuming nshmp-haz exists -->
