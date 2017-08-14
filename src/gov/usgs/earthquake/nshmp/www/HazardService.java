@@ -1,35 +1,22 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
-import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
-import static gov.usgs.earthquake.nshm.www.Util.readValue;
-import static gov.usgs.earthquake.nshm.www.Util.readValues;
-import static gov.usgs.earthquake.nshm.www.Util.Key.EDITION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.IMT;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.VS30;
-import static gov.usgs.earthquake.nshm.www.meta.Region.*;
-
-import static org.opensha2.calc.HazardExport.curvesBySource;
-
-import org.opensha2.HazardCalc;
-import org.opensha2.calc.CalcConfig;
-import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.Hazard;
-import org.opensha2.calc.Site;
-import org.opensha2.calc.Vs30;
-import org.opensha2.data.XySequence;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.eq.model.SourceType;
-import org.opensha2.geo.Location;
-import org.opensha2.gmm.Imt;
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
+import static gov.usgs.earthquake.nshmp.calc.HazardExport.curvesBySource;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readValues;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -50,12 +37,25 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.ServletUtil.TimedTask;
-import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Status;
+import gov.usgs.earthquake.nshmp.HazardCalc;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
+import gov.usgs.earthquake.nshmp.calc.Hazard;
+import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.data.XySequence;
+import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
+import gov.usgs.earthquake.nshmp.eq.model.SourceType;
+import gov.usgs.earthquake.nshmp.geo.Location;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshmp.www.meta.Edition;
+import gov.usgs.earthquake.nshmp.www.meta.Metadata;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
+import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
  * Probabilisitic seismic hazard calculation service.

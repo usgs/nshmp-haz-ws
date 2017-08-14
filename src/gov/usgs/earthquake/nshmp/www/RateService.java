@@ -1,32 +1,19 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.GSON;
-import static gov.usgs.earthquake.nshm.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
-import static gov.usgs.earthquake.nshm.www.Util.readDoubleValue;
-import static gov.usgs.earthquake.nshm.www.Util.readValue;
-import static gov.usgs.earthquake.nshm.www.Util.Key.DISTANCE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.EDITION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LATITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.LONGITUDE;
-import static gov.usgs.earthquake.nshm.www.Util.Key.REGION;
-import static gov.usgs.earthquake.nshm.www.Util.Key.TIMESPAN;
-
-import static org.opensha2.calc.ValueFormat.ANNUAL_RATE;
-import static org.opensha2.calc.ValueFormat.POISSON_PROBABILITY;
-
-import org.opensha2.calc.CalcConfig;
-import org.opensha2.calc.CalcConfig.Builder;
-import org.opensha2.calc.ValueFormat;
-import org.opensha2.calc.EqRate;
-import org.opensha2.calc.Site;
-import org.opensha2.data.XySequence;
-import org.opensha2.eq.model.HazardModel;
-import org.opensha2.eq.model.SourceType;
-import org.opensha2.geo.Location;
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
+import static gov.usgs.earthquake.nshmp.calc.ValueFormat.ANNUAL_RATE;
+import static gov.usgs.earthquake.nshmp.calc.ValueFormat.POISSON_PROBABILITY;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.DISTANCE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.TIMESPAN;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
@@ -48,11 +35,22 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshm.www.ServletUtil.Timer;
-import gov.usgs.earthquake.nshm.www.meta.Edition;
-import gov.usgs.earthquake.nshm.www.meta.Metadata;
-import gov.usgs.earthquake.nshm.www.meta.Region;
-import gov.usgs.earthquake.nshm.www.meta.Status;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
+import gov.usgs.earthquake.nshmp.calc.EqRate;
+import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.calc.ValueFormat;
+import gov.usgs.earthquake.nshmp.data.XySequence;
+import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
+import gov.usgs.earthquake.nshmp.eq.model.SourceType;
+import gov.usgs.earthquake.nshmp.geo.Location;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshmp.www.meta.Edition;
+import gov.usgs.earthquake.nshmp.www.meta.Metadata;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
+import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
  * Earthquake probability and rate calculation service.
@@ -87,7 +85,7 @@ public final class RateService extends HttpServlet {
 
     ServletUtil.setCorsHeadersAndContentType(response);
     Timer timer = ServletUtil.timer();
-    
+
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();

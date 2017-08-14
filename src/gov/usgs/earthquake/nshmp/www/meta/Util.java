@@ -1,11 +1,4 @@
-package gov.usgs.earthquake.nshm.www.meta;
-
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Set;
-
-import org.opensha2.calc.Vs30;
-import org.opensha2.gmm.Imt;
+package gov.usgs.earthquake.nshmp.www.meta;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -14,6 +7,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Set;
+
+import gov.usgs.earthquake.nshmp.calc.Vs30;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
 
 @SuppressWarnings("javadoc")
 public final class Util {

@@ -1,12 +1,12 @@
-package gov.usgs.earthquake.nshm.www.meta;
-
-import org.opensha2.HazardCalc;
+package gov.usgs.earthquake.nshmp.www.meta;
 
 import com.google.common.collect.ImmutableMap;
 
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
+
+import gov.usgs.earthquake.nshmp.HazardCalc;
 
 /*
  * Application and model version data. References are string-based as opposed to
@@ -51,7 +51,7 @@ class Versions {
     NSHMP_HAZ_WS_VERSION = nshmpHazWsVersion;
     MODEL_VERSIONS = modelMap.build();
   }
-  
+
   static String modelVersion(String id) {
     String version = MODEL_VERSIONS.get(id + ".version");
     return (version == null) ? "unknown" : version;

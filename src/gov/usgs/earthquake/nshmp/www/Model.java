@@ -1,16 +1,17 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
-import static gov.usgs.earthquake.nshm.www.meta.Region.*;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
-import gov.usgs.earthquake.nshm.www.meta.Region;
+import com.google.common.collect.ImmutableList;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.opensha2.internal.Parsing;
-import org.opensha2.internal.Parsing.Delimiter;
-
-import com.google.common.collect.ImmutableList;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 enum Model {
   AK_2007,
@@ -40,7 +41,7 @@ enum Model {
   private static Region deriveRegion(String s) {
     return s.startsWith("AK") ? AK : s.startsWith("WUS") ? WUS : CEUS;
   }
-  
+
   private static String deriveRegionName(Region region) {
     return (region == AK) ? AK_NAME : (region == WUS) ? WUS_NAME : CEUS_NAME;
   }
@@ -54,7 +55,7 @@ enum Model {
     }
     return dir.toString();
   }
-  
+
   static Model valueOf(Region region, int year) {
     return valueOf(region.name() + "_" + year);
   }

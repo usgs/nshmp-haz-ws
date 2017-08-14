@@ -1,13 +1,9 @@
-package gov.usgs.earthquake.nshm.www;
+package gov.usgs.earthquake.nshmp.www;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opensha2.data.XyPoint;
-import org.opensha2.data.XySequence;
-import org.opensha2.internal.Parsing;
-
-import com.google.common.primitives.Doubles;
+import gov.usgs.earthquake.nshmp.data.XySequence;
 
 /**
  * Container class of XY data sequences prior to Json serialization. This
