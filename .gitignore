@@ -3,7 +3,6 @@
 build
 classes
 tmp
-WebContent/models
 webapp/models
 Scratch*.java
 scratch*.html
