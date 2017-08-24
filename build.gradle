@@ -1,0 +1,71 @@
+/*
+ * Eclipse notes: In order to build and run services via Eclipse,
+ * one needs to include the following directories in webapp (they
+ * are ignored by git):
+ *
+ *   webapp/
+ *      models/
+ *         ak/
+ *            2007/
+ *         cous/
+ *            2008/
+ *            2014/
+ 
+ * ...with each 'year' directory being an alias to the corresponding
+ * git repository. One also must set Properties > Deployment Assembly
+ * to include the nshmp-haz project and the 'webapp' directory. Other
+ * default Eclipse directories such as WebContent may be deleted.
+ */
+
+apply plugin: 'java'
+apply plugin: 'war'
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  providedCompile 'org.apache.tomcat:tomcat-catalina:8.0.45'
+  compile project(':nshmp-haz')
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src']
+    }
+  }
+}
+
+ext {
+  getGitTag = { gitDir -> 
+    def cmd = 'git --git-dir=' + gitDir + '/.git describe --tags'
+    return cmd.execute().text.replace('\n', '') ?: 'unknown'
+  }
+  propsPath = '/classes/java/main/service.properties'
+  /* Model locations may be overridden in ~/.gradle/gradle.properties */
+  model_ak_2007 = findProperty('model_ak_2007') ?: '../nshm-ak-2007'
+  model_cous_2008 = findProperty('model_cous_2008') ?: '../nshm-cous-2008'
+  model_cous_2014 = findProperty('model_cous_2014') ?: '../nshm-cous-2014'
+}
+
+war {
+  webAppDirName = 'webapp'
+  exclude 'models'
+  
+  from(model_ak_2007) { into 'models/ak/2007' }
+  from(model_cous_2008) { into 'models/cous/2008' }
+  from(model_cous_2014) { into 'models/cous/2014' }
+  
+  doFirst {
+    /* record service and model versions */
+    def props = new Properties()
+    def propsFile = new File(project.buildDir.toString() + propsPath)
+    propsFile.createNewFile()
+    props.setProperty('app.version', getGitTag('.'))
+    props.setProperty('E2007.version', getGitTag(model_ak_2007))
+    props.setProperty('E2008.version', getGitTag(model_cous_2008))
+    props.setProperty('E2014.version', getGitTag(model_cous_2014))
+    props.store(propsFile.newWriter(), null)
+  }
+}
