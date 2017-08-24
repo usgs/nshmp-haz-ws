@@ -1,10 +1,9 @@
 .settings
-/bin
-/classes
-/lib
-/dist
-/docs
-/tmp
-/WebContent/models
+.gradle
+build
+classes
+tmp
+WebContent/models
+webapp/models
 Scratch*.java
 scratch*.html
