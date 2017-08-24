@@ -1,7 +1,24 @@
+/*
+ * Eclipse notes: In order to build and run services via Eclipse,
+ * one needs to include the following directories in webapp (they
+ * are ignored by git):
+ *
+ *   webapp/
+ *      models/
+ *         ak/
+ *            2007/
+ *         cous/
+ *            2008/
+ *            2014/
+ 
+ * ...with each 'year' directory being an alias to the corresponding
+ * git repository. One also must set Properties > Deployment Assembly
+ * to include the nshmp-haz project and the 'webapp' directory. Other
+ * default Eclipse directories such as WebContent may be deleted.
+ */
 
 apply plugin: 'java'
 apply plugin: 'war'
-
 
 repositories {
   jcenter()
@@ -17,10 +34,6 @@ sourceSets {
     java {
       srcDirs = ['src']
     }
-//    resources {
-//      srcDirs = ['src']
-//      exclude '**/*.java'
-//    }
   }
 }
 
@@ -29,10 +42,6 @@ ext {
     def cmd = 'git --git-dir=' + gitDir + '/.git describe --tags'
     return cmd.execute().text.replace('\n', '') ?: 'unknown'
   }
-  //projectName = 'nshmp-haz-ws'
-//  pp = getGitTag('.')
-  //gitTag = 'git describe --tags'.execute().text.replace('\n', '') ?: 'unknown'
-  //gitLink = '<a href="https://github.com/usgs/nshmp-haz-ws">' + gitTag + '</a>'
   propsPath = '/classes/java/main/service.properties'
   /* Model locations may be overridden in ~/.gradle/gradle.properties */
   model_ak_2007 = findProperty('model_ak_2007') ?: '../nshm-ak-2007'
@@ -41,12 +50,14 @@ ext {
 }
 
 war {
-  webAppDirName = 'htdocs'
+  webAppDirName = 'webapp'
+  exclude 'models'
+  
+  from(model_ak_2007) { into 'models/ak/2007' }
+  from(model_cous_2008) { into 'models/cous/2008' }
+  from(model_cous_2014) { into 'models/cous/2014' }
+  
   doFirst {
-    println model_ak_2007
-    println getGitTag(model_ak_2007)
-    
-    
     /* record service and model versions */
     def props = new Properties()
     def propsFile = new File(project.buildDir.toString() + propsPath)
@@ -58,7 +69,3 @@ war {
     props.store(propsFile.newWriter(), null)
   }
 }
-
-
-
-
