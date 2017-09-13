@@ -1,0 +1,194 @@
+
+
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ................... Head ................ -->
+<head>
+
+  <title>Model Explorer</title>
+  <meta name="veiwport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Call the National Seismic Hazard Mapiping Project web services code">
+  
+   
+  <!-- ............ jQuery ................ -->
+  <!-- jQuery needed for Bootstrap JavaScript-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+  
+  <!-- ............. Bootstrap ............ -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>  
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ............. Google Charts ............. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <!-- ............. Google Charts ............. -->
+   
+  <!-- ........... Bring in JS and CSS Files ....... -->
+  <script src="js/model-explorer.js"></script>
+  <link rel="stylesheet" href="css/template_me.css">
+  <link rel="stylesheet" href="css/model-explorer.css">
+  <!-- ........... Bring in JS and CSS Files ....... -->
+ 
+</head>
+<!-- ................... Head ................ -->
+
+
+
+<!-- ................... Body ................ -->
+<body>
+  
+
+  <!-- ############################################ -->
+  <!-- -->
+  <!-- .................. Header ................... -->
+  <div id="header">
+    <span class="title">Hazard Curves</span>
+    <div id="header-menu" class="dropdown-toggle"  data-toggle="dropdown"> 
+      <span class="glyphicon glyphicon-menu-hamburger"/></div>
+    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="header-menu" >
+      <li><a href="spectra-plot.html"  >Response Spectra</a> </li>
+      <li><a href="model-explorer.html">Model Explorer  </a> </li>
+    </ul>
+  </div>
+  <!-- .................. Header ................... -->
+  <!-- -->
+  <!-- ############################################ -->
+  
+
+
+  <!-- ############################################ -->
+  <!-- -->
+  <!-- .................. Footer .................. -->
+  <div id="footer">
+    <button id="submit_url" 
+      class="btn btn-primary">Plot</button>
+    <span>
+      <button id="raw_json" style="float:right;" 
+        class="btn btn-danger">Raw Data</button>
+    </span>
+  </div>  
+  <!-- .................. Footer .................. -->
+  <!-- -->
+  <!-- ############################################ -->
+
+
+  <!-- ##################################################################################### -->
+  <!-- -->
+  <!-- ................................. Control Panel ..................................... -->
+  <div id="control" class="container">
+  
+    <!-- .................. Edition Menu ........................ -->
+    <form>
+      <div class="form-group">
+        <label for="edition"> Edition: </label>
+        <select class="form-control" id="edition" onchange="parameter_dependency()">
+        </select>
+      </div>
+    </form>
+    <!-- ............. End: Edition Menu ........................ -->
+
+    <!-- .................. Region Menu ......................... -->
+    <form> 
+      <div class="form-group">
+        <label for="region"> Region: </label>
+        <select class="form-control" id="region" onchange="add_options()">
+        </select>
+      </div>
+    </form>
+    <!-- .................. End: Region Menu .................... -->
+
+
+    <!-- .................. Enter Latitude ...................... -->
+    <div class="form-group">
+      <form class="form-inline" onsubmit="return false;">
+        <label for="lat"> Latitude: <br> <small id="lat_bounds"></small></label> <br>
+        <div class="input-group">
+          <input id="lat" class="form-control" oninput="get_selections()" type="text" name="lat" size=10em />
+          <div class="input-group-addon">&#176;</div>
+        </div>
+      </form>
+    </div>
+    <!-- .................. End: Enter Latitude ................. -->
+
+    <!-- .................. Enter Logitude ...................... -->
+    <div class="form-group">
+      <form class="form-inline" onsubmit="return false;">
+        <label for="lon"> Longitude: <br> <small id="lon_bounds"></small> </label> <br>
+        <div class="input-group">
+          <input id="lon" class="form-control" oninput="get_selections()" type="text" name="lon" size=10em />
+          <div class="input-group-addon">&#176;</div>
+        </div>
+      </form>
+    </div>
+    <!-- .................. End: Enter Logitude ................. -->
+
+    <!-- .................. IMT Menu ............................ -->
+    <form> 
+      <div class="form-group">
+        <label for="imt"> Intensity Measure Type: </label>
+        <select class="form-control" id="imt" onchange="get_selections()">
+        </select>
+      </div>
+    </form>
+    <!-- .................. End: Imt Menu ....................... -->
+
+    <!-- .................. Vs30 Menu ........................... -->
+    <form> 
+      <div class="form-group">
+        <label for="vs30"> V<sub>s</sub>30: </label>
+        <select class="form-control" id="vs30" onchange="get_selections()">
+        </select>
+      </div>
+    </form>
+    <!-- .................. End: Vs30 Menu ...................... -->
+  
+
+
+  </div> 
+  <!-- ............................ End: Control Panel ..................................... -->
+  <!-- -->
+  <!-- ##################################################################################### -->
+
+
+
+  <!-- ##################################################################################### -->
+  <!-- -->
+  <!-- ................................. Plots ............................................. -->
+  <div id="plot-container">
+
+    <!-- ................. Hazard Curves Plot ........... -->
+    <div class="col-lg-6 col-sm-12">
+      <div class="panel panel-default">
+        <div class="panel-heading" id="plot-title"
+          data-toggle="collapse" data-target="#hazard-curves-plot" aria-expanded="false"> Hazard Curves 
+        </div> 
+        <div class="panel-body collapse" id="hazard-curves-plot"></div>
+      </div>
+    </div>
+    <!-- ................. Hazard Curves Plot ........... -->
+
+    <!-- .............. Component Curves Plot ........... -->
+    <div class="col-lg-6 col-sm-12">
+      <div class="panel panel-default">
+        <div class="panel-heading" id="component-plot-title"
+          data-toggle="collapse" data-target="#component-curves-plot" aria-expanded="false">Component Curves </div> 
+        <div class="panel-body collapse" id="component-curves-plot"></div>
+      </div>
+    </div>
+    <!-- .............. Component Curves Plot ........... -->
+
+  </div> 
+  <!-- .............................. End: Plots ........................................... -->
+  <!-- -->
+  <!-- ##################################################################################### -->
+
+</body>
+<!-- ................... Body ................ -->
+
+
+
+</html>
