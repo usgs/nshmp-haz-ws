@@ -21,13 +21,22 @@ function parameter_dependency(init){
   console.log("------------- Start parameter_dependency ------------- ");
 
   if (init){                                                          // If on startup, read in the JSON file
-    var url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file
-    $.getJSON(url,function(json_return) {                             // Call the jQuery getJSON function  
+    var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
+    $.getJSON(dynamic_url,function(json_return) {                             // Call the jQuery getJSON function  
       parameters    = json_return.parameters;                         // Global variable: get the parameter key from JSON file 
+      console.log("Dynamic Parameters: ");     console.log(parameters);   
+      console.log("\n\n\n");
       add_editions();                                                 // Call add_editions function
       add_regions();
       add_options();                                                  // Call add_options
     });
+    var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
+    $.getJSON(static_url,function(json_return){
+      static_parameters = json_return.parameters;
+      console.log("Static Parameters: ");     console.log(static_parameters);   
+      console.log("\n\n\n");
+      
+    }); 
   }
   else{                                                               // If not on startup, file is already read in, just call functions
     add_regions();
