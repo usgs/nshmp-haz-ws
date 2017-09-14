@@ -8,21 +8,23 @@
   line-height: 1.2;
 }
 
-#component-plot-title:hover,
-#plot-title:hover{
-  cursor: pointer;
-}
 /* ................ Plot Title ............. */
+
 
 
 /* ................ Plots .................... */
 #component-curves-plot,
 #hazard-curves-plot{
   margin: 0 auto;
-  height: 20vw;
 }
 /* ................ Plots .................... */
 
+.panel .panel-heading .glyphicon{
+  font-size: .85em;
+  text-align: middle;
+  font-weight: 100;
+  opacity: .7; 
+}
 
 /* ............... Forms ................. */
 .form-group{

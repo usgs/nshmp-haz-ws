@@ -1,6 +1,7 @@
 
 
 
+
 //############################################################################################
 //
 //........................ Read in Parameter Dependency JSON File ............................ 
@@ -19,32 +20,76 @@
 parameter_dependency(true);
 function parameter_dependency(init){
   console.log("------------- Start parameter_dependency ------------- ");
-
   if (init){                                                          // If on startup, read in the JSON file
     var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
-    $.getJSON(dynamic_url,function(json_return) {                             // Call the jQuery getJSON function  
-      parameters    = json_return.parameters;                         // Global variable: get the parameter key from JSON file 
-      console.log("Dynamic Parameters: ");     console.log(parameters);   
-      console.log("\n\n\n");
-      add_editions();                                                 // Call add_editions function
-      add_regions();
-      add_options();                                                  // Call add_options
-    });
     var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
-    $.getJSON(static_url,function(json_return){
-      static_parameters = json_return.parameters;
+    $.when(
+      $.getJSON(dynamic_url,function(dynamic_json_return) {                             // Call the jQuery getJSON function  
+        dynamic_parameters    = dynamic_json_return.parameters;                         // Global variable: get the parameter key from JSON file 
+      }),
+      $.getJSON(static_url,function(static_json_return){
+        static_parameters = static_json_return.parameters;
+      })
+    ).done(function(){
+      console.log("Dynamic Parameters: ");     console.log(dynamic_parameters);   
+      console.log("\n\n\n");
       console.log("Static Parameters: ");     console.log(static_parameters);   
       console.log("\n\n\n");
       
+      var edition_values = static_parameters.edition.
+                            values.concat(dynamic_parameters.edition.values);
+      edition_values.sort(sort_displayorder)
+      var region_values  = static_parameters.region.
+                            values.concat(dynamic_parameters.region.values);
+      region_values.sort(sort_displayorder)
+      var imt_values     = static_parameters.imt.values;
+      imt_values.sort(sort_displayorder)
+      var vs30_values    = static_parameters.vs30.values;
+      vs30_values.sort(sort_displayorder)
+      
+      parameters = {
+        type:  "",
+        edition: {
+          values: edition_values
+        },
+        region: {
+          values: region_values
+        },
+        imt: {
+          values: imt_values
+        },
+        vs30: {
+          values: vs30_values
+        }
+      };
+
+      console.log("Combined Editions: ");     console.log(edition_values);   
+      console.log("Combined Regions: ");      console.log(region_values);   
+      console.log("Combined IMTs: ");         console.log(imt_values);   
+      console.log("Combined Vs30: ");         console.log(vs30_values);   
+      console.log("\n\n\n");
+      console.log("Combined Parameters: ");     console.log(parameters);   
+      console.log("\n\n\n");
+
+      add_editions();
+      add_regions();
+      add_options();
+
+      console.log("------------- End parameter_dependency ------------- \n\n");
     }); 
+
   }
   else{                                                               // If not on startup, file is already read in, just call functions
     add_regions();
     remove_options();                                                 // Call remove_options
     add_options();                                                    // Call add_options
-  }
 
-  console.log("------------- End parameter_dependency ------------- \n\n");
+    console.log("------------- End parameter_dependency ------------- \n\n");
+  }
+    
+
+
+
 }
 
 //--------------------------- End: Parameter Dependency --------------------------------------
@@ -52,6 +97,9 @@ function parameter_dependency(init){
 //############################################################################################
 
 
+function sort_displayorder(a,b){
+  return (a.displayorder - b.displayorder);
+}      
 
 
 
@@ -123,11 +171,6 @@ function add_regions(){
   
   var region_id         = document.getElementById("region");          // Get the region Div id 
 
-  var region_defaults = {                                             // Set the region defaults based on the edition selected
-      E2008: {region: "WUS"},
-      E2014: {region: "WUS"},
-      E2007: {region: "AK"}
-    }  
 
   for (var jo in region_id.options){                                  // Loop through the number of options in the region menu
     region_id.remove(jo);                                             // Remove each menu option
@@ -149,7 +192,7 @@ function add_regions(){
       {region_option_id.disabled = false;}
     }
   }
-  var region_default = eval("region_defaults."+edition_select+".region"); 
+  var region_default = edition_supports.region[0];                                             // Set the region defaults based on the edition selected
   region_id.value    = region_default;   // Set the default values based on the edition selected
 
   console.log("------------- End add_regions ------------- \n\n");
@@ -185,10 +228,8 @@ function add_options(){
   var region_supports   = region_values[jregion_select].supports;            // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSOn file) 
   
   var parameter_defaults = {
-      AK:   {imt: "PGA",vs30: "760"},
-      COUS: {imt: "PGA",vs30: "760"},
-      CEUS: {imt: "PGA",vs30: "760"},
-      WUS:  {imt: "PGA",vs30: "760"}
+       imt:  region_supports.imt[0],
+       vs30: region_supports.vs30[0]
     }
   var supports = ["imt","vs30"];                             // The edition support strings
 
@@ -221,7 +262,7 @@ function add_options(){
       }
     }
     
-    dom_id.value = eval("parameter_defaults."+region_select+"."+supports[js]);   // Set the default values based on the edition selected
+    dom_id.value = eval("parameter_defaults."+supports[js]);   // Set the default values based on the edition selected
   } 
   set_bounds();
   get_selections();                                                               // Call the get_selections function
@@ -328,17 +369,6 @@ function set_bounds(){
 - Once a URL is constructed the get_hazard function is called
 NOTE: by removing the IMT name and value pair the code will return all supported IMTs.
 
-Format of URL:
-https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
-
-Where:
-
-- edition [E2008, E2014]
-- region [COUS, WUS, CEUS]
-- longitude (-360..360) °
-- latitude [-90..90] °
-- imt (intensity measure type) [PGA, SA0P2, SA1P0]
-- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
 */
 
 function get_selections(){
@@ -362,9 +392,48 @@ function get_selections(){
     }
     //document.getElementById(menu_id+'_val').innerHTML = selection_text; 
   }
-  
+  var edition_selection = selection_values[jed];
+  var static_edition_values  = static_parameters.edition.values;
+  var dynamic_edition_values = dynamic_parameters.edition.values;
+  for (var je in dynamic_edition_values){
+    if (edition_selection == dynamic_edition_values[je].value){
+      parameters.type = "dynamic";  
+      dynamic_call(selection_values);
+    }
+  }
+  for (var je in static_edition_values){
+    if (edition_selection == static_edition_values[je].value){
+      parameters.type = "static";  
+      static_call(selection_values);
+    }
+  }
+
+  console.log("------------- End get_selections ------------- \n\n");
+} 
+
+//---------------------- End: Get Menu Selections/Values -------------------------------------
+//
+//############################################################################################
+
+
+/*
+Format of URL:
+https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
+
+Where:
+
+- edition [E2008, E2014]
+- region [COUS, WUS, CEUS]
+- longitude (-360..360) °
+- latitude [-90..90] °
+- imt (intensity measure type) [PGA, SA0P2, SA1P0]
+- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
+*/
+
+function dynamic_call(selection_values){
   //Format of URL:
   //https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
+  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
   var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";                // Set the URL base
   var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
             "?edition="+selection_values[jed]    +                                          // Add edition to URL
@@ -384,15 +453,34 @@ function get_selections(){
     window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
   };
 
-  console.log("------------- End get_selections ------------- \n\n");
-} 
-
-//---------------------- End: Get Menu Selections/Values -------------------------------------
-//
-//############################################################################################
+}
 
 
+function static_call(selection_values){
+  // Format of URL:
+  // https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
+  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
+  var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";               // Set the URL base
+  var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
+            selection_values[jed]  + "/" +                                                  // Add edition to URL
+            selection_values[jre]  + "/" +                                                  // Add region to URL
+            selection_values[jlon] + "/" +                                                  // Add longitude to URL
+            selection_values[jlat] + "/" +                                                  // Add latitude to URL
+            "any"                  + "/" +                                                  // Add IMT to URL (return all IMTs)
+            selection_values[jvs];                                                          // Add vs30 to URL
+  console.log("URL to call: "+url+"\n\n");
 
+  var submit_id = document.getElementById("submit_url");                                    // Get id of submit_url button
+  submit_id.onclick = function(){                                                           // When button is pressed, perform the following
+    get_hazard(url);                                                                        // Call get_hazard function           
+    };                       
+
+  var get_raw = document.getElementById("raw_json");                                        // Get id of the raw_json button
+  get_raw.onclick = function(){
+    window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
+  };
+
+}
 
 
 
@@ -414,15 +502,14 @@ function get_hazard(url){
   var component_plot_id = document.getElementById("component-curves-plot");
 
   $.getJSON(url,function(json_return){                    // Get the JSON file that the code generates
-    hazard_plot_id.innerHTML    = "Loading ...";
-    component_plot_id.innerHTML = "Loading ...";
     var status = json_return.status;                      // Get the status of the return 
     if (status == "success"){                             // If the code returned a success then get the response from the JSON file
       var response = json_return.response;                // Get the respose from the JSON file
+      plot_setup();
       hazard_plot(response);                              // Plot the response
     }
     else if (status == "error"){                          // If code returned an error, print to screen
-      plot_id.innerHTML = "Status: " + status + "<br>" + json_return.message + "<br>";
+      hazard_plot_id.innerHTML = "Status: " + status + "<br>" + json_return.message + "<br>";
     } 
   });
 
@@ -452,9 +539,9 @@ function plot_options(xlabel,ylabel){
         scaleType: 'log',
         format: 'scientific'
       },
-      chartArea: {left: '10%', width:'70%',height:'80%'},
+      chartArea: {left: '10%', top: '10%', width:'70%',height:'75%'},
       animation: {
-        duration: 500,
+        duration: 0,
         easing: 'in'
       },
       legend: {
@@ -476,6 +563,71 @@ function plot_options(xlabel,ylabel){
 
 
 
+function plot_setup(){
+
+  var type = parameters.type;
+  var hazard_panel_id    = document.getElementById("hazard-plot-panel"); 
+  var hazard_plot_id     = document.getElementById("hazard-curves-plot"); 
+  var hazard_resize_id = document.getElementById("hazard-plot-resize");
+  var component_panel_id = document.getElementById("component-plot-panel"); 
+  var component_plot_id  = document.getElementById("component-curves-plot"); 
+  var component_resize_id = document.getElementById("component-plot-resize");
+
+  if (type == "dynamic"){
+    hazard_panel_id.style.display    = "initial";  
+    hazard_panel_id.className        = "col-md-6";  
+    component_panel_id.style.display = "initial";  
+    component_panel_id.className     = "col-md-6";  
+    hazard_plot_id.style.height      = "20vw";
+    component_plot_id.style.height   = "20vw";
+    hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
+    component_resize_id.className    = "glyphicon glyphicon-resize-full";
+  }else if (type == "static"){
+    hazard_panel_id.style.display    = "initial";  
+    component_panel_id.style.display = "none";
+    hazard_panel_id.className        = "col-md-12";  
+    hazard_plot_id.style.height      = "35vw";
+    hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
+  } 
+  
+
+}
+
+function panel_resize(plot_name){
+  var resize_id = document.getElementById(plot_name+"-plot-resize");
+  var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
+  var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
+  var min = "col-md-6";
+  var max = "col-md-12";
+  if (panel_id.className == min){
+    resize_id.className = "glyphicon glyphicon-resize-small";
+    panel_id.className = max;
+    plot_id.style.height = "35vw";
+  }
+  else if (panel_id.className == max){
+    resize_id.className = "glyphicon glyphicon-resize-full";
+    panel_id.className = min; 
+    plot_id.style.height = "20vw";
+  }
+}
+
+
+
+
+function plot_collapse(plot_name){
+  var plot_collapse_id = document.getElementById(plot_name+"-plot-collapse");
+  var arrow_up    = "glyphicon glyphicon-chevron-up";
+  var arrow_down  = "glyphicon glyphicon-chevron-down";
+  
+  if (plot_collapse_id.className == arrow_up){
+    plot_collapse_id.className = arrow_down;
+  }
+  else{
+    plot_collapse_id.className = arrow_up;
+  }
+}
+
+
 //############################################################################################
 //
 //........................... Plot Hazard Curves .............................................
@@ -484,16 +636,24 @@ function hazard_plot(response){
   console.log("------------- Start hazard_plot ------------- ");
 
   google.charts.load('current', {'packages':['corechart','line']});
+  
+  if (parameters.type == "dynamic"){
+    var xvalue_variable = "xvalues";
+    var yvalue_variable = "yvalues";
+  }else if (parameters.type == "static"){
+    var xvalue_variable = "xvals";
+    var yvalue_variable = "yvals";
+  } 
 
   var nresponse = response.length;                    // Get number of responses (This will be the number of supported IMTs)
   console.log("Number of responses: " + nresponse);
-
+ 
   var imt_id = document.getElementById("imt");
-  var imt_selection_value = imt_id.options[imt_id.selectedIndex].value;
 
   google.charts.setOnLoadCallback(draw_hazard_curves);
 
   function draw_hazard_curves(){
+    var imt_selection_value = imt_id.options[imt_id.selectedIndex].value;
     var data_table = new google.visualization.DataTable();
     
     for (var jr=0;jr<nresponse;jr++){
@@ -505,59 +665,77 @@ function hazard_plot(response){
       
       if (jr == 0){
         var xlabel     = metadata.xlabel;
-        var xvalues    = metadata.xvalues;
+        var xvalues    = eval("metadata."+xvalue_variable);
         var ndata      = xvalues.length;
         data_table.addColumn('number',xlabel);
         data_table.addRows(ndata);
       }
       
-      for (var jds=0;jds<ndata_sets;jds++){
-        if (data[jds].component == "Total"){
-          console.log("\n\n "+data[jds].component);  console.log(data[jds].yvalues);
-          var imt_response_display = metadata.imt.display;
-          var imt_response_value   = metadata.imt.value;
-          data_table.addColumn('number',imt_response_display)
-          for (var jdp=0;jdp<ndata;jdp++){
-            if (jr==0){
-              data_table.setCell(jdp,0,xvalues[jdp]);
-            }
-            data_table.setCell(jdp,jr+1,data[jds].yvalues[jdp]);
-          }
+      var imt_response_display = metadata.imt.display;
+      var imt_response_value   = metadata.imt.value;
+      data_table.addColumn('number',imt_response_display)
+      for (var jdp=0;jdp<ndata;jdp++){
+        if (jr==0){
+          data_table.setCell(jdp,0,xvalues[jdp]);
         }
+        var yvalue = eval("data[0]."+yvalue_variable+"[jdp]");
+        data_table.setCell(jdp,jr+1,yvalue);
       }
       if (imt_selection_value == imt_response_value){
         var selected_column = jr+1;
       }
     }
 
-
     console.log("Data Table: " );   console.log(data_table);
    
     var plot_id = document.getElementById("hazard-curves-plot"); 
-    $(plot_id).collapse('show');
     var fig = new google.visualization.LineChart(plot_id);
     
     var options = plot_options(xlabel,ylabel);
     fig.draw(data_table,options);
+    
     fig.setSelection([{row:null,column:selected_column}]);
-    get_legend_select();
- 
     google.visualization.events.addListener(fig,'select',get_legend_select);
+    get_legend_select();
+
     
     function get_legend_select(){
       if (fig.getSelection().length > 0){
         var selection = fig.getSelection()[0].column;
         var selected_imt_display = data_table.getColumnLabel(selection);
+        for (var jd in parameters.imt.values){
+          if (parameters.imt.values[jd].display == selected_imt_display){
+            imt_id.value = parameters.imt.values[jd].value;
+          }
+        }
         console.log("\n\n Selected IMT on Plot: ");   console.log(selected_imt_display);
-        component_curves_plot(response,selected_imt_display);
+        if (parameters.type == "dynamic"){
+          component_curves_plot(response,selected_imt_display);
+        }
       }
     }
+    $(window).resize(function(){
+      fig.draw(data_table,options);
+    });
+    
+    
+    /*
+    var plot_collapse_id = document.getElementById("hazard-plot-collapse");
+    plot_collapse_id.onclick = function(){
+      plot_collapse("hazard");
+      fig.draw(data_table,options);
+    }
+    */
+    var resize_id = document.getElementById("hazard-plot-resize");
+    resize_id.onclick = function(){
+      panel_resize("hazard");
+      fig.draw(data_table,options);
+    }
   }
+  
+  imt_id.onchange = function(){ draw_hazard_curves();};
 
 
-  $(window).resize(function(){
-     draw_hazard_curves();
-   });
 
   console.log("------------- End hazard_plot ------------- \n\n");
 } 
@@ -583,26 +761,28 @@ function component_curves_plot(response,selected_imt_display){
   var imt_id = document.getElementById("imt");
   var imt_selection_display = imt_id.options[imt_id.selectedIndex].text;
 
+  for (var jr=0;jr<nresponse;jr++){
+    var metadata   = response[jr].metadata;
+    var imt_response_display   = metadata.imt.display;
+    if (selected_imt_display == imt_response_display){
+      var selected_response = jr;
+    }
+  }
+  var metadata   = response[selected_response].metadata;
+  var data       = response[selected_response].data;
+  var ylabel     = metadata.ylabel;
+  var ndata_sets = data.length;
+  
+  var xlabel     = metadata.xlabel;
+  var xvalues    = metadata.xvalues;
+  var ndata      = xvalues.length;
+
   google.charts.setOnLoadCallback(draw_component_curves);
 
   function draw_component_curves(){
+    
     var data_table = new google.visualization.DataTable();
     
-    for (var jr=0;jr<nresponse;jr++){
-      var metadata   = response[jr].metadata;
-      var imt_response_display   = metadata.imt.display;
-      if (selected_imt_display == imt_response_display){
-        var selected_response = jr;
-      }
-    }
-    var metadata   = response[selected_response].metadata;
-    var data       = response[selected_response].data;
-    var ylabel     = metadata.ylabel;
-    var ndata_sets = data.length;
-    
-    var xlabel     = metadata.xlabel;
-    var xvalues    = metadata.xvalues;
-    var ndata      = xvalues.length;
     data_table.addColumn('number',xlabel);
     data_table.addRows(ndata);
     
@@ -622,20 +802,32 @@ function component_curves_plot(response,selected_imt_display){
 
     console.log("Data Table: " );   console.log(data_table);
    
-    var plot_title_id = document.getElementById("component-plot-title");
-    plot_title_id.innerHTML = "Component Curves for " + metadata.imt.display; 
+    var plot_title_id = document.getElementById("component-plot-text");
+    plot_title_id.innerHTML = " for " + metadata.imt.display; 
     var plot_id = document.getElementById("component-curves-plot"); 
-    $(plot_id).collapse('show');
     var fig = new google.visualization.LineChart(plot_id);
     
     var options = plot_options(xlabel,ylabel);
     fig.draw(data_table,options);
+    
+    $(window).resize(function(){
+      fig.draw(data_table,options);
+    });
+    /*
+    var plot_collapse_id = document.getElementById("component-plot-collapse");
+    plot_collapse_id.onclick = function(){
+      plot_collapse("component");
+      fig.draw(data_table,options);
+    }
+    */
+    var resize_id = document.getElementById("component-plot-resize");
+    resize_id.onclick = function(){
+      panel_resize("component");
+      fig.draw(data_table,options);
+    }
   }
 
-  $(window).resize(function(){
-     draw_component_curves();
-   });
-
+  
   console.log("------------- End component_curves_plot ------------- \n\n");
 } 
 //---------------------- End: Plot Component Curves ------------------------------------------

@@ -28,7 +28,6 @@
   <!-- ............. Google Charts ............. -->
    
   <!-- ........... Bring in JS and CSS Files ....... -->
-  <script src="js/model-explorer.js"></script>
   <link rel="stylesheet" href="css/template_me.css">
   <link rel="stylesheet" href="css/model-explorer.css">
   <!-- ........... Bring in JS and CSS Files ....... -->
@@ -64,11 +63,9 @@
   <!-- -->
   <!-- .................. Footer .................. -->
   <div id="footer">
-    <button id="submit_url" 
-      class="btn btn-primary">Plot</button>
+    <button id="submit_url" class="btn btn-primary">Plot</button>
     <span>
-      <button id="raw_json" style="float:right;" 
-        class="btn btn-danger">Raw Data</button>
+      <button id="raw_json" style="float:right;" class="btn btn-danger">Raw Data</button>
     </span>
   </div>  
   <!-- .................. Footer .................. -->
@@ -130,7 +127,7 @@
     <form> 
       <div class="form-group">
         <label for="imt"> Intensity Measure Type: </label>
-        <select class="form-control" id="imt" onchange="get_selections()">
+        <select class="form-control" id="imt">
         </select>
       </div>
     </form>
@@ -161,22 +158,29 @@
   <div id="plot-container">
 
     <!-- ................. Hazard Curves Plot ........... -->
-    <div class="col-lg-6 col-sm-12">
+    <div id="hazard-plot-panel" class="col-md-6" style="display:none;">
       <div class="panel panel-default">
-        <div class="panel-heading" id="plot-title"
-          data-toggle="collapse" data-target="#hazard-curves-plot" aria-expanded="false"> Hazard Curves 
+        <div class="panel-heading" id="plot-title">
+          <span id="hazard-plot-collapse" class="glyphicon glyphicon-chevron-up" data-toggle="collapse" 
+            data-target="#hazard-curves-plot" aria-expanded="true" ></span> 
+          Hazard Curves 
+          <span id="hazard-plot-resize" style="float:right;" ></span>
         </div> 
-        <div class="panel-body collapse" id="hazard-curves-plot"></div>
+        <div class="panel-body collapse in" id="hazard-curves-plot"></div>
       </div>
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
 
     <!-- .............. Component Curves Plot ........... -->
-    <div class="col-lg-6 col-sm-12">
-      <div class="panel panel-default">
-        <div class="panel-heading" id="component-plot-title"
-          data-toggle="collapse" data-target="#component-curves-plot" aria-expanded="false">Component Curves </div> 
-        <div class="panel-body collapse" id="component-curves-plot"></div>
+    <div  id="component-plot-panel" class="col-md-6" style="display:none;">
+      <div  class="panel panel-default">
+        <div class="panel-heading" id="component-plot-title">
+          <span id="component-plot-collapse" class="glyphicon glyphicon-chevron-up" data-toggle="collapse" 
+            data-target="#component-curves-plot" aria-expanded="true" ></span> 
+          Component Curves <span id="component-plot-text"></span> 
+          <span id="component-plot-resize" style="float:right;" ></span>
+        </div>
+        <div class="panel-body collapse in" id="component-curves-plot"> </div>
       </div>
     </div>
     <!-- .............. Component Curves Plot ........... -->
@@ -192,3 +196,7 @@
 
 
 </html>
+
+
+<script src="js/model-explorer.js"></script>
+
