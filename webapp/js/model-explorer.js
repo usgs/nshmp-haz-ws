@@ -130,6 +130,7 @@ function sort_displayorder(a,b){
 
 
 
+
 //############################################################################################
 //
 //............................... Add Editions to Select Menu ...............................
@@ -218,8 +219,8 @@ function add_regions(){
       {region_option_id.disabled = false;}
     }
   }
-  var region_default = edition_supports.region[0];                                             // Set the region defaults based on the edition selected
-  region_id.value    = region_default;   // Set the default values based on the edition selected
+  var region_default = edition_supports.region[0];                    // Set the region defaults based on the edition selected
+  region_id.value    = region_default;                                // Set the default values based on the edition selected
 
   console.log("------------- End add_regions ------------- \n\n");
 }
@@ -262,26 +263,25 @@ function add_options(){
     }
   var supports = ["imt","vs30"];                                              // The edition support strings
   
-  for (js in supports){                                                       // Loop through the supported variables (region,imt, and vs30)
+  for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
     var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var support_values   = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: edition_supports.region) 
-    support_values       = eval(support_values);                              // Evaluate string to get the supported parameters (parameters.edition.values[edition_index].supports[support_index] in JSON file)
-    var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.region) 
-    parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.region in JSON file)
+    var support_values   = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
+    support_values       = eval(support_values);                              // Evaluate string to get the supported parameters (parameters.region.values[region_index].supports[support_index] in JSON file)
+    var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.imt) 
+    parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.imt in JSON file)
 
     console.log("Supports " + supports[js] +": ");    console.log(support_values);
     
-    
     for (var jp in parameter_values){                                         // Loop through the edition support values
       var option    = document.createElement("option");                       // Create an option element 
-      option.id     = parameter_values[jp].value;
-      option.text   = parameter_values[jp].display;
-      option.value  = parameter_values[jp].value;                             // Set the selection option's value based on the supported values (parameters.edition.values[edition_index].supports[support_index]) 
-      dom_id.add(option);                                                     // Add the options to the menus of region, imt, and vs30
-      option_id = document.getElementById(parameter_values[jp].value);
-      option_id.disabled = true;
-      for (var jsv in support_values){                                        // Loop through the parameter values for a supported variable (parameters.region in JSON file)
-        if (support_values[jsv] == parameter_values[jp].value)                // Find the matching value to set the text from the display key (parameters.region.WUS.display in JSON file) [Example: Western US]
+      option.id     = parameter_values[jp].value;                             // Set an id based on value
+      option.text   = parameter_values[jp].display;                           // Set display
+      option.value  = parameter_values[jp].value;                             // Set the selection options values 
+      dom_id.add(option);                                                     // Add the options to the menus of imt and vs30
+      option_id = document.getElementById(parameter_values[jp].value);        // Get dom id of option
+      option_id.disabled = true;                                              // Set all to disabled at first
+      for (var jsv in support_values){                                        // Loop through the parameter values for a supported variable (parameters.imt in JSON file)
+        if (support_values[jsv] == parameter_values[jp].value)                // Find the matching value to set the text from the display key 
         {option_id.disabled   = false;}
       }
     }
