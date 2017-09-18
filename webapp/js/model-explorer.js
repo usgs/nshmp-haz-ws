@@ -287,8 +287,8 @@ function add_options(){
     }
     dom_id.value = eval("parameter_defaults."+supports[js]);                  // Set the default values based on the edition selected
   } 
-  set_bounds();
-  get_selections();                                                           // Call the get_selections function
+  set_bounds();                                                               // Show the bounds for selected region
+  get_selections();                                                           // Get all selected menu items and call static or dynamic web service
 
   console.log("------------- End add_options ------------- \n\n");
 }
@@ -305,7 +305,7 @@ function add_options(){
 //........................... Remove Options from Select Menus ...............................
 
 /*
-- The remove_options function will remove the selection options from the region, imt,
+- The remove_options function will remove the selection options from the imt
   and the vs30 menus so that they can be repopullated based on what is supported 
   for the edition that was choosen
 */
@@ -313,7 +313,7 @@ function add_options(){
 function remove_options(){
   console.log("------------- Start remove_options ------------- ");
 
-  var ids = ["imt","vs30"];                    // Selection menu ids
+  var ids = ["imt","vs30"];                             // Selection menu ids
   for (ji in ids){                                      // Loop through the menus
     var dom_id = document.getElementById(ids[ji]);      // Get the dom id from ids
     for (jo in dom_id.options){                         // Loop through the number of options in each menu
@@ -362,7 +362,7 @@ function set_bounds(){
   lat_id.value = (min_lat+max_lat)/2.0;                                 // Calculate the middle latitude value and set as default
   lon_id.value = (min_lon+max_lon)/2.0;                                 // Calculate the middle longitude value and set as defualt
 
-  console.log("Region Values: ");           console.log(jregion_select);
+  console.log("Region Values: ");       console.log(jregion_select);
   console.log("Min Lat: " + min_lat);
   console.log("Max Lat: " + max_lat);
   console.log("Min Lon: " + min_lon);
@@ -378,58 +378,56 @@ function set_bounds(){
 
 
 
-
-
 //############################################################################################
 //
 //........................... Get Menu Selections/Values  ....................................
 
 /*
 - The get_selctions function gets the selection/value from each of the menus, 
-  edition, region, longitud, latitude, imt, and vs30.
-- Given the selctions/values a URL is constructed to call the nshmp-haz code with the format,
-  https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
-- Once a URL is constructed the get_hazard function is called
-NOTE: by removing the IMT name and value pair the code will return all supported IMTs.
-
+  edition, region, longitude, latitude, imt, and vs30.
+- The function then calls either the static or dynamic web services based on the 
+  edition choosen
 */
 
 function get_selections(){
   console.log("------------- Start get_selections ------------- ");
-
-  var menu_ids = ["edition","region","lon","lat","imt","vs30"];                             // Menu id strings for the selection menus
-  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
-  var selection_values = [];                                                                // Allocate an array to store the parameters
   
-  for (var ji in menu_ids){                                                                 // Loop through the menu ids
-    var menu_id = menu_ids[ji];                                                             // Set a single menu id
-    var dom_id  = document.getElementById(menu_id);                                         // Get the dom id of the menu id
+  //.............. Get All Selections from the Menus ...................
+  var menu_ids = ["edition","region","lon","lat","imt","vs30"];               // Menu id strings for the selection menus
+  var jed = 0; var jre = 1; var jlon = 2; 
+  var jlat = 3; var jimt = 4; var jvs = 5;                                    // Indices for each corresponing selction string
+
+  var selection_values = [];                                                  // Allocate an array to store the parameters
+  
+  for (var ji in menu_ids){                                                   // Loop through the menu ids
+    var menu_id = menu_ids[ji];                                               // Set a single menu id
+    var dom_id  = document.getElementById(menu_id);                           // Get the dom id of the menu id
     
-    if (menu_id == "lon" || menu_id == "lat"){                                              // If getting latitude or longitude, get the inputted value
-      selection_values[ji] = dom_id.value;
-      var selection_text = dom_id.value;
-    }
-    else{                                                                                   // Else the value is selected from a menu
-      selection_values[ji] = dom_id.options[dom_id.selectedIndex].value;                    // Get selection
-      var selection_text = dom_id.options[dom_id.selectedIndex].text;
-    }
-    //document.getElementById(menu_id+'_val').innerHTML = selection_text; 
-  }
-  var edition_selection = selection_values[jed];
-  var static_edition_values  = static_parameters.edition.values;
-  var dynamic_edition_values = dynamic_parameters.edition.values;
-  for (var je in dynamic_edition_values){
-    if (edition_selection == dynamic_edition_values[je].value){
-      parameters.type = "dynamic";  
-      dynamic_call(selection_values);
+    if (menu_id == "lon" || menu_id == "lat"){                                // If getting latitude or longitude, get the inputted value
+      selection_values[ji] = dom_id.value;                                    // Get selection value
+    }else{                                                                    // Else the value is selected from a menu
+      selection_values[ji] = dom_id.options[dom_id.selectedIndex].value;      // Get selection value
     }
   }
-  for (var je in static_edition_values){
-    if (edition_selection == static_edition_values[je].value){
-      parameters.type = "static";  
-      static_call(selection_values);
+  //-------------------------------------------------------------------
+
+  //................. Check If Static or Dynamic Edition ..............
+  var edition_selection = selection_values[jed];                              // Get selected edition 
+  var static_edition_values  = static_parameters.edition.values;              // Get all static edition values
+  var dynamic_edition_values = dynamic_parameters.edition.values;             // Get all dynamic edition values
+  for (var je in dynamic_edition_values){                                     // Loop through all dynamic editions 
+    if (edition_selection == dynamic_edition_values[je].value){               // Check if selected edition is dynamic
+      parameters.type = "dynamic";                                            // If using dynamic set the type 
+      dynamic_call(selection_values);                                         // Use dynamic web services
     }
   }
+  for (var je in static_edition_values){                                      // Loop through all static editions
+    if (edition_selection == static_edition_values[je].value){                // Check if selected edition is static
+      parameters.type = "static";                                             // If using static set the type
+      static_call(selection_values);                                          // Use static web services
+    }
+  }
+  //--------------------------------------------------------------------
 
   console.log("------------- End get_selections ------------- \n\n");
 } 
@@ -439,14 +437,21 @@ function get_selections(){
 //############################################################################################
 
 
+
+
+
+//############################################################################################
+//
+//........................... Call Dynamic Web Services  .....................................
+
 /*
 Format of URL:
 https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
 
 Where:
 
-- edition [E2008, E2014]
-- region [COUS, WUS, CEUS]
+- edition [E2008, E2014, E2007]
+- region [COUS, WUS, CEUS, AK]
 - longitude (-360..360) °
 - latitude [-90..90] °
 - imt (intensity measure type) [PGA, SA0P2, SA1P0]
@@ -454,8 +459,8 @@ Where:
 */
 
 function dynamic_call(selection_values){
-  //Format of URL:
-  //https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
+
+  //.................... Setup URL .............................
   var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
   var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";                // Set the URL base
   var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
@@ -465,23 +470,51 @@ function dynamic_call(selection_values){
             "&latitude="+selection_values[jlat]  +                                          // Add latitude to URL
             "&vs30="+selection_values[jvs];                                                 // Add vs30 to URL
   console.log("URL to call: "+url+"\n\n");
+  //-----------------------------------------------------------
 
+  //...................... Plot Button .........................
   var submit_id = document.getElementById("submit_url");                                    // Get id of submit_url button
   submit_id.onclick = function(){                                                           // When button is pressed, perform the following
     get_hazard(url);                                                                        // Call get_hazard function           
     };                       
-
+  //-----------------------------------------------------------
+  
+  //..................... Get Raw Data Button ..................
   var get_raw = document.getElementById("raw_json");                                        // Get id of the raw_json button
   get_raw.onclick = function(){
     window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
   };
+  //-----------------------------------------------------------
 
 }
+//---------------------- End: Call Dynamic Web Services --------------------------------------
+//
+//############################################################################################
 
+
+
+
+//############################################################################################
+//
+//........................... Call Static Web Services  ......................................
+
+/*
+  Format of URL:
+  https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
+
+Where:
+
+- edition [E2014R1, E2008R3, E2008R2, E2007R1, E1998R1, E2003R1, E2012R1, E2012R2]
+- region [COUS0P05, WUS0P05, CEUS0P10, AK0P10, HI0P02, PRVI0P01, GNMI0P10, AMSAM0P05]
+- longitude (-360..360) °
+- latitude [-90..90] °
+- imt (intensity measure type) [PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0]
+- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
+*/
 
 function static_call(selection_values){
-  // Format of URL:
-  // https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
+
+  //.................... Setup URL .............................
   var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
   var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";               // Set the URL base
   var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
@@ -492,18 +525,27 @@ function static_call(selection_values){
             "any"                  + "/" +                                                  // Add IMT to URL (return all IMTs)
             selection_values[jvs];                                                          // Add vs30 to URL
   console.log("URL to call: "+url+"\n\n");
+  //-----------------------------------------------------------
 
+  //...................... Plot Button .........................
   var submit_id = document.getElementById("submit_url");                                    // Get id of submit_url button
   submit_id.onclick = function(){                                                           // When button is pressed, perform the following
     get_hazard(url);                                                                        // Call get_hazard function           
     };                       
+  //-----------------------------------------------------------
 
+  //..................... Get Raw Data Button ..................
   var get_raw = document.getElementById("raw_json");                                        // Get id of the raw_json button
   get_raw.onclick = function(){
     window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
   };
+  //-----------------------------------------------------------
 
 }
+//---------------------- End: Call Static Web Services ---------------------------------------
+//
+//############################################################################################
+
 
 
 
@@ -544,9 +586,14 @@ function get_hazard(url){
 
 
 
+
 //############################################################################################
 //
 //........................... Plot Options ...................................................
+
+/*
+- Plot options for Google Charts plots
+*/
 
 function plot_options(xlabel,ylabel){
 	var options = {
@@ -585,6 +632,11 @@ function plot_options(xlabel,ylabel){
 
 
 
+
+//############################################################################################
+//
+//........................... Plot Setup .....................................................
+
 var plot_size_min = "col-lg-6";
 var plot_size_max = "col-lg-12";
 
@@ -614,9 +666,16 @@ function plot_setup(){
     hazard_plot_id.style.height      = "35vw";
     hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
   } 
-  
-
 }
+//---------------------- End: Plot Setup -----------------------------------------------------
+//
+//############################################################################################
+
+
+
+//############################################################################################
+//
+//........................... Resize Plot ....................................................
 
 function panel_resize(plot_name){
   var resize_id = document.getElementById(plot_name+"-plot-resize");
@@ -633,10 +692,13 @@ function panel_resize(plot_name){
     plot_id.style.height = "20vw";
   }
 }
+//---------------------- End: Resize Plot  ---------------------------------------------------
+//
+//############################################################################################
 
 
 
-
+/*
 function plot_collapse(plot_name){
   var plot_collapse_id = document.getElementById(plot_name+"-plot-collapse");
   var arrow_up    = "glyphicon glyphicon-chevron-up";
@@ -649,7 +711,7 @@ function plot_collapse(plot_name){
     plot_collapse_id.className = arrow_up;
   }
 }
-
+*/
 
 //############################################################################################
 //
