@@ -20,76 +20,85 @@
 parameter_dependency(true);
 function parameter_dependency(init){
   console.log("------------- Start parameter_dependency ------------- ");
-  if (init){                                                          // If on startup, read in the JSON file
+
+  if (init){                                                                  // If on startup, read in the JSON files
     var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
     var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
-    $.when(
-      $.getJSON(dynamic_url,function(dynamic_json_return) {                             // Call the jQuery getJSON function  
-        dynamic_parameters    = dynamic_json_return.parameters;                         // Global variable: get the parameter key from JSON file 
+    $.when(                                                                   // Read in the static and dynamic JSON files
+      $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
+        dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
       }),
-      $.getJSON(static_url,function(static_json_return){
-        static_parameters = static_json_return.parameters;
+      $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
+        static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
       })
-    ).done(function(){
-      console.log("Dynamic Parameters: ");     console.log(dynamic_parameters);   
+    ).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
+      console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
       console.log("\n\n\n");
-      console.log("Static Parameters: ");     console.log(static_parameters);   
+      console.log("Static Parameters: ");       console.log(static_parameters);   
       console.log("\n\n\n");
       
-      var edition_values = static_parameters.edition.
+      //.................. Combine Static and Dynamic Parameters ...............
+      var edition_values = static_parameters.edition.                         // Combine the static and dynamic editions
                             values.concat(dynamic_parameters.edition.values);
-      edition_values.sort(sort_displayorder)
-      var region_values  = static_parameters.region.
+      var region_values  = static_parameters.region.                          // Combine the static and dynamic regions
                             values.concat(dynamic_parameters.region.values);
-      region_values.sort(sort_displayorder)
-      var imt_values     = static_parameters.imt.values;
-      imt_values.sort(sort_displayorder)
-      var vs30_values    = static_parameters.vs30.values;
-      vs30_values.sort(sort_displayorder)
-      
+      var imt_values     = static_parameters.imt.values;                      // Combine the static and dynamic IMTs
+      var vs30_values    = static_parameters.vs30.values;                     // Combine the static and dynamic Vs30 values
+
+      console.log("Combined Editions: ");       console.log(edition_values);   
+      console.log("Combined Regions: ");        console.log(region_values);   
+      console.log("Combined IMTs: ");           console.log(imt_values);   
+      console.log("Combined Vs30: ");           console.log(vs30_values);   
+      console.log("\n\n\n");
+      //------------------------------------------------------------------------
+
+      //......... Sort Combined Parameters by Display Order Parameter ...........
+      edition_values.sort(sort_displayorder);                                 // Sort the editions by using sort_displayorder function
+      region_values.sort(sort_displayorder);                                  // Sort the regions by using sort_displayorder function       
+      imt_values.sort(sort_displayorder);                                     // Sort the IMTs by using sort_displayorder funtion
+      vs30_values.sort(sort_displayorder);                                    // Sort the Vs30 values by using sort_displayorder function
+      //------------------------------------------------------------------------
+
+      //....... Create a Single Parameter Object for Static and Dynamic .........
       parameters = {
-        type:  "",
-        edition: {
+        type:  "",                    // type will either be static or dynamic based on which is choosen 
+        edition: {                    // Combined static and dynamic editions
           values: edition_values
         },
-        region: {
+        region: {                     // Combined static and dynamic editions
           values: region_values
         },
-        imt: {
+        imt: {                        // Combined static and dynamic IMTs
           values: imt_values
         },
-        vs30: {
+        vs30: {                       // Combined static and dynamic Vs30
           values: vs30_values
         }
       };
-
-      console.log("Combined Editions: ");     console.log(edition_values);   
-      console.log("Combined Regions: ");      console.log(region_values);   
-      console.log("Combined IMTs: ");         console.log(imt_values);   
-      console.log("Combined Vs30: ");         console.log(vs30_values);   
-      console.log("\n\n\n");
       console.log("Combined Parameters: ");     console.log(parameters);   
       console.log("\n\n\n");
+      //------------------------------------------------------------------------
 
-      add_editions();
-      add_regions();
-      add_options();
+      //.......................... Run Function ................................
+      add_editions();                 // Add editions to menu
+      add_regions();                  // Add regions to menu
+      add_options();                  // Add all other options based on edition and regions selected
+      //-----------------------------------------------------------------------
 
       console.log("------------- End parameter_dependency ------------- \n\n");
     }); 
 
-  }
-  else{                                                               // If not on startup, file is already read in, just call functions
-    add_regions();
-    remove_options();                                                 // Call remove_options
-    add_options();                                                    // Call add_options
+  }else{                              // If not on startup, file is already read in, just call functions
+    
+    //.......................... Run Function ................................
+    add_regions();                    // Add regions to menu
+    remove_options();                 // First remove all other options except regions and editions                           
+    add_options();                    // Then add all options based on edition and regions selected
+    //-----------------------------------------------------------------------
 
     console.log("------------- End parameter_dependency ------------- \n\n");
   }
     
-
-
-
 }
 
 //--------------------------- End: Parameter Dependency --------------------------------------
@@ -97,9 +106,27 @@ function parameter_dependency(init){
 //############################################################################################
 
 
+
+
+
+//############################################################################################
+//
+//........................ Read in Parameter Dependency JSON File ............................ 
+
+/*
+- The sort_displayorder function takes a parameter, like edition, and sorts them based
+  on the display order given in the two JSON files
+- This function returns the subtraction of the display order values of two editions to see
+  which one should be displayed first (a negative value return is displayed first)
+*/
+
 function sort_displayorder(a,b){
   return (a.displayorder - b.displayorder);
 }      
+
+//--------------------------- End: Parameter Dependency --------------------------------------
+//
+//############################################################################################
 
 
 
@@ -126,8 +153,7 @@ function add_editions(){
   console.log("Parameter Dependicies: ");    console.log(parameters);
   console.log("Edition Dependicies: ");      console.log(edition_dep);
  
-  for (var je=0;je<nedition;je++)                                     // Loop through each edition and add that edition as an option in selection menu
-  {
+  for (var je=0;je<nedition;je++){                                    // Loop through each edition and add that edition as an option in selection menu
     var edition_option    = document.createElement("option");         // Create an option element 
     edition_option.text   = edition_values[je].display;               // Set the selection option's text based on the edition display key (parameters.edition.values[index].display) [Example: Dynamic: Conterminous U.S. 2008 (v3.3.1)] 
     edition_option.value  = edition_values[je].value;                 // Set the selection option's value based on the edition value key (parameters.edition.values[index].value) [Example: E2008]
@@ -212,60 +238,57 @@ function add_regions(){
 
 /*
 - The add_options functions adds the support parameters options to the corresponding 
-  selections menu, either region, imt, or vs30.
+  selections menu, either imt or vs30.
 - The options that are added to the menus are based on what edition is selected.
 */
 
 function add_options(){
   console.log("------------- Start add_options ------------- ");
-  remove_options();
+  remove_options();     // Remove all previous menu item
 
-  var region_id         = document.getElementById("region");                  // Get the edition Div id 
-  var region_dep        = parameters.region;                                  // Get the edition dependencies (parameters.edition in JSON file)
-  var region_values     = region_dep.values;                                  // Get the edition values (parameters.edition.values in JSON file) 
-  var jregion_select    = region_id.selectedIndex;                            // Get the selected edition index value 
-  var region_select     = region_id.options[jregion_select].value;  // Get the selected edition from the edition menu
-  var region_supports   = region_values[jregion_select].supports;            // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSOn file) 
+  var region_id         = document.getElementById("region");                  // Get the region Div id 
+  var region_dep        = parameters.region;                                  // Get the region dependencies (parameters.edition in JSON file)
+  var region_values     = region_dep.values;                                  // Get the region values (parameters.edition.values in JSON file) 
+  var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
+  var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
+  var region_supports   = region_values[jregion_select].supports;             // Get the selected region's support parameters (parameters.region.values[index].supports in JSON file) 
   
-  var parameter_defaults = {
-       imt:  region_supports.imt[0],
-       vs30: region_supports.vs30[0]
-    }
-  var supports = ["imt","vs30"];                             // The edition support strings
-
   console.log("\n Region Selected: " + region_select); 
-  console.log("\n Region Support: ");          console.log(region_supports); 
+  console.log("\n Region Support: ");   console.log(region_supports); 
+
+  var parameter_defaults = {                                                  // Variable for parameter defaults to first supported value
+       imt:  region_supports.imt[0],                                          // IMT default
+       vs30: region_supports.vs30[0]                                          // Vs30 default 
+    }
+  var supports = ["imt","vs30"];                                              // The edition support strings
   
-  for (js in supports)                                                          // Loop through the supported variables (region,imt, and vs30)
-  {
-    var dom_id          = document.getElementById(supports[js]);                // Get to dom id of the supported variable for the selection menu
-    var support_values  = "region_supports."+supports[js];                     // Set string to get the supported parameters of each variable (example: edition_supports.region) 
-    support_values      = eval(support_values);                                 // Evaluate string to get the supported parameters (parameters.edition.values[edition_index].supports[support_index] in JSON file)
-    var parameter_values = "parameters."+supports[js];                          // Set string to get the parameter values of each supported variable (parameters.region) 
-    parameter_values = eval(parameter_values).values;                           // Evaluate string to get the parameter values (parameters.region in JSON file)
+  for (js in supports){                                                       // Loop through the supported variables (region,imt, and vs30)
+    var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
+    var support_values   = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: edition_supports.region) 
+    support_values       = eval(support_values);                              // Evaluate string to get the supported parameters (parameters.edition.values[edition_index].supports[support_index] in JSON file)
+    var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.region) 
+    parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.region in JSON file)
 
     console.log("Supports " + supports[js] +": ");    console.log(support_values);
     
     
-    for (var jp in parameter_values)                                              // Loop through the edition support values
-    {
-      var option    = document.createElement("option");                           // Create an option element 
-      option.id = parameter_values[jp].value;
-      option.text = parameter_values[jp].display;
-      option.value  = parameter_values[jp].value;                                 // Set the selection option's value based on the supported values (parameters.edition.values[edition_index].supports[support_index]) 
-      dom_id.add(option);                                                         // Add the options to the menus of region, imt, and vs30
+    for (var jp in parameter_values){                                         // Loop through the edition support values
+      var option    = document.createElement("option");                       // Create an option element 
+      option.id     = parameter_values[jp].value;
+      option.text   = parameter_values[jp].display;
+      option.value  = parameter_values[jp].value;                             // Set the selection option's value based on the supported values (parameters.edition.values[edition_index].supports[support_index]) 
+      dom_id.add(option);                                                     // Add the options to the menus of region, imt, and vs30
       option_id = document.getElementById(parameter_values[jp].value);
       option_id.disabled = true;
-      for (var jsv in support_values){                                            // Loop through the parameter values for a supported variable (parameters.region in JSON file)
-        if (support_values[jsv] == parameter_values[jp].value)                    // Find the matching value to set the text from the display key (parameters.region.WUS.display in JSON file) [Example: Western US]
+      for (var jsv in support_values){                                        // Loop through the parameter values for a supported variable (parameters.region in JSON file)
+        if (support_values[jsv] == parameter_values[jp].value)                // Find the matching value to set the text from the display key (parameters.region.WUS.display in JSON file) [Example: Western US]
         {option_id.disabled   = false;}
       }
     }
-    
-    dom_id.value = eval("parameter_defaults."+supports[js]);   // Set the default values based on the edition selected
+    dom_id.value = eval("parameter_defaults."+supports[js]);                  // Set the default values based on the edition selected
   } 
   set_bounds();
-  get_selections();                                                               // Call the get_selections function
+  get_selections();                                                           // Call the get_selections function
 
   console.log("------------- End add_options ------------- \n\n");
 }
@@ -562,6 +585,8 @@ function plot_options(xlabel,ylabel){
 
 
 
+var plot_size_min = "col-lg-6";
+var plot_size_max = "col-lg-12";
 
 function plot_setup(){
 
@@ -575,9 +600,9 @@ function plot_setup(){
 
   if (type == "dynamic"){
     hazard_panel_id.style.display    = "initial";  
-    hazard_panel_id.className        = "col-md-6";  
+    hazard_panel_id.className        = plot_size_min;  
     component_panel_id.style.display = "initial";  
-    component_panel_id.className     = "col-md-6";  
+    component_panel_id.className     = plot_size_min;  
     hazard_plot_id.style.height      = "20vw";
     component_plot_id.style.height   = "20vw";
     hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
@@ -585,7 +610,7 @@ function plot_setup(){
   }else if (type == "static"){
     hazard_panel_id.style.display    = "initial";  
     component_panel_id.style.display = "none";
-    hazard_panel_id.className        = "col-md-12";  
+    hazard_panel_id.className        = plot_size_max; 
     hazard_plot_id.style.height      = "35vw";
     hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
   } 
@@ -597,16 +622,14 @@ function panel_resize(plot_name){
   var resize_id = document.getElementById(plot_name+"-plot-resize");
   var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
   var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
-  var min = "col-md-6";
-  var max = "col-md-12";
-  if (panel_id.className == min){
+  if (panel_id.className == plot_size_min){
     resize_id.className = "glyphicon glyphicon-resize-small";
-    panel_id.className = max;
+    panel_id.className = plot_size_max;
     plot_id.style.height = "35vw";
   }
-  else if (panel_id.className == max){
+  else if (panel_id.className == plot_size_max){
     resize_id.className = "glyphicon glyphicon-resize-full";
-    panel_id.className = min; 
+    panel_id.className = plot_size_min; 
     plot_id.style.height = "20vw";
   }
 }
