@@ -1,105 +1,117 @@
 
 
 
+//############################################################################################
+//
+//................................. Main DOM Ids ............................................. 
+
+var edition_id    = document.getElementById("edition");                     // Edition select menu id 
+var region_id     = document.getElementById("region");                      // Region select menu id 
+var imt_id        = document.getElementById("imt");                         // IMT select menu id
+var lat_bounds_id = document.getElementById("lat_bounds");                  // Latitude bounds label id
+var lon_bounds_id = document.getElementById("lon_bounds");                  // Longitude bounds label id
+var lat_id        = document.getElementById("lat");                         // Latitude input id
+var lon_id        = document.getElementById("lon");                         // Longitude input id
+var submit_btn_id = document.getElementById("submit_url");                  // Plot button id 
+var raw_btn_id    = document.getElementById("raw_json");                    // Raw Data button id 
+var hazard_panel_id     = document.getElementById("hazard-plot-panel");     // Hazard plot panel id
+var hazard_plot_id      = document.getElementById("hazard-curves-plot");    // Hazard plot id
+var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // Hazard plot resize glyphicon id
+var component_panel_id  = document.getElementById("component-plot-panel");  // Component plot panel id
+var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
+var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
+
+//------------------------------- End: Main DOM Ids ------------------------------------------
+//
+//############################################################################################
+
+
+
 
 //############################################################################################
 //
 //........................ Read in Parameter Dependency JSON File ............................ 
 
 /*
-- The parameter_dependency function reads in the parameter dependencies from the JSON file at
-  https://earthquake.usgs.gov/nshmp-haz-ws/hazard
-- Once the JSON file is read in, the function then calls the add_editions and add_options functions.
-- This function takes in one argument, init. When init is true (only on startup) the JSON 
-  file will get read in using the getJSON function from jquery. If init is not defined then 
-  the file is read in and the remove_options and add_options function is called.
+- On start up the static and dynamic parameter dependicies JSON files get read in.
+- Once the JSON files are read in, the functions add_editions, add_regions, and add_options are called.
 
-- NOTE: parameters is a global variable and is the parameter key from the JSON file
+- NOTE:  The following variables are global:
+          - edition_values
+          - region_values
+          - imt_values
+          - vs30_values
+          - parameters 
 */
 
-parameter_dependency(true);
-function parameter_dependency(init){
-  console.log("------------- Start parameter_dependency ------------- ");
+console.log("------------- Start parameter_dependency ------------- ");
 
-  if (init){                                                                  // If on startup, read in the JSON files
-    var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
-    var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
-    $.when(                                                                   // Read in the static and dynamic JSON files
-      $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
-        dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
-      }),
-      $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
-        static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
-      })
-    ).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
-      console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
-      console.log("\n\n\n");
-      console.log("Static Parameters: ");       console.log(static_parameters);   
-      console.log("\n\n\n");
-      
-      //.................. Combine Static and Dynamic Parameters ...............
-      var edition_values = static_parameters.edition.                         // Combine the static and dynamic editions
-                            values.concat(dynamic_parameters.edition.values);
-      var region_values  = static_parameters.region.                          // Combine the static and dynamic regions
-                            values.concat(dynamic_parameters.region.values);
-      var imt_values     = static_parameters.imt.values;                      // Combine the static and dynamic IMTs
-      var vs30_values    = static_parameters.vs30.values;                     // Combine the static and dynamic Vs30 values
+var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
+var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
+$.when(                                                                   // Read in the static and dynamic JSON files
+  $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
+    dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
+  }),
+  $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
+    static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
+  })
+).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
+  console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
+  console.log("\n\n\n");
+  console.log("Static Parameters: ");       console.log(static_parameters);   
+  console.log("\n\n\n");
+  
+  //.................. Combine Static and Dynamic Parameters ...............
+  edition_values = static_parameters.edition.                             // Global variable: Combine the static and dynamic editions
+                        values.concat(dynamic_parameters.edition.values);
+  region_values  = static_parameters.region.                              // Global variable: Combine the static and dynamic regions
+                        values.concat(dynamic_parameters.region.values);
+  imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
+  vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
 
-      console.log("Combined Editions: ");       console.log(edition_values);   
-      console.log("Combined Regions: ");        console.log(region_values);   
-      console.log("Combined IMTs: ");           console.log(imt_values);   
-      console.log("Combined Vs30: ");           console.log(vs30_values);   
-      console.log("\n\n\n");
-      //------------------------------------------------------------------------
+  console.log("Combined Editions: ");       console.log(edition_values);   
+  console.log("Combined Regions: ");        console.log(region_values);   
+  console.log("Combined IMTs: ");           console.log(imt_values);   
+  console.log("Combined Vs30: ");           console.log(vs30_values);   
+  console.log("\n\n\n");
+  //------------------------------------------------------------------------
 
-      //......... Sort Combined Parameters by Display Order Parameter ...........
-      edition_values.sort(sort_displayorder);                                 // Sort the editions by using sort_displayorder function
-      region_values.sort(sort_displayorder);                                  // Sort the regions by using sort_displayorder function       
-      imt_values.sort(sort_displayorder);                                     // Sort the IMTs by using sort_displayorder funtion
-      vs30_values.sort(sort_displayorder);                                    // Sort the Vs30 values by using sort_displayorder function
-      //------------------------------------------------------------------------
+  //......... Sort Combined Parameters by Display Order Parameter ...........
+  edition_values.sort(sort_displayorder);                                 // Sort the editions by using sort_displayorder function
+  region_values.sort(sort_displayorder);                                  // Sort the regions by using sort_displayorder function       
+  imt_values.sort(sort_displayorder);                                     // Sort the IMTs by using sort_displayorder funtion
+  vs30_values.sort(sort_displayorder);                                    // Sort the Vs30 values by using sort_displayorder function
+  //------------------------------------------------------------------------
 
-      //....... Create a Single Parameter Object for Static and Dynamic .........
-      parameters = {
-        type:  "",                    // type will either be static or dynamic based on which is choosen 
-        edition: {                    // Combined static and dynamic editions
-          values: edition_values
-        },
-        region: {                     // Combined static and dynamic editions
-          values: region_values
-        },
-        imt: {                        // Combined static and dynamic IMTs
-          values: imt_values
-        },
-        vs30: {                       // Combined static and dynamic Vs30
-          values: vs30_values
-        }
-      };
-      console.log("Combined Parameters: ");     console.log(parameters);   
-      console.log("\n\n\n");
-      //------------------------------------------------------------------------
+  //....... Create a Single Parameter Object for Static and Dynamic .........
+  parameters = {                  // Global variable of parameters
+    type:  "",                    // type will either be static or dynamic based on which is choosen 
+    edition: {                    // Combined static and dynamic editions
+      values: edition_values
+    },
+    region: {                     // Combined static and dynamic editions
+      values: region_values
+    },
+    imt: {                        // Combined static and dynamic IMTs
+      values: imt_values
+    },
+    vs30: {                       // Combined static and dynamic Vs30
+      values: vs30_values
+    }
+  };
+  console.log("Combined Parameters: ");     console.log(parameters);   
+  console.log("\n\n\n");
+  //------------------------------------------------------------------------
 
-      //.......................... Run Function ................................
-      add_editions();                 // Add editions to menu
-      add_regions();                  // Add regions to menu
-      add_options();                  // Add all other options based on edition and regions selected
-      //-----------------------------------------------------------------------
+  //.......................... Run Function ................................
+  add_editions();                 // Add editions to menu
+  add_regions();                  // Add regions to menu
+  add_options();                  // Add all other options based on edition and regions selected
+  //-----------------------------------------------------------------------
 
-      console.log("------------- End parameter_dependency ------------- \n\n");
-    }); 
+  console.log("------------- End parameter_dependency ------------- \n\n");
+}); 
 
-  }else{                              // If not on startup, file is already read in, just call functions
-    
-    //.......................... Run Function ................................
-    add_regions();                    // Add regions to menu
-    remove_options();                 // First remove all other options except regions and editions                           
-    add_options();                    // Then add all options based on edition and regions selected
-    //-----------------------------------------------------------------------
-
-    console.log("------------- End parameter_dependency ------------- \n\n");
-  }
-    
-}
 
 //--------------------------- End: Parameter Dependency --------------------------------------
 //
@@ -145,23 +157,18 @@ function sort_displayorder(a,b){
 function add_editions(){
   console.log("------------- Start add_editions ------------- ");
 
-  var edition_default  = "E2008";                                     // On startup the default edition will be E2008
-  var edition_id      = document.getElementById("edition");           // Get the edition Div id 
-  var edition_dep     = parameters.edition;                           // Get the edition dependencies (parameters.edition in JSON file) 
-  var edition_values  = edition_dep.values;                           // Get the edition values (parameters.edition.values in JSON file)
-  var nedition        = edition_values.length;                        // Get how many editions there are
-  edition_id.size = nedition;
-  console.log("Parameter Dependicies: ");    console.log(parameters);
-  console.log("Edition Dependicies: ");      console.log(edition_dep);
+  var edition_default = "E2008";                        // On startup the default edition will be E2008
+  var nedition        = edition_values.length;          // Get how many editions there are
+  edition_id.size     = nedition;                       // Set menu size 
  
-  for (var je=0;je<nedition;je++){                                    // Loop through each edition and add that edition as an option in selection menu
-    var edition_option    = document.createElement("option");         // Create an option element 
-    edition_option.text   = edition_values[je].display;               // Set the selection option's text based on the edition display key (parameters.edition.values[index].display) [Example: Dynamic: Conterminous U.S. 2008 (v3.3.1)] 
-    edition_option.value  = edition_values[je].value;                 // Set the selection option's value based on the edition value key (parameters.edition.values[index].value) [Example: E2008]
-    edition_id.add(edition_option);                                   // Add the options to the edition selection menu
+  for (var je in edition_values){                       // Loop through each edition and add that edition as an option in selection menu
+    var option    = document.createElement("option");   // Create an option element 
+    option.text   = edition_values[je].display;         // Set the selection option's text based on the edition display key (parameters.edition.values[index].display) [Example: Dynamic: Conterminous U.S. 2008 (v3.3.1)] 
+    option.value  = edition_values[je].value;           // Set the selection option's value based on the edition value key (parameters.edition.values[index].value) [Example: E2008]
+    edition_id.add(option);                             // Add the options to the edition selection menu
   }
-  edition_id.value = edition_default;                                 // Set the selection menu to the default edition
-
+  edition_id.value = edition_default;                   // Set the selection menu to the default edition
+  
   console.log("------------- End add_editions ------------- \n\n");
 }
 
@@ -186,42 +193,38 @@ function add_editions(){
 function add_regions(){
   console.log("------------- Start add_regions ------------- ");
 
-  var edition_id       = document.getElementById("edition");          // Get the edition Div id 
-  var jedition_select  = edition_id.selectedIndex;                    // Get the selected edition index value 
-  var edition_select   = edition_id.options[jedition_select].value;   // Get the selected edition from the edition menu  
+  var jedition_select   = edition_id.selectedIndex;                   // Get the selected edition index value 
+  var edition_select    = edition_id.options[jedition_select].value;  // Get the selected edition from the edition menu  
+  var edition_supports  = edition_values[jedition_select].supports;   // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSON file) 
+  var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
+  var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
 
-  var edition_values   = parameters.edition.values;                   // Get the edition dependencies (parameters.edition in JSON file) 
-  var edition_supports = edition_values[jedition_select].supports;    // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSON file) 
-
-  var support_values   = edition_supports.region;                     // Set string to get the supported parameters of each variable (example: edition_supports.region) 
-  var parameter_values  = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
-  
-  var region_id         = document.getElementById("region");          // Get the region Div id 
-
-
-  for (var jo in region_id.options){                                  // Loop through the number of options in the region menu
-    region_id.remove(jo);                                             // Remove each menu option
+  for (var jo in region_id.options){                  // Loop through the number of options in the region menu
+    region_id.remove(jo);                             // Remove each menu option
   }
 
   console.log("Supports Region: ");             
-  console.log(support_values);
+  console.log(supported_regions);
 
-  for (var jp in parameter_values){                                   // Loop through the edition support values
-    var region_option   = document.createElement("option");           // Create an option element 
-    region_option.id    = parameter_values[jp].value;                 // Create an id based on the value
-    region_option.text  = parameter_values[jp].display;               // Create the text to show on menu based on the display 
-    region_option.value = parameter_values[jp].value;                 // Set the selection option's value (parameters.region.values[index].value) 
-    region_id.add(region_option);                                     // Add the options to the region menu
-    region_option_id    = document.getElementById(parameter_values[jp].value);
-    region_option_id.disabled = true;
-    for (var jsv in support_values){                                  // Loop through the supported regions of an edition (parameters.edition.values[edition_index].supports in JSON file)
-      if (support_values[jsv] == parameter_values[jp].value)          // Find the matching value to set the text from the display key (parameters.region.WUS.display in JSON file) [Example: Western US]
-      {region_option_id.disabled = false;}
+  for (var jp in parameter_regions){                  // Loop through the edition supported region values
+    var option   = document.createElement("option");  // Create an option element 
+    var value    = parameter_regions[jp].value;       // Get region value   
+    var display  = parameter_regions[jp].display;     // Get region display
+    option.id    = value;                             // Create an id based on the value
+    option.text  = display;                           // Create the text to show on menu based on the display 
+    option.value = value;                             // Set the selection option's value (parameters.region.values[index].value) 
+    region_id.add(option);                            // Add the options to the region menu
+    option_id    = document.getElementById(value);
+    option_id.disabled = true;
+    for (var jsv in supported_regions){               // Loop through the supported regions of an edition (parameters.edition.values[edition_index].supports in JSON file)
+      if (supported_regions[jsv] == value)            // Find the matching value to set the text from the display key (parameters.region.WUS.display in JSON file) [Example: Western US]
+      {option_id.disabled = false;}
     }
   }
-  var region_default = edition_supports.region[0];                    // Set the region defaults based on the edition selected
-  region_id.value    = region_default;                                // Set the default values based on the edition selected
-
+  var region_default = edition_supports.region[0];    // Set the region defaults based on the edition selected
+  region_id.value    = region_default;                // Set the default values based on the edition selected
+  
+  add_options();
   console.log("------------- End add_regions ------------- \n\n");
 }
 
@@ -247,9 +250,6 @@ function add_options(){
   console.log("------------- Start add_options ------------- ");
   remove_options();     // Remove all previous menu item
 
-  var region_id         = document.getElementById("region");                  // Get the region Div id 
-  var region_dep        = parameters.region;                                  // Get the region dependencies (parameters.edition in JSON file)
-  var region_values     = region_dep.values;                                  // Get the region values (parameters.edition.values in JSON file) 
   var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
   var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
   var region_supports   = region_values[jregion_select].supports;             // Get the selected region's support parameters (parameters.region.values[index].supports in JSON file) 
@@ -288,7 +288,6 @@ function add_options(){
     dom_id.value = eval("parameter_defaults."+supports[js]);                  // Set the default values based on the edition selected
   } 
   set_bounds();                                                               // Show the bounds for selected region
-  get_selections();                                                           // Get all selected menu items and call static or dynamic web service
 
   console.log("------------- End add_options ------------- \n\n");
 }
@@ -343,22 +342,17 @@ function remove_options(){
 function set_bounds(){
   console.log("------------- Start set_bounds ------------- ");
 
-  var region_id      = document.getElementById("region");               // Get the region Div id 
   var jregion_select = region_id.selectedIndex;                         // Get the selected region index value 
-  var region_select     = region_id.options[jregion_select].value;      // Get the selected region from the region menu
-  var region_values     = parameters.region.values[jregion_select];     // Get the region values (parameters.region.values[region_index] in JSON file)
+  var region_select  = region_id.options[jregion_select].value;         // Get the selected region from the region menu
+  var region_values  = parameters.region.values[jregion_select];        // Get the region values (parameters.region.values[region_index] in JSON file)
   var min_lat = region_values.minlatitude;                              // Get the minimum latitude value
   var max_lat = region_values.maxlatitude;                              // Get the maximum latitude value
   var min_lon = region_values.minlongitude;                             // Get the minimum longitude value
   var max_lon = region_values.maxlongitude;                             // Get the maximum longitude value
   
-  var lat_bounds_id = document.getElementById("lat_bounds");            // Get latitude bounds dom id
-  var lon_bounds_id = document.getElementById("lon_bounds");            // Get longitude bounds dom id
   lat_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lat+","+max_lat+"]";        // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
   lon_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lon+","+max_lon+"]";        // Set the longitude bound text for the webpage
 
-  var lat_id = document.getElementById("lat");                          // Get latitude dom id
-  var lon_id = document.getElementById("lon");                          // Get longitude dom id
   lat_id.value = (min_lat+max_lat)/2.0;                                 // Calculate the middle latitude value and set as default
   lon_id.value = (min_lon+max_lon)/2.0;                                 // Calculate the middle longitude value and set as defualt
 
@@ -389,7 +383,7 @@ function set_bounds(){
   edition choosen
 */
 
-function get_selections(){
+submit_btn_id.onclick = function(){                                                           // When button is pressed, perform the following
   console.log("------------- Start get_selections ------------- ");
   
   //.............. Get All Selections from the Menus ...................
@@ -472,16 +466,10 @@ function dynamic_call(selection_values){
   console.log("URL to call: "+url+"\n\n");
   //-----------------------------------------------------------
 
-  //...................... Plot Button .........................
-  var submit_id = document.getElementById("submit_url");                                    // Get id of submit_url button
-  submit_id.onclick = function(){                                                           // When button is pressed, perform the following
-    get_hazard(url);                                                                        // Call get_hazard function           
-    };                       
-  //-----------------------------------------------------------
+  get_hazard(url);                                                                        // Call get_hazard function           
   
   //..................... Get Raw Data Button ..................
-  var get_raw = document.getElementById("raw_json");                                        // Get id of the raw_json button
-  get_raw.onclick = function(){
+  raw_btn_id.onclick = function(){
     window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
   };
   //-----------------------------------------------------------
@@ -527,16 +515,10 @@ function static_call(selection_values){
   console.log("URL to call: "+url+"\n\n");
   //-----------------------------------------------------------
 
-  //...................... Plot Button .........................
-  var submit_id = document.getElementById("submit_url");                                    // Get id of submit_url button
-  submit_id.onclick = function(){                                                           // When button is pressed, perform the following
-    get_hazard(url);                                                                        // Call get_hazard function           
-    };                       
-  //-----------------------------------------------------------
+  get_hazard(url);                                                                        // Call get_hazard function           
 
   //..................... Get Raw Data Button ..................
-  var get_raw = document.getElementById("raw_json");                                        // Get id of the raw_json button
-  get_raw.onclick = function(){
+  raw_btn_id.onclick = function(){
     window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
   };
   //-----------------------------------------------------------
@@ -563,8 +545,6 @@ function static_call(selection_values){
 function get_hazard(url){
   console.log("------------- Start get_hazard ------------- ");
   
-  var hazard_plot_id    = document.getElementById("hazard-curves-plot");
-  var component_plot_id = document.getElementById("component-curves-plot");
 
   $.getJSON(url,function(json_return){                    // Get the JSON file that the code generates
     var status = json_return.status;                      // Get the status of the return 
@@ -643,12 +623,6 @@ var plot_size_max = "col-lg-12";
 function plot_setup(){
 
   var type = parameters.type;
-  var hazard_panel_id    = document.getElementById("hazard-plot-panel"); 
-  var hazard_plot_id     = document.getElementById("hazard-curves-plot"); 
-  var hazard_resize_id = document.getElementById("hazard-plot-resize");
-  var component_panel_id = document.getElementById("component-plot-panel"); 
-  var component_plot_id  = document.getElementById("component-curves-plot"); 
-  var component_resize_id = document.getElementById("component-plot-resize");
 
   if (type == "dynamic"){
     hazard_panel_id.style.display    = "initial";  
@@ -733,7 +707,6 @@ function hazard_plot(response){
   var nresponse = response.length;                    // Get number of responses (This will be the number of supported IMTs)
   console.log("Number of responses: " + nresponse);
  
-  var imt_id = document.getElementById("imt");
 
   google.charts.setOnLoadCallback(draw_hazard_curves);
 
@@ -843,7 +816,6 @@ function component_curves_plot(response,selected_imt_display){
   var nresponse = response.length;                    // Get number of responses (This will be the number of supported IMTs)
   console.log("Number of responses: " + nresponse);
 
-  var imt_id = document.getElementById("imt");
   var imt_selection_display = imt_id.options[imt_id.selectedIndex].text;
 
   for (var jr=0;jr<nresponse;jr++){

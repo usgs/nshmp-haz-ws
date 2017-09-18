@@ -82,7 +82,7 @@
     <form>
       <div class="form-group">
         <label for="edition"> Edition: </label>
-        <select class="form-control" id="edition" onchange="parameter_dependency()">
+        <select class="form-control" id="edition" onchange="add_regions()">
         </select>
       </div>
     </form>
@@ -104,7 +104,7 @@
       <form class="form-inline" onsubmit="return false;">
         <label for="lat"> Latitude: <br> <small id="lat_bounds"></small></label> <br>
         <div class="input-group">
-          <input id="lat" class="form-control" oninput="get_selections()" type="text" name="lat" size=10em />
+          <input id="lat" class="form-control" type="text" name="lat" size=10em />
           <div class="input-group-addon">&#176;</div>
         </div>
       </form>
@@ -116,7 +116,7 @@
       <form class="form-inline" onsubmit="return false;">
         <label for="lon"> Longitude: <br> <small id="lon_bounds"></small> </label> <br>
         <div class="input-group">
-          <input id="lon" class="form-control" oninput="get_selections()" type="text" name="lon" size=10em />
+          <input id="lon" class="form-control"  type="text" name="lon" size=10em />
           <div class="input-group-addon">&#176;</div>
         </div>
       </form>
@@ -137,7 +137,7 @@
     <form> 
       <div class="form-group">
         <label for="vs30"> V<sub>s</sub>30: </label>
-        <select class="form-control" id="vs30" onchange="get_selections()">
+        <select class="form-control" id="vs30" >
         </select>
       </div>
     </form>
