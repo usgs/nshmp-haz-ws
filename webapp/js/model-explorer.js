@@ -352,43 +352,45 @@ function remove_options(){
 - The bounds are then add in the webpage under the text field to enter the values
 */
 
-function check_bounds(){
+function check_bounds(is_submit){
   console.log("------------- Start check_bounds ------------- ");
 
-  var jregion_select = region_id.selectedIndex;                         // Get the selected region index value 
-  var region_select  = region_id.options[jregion_select].value;         // Get the selected region from the region menu
-  var region_values  = parameters.region.values[jregion_select];        // Get the region values (parameters.region.values[region_index] in JSON file)
-  var min_lat = region_values.minlatitude;                              // Get the minimum latitude value
-  var max_lat = region_values.maxlatitude;                              // Get the maximum latitude value
-  var min_lon = region_values.minlongitude;                             // Get the minimum longitude value
-  var max_lon = region_values.maxlongitude;                             // Get the maximum longitude value
+  var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
+  var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
+  var region_values  = parameters.region.values[jregion_select];    // Get the region values (parameters.region.values[region_index] in JSON file)
+  var min_lat = region_values.minlatitude;                          // Get the minimum latitude value
+  var max_lat = region_values.maxlatitude;                          // Get the maximum latitude value
+  var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
+  var max_lon = region_values.maxlongitude;                         // Get the maximum longitude value
    
-  lat_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lat+","+max_lat+"]";        // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
-  lon_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lon+","+max_lon+"]";        // Set the longitude bound text for the webpage
+  lat_bounds_id.innerHTML = "Bounds for " + region_select
+                              +" ["+min_lat+","+max_lat+"]";        // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
+  lon_bounds_id.innerHTML = "Bounds for " + region_select
+                              +" ["+min_lon+","+max_lon+"]";        // Set the longitude bound text for the webpage
 
-  var lat = lat_id.value;                                               // Get latitude value
-  var lon = lon_id.value;                                               // Get longitude value
+  var lat = lat_id.value;                                           // Get latitude value
+  var lon = lon_id.value;                                           // Get longitude value
 
-  var can_submit_lat = false;                                           // Boolean to see if latitude is within bounds
-  var can_submit_lon = false;                                           // Boolean to see if longitude is within bounds
-
-  if (lat && (lat < min_lat || lat > max_lat)){                         // Check to see if lat value exists and within bounds
-    lat_bounds_id.style.color = "red";                                  // Set text color to red if not in bounds
-    can_submit_lat = false;                                             // Set flag false
-    lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
-  }else{
-    lat_bounds_id.style.color = "black";                                // If within bounds set text to black
-    can_submit_lat = true;                                              // Set flag true
+  var can_submit_lat = false;                                       // Boolean to see if latitude is within bounds
+  var can_submit_lon = false;                                       // Boolean to see if longitude is within bounds
+  if (is_submit){                                                   // Check bounds 
+    if (lat < min_lat || lat > max_lat){                            // Check to see if lat value exists and within bounds
+      lat_bounds_id.style.color = "red";                            // Set text color to red if not in bounds
+      can_submit_lat = false;                                       // Set flag false
+      lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
+    }else{
+      lat_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lat = true;                                        // Set flag true
+    }
+    if (lon < min_lon || lon > max_lon){                            // Check to see if lon value exists and within bounds
+      lon_bounds_id.style.color = "red";                            // Set text color to ref if not in bounds
+      can_submit_lon = false;                                       // Set false
+      lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
+    }else{
+      lon_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lon = true;                                        // Set true
+    }
   }
-  if (lon && (lon < min_lon || lon > max_lon)){                         // Check to see if lon value exists and within bounds
-    lon_bounds_id.style.color = "red";                                  // Set text color to ref if not in bounds
-    can_submit_lon = false;                                             // Set false
-    lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
-  }else{
-    lon_bounds_id.style.color = "black";                                // If within bounds set text to black
-    can_submit_lon = true;                                              // Set true
-  }
-  
   console.log("Region Values: ");       console.log(jregion_select);
   console.log("Min Lat: " + min_lat);
   console.log("Max Lat: " + max_lat);
@@ -439,7 +441,7 @@ submit_btn_id.onclick = function(){                                           //
   }
   //-------------------------------------------------------------------
 
-  var can_submit = check_bounds();
+  var can_submit = check_bounds(true);
 
   //................. Check If Static or Dynamic Edition ..............
   if (can_submit[0] && can_submit[1]){
