@@ -363,10 +363,10 @@ function check_bounds(is_submit){
   var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
   var max_lon = region_values.maxlongitude;                         // Get the maximum longitude value
    
-  lat_bounds_id.innerHTML = "Bounds for " + region_select
-                              +" ["+min_lat+","+max_lat+"]";        // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
-  lon_bounds_id.innerHTML = "Bounds for " + region_select
-                              +" ["+min_lon+","+max_lon+"]";        // Set the longitude bound text for the webpage
+  lat_bounds_id.innerHTML = region_select + " bounds: " +
+                              " ["+min_lat+","+max_lat+"]";         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
+  lon_bounds_id.innerHTML = region_select + " bounds: " +
+                              " ["+min_lon+","+max_lon+"]";         // Set the longitude bound text for the webpage
 
   var lat = lat_id.value;                                           // Get latitude value
   var lon = lon_id.value;                                           // Get longitude value
