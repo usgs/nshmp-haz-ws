@@ -40,3 +40,10 @@
 /* ............... Forms ................. */
 
 
+
+/* ......... Lat/Lon Bounds ............. */
+#lat_bounds,
+#lon_bounds{
+  color: black;
+  opacity: 0.8;
+}

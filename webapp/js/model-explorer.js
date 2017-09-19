@@ -163,8 +163,11 @@ function add_editions(){
  
   for (var je in edition_values){                       // Loop through each edition and add that edition as an option in selection menu
     var option    = document.createElement("option");   // Create an option element 
-    option.text   = edition_values[je].display;         // Set the selection option's text based on the edition display key (parameters.edition.values[index].display) [Example: Dynamic: Conterminous U.S. 2008 (v3.3.1)] 
-    option.value  = edition_values[je].value;           // Set the selection option's value based on the edition value key (parameters.edition.values[index].value) [Example: E2008]
+    var value     = edition_values[je].value;
+    var display   = edition_values[je].display;
+    display       = display.replace("&amp;","&");
+    option.text   = display;                            // Set the selection option's text based on the edition display key (parameters.edition.values[index].display) [Example: Dynamic: Conterminous U.S. 2008 (v3.3.1)] 
+    option.value  = value;                              // Set the selection option's value based on the edition value key (parameters.edition.values[index].value) [Example: E2008]
     edition_id.add(option);                             // Add the options to the edition selection menu
   }
   edition_id.value = edition_default;                   // Set the selection menu to the default edition
@@ -198,18 +201,23 @@ function add_regions(){
   var edition_supports  = edition_values[jedition_select].supports;   // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSON file) 
   var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
   var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
-
-  for (var jo in region_id.options){                  // Loop through the number of options in the region menu
-    region_id.remove(jo);                             // Remove each menu option
-  }
-
+  
   console.log("Supports Region: ");             
   console.log(supported_regions);
+  
+  var noptions  = region_id.options.length;           // Get length of options 
+  for (var jr=0;jr<noptions;jr++){                    // Loop through all options and remove 
+    region_id.remove(0);
+  }
+  
+  lat_id.value = null;                                // Reset the latitude values
+  lon_id.value = null;                                // Reset the longitude values
 
   for (var jp in parameter_regions){                  // Loop through the edition supported region values
     var option   = document.createElement("option");  // Create an option element 
     var value    = parameter_regions[jp].value;       // Get region value   
     var display  = parameter_regions[jp].display;     // Get region display
+    display      = display.replace("&amp;","&");
     option.id    = value;                             // Create an id based on the value
     option.text  = display;                           // Create the text to show on menu based on the display 
     option.value = value;                             // Set the selection option's value (parameters.region.values[index].value) 
@@ -221,10 +229,11 @@ function add_regions(){
       {option_id.disabled = false;}
     }
   }
-  var region_default = edition_supports.region[0];    // Set the region defaults based on the edition selected
-  region_id.value    = region_default;                // Set the default values based on the edition selected
+  var region_default = supported_regions[0];          // Get default region value
+  region_id.value = region_default;                   // Set value in menu
   
-  add_options();
+  add_options();                                      // Add other options based on selected region
+
   console.log("------------- End add_regions ------------- \n\n");
 }
 
@@ -265,29 +274,32 @@ function add_options(){
   
   for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
     var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var support_values   = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
-    support_values       = eval(support_values);                              // Evaluate string to get the supported parameters (parameters.region.values[region_index].supports[support_index] in JSON file)
+    var supported_values = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
+    supported_values     = eval(supported_values);                            // Evaluate string to get the supported parameters (parameters.region.values[region_index].supports[support_index] in JSON file)
     var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.imt) 
     parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.imt in JSON file)
 
-    console.log("Supports " + supports[js] +": ");    console.log(support_values);
+    console.log("Supports " + supports[js] +": ");    console.log(supported_values);
     
     for (var jp in parameter_values){                                         // Loop through the edition support values
       var option    = document.createElement("option");                       // Create an option element 
-      option.id     = parameter_values[jp].value;                             // Set an id based on value
-      option.text   = parameter_values[jp].display;                           // Set display
-      option.value  = parameter_values[jp].value;                             // Set the selection options values 
+      var value     = parameter_values[jp].value;
+      var display   = parameter_values[jp].display;
+      display       = display.replace("&amp;","&");
+      option.id     = value;                                                  // Set an id based on value
+      option.text   = display;                                                // Set display
+      option.value  = value;                                                  // Set the selection options values 
       dom_id.add(option);                                                     // Add the options to the menus of imt and vs30
       option_id = document.getElementById(parameter_values[jp].value);        // Get dom id of option
       option_id.disabled = true;                                              // Set all to disabled at first
-      for (var jsv in support_values){                                        // Loop through the parameter values for a supported variable (parameters.imt in JSON file)
-        if (support_values[jsv] == parameter_values[jp].value)                // Find the matching value to set the text from the display key 
+      for (var jsv in supported_values){                                      // Loop through the parameter values for a supported variable (parameters.imt in JSON file)
+        if (supported_values[jsv] == parameter_values[jp].value)              // Find the matching value to set the text from the display key 
         {option_id.disabled   = false;}
       }
     }
-    dom_id.value = eval("parameter_defaults."+supports[js]);                  // Set the default values based on the edition selected
+    dom_id.value = supported_values[0];                                       // Set the default value to Please Select ... 
   } 
-  set_bounds();                                                               // Show the bounds for selected region
+  check_bounds();                                                             // Show the bounds for selected region
 
   console.log("------------- End add_options ------------- \n\n");
 }
@@ -315,8 +327,9 @@ function remove_options(){
   var ids = ["imt","vs30"];                             // Selection menu ids
   for (ji in ids){                                      // Loop through the menus
     var dom_id = document.getElementById(ids[ji]);      // Get the dom id from ids
-    for (jo in dom_id.options){                         // Loop through the number of options in each menu
-      dom_id.remove(jo);                                // Remove each menu option
+    var noptions = dom_id.options.length;
+    for (var jo=0;jo<noptions;jo++){                    // Loop through the number of options in each menu
+      dom_id.remove(0);                                 // Remove each menu option
     }
   }
 
@@ -334,13 +347,13 @@ function remove_options(){
 //........................... Set Latitude and Longitude Bounds ..............................
 
 /*
-- The set_bounds function will look at the supported bounds for the region
+- The check_bounds function will look at the supported bounds for the region
   as stated in the parameter depenency JSON file. 
 - The bounds are then add in the webpage under the text field to enter the values
 */
 
-function set_bounds(){
-  console.log("------------- Start set_bounds ------------- ");
+function check_bounds(){
+  console.log("------------- Start check_bounds ------------- ");
 
   var jregion_select = region_id.selectedIndex;                         // Get the selected region index value 
   var region_select  = region_id.options[jregion_select].value;         // Get the selected region from the region menu
@@ -349,20 +362,41 @@ function set_bounds(){
   var max_lat = region_values.maxlatitude;                              // Get the maximum latitude value
   var min_lon = region_values.minlongitude;                             // Get the minimum longitude value
   var max_lon = region_values.maxlongitude;                             // Get the maximum longitude value
-  
+   
   lat_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lat+","+max_lat+"]";        // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
   lon_bounds_id.innerHTML = "Bounds for " + region_select+" ["+min_lon+","+max_lon+"]";        // Set the longitude bound text for the webpage
 
-  lat_id.value = (min_lat+max_lat)/2.0;                                 // Calculate the middle latitude value and set as default
-  lon_id.value = (min_lon+max_lon)/2.0;                                 // Calculate the middle longitude value and set as defualt
+  var lat = lat_id.value;                                               // Get latitude value
+  var lon = lon_id.value;                                               // Get longitude value
 
+  var can_submit_lat = false;                                           // Boolean to see if latitude is within bounds
+  var can_submit_lon = false;                                           // Boolean to see if longitude is within bounds
+
+  if (lat && (lat < min_lat || lat > max_lat)){                         // Check to see if lat value exists and within bounds
+    lat_bounds_id.style.color = "red";                                  // Set text color to red if not in bounds
+    can_submit_lat = false;                                             // Set flag false
+    lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
+  }else{
+    lat_bounds_id.style.color = "black";                                // If within bounds set text to black
+    can_submit_lat = true;                                              // Set flag true
+  }
+  if (lon && (lon < min_lon || lon > max_lon)){                         // Check to see if lon value exists and within bounds
+    lon_bounds_id.style.color = "red";                                  // Set text color to ref if not in bounds
+    can_submit_lon = false;                                             // Set false
+    lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
+  }else{
+    lon_bounds_id.style.color = "black";                                // If within bounds set text to black
+    can_submit_lon = true;                                              // Set true
+  }
+  
   console.log("Region Values: ");       console.log(jregion_select);
   console.log("Min Lat: " + min_lat);
   console.log("Max Lat: " + max_lat);
   console.log("Min Lon: " + min_lon);
   console.log("Max Lon: " + max_lon);
-
-  console.log("------------- End set_bounds ------------- \n\n");
+  console.log("------------- End check_bounds ------------- \n\n");
+  
+  return [can_submit_lat,can_submit_lon];
 }
 
 //----------------------------- End: Set Bounds ----------------------------------------------
@@ -383,7 +417,7 @@ function set_bounds(){
   edition choosen
 */
 
-submit_btn_id.onclick = function(){                                                           // When button is pressed, perform the following
+submit_btn_id.onclick = function(){                                           // When button is pressed, perform the following
   console.log("------------- Start get_selections ------------- ");
   
   //.............. Get All Selections from the Menus ...................
@@ -405,20 +439,24 @@ submit_btn_id.onclick = function(){                                             
   }
   //-------------------------------------------------------------------
 
+  var can_submit = check_bounds();
+
   //................. Check If Static or Dynamic Edition ..............
-  var edition_selection = selection_values[jed];                              // Get selected edition 
-  var static_edition_values  = static_parameters.edition.values;              // Get all static edition values
-  var dynamic_edition_values = dynamic_parameters.edition.values;             // Get all dynamic edition values
-  for (var je in dynamic_edition_values){                                     // Loop through all dynamic editions 
-    if (edition_selection == dynamic_edition_values[je].value){               // Check if selected edition is dynamic
-      parameters.type = "dynamic";                                            // If using dynamic set the type 
-      dynamic_call(selection_values);                                         // Use dynamic web services
+  if (can_submit[0] && can_submit[1]){
+    var edition_selection = selection_values[jed];                              // Get selected edition 
+    var static_edition_values  = static_parameters.edition.values;              // Get all static edition values
+    var dynamic_edition_values = dynamic_parameters.edition.values;             // Get all dynamic edition values
+    for (var je in dynamic_edition_values){                                     // Loop through all dynamic editions 
+      if (edition_selection == dynamic_edition_values[je].value){               // Check if selected edition is dynamic
+        parameters.type = "dynamic";                                            // If using dynamic set the type 
+        dynamic_call(selection_values);                                         // Use dynamic web services
+      }
     }
-  }
-  for (var je in static_edition_values){                                      // Loop through all static editions
-    if (edition_selection == static_edition_values[je].value){                // Check if selected edition is static
-      parameters.type = "static";                                             // If using static set the type
-      static_call(selection_values);                                          // Use static web services
+    for (var je in static_edition_values){                                      // Loop through all static editions
+      if (edition_selection == static_edition_values[je].value){                // Check if selected edition is static
+        parameters.type = "static";                                             // If using static set the type
+        static_call(selection_values);                                          // Use static web services
+      }
     }
   }
   //--------------------------------------------------------------------
@@ -686,6 +724,9 @@ function plot_collapse(plot_name){
   }
 }
 */
+
+
+
 
 //############################################################################################
 //
