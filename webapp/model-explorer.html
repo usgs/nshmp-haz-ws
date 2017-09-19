@@ -27,10 +27,10 @@
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <!-- ............. Google Charts ............. -->
    
-  <!-- ........... Bring CSS Files ....... -->
-  <link rel="stylesheet" href="css/template_me.css">
+  <!-- ........... CSS Files ....... -->
+  <link rel="stylesheet" href="css/template.css">
   <link rel="stylesheet" href="css/model-explorer.css">
-  <!-- ........... Bring CSS Files ....... -->
+  <!-- ........... CSS Files ....... -->
  
 </head>
 <!-- ................... Head ................ -->
@@ -47,7 +47,8 @@
   <div id="header">
     <span class="title">Hazard Curves</span>
     <div id="header-menu" class="dropdown-toggle"  data-toggle="dropdown"> 
-      <span class="glyphicon glyphicon-menu-hamburger"></span></div>
+      <span class="glyphicon glyphicon-menu-hamburger"></span>
+    </div>
     <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="header-menu" >
       <li><a href="spectra-plot.html"  >Response Spectra</a> </li>
       <li><a href="model-explorer.html">Model Explorer  </a> </li>
@@ -73,78 +74,72 @@
   <!-- ############################################ -->
 
 
+
   <!-- ##################################################################################### -->
   <!-- -->
   <!-- ................................. Control Panel ..................................... -->
   <div id="control" >
-  
-    <!-- .................. Edition Menu ........................ -->
-    <form>
-      <div class="form-group">
-        <label for="edition"> Edition: </label>
-        <select class="form-control" id="edition" onchange="add_regions()">
-        </select>
-      </div>
-    </form>
-    <!-- ............. End: Edition Menu ........................ -->
+    <form id="inputs">
+      <div class="form-horizontal">
 
-    <!-- .................. Region Menu ......................... -->
-    <form> 
-      <div class="form-group">
-        <label for="region"> Region: </label>
-        <select class="form-control" id="region" onchange="add_options()">
-        </select>
-      </div>
-    </form>
-    <!-- .................. End: Region Menu .................... -->
-
-
-    <!-- .................. Enter Latitude ...................... -->
-    <div class="form-group">
-      <form class="form-inline" onsubmit="return false;">
-        <label for="lat"> Latitude: <br> <small id="lat_bounds"></small></label> <br>
-        <div class="input-group">
-          <input id="lat" class="form-control" type="text" name="lat" size=10em />
-          <div class="input-group-addon">&#176;</div>
+        <!-- .................. Edition Menu ........................ -->
+        <div class="form-group">
+          <label class="control-spacer control-group" for="edition"> Edition: </label>
+          <select class="form-control" id="edition" onchange="add_regions()">
+          </select>
         </div>
-      </form>
-    </div>
-    <!-- .................. End: Enter Latitude ................. -->
+        <!-- ............. End: Edition Menu ........................ -->
 
-    <!-- .................. Enter Logitude ...................... -->
-    <div class="form-group">
-      <form class="form-inline" onsubmit="return false;">
-        <label for="lon"> Longitude: <br> <small id="lon_bounds"></small> </label> <br>
-        <div class="input-group">
-          <input id="lon" class="form-control"  type="text" name="lon" size=10em />
-          <div class="input-group-addon">&#176;</div>
+        <!-- .................. Region Menu ......................... -->
+        <div class="form-group form-group-sm">
+          <label class="control-spacer control-group" for="region"> Region: </label>
+          <select class="form-control" id="region" onchange="add_options()">
+          </select>
         </div>
-      </form>
-    </div>
-    <!-- .................. End: Enter Logitude ................. -->
+        <!-- .................. End: Region Menu .................... -->
 
-    <!-- .................. IMT Menu ............................ -->
-    <form> 
-      <div class="form-group">
-        <label for="imt"> Intensity Measure Type: </label>
-        <select class="form-control" id="imt">
-        </select>
-      </div>
+        <!-- .................. Enter Latitude ...................... -->
+        <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+          <label class="control-spacer control-group" 
+            for="lat"> Latitude: <br> <small id="lat_bounds"></small>
+          </label> <br>
+          <div class="input-group">
+            <input id="lat" class="form-control" type="text" name="lat"  />
+            <div class="input-group-addon">&#176;</div>
+          </div>
+        </div>
+        <!-- .................. End: Enter Latitude ................. -->
+
+        <!-- .................. Enter Logitude ...................... -->
+        <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+          <label class="control-spacer control-group" 
+            for="lon"> Longitude: <br> <small id="lon_bounds"></small> 
+          </label> <br>
+          <div class="input-group">
+            <input id="lon" class="form-control"  type="text" name="lon" />
+            <div class="input-group-addon">&#176;</div>
+          </div>
+        </div>
+        <!-- .................. End: Enter Logitude ................. -->
+
+        <!-- .................. IMT Menu ............................ -->
+        <div class="form-group form-group-sm">
+          <label class="control-spacer control-group" for="imt"> Intensity Measure Type: </label>
+          <select class="form-control" id="imt">
+          </select>
+        </div>
+        <!-- .................. End: Imt Menu ....................... -->
+
+        <!-- .................. Vs30 Menu ........................... -->
+        <div class="form-group form-group-sm">
+          <label class="control-spacer control-group" for="vs30"> V<sub>s</sub>30: </label>
+          <select class="form-control" id="vs30" >
+          </select>
+        </div>
+        <!-- .................. End: Vs30 Menu ...................... -->
+
+      </div> 
     </form>
-    <!-- .................. End: Imt Menu ....................... -->
-
-    <!-- .................. Vs30 Menu ........................... -->
-    <form> 
-      <div class="form-group">
-        <label for="vs30"> V<sub>s</sub>30: </label>
-        <select class="form-control" id="vs30" >
-        </select>
-      </div>
-    </form>
-    <!-- .................. End: Vs30 Menu ...................... -->
-  
-
-
   </div> 
   <!-- ............................ End: Control Panel ..................................... -->
   <!-- -->
@@ -155,15 +150,18 @@
   <!-- ##################################################################################### -->
   <!-- -->
   <!-- ................................. Plots ............................................. -->
-  <div id="plot-container">
+  <div id="content">
 
     <!-- ................. Hazard Curves Plot ........... -->
     <div id="hazard-plot-panel" style="display:none;">
       <div class="panel panel-default">
         <div class="panel-heading" id="plot-title">
-          <span id="hazard-plot-collapse" class="glyphicon glyphicon-chevron-up" data-toggle="collapse" 
-            data-target="#hazard-curves-plot" aria-expanded="true" style="display:none"></span> 
-          Hazard Curves 
+          <span id="hazard-plot-collapse" 
+                class="glyphicon glyphicon-chevron-up" 
+                data-toggle="collapse" 
+                data-target="#hazard-curves-plot" 
+                aria-expanded="true" style="display:none"></span> 
+            Hazard Curves 
           <span id="hazard-plot-resize" style="float:right;" ></span>
         </div> 
         <div class="panel-body collapse in" id="hazard-curves-plot"></div>
@@ -175,9 +173,12 @@
     <div  id="component-plot-panel" style="display:none;">
       <div  class="panel panel-default">
         <div class="panel-heading" id="component-plot-title">
-          <span id="component-plot-collapse" class="glyphicon glyphicon-chevron-up" data-toggle="collapse" 
-            data-target="#component-curves-plot" aria-expanded="true" style="display:none"></span> 
-          Component Curves <span id="component-plot-text"></span> 
+          <span id="component-plot-collapse" 
+                class="glyphicon glyphicon-chevron-up" 
+                data-toggle="collapse" 
+                data-target="#component-curves-plot" 
+                aria-expanded="true" style="display:none"></span> 
+            Component Curves <span id="component-plot-text"></span> 
           <span id="component-plot-resize" style="float:right;" ></span>
         </div>
         <div class="panel-body collapse in" id="component-curves-plot"> </div>
@@ -192,8 +193,6 @@
 
 </body>
 <!-- ................... Body ................ -->
-
-
 
 </html>
 
