@@ -1,5 +1,4 @@
-nshmp-haz-ws
-============
+## nshmp-haz-ws
 
 U.S. Geological Survey ([USGS](https://www.usgs.gov)) National Seismic Hazard Mapping Project ([NSHMP](https://earthquake.usgs.gov/hazards/)) web service code.
 
