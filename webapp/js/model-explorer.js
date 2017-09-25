@@ -5,7 +5,7 @@
 //
 //................................. Main DOM Ids ............................................. 
 
-var edition_id    = document.getElementById("edition");                     // Edition select menu id 
+var edition_id    = document.getElementById("edition");                     // Edition select menu id $("#edition") 
 var region_id     = document.getElementById("region");                      // Region select menu id 
 var imt_id        = document.getElementById("imt");                         // IMT select menu id
 var lat_bounds_id = document.getElementById("lat_bounds");                  // Latitude bounds label id
