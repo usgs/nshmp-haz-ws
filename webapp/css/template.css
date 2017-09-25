@@ -1,49 +1,185 @@
+/*######################################################
+#
+# Main CSS for webapps with a control panel:
+#   - spectra-plot
+#   - model-explorer
+#
+######################################################*/
 
-#header {
-  background: black url('../img/usgs_logo.png') 0px/84px no-repeat;
+
+
+
+/*###################################################*/
+/**/
+/*.................... Main Body ....................*/
+
+html, body{
+  height:100%;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+/*------------------ End: Main Body -----------------*/
+/**/
+/*###################################################*/
+
+
+
+
+/*###################################################*/
+/**/
+/*..................... Header ......................*/
+
+/*..................... Header ......................*/
+#header{
+  background: black url("../img/usgs_logo.png") 0px/84px no-repeat;
   background-position: 3px 3px;
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1.6em;
-  padding-right: 8px;
-  font-size: 18px;
-  font-weight: 300;
+	position: fixed;
   color: white;
-  text-align: right;
+  z-index: 100;
+	top: 0;
+	left: 0;
+	right: 0;
+  height: 1.6em;
   line-height: 1.6em;
+  text-align: right;
+  padding-right: 8px;
+  font-weight: 300;
+  font-size: 18px;
   box-sizing: border-box;
   box-shadow: 0px 0px 3px 2px #999;
 }
+/*---------------------------------------------------*/
 
-#header .title {
+
+/*................. Header Title ....................*/
+#header .title{
   padding-right: 8px;
 }
+/*---------------------------------------------------*/
 
-#header .glyphicon {
+
+/*................. Header Menu .....................*/
+#header #header-menu{
+  float:right;
+}
+/*---------------------------------------------------*/
+
+
+/*........... Header Glyphicon Hover.................*/
+#header .glyphicon-menu-hamburger:hover{
+  cursor:pointer;
+}
+/*---------------------------------------------------*/
+
+
+/*............. Header Glyphicon ....................*/
+#header .glyphicon{
   top: 3px;
 }
+/*---------------------------------------------------*/
 
-#header #header-menu {
-  float: right;
+/*-------------- End: Header ------------------------*/
+/**/
+/*###################################################*/
+
+
+
+
+/*###################################################*/
+/**/
+/* .................... Footer ..................... */
+
+#footer{
+	position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #f7f7f7;
+  border-top: 1px solid #bbb;
+  box-shadow: 0px 0px 3px 1px #ccc;
+  padding: 8px;
+  z-index: 101;
+  height: 3.5em;
 }
+/*-------------- End: Footer ----------------------- */
+/**/
+/*###################################################*/
 
-#control {
+
+
+
+/*###################################################*/
+/**/
+/*.................. Control Panel ..................*/
+
+/*.................. Control Panel ..................*/
+#control{
+  background-color: #f7f7f7;
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  width: 400px;
   margin: 2em 0 3.5em 0;
-  padding: 20px;
+  padding:20px;
+  width: 400px;
   overflow: auto;
   border-right: 1px solid #ddd;
-  background-color: #f7f7f7;
+}
+/*---------------------------------------------------*/
+
+
+/*.................... Forms .......................*/
+.form-horizontal .form-group{
+  margin-right: -5px;
+  margin-left: -5px;
+  margin-bottom: 6px;
+  padding: 2px 4px;
 }
 
-#content {
+
+option {
+  color: black;
+}
+
+
+label {
+  font-weight: 500;
+}
+
+label.control-group {
+  font-weight: 700;
+}
+
+
+label.control-spacer {
+  margin-top: 8px;
+}
+
+.form-inline label small{
+  font-weight: normal;
+}
+
+.form-horizontal  .form-control{
+  font-size: 12px;
+}
+
+.form-horizontal .form-group-sm .control-label {
+  padding-top: 3px;
+}
+/*---------------------------------------------------*/
+
+
+/*----------- End: Control Panel  -------------------*/
+/**/
+/*###################################################*/
+
+
+
+
+/*###################################################*/
+/**/
+/*................... Main Content ..................*/
+
+#content{
   position: fixed;
   top: 0;
   left: 0;
@@ -51,16 +187,11 @@
   right: 0;
   margin: 2em 0 3.5em 400px;
   padding: 20px;
+  overflow: auto;
 }
+/*-------------- End: Main Content -------------------*/
+/**/
+/*###################################################*/
 
-#footer {
-  position: fixed;
-  z-index: 101;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px;
-  background-color: #f7f7f7;
-  border-top: 1px solid #bbb;
-  box-shadow: 0px 0px 3px 1px #ccc;
-}
+
+
