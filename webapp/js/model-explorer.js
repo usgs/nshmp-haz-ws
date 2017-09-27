@@ -658,7 +658,7 @@ function hazard_plot(response){
 
   var plot_id = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;    // Get the IMT selection
-
+  
   //.................. JSON Variables based on Edition Type ..................
   if (parameters.type == "dynamic"){        // If using dynamic edition
     var xvalue_variable = "xvalues";
@@ -682,7 +682,11 @@ function hazard_plot(response){
   var imt_values          = [];
   for (var jr in response){
     var data                = response[jr].data;                                                // Get the data for each response
-    var jtotal              = data.findIndex(function(d,i){return d.component == "Total"});     // Return the index for the Total component
+    if (parameters.type == "dynamic"){
+      var jtotal             = data.findIndex(function(d,i){return d.component == "Total"});     // Return the index for the Total component
+    }else{
+      var jtotal            = 0;
+    }
     total_hazard_data[jr]   = d3.zip(xvalues,data[jtotal][yvalue_variable]);                    // Create the array of x,y pairs for D3
     total_hazard_labels[jr] = response[jr].metadata.imt.display;                                // Create the array of labels
     imt_values[jr]          = response[jr].metadata.imt.value;
@@ -712,40 +716,68 @@ function hazard_plot(response){
     var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;
     plot_selection(plot_id,selected_imt_value);
     component_curves_plot(response);                     // Plot component curves      
-
-    imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update component plot
-      var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;
-      plot_selection_reset(plot_id);
-      plot_selection(plot_id,selected_imt_value);
-      component_curves_plot(response);                   // Plot component curves with new selection
-    };      
-
-
-    d3.select("#"+plot_id + " svg")
-      .selectAll(".data")
-      .on("click",function(d,i){
-        var selected_imt_value = d3.select(this).attr("id"); 
-        imt_id.value = selected_imt_value;
-
-        plot_selection_reset(plot_id);     
-        plot_selection(plot_id,selected_imt_value);
-
-        component_curves_plot(response);                   // Plot component curves with new selection
-      }); 
-    
-    d3.select("#"+plot_id + " svg")
-      .select(".legend")
-      .selectAll(".legend-entry")
-      .on("click",function(d,i){
-        var selected_imt_value = d3.select(this).attr("id");
-        imt_id.value = selected_imt_value;
-
-        plot_selection_reset(plot_id);     
-        plot_selection(plot_id,selected_imt_value);
-
-        component_curves_plot(response);                   // Plot component curves with new selection
-      });
   }
+
+  imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update component plot
+    var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;
+    plot_selection_reset(plot_id);
+    plot_selection(plot_id,selected_imt_value);
+    if (parameters.type == "dynamic"){
+      component_curves_plot(response);                   // Plot component curves with new selection
+    }
+  };      
+
+
+  d3.select("#"+plot_id + " svg")
+    .selectAll(".data")
+    .on("click",function(d,i){
+      var selected_imt_value = d3.select(this).attr("id"); 
+      imt_id.value = selected_imt_value;
+
+      plot_selection_reset(plot_id);     
+      plot_selection(plot_id,selected_imt_value);
+      if (parameters.type == "dynamic"){
+        component_curves_plot(response);                   // Plot component curves with new selection
+      }
+    }); 
+  
+  d3.select("#"+plot_id + " svg")
+    .select(".legend")
+    .selectAll(".legend-entry")
+    .on("click",function(d,i){
+      var selected_imt_value = d3.select(this).attr("id");
+      imt_id.value = selected_imt_value;
+
+      plot_selection_reset(plot_id);     
+      plot_selection(plot_id,selected_imt_value);
+
+      if (parameters.type == "dynamic"){
+        component_curves_plot(response);                   // Plot component curves with new selection
+      }
+    });
+      
+
+
+  d3.select("#"+plot_id + " svg")
+    .select(".all-data")
+    .selectAll(".dot")
+    .on("mouseover",function(d,i){
+      var cx = d3.select(this).attr("cx");
+      var cy = d3.select(this).attr("cy");
+      var imt_value   = d3.select(this.parentNode).attr("id");
+      var imt_display = imt_id.options[imt_value].text; 
+      var xval = d3.select(this).data()[0][0]; 
+      var yval = d3.select(this).data()[0][1].toExponential(4);
+      var tooltip_text = [
+        "IMT: "    + imt_display,
+        "GM (g): " + xval,
+        "AFE: "    + yval]
+      tooltip_mouseover(plot_id,this,cx,cy,tooltip_text);
+
+    })
+    .on("mouseout",function(d,i){
+      tooltip_mouseout(plot_id,this);
+    });
   //--------------------------------------------------------------------------
   
 } 
@@ -754,23 +786,26 @@ function hazard_plot(response){
 //############################################################################################
 
 
-function plot_selection(plot_id,selected_imt_value){
+function plot_selection(plot_id,selected_id){
   
   var svg = d3.select("#"+plot_id + " svg");
 
   svg.select(".all-data")
-    .select("#"+selected_imt_value)
+    .select("#"+selected_id)
     .select(".line")
     .attr("stroke-width",line_width+2);
 
   svg.select(".all-data")
-    .select("#"+selected_imt_value)
+    .select("#"+selected_id)
     .selectAll(".dot")
     .attr("r",circle_size+2);
   
-
+  svg.select(".all-data")
+    .select("#"+selected_id)
+    .raise();
+  
   var leg = svg.select(".legend")
-    .select("#"+selected_imt_value);
+    .select("#"+selected_id);
   
   leg.select(".legend-line")
     .attr("stroke-width",line_width+2)
@@ -779,7 +814,7 @@ function plot_selection(plot_id,selected_imt_value){
     .attr("r",circle_size+2);
   
   leg.select(".legend-text")
-          .style("font-weight","bold");
+    .style("font-weight","bold");
 }
 
 
@@ -808,6 +843,66 @@ function plot_selection_reset(plot_id){
     .attr("r",circle_size);
 }
 
+
+
+function tooltip_mouseover(plot_id,circle_select,cx,cy,tooltip_text){
+
+  var tooltip = d3.select("#"+plot_id +" svg")
+    .select(".d3-tooltip");
+
+  var dy = 40;
+  var tooltip_width  = 225;
+  var tooltip_height = 60; 
+  tooltip.append("rect")
+    .attr("class","tooltip-outline")
+    .attr("height",tooltip_height)
+    .attr("width",tooltip_width)
+    .attr("x",cx-tooltip_width/2)
+    .attr("y",cy-tooltip_height/2-dy)
+    .attr("stroke","#999")
+    .attr("fill","white");
+
+  tooltip.selectAll("text")
+    .data(tooltip_text)
+    .enter()
+    .append("text")
+      .attr("class","tooltip-text")
+      .attr("transform","translate(0,"+(cy-dy-tooltip_height/4)+")")
+      .attr("font-size",11)
+      .attr("x",cx-tooltip_width/2+10)
+      .attr("y",function(d,i){return i*16} )
+      .attr("alignment-baseline","central")
+      .text(function(d,i){return d});
+  
+  var rcircle = d3.select(circle_select).attr("r");
+  if (rcircle == circle_size){
+    d3.select(circle_select).attr("r",circle_size+2);
+  }else{
+    d3.select(circle_select).attr("r",circle_size+4);
+  }
+
+  tooltip.raise();
+
+}
+
+
+
+function tooltip_mouseout(plot_id,circle_select){
+
+  var tooltip = d3.select("#"+plot_id +" svg")
+    .select(".d3-tooltip");
+
+  tooltip.selectAll("text").remove();
+  tooltip.select("rect").remove();
+
+  var rcircle = d3.select(circle_select).attr("r");
+  if (rcircle == circle_size+4){
+    d3.select(circle_select).attr("r",circle_size+2);
+  }else{
+    d3.select(circle_select).attr("r",circle_size);
+  }
+
+}
 
 
 //############################################################################################
@@ -862,7 +957,49 @@ function component_curves_plot(response){
   console.log("\n\n");
   plot_curves(plot_info);                     // Plot the curves
   //--------------------------------------------------------------------------
+ 
+   
+  d3.select("#"+plot_id + " svg")
+    .selectAll(".data")
+    .on("click",function(d,i){
+      var selected_component = d3.select(this).attr("id"); 
+
+      plot_selection_reset(plot_id);     
+      plot_selection(plot_id,selected_component);
+    }); 
   
+  d3.select("#"+plot_id + " svg")
+    .select(".legend")
+    .selectAll(".legend-entry")
+    .on("click",function(d,i){
+      var selected_component = d3.select(this).attr("id");
+
+      plot_selection_reset(plot_id);     
+      plot_selection(plot_id,selected_component);
+    });
+
+
+  d3.select("#"+plot_id + " svg")
+    .select(".all-data")
+    .selectAll(".dot")
+    .on("mouseover",function(d,i){
+      var cx = d3.select(this).attr("cx");
+      var cy = d3.select(this).attr("cy");
+      var selection_id   = d3.select(this.parentNode).attr("id");
+      var xval = d3.select(this).data()[0][0]; 
+      var yval = d3.select(this).data()[0][1].toExponential(4);
+      var tooltip_text = [
+        selection_id ,
+        "GM (g): " + xval,
+        "AFE: "    + yval]
+      tooltip_mouseover(plot_id,this,cx,cy,tooltip_text);
+
+    })
+    .on("mouseout",function(d,i){
+      tooltip_mouseout(plot_id,this);
+    });
+
+
 } 
 //---------------------- End: Plot Component Curves ------------------------------------------
 //
@@ -948,11 +1085,11 @@ function plot_curves(plot_info){
   var height = plot_height();                       // Get the height of the plot element
   var width  = plot_width();                        // Get the width of the plot element
 
-  var x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
+  x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
     .range([0,width])                               // Set range to width of plot element to scale data points
     .domain(x_extremes);                            // Set the min and max X values
 
-  var y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
+  y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
     .range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
     .domain(y_extremes);                            // Set the min and max Y values
   
@@ -1066,6 +1203,10 @@ function plot_curves(plot_info){
         .attr("height", height+ margin.top  + margin.bottom)            // Set the height of the svg tag
       .append("g")                                                      // Append a group
         .attr("transform","translate("+margin.left+","+margin.top+")")  // Position group by the top and left margins
+
+     svg.append("g")
+      .attr("class","d3-tooltip");
+      
     //--------------------------------------------------------
       
     //.............. Create Group for Each Data Set .......... 
@@ -1149,43 +1290,48 @@ function plot_curves(plot_info){
 
 
     //................. Set the Legend .......................
-    var legend = svg.append("g")        // Append a new group under main svg group     
-      .attr("class","legend")           // Set class to legend
-      .selectAll("g")                   // Select all groups to create under legend class      
-        .data(series_labels)            // Join data to legend class
-        .enter()                        // Get each new node 
-      .append("g")                      // Append a group for each label
-        .attr("class","legend-entry")   // Set class to legend-entry
-        .attr("id",function(d,i){return series_imt[i]})
-        .attr("transform","translate(10,"+(height*(1-0.08))+")")     // Position legend to bottom-left
-        .style("cursor","pointer");
+    var nleg = series_labels.length-1;                              // Get how many legend entrys there are minus 1 for indexing
 
+    var legend = svg.append("g")                                    // Append a new group under main svg group     
+      .attr("class","legend")                                       // Set class to legend
+      .selectAll("g")                                               // Select all groups to create under legend class      
+        .data(series_labels)                                        // Join data to legend class
+        .enter()                                                    // Get each new node 
+      .append("g")                                                  // Append a group for each label
+        .attr("class","legend-entry")                               // Set class to legend-entry
+        .attr("id",function(d,i){return series_imt[nleg-i]})        // Set id to imt 
+        .attr("transform","translate(10,"+(height*(1-0.08))+")")    // Position legend to bottom-left
+        .style("cursor","pointer");
+    
+    
     // Legend Text
-    legend.append("text")                     // Append a text tag to legend-entry class
+    legend.append("text")                                         // Append a text tag to legend-entry class
       .attr("class","legend-text")
-      .attr("x",30)                           // Set X location of each legend label
-      .attr("y", function(d,i){return 20*-i}) // Set Y location of each legend label
-      .attr("alignment-baseline","central")   // Set alignment
-      .text(function(d,i){return d});         // Set the text of each label
+      .attr("font-size",12)
+      .attr("x",30)                                               // Set X location of each legend label
+      .attr("y", function(d,i){return 18*-i})                     // Set Y location of each legend label
+      .attr("alignment-baseline","central")                       // Set alignment
+      .text(function(d,i){return series_labels[nleg-i]});         // Set the text of each label, do nleg-i to put PGA at top of legend
      
     // Legend Line Indicator
-    legend.append("line")                               // Append a svg line tag
-      .attr("class","legend-line")                      // Set class to legend-line
-      .attr("x2",24)                                    // Set width of line 
-      .attr("y1", function(d,i){return 20*-i})          // Set Y location of starting point
-      .attr("y2", function(d,i){return 20*-i})          // Set Y location of ending point
-      .attr("stroke-width",line_width)                  // Set stroke width of line
-      .attr("stroke",function(d,i){return color[i]})    // Set color of line
-      .attr("fill","none");                             // Set fill to none
+    legend.append("line")                                         // Append a svg line tag
+      .attr("class","legend-line")                                // Set class to legend-line
+      .attr("x2",24)                                              // Set width of line 
+      .attr("y1", function(d,i){return 18*-i})                    // Set Y location of starting point
+      .attr("y2", function(d,i){return 18*-i})                    // Set Y location of ending point
+      .attr("stroke-width",line_width)                            // Set stroke width of line
+      .attr("stroke",function(d,i){return color[nleg-i]})         // Set color of line
+      .attr("fill","none");                                       // Set fill to none
       
     // Legend Circle on the Line
-    legend.append("circle")                             // Append a svg circle tag
-      .attr("class","legend-circle")                    // Set class to legend-circle
-      .attr("cx",12)                                    // Set X location to center of line
-      .attr("cy",function(d,i){return 20*-i})           // Set Y location
-      .attr("r",circle_size)                            // Set radius
-      .attr("fill",function(d,i){return color[i]} );    // Set fill color to match
+    legend.append("circle")                                       // Append a svg circle tag
+      .attr("class","legend-circle")                              // Set class to legend-circle
+      .attr("cx",12)                                              // Set X location to center of line
+      .attr("cy",function(d,i){return 18*-i})                     // Set Y location
+      .attr("r",circle_size)                                      // Set radius
+      .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
     //--------------------------------------------------------
+  
 
   }
   //-------------------------------------------------------------------------------
