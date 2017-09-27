@@ -806,7 +806,6 @@ function component_curves_plot(response){
   var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;
   var title_id             = document.getElementById("component-plot-text");
   title_id.innerHTML       = " for " + selected_imt_display;
-  console.log(selected_imt_value);
  
   //.................. Get Axis Information ..................................
   var metadata = response[0].metadata;        // Get metadata from a response
@@ -991,9 +990,6 @@ function tooltip_mouseover(plot_id,circle_select,cx,cy,tooltip_text){
   
   var xper = cx/plot_width;
   var yper = cy/plot_height;
-  console.log("yper: " + yper);
-  console.log("xper: " + xper);
-  console.log("\n\n");
 
   var tooltip_width  = 225;
   var tooltip_height = 60; 
@@ -1123,8 +1119,6 @@ var line_width = 3;             // Line width for paths
 
 function plot_curves(plot_info){
 
-  var color = d3.schemeCategory10;                  // Get the color scheme
-
   //....................... Get Plot Info .........................................
   var series_data   = plot_info.series_data;        // Get the series data
   var series_labels = plot_info.series_labels;      // Get the series labels
@@ -1139,6 +1133,17 @@ function plot_curves(plot_info){
   var plot_div_id   = document.getElementById(plot_id);
   var resize_div_id = document.getElementById(resize_id+"-plot-resize");
   //-------------------------------------------------------------------------------
+
+
+  //..................... Get Color Scheme ........................................
+  var ndata = series_data.length;         // Get how many data sets there are
+  if (ndata < 10){                        // If 10 or less data sets
+    var color  = d3.schemeCategory10;     // Get the color scheme with 10 colors
+  }else{                                  // If there are more than 10 data sets
+    var color  = d3.schemeCategory20;     // Get the color scheme with 20 colors
+  } 
+  //-------------------------------------------------------------------------------
+  
 
   //...................... Replace Y values of 0 with null ........................  
   series_data.forEach(function(data,idata){         // Loop through the data
