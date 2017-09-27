@@ -710,72 +710,80 @@ function hazard_plot(response){
   plot_curves(plot_info);                 // Plot the curves
   //--------------------------------------------------------------------------
 
+  //............... Highlight Selected IMT ...................................
+  var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value 
+  plot_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
+  //--------------------------------------------------------------------------
 
   //........ Call Component Curves when using Dynamic Edition ................
   if (parameters.type == "dynamic"){                                        // If using dynamic edition
-    var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;
-    plot_selection(plot_id,selected_imt_value);
-    component_curves_plot(response);                     // Plot component curves      
+    component_curves_plot(response);                                        // Plot component curves      
   }
+  //--------------------------------------------------------------------------
 
-  imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update component plot
-    var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;
-    plot_selection_reset(plot_id);
-    plot_selection(plot_id,selected_imt_value);
-    if (parameters.type == "dynamic"){
-      component_curves_plot(response);                   // Plot component curves with new selection
+  //................ Update Plot Selection on IMT Menu Change ................
+  imt_id.onchange = function(){                                             // When the selection menu of IMT changes, update selected IMT on plot and component plot
+    var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value
+    plot_selection_reset(plot_id);                                          // Remove any current IMT selection on plot
+    plot_selection(plot_id,selected_imt_value);                             // Update with new selection
+    if (parameters.type == "dynamic"){                                      // If using dynamic
+      component_curves_plot(response);                                      // Plot component curves with new selection
     }
   };      
+  //--------------------------------------------------------------------------
 
+  //.................. Highlight Line when Selected on Plot ..................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .selectAll(".data")                                         // Select all data, lines and circles 
+    .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
+      var selected_imt_value = d3.select(this).attr("id");      // Get selected id
+      imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
 
-  d3.select("#"+plot_id + " svg")
-    .selectAll(".data")
-    .on("click",function(d,i){
-      var selected_imt_value = d3.select(this).attr("id"); 
-      imt_id.value = selected_imt_value;
+      plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
+      plot_selection(plot_id,selected_imt_value);               // Update plot with new selection
 
-      plot_selection_reset(plot_id);     
-      plot_selection(plot_id,selected_imt_value);
-      if (parameters.type == "dynamic"){
-        component_curves_plot(response);                   // Plot component curves with new selection
+      if (parameters.type == "dynamic"){                        // If using dynamic edition
+        component_curves_plot(response);                        // Plot component curves with new selection
       }
     }); 
+  //--------------------------------------------------------------------------
   
-  d3.select("#"+plot_id + " svg")
-    .select(".legend")
-    .selectAll(".legend-entry")
-    .on("click",function(d,i){
-      var selected_imt_value = d3.select(this).attr("id");
-      imt_id.value = selected_imt_value;
+  //.............. Highlight Line when Legend Entry Selected .................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .select(".legend")                                          // Select legend
+    .selectAll(".legend-entry")                                 // Select all legend entrys
+    .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
+      var selected_imt_value = d3.select(this).attr("id");      // Get selected id
+      imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
+                                    
+      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
+      plot_selection(plot_id,selected_imt_value);               // Update with new selection
 
-      plot_selection_reset(plot_id);     
-      plot_selection(plot_id,selected_imt_value);
-
-      if (parameters.type == "dynamic"){
-        component_curves_plot(response);                   // Plot component curves with new selection
+      if (parameters.type == "dynamic"){                        // If using a dynamic edition
+        component_curves_plot(response);                        // Plot component curves with new selection
       }
     });
+  //--------------------------------------------------------------------------
       
 
-
-  d3.select("#"+plot_id + " svg")
-    .select(".all-data")
-    .selectAll(".dot")
-    .on("mouseover",function(d,i){
-      var cx = d3.select(this).attr("cx");
-      var cy = d3.select(this).attr("cy");
-      var imt_value   = d3.select(this.parentNode).attr("id");
-      var imt_display = imt_id.options[imt_value].text; 
-      var xval = d3.select(this).data()[0][0]; 
-      var yval = d3.select(this).data()[0][1].toExponential(4);
-      var tooltip_text = [
+  //.............. Add Tooltip on Hover over a Point ..........................
+  d3.select("#"+plot_id + " svg")                                       // Get plot svg
+    .select(".all-data")                                                // Select data group
+    .selectAll(".dot")                                                  // Select all circles
+    .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
+      var cx   = parseFloat(d3.select(this).attr("cx"));                // Get X location of circle
+      var cy   = parseFloat(d3.select(this).attr("cy"));                // Get Y location of circle
+      var xval = d3.select(this).data()[0][0];                          // Get ground motion value
+      var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
+      var imt_value   = d3.select(this.parentNode).attr("id");          // Get the selected id of the data group
+      var imt_display = imt_id.options[imt_value].text;                 // Get the IMT display from the menu
+      var tooltip_text = [                                              // Set the tooltip text
         "IMT: "    + imt_display,
         "GM (g): " + xval,
         "AFE: "    + yval]
-      tooltip_mouseover(plot_id,this,cx,cy,tooltip_text);
-
+      tooltip_mouseover(plot_id,this,cx,cy,tooltip_text);               // Make tooltip
     })
-    .on("mouseout",function(d,i){
+    .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
       tooltip_mouseout(plot_id,this);
     });
   //--------------------------------------------------------------------------
@@ -785,124 +793,6 @@ function hazard_plot(response){
 //
 //############################################################################################
 
-
-function plot_selection(plot_id,selected_id){
-  
-  var svg = d3.select("#"+plot_id + " svg");
-
-  svg.select(".all-data")
-    .select("#"+selected_id)
-    .select(".line")
-    .attr("stroke-width",line_width+2);
-
-  svg.select(".all-data")
-    .select("#"+selected_id)
-    .selectAll(".dot")
-    .attr("r",circle_size+2);
-  
-  svg.select(".all-data")
-    .select("#"+selected_id)
-    .raise();
-  
-  var leg = svg.select(".legend")
-    .select("#"+selected_id);
-  
-  leg.select(".legend-line")
-    .attr("stroke-width",line_width+2)
-  
-  leg.select(".legend-circle")
-    .attr("r",circle_size+2);
-  
-  leg.select(".legend-text")
-    .style("font-weight","bold");
-}
-
-
-function plot_selection_reset(plot_id){
-  var svg = d3.select("#"+plot_id+" svg");
-
-  svg.selectAll(".line")
-    .attr("stroke-width",line_width); 
-  
-  svg.selectAll(".dot")
-    .attr("r",circle_size); 
-
-  svg.select(".legend")
-    .selectAll(".legend-entry")
-    .select(".legend-text")
-    .style("font-weight","initial");
-
-  svg.select(".legend")
-    .selectAll(".legend-entry")
-    .select(".legend-line")
-    .attr("stroke-width",line_width);
-
-  svg.select(".legend")
-    .selectAll(".legend-entry")
-    .select(".legend-circle")
-    .attr("r",circle_size);
-}
-
-
-
-function tooltip_mouseover(plot_id,circle_select,cx,cy,tooltip_text){
-
-  var tooltip = d3.select("#"+plot_id +" svg")
-    .select(".d3-tooltip");
-
-  var dy = 40;
-  var tooltip_width  = 225;
-  var tooltip_height = 60; 
-  tooltip.append("rect")
-    .attr("class","tooltip-outline")
-    .attr("height",tooltip_height)
-    .attr("width",tooltip_width)
-    .attr("x",cx-tooltip_width/2)
-    .attr("y",cy-tooltip_height/2-dy)
-    .attr("stroke","#999")
-    .attr("fill","white");
-
-  tooltip.selectAll("text")
-    .data(tooltip_text)
-    .enter()
-    .append("text")
-      .attr("class","tooltip-text")
-      .attr("transform","translate(0,"+(cy-dy-tooltip_height/4)+")")
-      .attr("font-size",11)
-      .attr("x",cx-tooltip_width/2+10)
-      .attr("y",function(d,i){return i*16} )
-      .attr("alignment-baseline","central")
-      .text(function(d,i){return d});
-  
-  var rcircle = d3.select(circle_select).attr("r");
-  if (rcircle == circle_size){
-    d3.select(circle_select).attr("r",circle_size+2);
-  }else{
-    d3.select(circle_select).attr("r",circle_size+4);
-  }
-
-  tooltip.raise();
-
-}
-
-
-
-function tooltip_mouseout(plot_id,circle_select){
-
-  var tooltip = d3.select("#"+plot_id +" svg")
-    .select(".d3-tooltip");
-
-  tooltip.selectAll("text").remove();
-  tooltip.select("rect").remove();
-
-  var rcircle = d3.select(circle_select).attr("r");
-  if (rcircle == circle_size+4){
-    d3.select(circle_select).attr("r",circle_size+2);
-  }else{
-    d3.select(circle_select).attr("r",circle_size);
-  }
-
-}
 
 
 //############################################################################################
@@ -983,8 +873,8 @@ function component_curves_plot(response){
     .select(".all-data")
     .selectAll(".dot")
     .on("mouseover",function(d,i){
-      var cx = d3.select(this).attr("cx");
-      var cy = d3.select(this).attr("cy");
+      var cx = parseFloat(d3.select(this).attr("cx"));
+      var cy = parseFloat(d3.select(this).attr("cy"));
       var selection_id   = d3.select(this.parentNode).attr("id");
       var xval = d3.select(this).data()[0][0]; 
       var yval = d3.select(this).data()[0][1].toExponential(4);
@@ -1009,6 +899,189 @@ function component_curves_plot(response){
 
 
 
+
+//############################################################################################
+//
+//........................... Highlight a Selected Line ......................................
+
+function plot_selection(plot_id,selected_id){
+  
+  var svg = d3.select("#"+plot_id + " svg");
+
+  svg.select(".all-data")
+    .select("#"+selected_id)
+    .select(".line")
+    .attr("stroke-width",line_width+2);
+
+  svg.select(".all-data")
+    .select("#"+selected_id)
+    .selectAll(".dot")
+    .attr("r",circle_size+2);
+  
+  svg.select(".all-data")
+    .select("#"+selected_id)
+    .raise();
+  
+  var leg = svg.select(".legend")
+    .select("#"+selected_id);
+  
+  leg.select(".legend-line")
+    .attr("stroke-width",line_width+2)
+  
+  leg.select(".legend-circle")
+    .attr("r",circle_size+2);
+  
+  leg.select(".legend-text")
+    .style("font-weight","bold");
+}
+//---------------------- End: Highlight a Selected Line --------------------------------------
+//
+//############################################################################################
+
+
+
+
+//############################################################################################
+//
+//....................... Remove Highlight from Selected Line ................................
+
+function plot_selection_reset(plot_id){
+  var svg = d3.select("#"+plot_id+" svg");
+
+  svg.selectAll(".line")
+    .attr("stroke-width",line_width); 
+  
+  svg.selectAll(".dot")
+    .attr("r",circle_size); 
+
+  svg.select(".legend")
+    .selectAll(".legend-entry")
+    .select(".legend-text")
+    .style("font-weight","initial");
+
+  svg.select(".legend")
+    .selectAll(".legend-entry")
+    .select(".legend-line")
+    .attr("stroke-width",line_width);
+
+  svg.select(".legend")
+    .selectAll(".legend-entry")
+    .select(".legend-circle")
+    .attr("r",circle_size);
+}
+//------------------ End: Remove Highlight from Selected Line --------------------------------
+//
+//############################################################################################
+
+
+
+
+//############################################################################################
+//
+//............................ Add Tooltip ...................................................
+
+function tooltip_mouseover(plot_id,circle_select,cx,cy,tooltip_text){
+
+  var tooltip = d3.select("#"+plot_id +" svg")
+    .select(".d3-tooltip");
+
+  var svg = d3.select("#"+plot_id + " svg");
+  var plot_width  = svg.select(".all-data").node().getBoundingClientRect().width;
+  var plot_height = svg.select(".all-data").node().getBoundingClientRect().height;
+  
+  var xper = cx/plot_width;
+  var yper = cy/plot_height;
+  console.log("yper: " + yper);
+  console.log("xper: " + xper);
+  console.log("\n\n");
+
+  var tooltip_width  = 225;
+  var tooltip_height = 60; 
+  var dy = 12;
+
+  if (xper < 0.10){
+    var xrect = cx;
+    var xtext = cx+10;
+  }else if (xper > 0.80){
+    var xrect = cx-tooltip_width;
+    var xtext = cx-tooltip_width+10;
+  }else{
+    var xrect = cx-tooltip_width/2;
+    var xtext = cx-tooltip_width/2+10;
+
+  }
+
+  if (yper < 0.25){
+    var yrect = cy+dy;
+    var ytext = cy+dy+tooltip_height/4;
+  }else{
+    var yrect = cy-tooltip_height-dy;
+    var ytext = cy-dy-(tooltip_height*3/4);
+  }
+  
+  var rect_trans = "translate("+xrect+","+yrect+")";
+  var text_trans = "translate("+xtext+","+ytext+")";
+
+  tooltip.append("rect")
+    .attr("class","tooltip-outline")
+    .attr("height",tooltip_height)
+    .attr("width",tooltip_width)
+    .attr("transform",rect_trans)
+    .attr("stroke","#999")
+    .attr("fill","white");
+
+  tooltip.selectAll("text")
+    .data(tooltip_text)
+    .enter()
+    .append("text")
+      .attr("class","tooltip-text")
+      .attr("transform",text_trans)
+      .attr("font-size",11)
+      .attr("y",function(d,i){return i*16} )
+      .attr("alignment-baseline","central")
+      .text(function(d,i){return d});
+  
+  var rcircle = d3.select(circle_select).attr("r");
+  if (rcircle == circle_size){
+    d3.select(circle_select).attr("r",circle_size+2);
+  }else{
+    d3.select(circle_select).attr("r",circle_size+4);
+  }
+
+  tooltip.raise();
+
+}
+//------------------------- End: Add Tooltip -------------------------------------------------
+//
+//############################################################################################
+
+
+
+
+
+//############################################################################################
+//
+//............................ Remove Tooltip ................................................
+
+function tooltip_mouseout(plot_id,circle_select){
+
+  var tooltip = d3.select("#"+plot_id +" svg")
+    .select(".d3-tooltip");
+
+  tooltip.selectAll("text").remove();
+  tooltip.select("rect").remove();
+
+  var rcircle = d3.select(circle_select).attr("r");
+  if (rcircle == circle_size+4){
+    d3.select(circle_select).attr("r",circle_size+2);
+  }else{
+    d3.select(circle_select).attr("r",circle_size);
+  }
+
+}
+//------------------------- End: Remove Tooltip ----------------------------------------------
+//
+//############################################################################################
 
 
 
