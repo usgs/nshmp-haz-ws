@@ -139,7 +139,7 @@ html, body{
 
 
 option:disabled{
-    color:#999;
+    color:red;
 }
 
 option {

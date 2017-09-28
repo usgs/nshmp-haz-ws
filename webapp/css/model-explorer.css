@@ -13,9 +13,24 @@
 /**/
 /*.................... Plots ......................*/
 
+/*............... Main Plot Panel ................*/
+#component-plot-panel,
+#hazard-plot-panel{
+  display: none;
+}
+/*------------------------------------------------*/
+
+/*............... Plot Resize ....................*/
+#component-plot-resize,
+#hazard-plot-resize{
+  float: right;
+}
+/*------------------------------------------------*/
+
+
 /*.................. Plot Titles ..................*/
 #component-plot-title,
-#plot-title{
+#hazard-plot-title{
   margin: 0 auto;
   font-family: 'HelveticaNeue-Light',sans-serif;
   font-size: 1.5em;

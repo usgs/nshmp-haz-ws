@@ -56,9 +56,9 @@
   <!-- -->
   <!-- .................. Footer .................. -->
   <div id="footer">
-    <button id="submit_url" class="btn btn-primary">Plot</button>
+    <button id="update-plot" class="btn btn-primary">Update</button>
     <span>
-      <button id="raw_json" style="float:right;" class="btn btn-danger">Raw Data</button>
+      <button id="raw-data" style="float:right;" class="btn btn-danger">Raw Data</button>
     </span>
   </div>  
   <!-- .................. Footer .................. -->
@@ -77,7 +77,7 @@
         <!-- .................. Edition Menu ........................ -->
         <div class="form-group">
           <label class="control-spacer control-group" for="edition"> Edition: </label>
-          <select class="form-control" id="edition" onchange="add_regions()">
+          <select class="form-control" id="edition" size=11 autofocus onchange="add_regions()">
           </select>
         </div>
         <!-- ............. End: Edition Menu ........................ -->
@@ -145,16 +145,16 @@
   <div id="content">
 
     <!-- ................. Hazard Curves Plot ........... -->
-    <div id="hazard-plot-panel" style="display:none;">
+    <div id="hazard-plot-panel" >
       <div class="panel panel-default">
-        <div class="panel-heading" id="plot-title">
+        <div class="panel-heading" id="hazard-plot-title">
           <span id="hazard-plot-collapse" 
                 class="glyphicon glyphicon-chevron-up" 
                 data-toggle="collapse" 
                 data-target="#hazard-curves-plot" 
                 aria-expanded="true" style="display:none"></span> 
             Hazard Curves 
-          <span id="hazard-plot-resize" style="float:right;" ></span>
+          <span id="hazard-plot-resize" ></span>
         </div> 
         <div id="hazard-curves-plot"></div>
       </div>
@@ -162,7 +162,7 @@
     <!-- ................. Hazard Curves Plot ........... -->
 
     <!-- .............. Component Curves Plot ........... -->
-    <div  id="component-plot-panel" style="display:none;">
+    <div  id="component-plot-panel" >
       <div  class="panel panel-default">
         <div class="panel-heading" id="component-plot-title">
           <span id="component-plot-collapse" 
@@ -171,7 +171,7 @@
                 data-target="#component-curves-plot" 
                 aria-expanded="true" style="display:none"></span> 
             Component Curves <span id="component-plot-text"></span> 
-          <span id="component-plot-resize" style="float:right;" ></span>
+          <span id="component-plot-resize" ></span>
         </div>
         <div id="component-curves-plot"> </div>
       </div>
