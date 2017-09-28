@@ -256,10 +256,8 @@ function add_options(){
   
   for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
     var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var supported_values = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
-    supported_values     = eval(supported_values);                            // Evaluate string to get the supported parameters (parameters.region.values[region_index].supports[support_index] in JSON file)
-    var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.imt) 
-    parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.imt in JSON file)
+    var supported_values = region_supports[supports[js]];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
+    var parameter_values = parameters[supports[js]].values;                        // Set string to get the parameter values of each supported variable (parameters.imt) 
 
     
     for (var jp in parameter_values){                                         // Loop through the edition support values
@@ -670,7 +668,6 @@ function hazard_plot(response){
 
   //.................. Get Axis Information ..................................
   var metadata = response[0].metadata;          // Get metadata of a response
-  var xvalues = metadata[xvalue_variable];      // Get X values, same for all responses
   var xlabel  = metadata.xlabel;                // Get X label 
   var ylabel  = metadata.ylabel;                // Get Y label
   //--------------------------------------------------------------------------
@@ -686,6 +683,7 @@ function hazard_plot(response){
     }else{
       var jtotal            = 0;
     }
+    xvalues = response[jr].metadata[xvalue_variable];
     total_hazard_data[jr]   = d3.zip(xvalues,data[jtotal][yvalue_variable]);                    // Create the array of x,y pairs for D3
     total_hazard_labels[jr] = response[jr].metadata.imt.display;                                // Create the array of labels
     imt_values[jr]          = response[jr].metadata.imt.value;
@@ -778,7 +776,9 @@ function hazard_plot(response){
         "IMT: "    + imt_display,
         "GM (g): " + xval,
         "AFE: "    + yval]
-      tooltip_mouseover(plot_id,this,tooltip_text);               // Make tooltip
+      var tooltip_width  = 225;                                         // Set the tooltip box height
+      var tooltip_height = 60;                                          // Set the tooltip box width
+      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
     })
     .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
       tooltip_mouseout(plot_id,this);
@@ -882,7 +882,10 @@ function component_curves_plot(response){
         selection_id ,                                                // Component type
         "GM (g): " + xval,                                            // Ground moition value
         "AFE: "    + yval]                                            // Exceedence value
-      tooltip_mouseover(plot_id,this,tooltip_text);                   // Add tool tip 
+      
+      var tooltip_width  = 115;                                       // Set the tooltip box height
+      var tooltip_height = 60;                                        // Set the tooltip box width
+      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);                   // Add tool tip 
 
     })
     .on("mouseout",function(d,i){                                     // When mouse pointer leaves dot, remove tooltip
@@ -1003,13 +1006,15 @@ function plot_selection_reset(plot_id){
 - This function takes in 3 arguments:
     1. plot_id: the dom id of the plot (example: hazard-curves-plot)
     2. circle_select: the selected circle (on mouseover this is passes as "this" variable)
+    3. tooltip_height: height of tooltip box
+    4. tooltip_width: width of tooltip box
     3. tooltip_text: An array of the text to display in the tooltip. Each array entry is a new line in the tooltip 
 
 NOTE: The tooltip text is currently using three lines. If more is desired the height of the tooltip 
       will need to be adjusted. 
 */
 
-function tooltip_mouseover(plot_id,circle_select,tooltip_text){
+function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,tooltip_text){
 
   var tooltip = d3.select("#"+plot_id +" svg")            // Select tooltip
     .select(".d3-tooltip");
@@ -1029,14 +1034,12 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
   var xper = cx/plot_width;               // Get the X location in percentage
   var yper = cy/plot_height;              // Get the Y location in percentage
 
-  var tooltip_width  = 225;               // Set the tooltip box height
-  var tooltip_height = 60;                // Set the tooltip box width
   var dy = 12;                            // Set the distance in Y between circle and tooltip
 
   if (xper < 0.10){                       // If the X location of the dot is < 10%, have box start to the right of the circle
     var xrect = cx;
     var xtext = cx+10;
-  }else if (xper > 0.80){                 // If the X location of the dot is > 80%, have box end to the left of the circle
+  }else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
     var xrect = cx-tooltip_width;
     var xtext = cx-tooltip_width+10;
   }else{                                  // Center box location in X
@@ -1232,12 +1235,14 @@ function plot_curves(plot_info){
 
   var x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
     .range([0,width])                               // Set range to width of plot element to scale data points
-    .domain(x_extremes);                            // Set the min and max X values
+    .domain(x_extremes)                             // Set the min and max X values
+    .nice();
 
   var y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
     .range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
-    .domain(y_extremes);                            // Set the min and max Y values
-  
+    .domain(y_extremes)                             // Set the min and max Y values
+    .nice()
+
   var line = d3.line()                              // Set the D3 line
     .defined(function(d,i) {return d[1] != null})   // Plot all but null values
     .x(function(d,i) {return x_bounds(d[0])})       // Return X data scaled to width of plot 
@@ -1300,11 +1305,13 @@ function plot_curves(plot_info){
 
     x_bounds                  // Reset the X range and domain
       .range([0,width])
-      .domain(x_extremes);
-     
+      .domain(x_extremes)
+      .nice();
+
     y_bounds
       .range([height,0])      // Reset the Y range and domain
-      .domain(y_extremes);
+      .domain(y_extremes)
+      .nice()
 
     svg.select(".x-tick")                                   // Select the x-tick class
       .attr("transform","translate(0,"+height+")")          // Update the X tick mark locations
