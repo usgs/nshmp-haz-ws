@@ -805,10 +805,6 @@ function component_curves_plot(response){
   title_id.innerHTML       = " for " + selected_imt_display;
  
   //.................. Get Axis Information ..................................
-  var metadata = response[0].metadata;        // Get metadata from a response
-  var xvalues = metadata.xvalues;             // Get X values, same for each response
-  var xlabel  = metadata.xlabel;              // Get X label
-  var ylabel  = metadata.ylabel;              // Get Y label
   //--------------------------------------------------------------------------
     
   //................. Get Component Hazard Data ..............................
@@ -817,6 +813,12 @@ function component_curves_plot(response){
   var jimt = response.findIndex(function(d,i){                // Find the response index for IMT selection
     return d.metadata.imt.value == selected_imt_value;
   });
+
+  var metadata = response[jimt].metadata;       // Get metadata from a response
+  var xlabel  = metadata.xlabel;                // Get X label
+  var ylabel  = metadata.ylabel;                // Get Y label
+  var xvalues = metadata.xvalues;               // Get X values, same for each response
+  
   var data = response[jimt].data.filter(                      // Get all data except the total component
     function(d,i){return d.component != "Total";}
   );
