@@ -35,18 +35,9 @@
 
   <!-- ############################################ -->
   <!-- -->
-  <!-- .................. Header ................... -->
-  <div id="header">
-    <span class="title">Model Compare</span>
-    <div id="header-menu" class="dropdown-toggle"  data-toggle="dropdown"> 
-      <span class="glyphicon glyphicon-menu-hamburger"></span>
-    </div>
-    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="header-menu" >
-      <li><a href="spectra-plot.html"  >Response Spectra</a> </li>
-      <li><a href="model-explorer.html">Model Explorer  </a> </li>
-    </ul>
-  </div>
-  <!-- .................. Header ................... -->
+  <!-- ............. Include Header .............. -->
+  <div id="header"></div>
+  <!-- ............. Include Header ............... -->
   <!-- -->
   <!-- ############################################ -->
   
@@ -54,14 +45,9 @@
 
   <!-- ############################################ -->
   <!-- -->
-  <!-- .................. Footer .................. -->
-  <div id="footer">
-    <button id="update-plot" class="btn btn-primary">Update</button>
-    <span>
-      <button id="raw-data" style="float:right;" class="btn btn-danger">Raw Data</button>
-    </span>
-  </div>  
-  <!-- .................. Footer .................. -->
+  <!-- ............... Include Footer ............. -->
+  <div id="footer"></div>  
+  <!-- .............. Include Footer .............. -->
   <!-- -->
   <!-- ############################################ -->
 
@@ -149,35 +135,14 @@
     <div id="hazard-plot-panel" >
       <div class="panel panel-default">
         <div class="panel-heading" id="hazard-plot-title">
-          <span id="hazard-plot-collapse" 
-                class="glyphicon glyphicon-chevron-up" 
-                data-toggle="collapse" 
-                data-target="#hazard-curves-plot" 
-                aria-expanded="true" style="display:none"></span> 
-            Hazard Curves 
+          Hazard Curves 
+          <span id="hazard-plot-text"></span>  
           <span id="hazard-plot-resize" ></span>
         </div> 
         <div id="hazard-curves-plot"></div>
       </div>
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
-
-    <!-- .............. Component Curves Plot ........... -->
-    <div  id="component-plot-panel" >
-      <div  class="panel panel-default">
-        <div class="panel-heading" id="component-plot-title">
-          <span id="component-plot-collapse" 
-                class="glyphicon glyphicon-chevron-up" 
-                data-toggle="collapse" 
-                data-target="#component-curves-plot" 
-                aria-expanded="true" style="display:none"></span> 
-            Component Curves <span id="component-plot-text"></span> 
-          <span id="component-plot-resize" ></span>
-        </div>
-        <div id="component-curves-plot"> </div>
-      </div>
-    </div>
-    <!-- .............. Component Curves Plot ........... -->
 
   </div> 
   <!-- .............................. End: Plots ........................................... -->
@@ -210,12 +175,26 @@
 
 <!-- ..... Application Specific JavaScript ......... -->
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="js/common.js"></script>
 <script src="js/model-compare.js"></script>
 <!-- ..... Application Specific JavaScript ......... -->
+
+
+<!-- .......... Bring in Header and Footer ......... -->
+<script>
+var header_title_id = document.getElementById("title");
+
+$.("#header").load("includes/header.html");
+$.("#footer").load("includes/footer.html");
+
+header_title_id.innerHTML = "Model Compare";
+</script>
+<!-- .......... Bring in Header and Footer ......... -->
 
 
 <!-- ............... End: Import JavaScript ................. -->
 <!-- -->
 <!-- ######################################################## -->
+
 
 
