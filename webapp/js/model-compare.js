@@ -21,10 +21,10 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
-var overlay_id     = document.getElementById("overlay");
-var loader_id      = document.getElementById("loader");
-var loader_text_id = document.getElementById("loader-text");
-loader_text_id.innerHTML = "Getting Menu"; 
+var overlay_id     = document.getElementById("overlay");                    // Overlay id for loading
+var loader_id      = document.getElementById("loader");                     // Loader id
+var loader_text_id = document.getElementById("loader-text");                // Loader text
+loader_text_id.innerHTML = "Getting Menu";                                  // Set loader text 
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -41,10 +41,6 @@ loader_text_id.innerHTML = "Getting Menu";
 - Once the JSON files are read in, the functions add_editions, add_regions, and add_options are called.
 
 - NOTE:  The following variables are global:
-          - edition_values
-          - region_values
-          - imt_values
-          - vs30_values
           - parameters 
 */
 
@@ -83,12 +79,12 @@ $.when(                                                                   // Rea
 
  
   //.................. Combine Static and Dynamic Parameters ...............
-  edition_values = static_parameters.edition.                             // Global variable: Combine the static and dynamic editions
+  var edition_values = static_parameters.edition.                             // Combine the static and dynamic editions
                         values.concat(dynamic_parameters.edition.values);
-  region_values  = static_parameters.region.                              // Global variable: Combine the static and dynamic regions
+  var region_values  = static_parameters.region.                              // Combine the static and dynamic regions
                         values.concat(dynamic_parameters.region.values);
-  imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
-  vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
+  var imt_values     = static_parameters.imt.values;                          // Combine the static and dynamic IMTs
+  var vs30_values    = static_parameters.vs30.values;                         // Combine the static and dynamic Vs30 values
 
   //------------------------------------------------------------------------
 
@@ -121,8 +117,6 @@ $.when(                                                                   // Rea
 
   //.......................... Run Function ................................
   add_regions(); 
-  add_editions(); 
-  //add_options();                  // Add all other options based on edition and regions selected
   //-----------------------------------------------------------------------
 
 }); 
@@ -197,6 +191,7 @@ function add_regions(){
   }
   
   region_id.value = "COUS";
+  add_editions();
 }
 
 
@@ -454,9 +449,7 @@ function check_bounds(is_submit){
 
 plot_btn_id.onclick = function(){                                             // When button is pressed, perform the following
   
-  loader_id.style.display  = "initial";
-  overlay_id.style.display = "initial";
-  loader_text_id.innerHTML = "Calculating";
+  
     
   d3.selectAll("svg")           // Remove all svg tags for the plot element
     .remove();
@@ -487,6 +480,10 @@ plot_btn_id.onclick = function(){                                             //
   
   //................. Setup URLs to Submit .............................
   if (can_submit[0] && can_submit[1]){
+    loader_id.style.display  = "initial";
+    overlay_id.style.display = "initial";
+    loader_text_id.innerHTML = "Calculating";
+    
     var region_info = comparable_region.find(function(d,i){
       return d.value == selection_values[jre] 
     });
@@ -527,9 +524,8 @@ plot_btn_id.onclick = function(){                                             //
       }
     }
 
-    console.log("URLs to Submit");
-    console.log(url_info);
     get_hazard(url_info); 
+
     //..................... get raw data button ..................
     raw_btn_id.onclick = function(){            // call the nshmp-haz code by opening it in a new tab
       for (var ju in url){
@@ -786,8 +782,7 @@ function hazard_plot(response){
   var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;  // Get the IMT selection
    
   var plot_info = set_data(response,plot_id);  
-  console.log("Hazard Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
+  console.log("\n\n Hazard Plot Information: ");    console.log(plot_info);
   plot_curves(plot_info);                 // Plot the curves
   plot_hazard_selection(plot_id);
   title_id.innerHTML = " at " + selected_imt_display;
