@@ -12,8 +12,8 @@ var lat_bounds_id = document.getElementById("lat_bounds");                  // L
 var lon_bounds_id = document.getElementById("lon_bounds");                  // Longitude bounds label id
 var lat_id        = document.getElementById("lat");                         // Latitude input id
 var lon_id        = document.getElementById("lon");                         // Longitude input id
-var submit_btn_id = document.getElementById("submit_url");                  // Plot button id 
-var raw_btn_id    = document.getElementById("raw_json");                    // Raw Data button id 
+var plot_btn_id   = document.getElementById("update-plot");                 // Plot button id 
+var raw_btn_id    = document.getElementById("raw-data");                    // Raw Data button id 
 var hazard_panel_id     = document.getElementById("hazard-plot-panel");     // Hazard plot panel id
 var hazard_plot_id      = document.getElementById("hazard-curves-plot");    // Hazard plot id
 var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // Hazard plot resize glyphicon id
@@ -44,7 +44,6 @@ var component_resize_id = document.getElementById("component-plot-resize"); // C
           - parameters 
 */
 
-console.log("------------- Start parameter_dependency ------------- ");
 
 var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
 var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
@@ -69,11 +68,6 @@ $.when(                                                                   // Rea
   imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
   vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
 
-  console.log("Combined Editions: ");       console.log(edition_values);   
-  console.log("Combined Regions: ");        console.log(region_values);   
-  console.log("Combined IMTs: ");           console.log(imt_values);   
-  console.log("Combined Vs30: ");           console.log(vs30_values);   
-  console.log("\n\n\n");
   //------------------------------------------------------------------------
 
   //......... Sort Combined Parameters by Display Order Parameter ...........
@@ -109,7 +103,6 @@ $.when(                                                                   // Rea
   add_options();                  // Add all other options based on edition and regions selected
   //-----------------------------------------------------------------------
 
-  console.log("------------- End parameter_dependency ------------- \n\n");
 }); 
 
 
@@ -155,7 +148,6 @@ function sort_displayorder(a,b){
 */
 
 function add_editions(){
-  console.log("------------- Start add_editions ------------- ");
 
   var edition_default = "E2008";                        // On startup the default edition will be E2008
   var nedition        = edition_values.length;          // Get how many editions there are
@@ -171,8 +163,6 @@ function add_editions(){
     edition_id.add(option);                             // Add the options to the edition selection menu
   }
   edition_id.value = edition_default;                   // Set the selection menu to the default edition
-  
-  console.log("------------- End add_editions ------------- \n\n");
 }
 
 //----------------------------- End: Add Editions --------------------------------------------
@@ -194,7 +184,6 @@ function add_editions(){
 */
 
 function add_regions(){
-  console.log("------------- Start add_regions ------------- ");
 
   var jedition_select   = edition_id.selectedIndex;                   // Get the selected edition index value 
   var edition_select    = edition_id.options[jedition_select].value;  // Get the selected edition from the edition menu  
@@ -202,8 +191,6 @@ function add_regions(){
   var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
   var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
   
-  console.log("Supports Region: ");             
-  console.log(supported_regions);
   
   var noptions  = region_id.options.length;           // Get length of options 
   for (var jr=0;jr<noptions;jr++){                    // Loop through all options and remove 
@@ -234,7 +221,6 @@ function add_regions(){
   
   add_options();                                      // Add other options based on selected region
 
-  console.log("------------- End add_regions ------------- \n\n");
 }
 
 //----------------------------- End: Add Regions ---------------------------------------------
@@ -256,16 +242,12 @@ function add_regions(){
 */
 
 function add_options(){
-  console.log("------------- Start add_options ------------- ");
   remove_options();     // Remove all previous menu item
 
   var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
   var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
   var region_supports   = region_values[jregion_select].supports;             // Get the selected region's support parameters (parameters.region.values[index].supports in JSON file) 
   
-  console.log("\n Region Selected: " + region_select); 
-  console.log("\n Region Support: ");   console.log(region_supports); 
-
   var parameter_defaults = {                                                  // Variable for parameter defaults to first supported value
        imt:  region_supports.imt[0],                                          // IMT default
        vs30: region_supports.vs30[0]                                          // Vs30 default 
@@ -274,12 +256,9 @@ function add_options(){
   
   for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
     var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var supported_values = "region_supports."+supports[js];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
-    supported_values     = eval(supported_values);                            // Evaluate string to get the supported parameters (parameters.region.values[region_index].supports[support_index] in JSON file)
-    var parameter_values = "parameters."+supports[js];                        // Set string to get the parameter values of each supported variable (parameters.imt) 
-    parameter_values     = eval(parameter_values).values;                     // Evaluate string to get the parameter values (parameters.imt in JSON file)
+    var supported_values = region_supports[supports[js]];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
+    var parameter_values = parameters[supports[js]].values;                        // Set string to get the parameter values of each supported variable (parameters.imt) 
 
-    console.log("Supports " + supports[js] +": ");    console.log(supported_values);
     
     for (var jp in parameter_values){                                         // Loop through the edition support values
       var option    = document.createElement("option");                       // Create an option element 
@@ -301,7 +280,6 @@ function add_options(){
   } 
   check_bounds();                                                             // Show the bounds for selected region
 
-  console.log("------------- End add_options ------------- \n\n");
 }
 
 //----------------------------- End: Add Options ---------------------------------------------
@@ -322,7 +300,6 @@ function add_options(){
 */
 
 function remove_options(){
-  console.log("------------- Start remove_options ------------- ");
 
   var ids = ["imt","vs30"];                             // Selection menu ids
   for (ji in ids){                                      // Loop through the menus
@@ -333,7 +310,6 @@ function remove_options(){
     }
   }
 
-  console.log("------------- End remove_options ------------- \n\n");
 }
 //----------------------------- End: Remove Options ------------------------------------------
 //
@@ -353,7 +329,6 @@ function remove_options(){
 */
 
 function check_bounds(is_submit){
-  console.log("------------- Start check_bounds ------------- ");
 
   var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
   var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
@@ -391,12 +366,6 @@ function check_bounds(is_submit){
       can_submit_lon = true;                                        // Set true
     }
   }
-  console.log("Region Values: ");       console.log(jregion_select);
-  console.log("Min Lat: " + min_lat);
-  console.log("Max Lat: " + max_lat);
-  console.log("Min Lon: " + min_lon);
-  console.log("Max Lon: " + max_lon);
-  console.log("------------- End check_bounds ------------- \n\n");
   
   return [can_submit_lat,can_submit_lon];
 }
@@ -419,8 +388,7 @@ function check_bounds(is_submit){
   edition choosen
 */
 
-submit_btn_id.onclick = function(){                                           // When button is pressed, perform the following
-  console.log("------------- Start get_selections ------------- ");
+plot_btn_id.onclick = function(){                                             // When button is pressed, perform the following
   
   //.............. Get All Selections from the Menus ...................
   var menu_ids = ["edition","region","lon","lat","imt","vs30"];               // Menu id strings for the selection menus
@@ -463,7 +431,6 @@ submit_btn_id.onclick = function(){                                           //
   }
   //--------------------------------------------------------------------
 
-  console.log("------------- End get_selections ------------- \n\n");
 } 
 
 //---------------------- End: Get Menu Selections/Values -------------------------------------
@@ -503,7 +470,6 @@ function dynamic_call(selection_values){
             "&longitude="+selection_values[jlon] +                                          // Add longitude to URL
             "&latitude="+selection_values[jlat]  +                                          // Add latitude to URL
             "&vs30="+selection_values[jvs];                                                 // Add vs30 to URL
-  console.log("URL to call: "+url+"\n\n");
   //-----------------------------------------------------------
 
   get_hazard(url);                                                                        // Call get_hazard function           
@@ -552,7 +518,6 @@ function static_call(selection_values){
             selection_values[jlat] + "/" +                                                  // Add latitude to URL
             "any"                  + "/" +                                                  // Add IMT to URL (return all IMTs)
             selection_values[jvs];                                                          // Add vs30 to URL
-  console.log("URL to call: "+url+"\n\n");
   //-----------------------------------------------------------
 
   get_hazard(url);                                                                        // Call get_hazard function           
@@ -583,8 +548,6 @@ function static_call(selection_values){
 */
 
 function get_hazard(url){
-  console.log("------------- Start get_hazard ------------- ");
-  
 
   $.getJSON(url,function(json_return){                    // Get the JSON file that the code generates
     var status = json_return.status;                      // Get the status of the return 
@@ -598,54 +561,8 @@ function get_hazard(url){
     } 
   });
 
-  console.log("------------- End get_hazard ------------- \n\n");
 }
 //---------------------- End: Call nshmp-haz Code --------------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Plot Options ...................................................
-
-/*
-- Plot options for Google Charts plots
-*/
-
-function plot_options(xlabel,ylabel){
-	var options = {
-      hAxis:{
-        title: xlabel,
-        titleTextStyle: {italic: false},
-        scaleType: 'log',
-        format: 'scientific'
-      },
-      vAxis:{
-        title: ylabel,
-        titleTextStyle: {italic: false},
-        scaleType: 'log',
-        format: 'scientific'
-      },
-      chartArea: {left: '10%', top: '10%', width:'70%',height:'75%'},
-      animation: {
-        duration: 0,
-        easing: 'in'
-      },
-      legend: {
-        textStyle: {
-          fontSize: 12 
-        }
-      },
-      pointsVisible: 'true' 
-    };
-
-  return options;
-}
-
-//---------------------- End: Plot Options ---------------------------------------------------
 //
 //############################################################################################
 
@@ -669,8 +586,8 @@ function plot_setup(){
     hazard_panel_id.className        = plot_size_min;  
     component_panel_id.style.display = "initial";  
     component_panel_id.className     = plot_size_min;  
-    hazard_plot_id.style.height      = "20vw";
-    component_plot_id.style.height   = "20vw";
+    hazard_plot_id.style.height      = "24vw";
+    component_plot_id.style.height   = "24vw";
     hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
     component_resize_id.className    = "glyphicon glyphicon-resize-full";
   }else if (type == "static"){
@@ -703,7 +620,7 @@ function panel_resize(plot_name){
   else if (panel_id.className == plot_size_max){
     resize_id.className = "glyphicon glyphicon-resize-full";
     panel_id.className = plot_size_min; 
-    plot_id.style.height = "20vw";
+    plot_id.style.height = "24vw";
   }
 }
 //---------------------- End: Resize Plot  ---------------------------------------------------
@@ -735,110 +652,139 @@ function plot_collapse(plot_name){
 //........................... Plot Hazard Curves .............................................
 
 function hazard_plot(response){
-  console.log("------------- Start hazard_plot ------------- ");
 
-  google.charts.load('current', {'packages':['corechart','line']});
+  var plot_id = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
+  var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;    // Get the IMT selection
   
-  if (parameters.type == "dynamic"){
+  //.................. JSON Variables based on Edition Type ..................
+  if (parameters.type == "dynamic"){        // If using dynamic edition
     var xvalue_variable = "xvalues";
     var yvalue_variable = "yvalues";
-  }else if (parameters.type == "static"){
+  }else if (parameters.type == "static"){   // If using static edition
     var xvalue_variable = "xvals";
     var yvalue_variable = "yvals";
   } 
+  //--------------------------------------------------------------------------
 
-  var nresponse = response.length;                    // Get number of responses (This will be the number of supported IMTs)
-  console.log("Number of responses: " + nresponse);
- 
-
-  google.charts.setOnLoadCallback(draw_hazard_curves);
-
-  function draw_hazard_curves(){
-    var imt_selection_value = imt_id.options[imt_id.selectedIndex].value;
-    var data_table = new google.visualization.DataTable();
+  //.................. Get Axis Information ..................................
+  var metadata = response[0].metadata;          // Get metadata of a response
+  var xlabel  = metadata.xlabel;                // Get X label 
+  var ylabel  = metadata.ylabel;                // Get Y label
+  //--------------------------------------------------------------------------
     
-    for (var jr=0;jr<nresponse;jr++){
-      console.log("\n\n Response: ("+jr+"): ");    console.log(response[jr]);   
-      var metadata   = response[jr].metadata;
-      var data       = response[jr].data;
-      var ylabel     = metadata.ylabel;
-      var ndata_sets = data.length;
-      
-      if (jr == 0){
-        var xlabel     = metadata.xlabel;
-        var xvalues    = eval("metadata."+xvalue_variable);
-        var ndata      = xvalues.length;
-        data_table.addColumn('number',xlabel);
-        data_table.addRows(ndata);
-      }
-      
-      var imt_response_display = metadata.imt.display;
-      var imt_response_value   = metadata.imt.value;
-      data_table.addColumn('number',imt_response_display)
-      for (var jdp=0;jdp<ndata;jdp++){
-        if (jr==0){
-          data_table.setCell(jdp,0,xvalues[jdp]);
-        }
-        var yvalue = eval("data[0]."+yvalue_variable+"[jdp]");
-        data_table.setCell(jdp,jr+1,yvalue);
-      }
-      if (imt_selection_value == imt_response_value){
-        var selected_column = jr+1;
-      }
+  //................. Get Total Hazard Data ..................................
+  var total_hazard_data   = [];                 // Array to hold the total component x,y data for D3  
+  var total_hazard_labels = [];                 // Array to hold the labels
+  var imt_values          = [];
+  for (var jr in response){
+    var data                = response[jr].data;                                                // Get the data for each response
+    if (parameters.type == "dynamic"){
+      var jtotal             = data.findIndex(function(d,i){return d.component == "Total"});     // Return the index for the Total component
+    }else{
+      var jtotal            = 0;
     }
-
-    console.log("Data Table: " );   console.log(data_table);
-   
-    var plot_id = document.getElementById("hazard-curves-plot"); 
-    var fig = new google.visualization.LineChart(plot_id);
-    
-    var options = plot_options(xlabel,ylabel);
-    fig.draw(data_table,options);
-    
-    fig.setSelection([{row:null,column:selected_column}]);
-    google.visualization.events.addListener(fig,'select',get_legend_select);
-    get_legend_select();
-
-    
-    function get_legend_select(){
-      if (fig.getSelection().length > 0){
-        var selection = fig.getSelection()[0].column;
-        var selected_imt_display = data_table.getColumnLabel(selection);
-        for (var jd in parameters.imt.values){
-          if (parameters.imt.values[jd].display == selected_imt_display){
-            imt_id.value = parameters.imt.values[jd].value;
-          }
-        }
-        console.log("\n\n Selected IMT on Plot: ");   console.log(selected_imt_display);
-        if (parameters.type == "dynamic"){
-          component_curves_plot(response,selected_imt_display);
-        }
-      }
-    }
-    $(window).resize(function(){
-      fig.draw(data_table,options);
-    });
-    
-    
-    /*
-    var plot_collapse_id = document.getElementById("hazard-plot-collapse");
-    plot_collapse_id.onclick = function(){
-      plot_collapse("hazard");
-      fig.draw(data_table,options);
-    }
-    */
-    var resize_id = document.getElementById("hazard-plot-resize");
-    resize_id.onclick = function(){
-      panel_resize("hazard");
-      fig.draw(data_table,options);
-    }
+    xvalues = response[jr].metadata[xvalue_variable];
+    total_hazard_data[jr]   = d3.zip(xvalues,data[jtotal][yvalue_variable]);                    // Create the array of x,y pairs for D3
+    total_hazard_labels[jr] = response[jr].metadata.imt.display;                                // Create the array of labels
+    imt_values[jr]          = response[jr].metadata.imt.value;
   }
+  //--------------------------------------------------------------------------
+
+  //.................... Plot Info Object for D3 .............................
+  var plot_info = {                       // Plot info object
+    series_data:   total_hazard_data,     // Series data to plot
+    series_labels: total_hazard_labels,   // Series labels
+    series_imt:    imt_values,
+    xvalues:       xvalues,               // X values
+    xlabel:        xlabel,                // X label
+    ylabel:        ylabel,                // Y label
+    plot_id:       plot_id,               // DOM ID for plot
+    margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
+    resize:       "hazard"                // DOM ID for resize element 
+  };
+  console.log("Hazard Plot Information: ");    console.log(plot_info);
+  console.log("\n\n");
+  plot_curves(plot_info);                 // Plot the curves
+  //--------------------------------------------------------------------------
+
+  //............... Highlight Selected IMT ...................................
+  var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value 
+  plot_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
+  //--------------------------------------------------------------------------
+
+  //........ Call Component Curves when using Dynamic Edition ................
+  if (parameters.type == "dynamic"){                                        // If using dynamic edition
+    component_curves_plot(response);                                        // Plot component curves      
+  }
+  //--------------------------------------------------------------------------
+
+  //................ Update Plot Selection on IMT Menu Change ................
+  imt_id.onchange = function(){                                             // When the selection menu of IMT changes, update selected IMT on plot and component plot
+    var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value
+    plot_selection_reset(plot_id);                                          // Remove any current IMT selection on plot
+    plot_selection(plot_id,selected_imt_value);                             // Update with new selection
+    if (parameters.type == "dynamic"){                                      // If using dynamic
+      component_curves_plot(response);                                      // Plot component curves with new selection
+    }
+  };      
+  //--------------------------------------------------------------------------
+
+  //.................. Highlight Line when Selected on Plot ..................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .selectAll(".data")                                         // Select all data, lines and circles 
+    .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
+      var selected_imt_value = d3.select(this).attr("id");      // Get selected id
+      imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
+
+      plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
+      plot_selection(plot_id,selected_imt_value);               // Update plot with new selection
+
+      if (parameters.type == "dynamic"){                        // If using dynamic edition
+        component_curves_plot(response);                        // Plot component curves with new selection
+      }
+    }); 
+  //--------------------------------------------------------------------------
   
-  imt_id.onchange = function(){ draw_hazard_curves();};
+  //.............. Highlight Line when Legend Entry Selected .................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .select(".legend")                                          // Select legend
+    .selectAll(".legend-entry")                                 // Select all legend entrys
+    .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
+      var selected_imt_value = d3.select(this).attr("id");      // Get selected id
+      imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
+                                    
+      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
+      plot_selection(plot_id,selected_imt_value);               // Update with new selection
 
+      if (parameters.type == "dynamic"){                        // If using a dynamic edition
+        component_curves_plot(response);                        // Plot component curves with new selection
+      }
+    });
+  //--------------------------------------------------------------------------
+      
 
-
-  console.log("------------- End hazard_plot ------------- \n\n");
+  //.............. Add Tooltip on Hover over a Point ..........................
+  d3.select("#"+plot_id + " svg")                                       // Get plot svg
+    .select(".all-data")                                                // Select data group
+    .selectAll(".dot")                                                  // Select all circles
+    .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
+      var xval = d3.select(this).data()[0][0];                          // Get ground motion value
+      var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
+      var imt_value   = d3.select(this.parentNode).attr("id");          // Get the selected id of the data group
+      var imt_display = imt_id.options[imt_value].text;                 // Get the IMT display from the menu
+      var tooltip_text = [                                              // Set the tooltip text
+        "IMT: "    + imt_display,
+        "GM (g): " + xval,
+        "AFE: "    + yval]
+      var tooltip_width  = 225;                                         // Set the tooltip box height
+      var tooltip_height = 60;                                          // Set the tooltip box width
+      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
+    })
+    .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
+      tooltip_mouseout(plot_id,this);
+    });
+  //--------------------------------------------------------------------------
+  
 } 
 //---------------------- End: Plot Hazard Curves --------------------------------------------
 //
@@ -846,91 +792,731 @@ function hazard_plot(response){
 
 
 
-
 //############################################################################################
 //
 //........................... Plot Compnent Curves ...........................................
 
-function component_curves_plot(response,selected_imt_display){
-  console.log("------------- Start component_curves_plot ------------- ");
+function component_curves_plot(response){
 
-  google.charts.load('current', {'packages':['corechart','line']});
+  var plot_id = "component-curves-plot";      // DOM ID for component plot element
+  var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;
+  var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;
+  var title_id             = document.getElementById("component-plot-text");
+  title_id.innerHTML       = " for " + selected_imt_display;
+ 
+  //.................. Get Axis Information ..................................
+  //--------------------------------------------------------------------------
+    
+  //................. Get Component Hazard Data ..............................
+  var component_hazard_data   = [];                           // Array for component x,y pair data for D3
+  var component_hazard_labels = [];                           // Array for component labels
+  var jimt = response.findIndex(function(d,i){                // Find the response index for IMT selection
+    return d.metadata.imt.value == selected_imt_value;
+  });
 
-  var nresponse = response.length;                    // Get number of responses (This will be the number of supported IMTs)
-  console.log("Number of responses: " + nresponse);
-
-  var imt_selection_display = imt_id.options[imt_id.selectedIndex].text;
-
-  for (var jr=0;jr<nresponse;jr++){
-    var metadata   = response[jr].metadata;
-    var imt_response_display   = metadata.imt.display;
-    if (selected_imt_display == imt_response_display){
-      var selected_response = jr;
-    }
-  }
-  var metadata   = response[selected_response].metadata;
-  var data       = response[selected_response].data;
-  var ylabel     = metadata.ylabel;
-  var ndata_sets = data.length;
+  var metadata = response[jimt].metadata;       // Get metadata from a response
+  var xlabel  = metadata.xlabel;                // Get X label
+  var ylabel  = metadata.ylabel;                // Get Y label
+  var xvalues = metadata.xvalues;               // Get X values, same for each response
   
-  var xlabel     = metadata.xlabel;
-  var xvalues    = metadata.xvalues;
-  var ndata      = xvalues.length;
+  var data = response[jimt].data.filter(                      // Get all data except the total component
+    function(d,i){return d.component != "Total";}
+  );
+  
+  data.forEach(function(d,i){                                 // Loop through each component
+    component_hazard_data[i]   = d3.zip(xvalues,d.yvalues);   // Set x,y pair 
+    component_hazard_labels[i] = d.component;                 // Set label
+  });
+  //--------------------------------------------------------------------------
 
-  google.charts.setOnLoadCallback(draw_component_curves);
-
-  function draw_component_curves(){
-    
-    var data_table = new google.visualization.DataTable();
-    
-    data_table.addColumn('number',xlabel);
-    data_table.addRows(ndata);
-    
-    var counter = -1 
-    for (var jds=0;jds<ndata_sets;jds++){
-      var data_component   = data[jds].component;
-      if (data_component != "Total"){
-        counter+=1
-        console.log("\n\n "+data[jds].component);  console.log(data[jds].yvalues);
-        data_table.addColumn('number',data_component)
-        for (var jdp=0;jdp<ndata;jdp++){
-          data_table.setCell(jdp,0,xvalues[jdp]);
-          data_table.setCell(jdp,counter+1,data[jds].yvalues[jdp]);
-        }
-      }
-    }
-
-    console.log("Data Table: " );   console.log(data_table);
+  //.................... Plot Info Object for D3 .............................
+  var plot_info = {                           // Plot info object
+    series_data:   component_hazard_data,     // Series data to plot
+    series_labels: component_hazard_labels,   // Series labels
+    series_imt:    component_hazard_labels,
+    xvalues:       xvalues,                   // X values
+    xlabel:        xlabel,                    // X label
+    ylabel:        ylabel,                    // Y label
+    plot_id:       plot_id,                   // DOM ID for plot
+    margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
+    resize:       "component"                 // DOM ID for resize element 
+  };
+  console.log("Component Plot Information: ");    console.log(plot_info);
+  console.log("\n\n");
+  plot_curves(plot_info);                     // Plot the curves
+  //--------------------------------------------------------------------------
+ 
    
-    var plot_title_id = document.getElementById("component-plot-text");
-    plot_title_id.innerHTML = " for " + metadata.imt.display; 
-    var plot_id = document.getElementById("component-curves-plot"); 
-    var fig = new google.visualization.LineChart(plot_id);
-    
-    var options = plot_options(xlabel,ylabel);
-    fig.draw(data_table,options);
-    
-    $(window).resize(function(){
-      fig.draw(data_table,options);
-    });
-    /*
-    var plot_collapse_id = document.getElementById("component-plot-collapse");
-    plot_collapse_id.onclick = function(){
-      plot_collapse("component");
-      fig.draw(data_table,options);
-    }
-    */
-    var resize_id = document.getElementById("component-plot-resize");
-    resize_id.onclick = function(){
-      panel_resize("component");
-      fig.draw(data_table,options);
-    }
-  }
+  //.................. Highlight Line when Selected on Plot ..................
+  d3.select("#"+plot_id + " svg")                             // Get plot svg
+    .selectAll(".data")                                       // Select all data
+    .on("click",function(d,i){                                // If any data is selected, highlight the corresponds line and dots
+      var selected_component = d3.select(this).attr("id");    // Get selected line id
 
+      plot_selection_reset(plot_id);                          // Remove any current selections
+      plot_selection(plot_id,selected_component);             // Update new selection
+    }); 
+  //--------------------------------------------------------------------------
   
-  console.log("------------- End component_curves_plot ------------- \n\n");
+
+  //.............. Highlight Line when Legend Entry Selected .................
+  d3.select("#"+plot_id + " svg")                             // Get plot svg
+    .select(".legend")                                        // Select legend
+    .selectAll(".legend-entry")                               // Select all legend entrys
+    .on("click",function(d,i){                                // If any legend entry is selected, highlight cooresponding line and dots
+      var selected_component = d3.select(this).attr("id");    // Get selected legend id
+
+      plot_selection_reset(plot_id);                          // Remove any current selections
+      plot_selection(plot_id,selected_component);             // Update new selection
+    });
+  //--------------------------------------------------------------------------
+
+
+  //.............. Add Tooltip on Hover over a Point ..........................
+  d3.select("#"+plot_id + " svg")                                     // Get plot svg
+    .select(".all-data")                                              // Select main data group
+    .selectAll(".dot")                                                // Select all dots
+    .on("mouseover",function(d,i){                                    // If mouse is over a dot, put up a tooltip 
+      var selection_id   = d3.select(this.parentNode).attr("id");     // Get selection id of data group
+      var xval = d3.select(this).data()[0][0];                        // Get the ground motion value
+      var yval = d3.select(this).data()[0][1].toExponential(4);       // Get the exceedence value
+      var tooltip_text = [                                            // Setup the tooltip text
+        selection_id ,                                                // Component type
+        "GM (g): " + xval,                                            // Ground moition value
+        "AFE: "    + yval]                                            // Exceedence value
+      
+      var tooltip_width  = 115;                                       // Set the tooltip box height
+      var tooltip_height = 60;                                        // Set the tooltip box width
+      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);                   // Add tool tip 
+
+    })
+    .on("mouseout",function(d,i){                                     // When mouse pointer leaves dot, remove tooltip
+      tooltip_mouseout(plot_id,this);                                 // Remove tooltip
+    });
+  //--------------------------------------------------------------------------
+
+
 } 
 //---------------------- End: Plot Component Curves ------------------------------------------
 //
 //############################################################################################
+
+
+
+
+
+
+//############################################################################################
+//
+//........................... Highlight a Selected Line ......................................
+
+/*
+- This function will highlight a selected line on a plot
+- This function takes in two arguments:
+    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
+    2. selected_id: the id of the selected line (example: PGA)
+
+*/
+
+function plot_selection(plot_id,selected_id){
+  
+  var svg = d3.select("#"+plot_id + " svg");    // Select the svg of the plot id
+
+  //............ Increase Line Width and Dot size of Selected Plot ..............
+  var selected = svg.select(".all-data")        // Select the all data group
+    .select("#"+selected_id);                   // Select the data group that was selected 
+
+   selected.select(".line")                     // Select the line that was choosen
+    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+
+    selected.selectAll(".dot")                  // Select all dot along the line
+    .attr("r",circle_size_select);              // Increase the dot size by 2
+
+    selected.raise();                           // Bring the line and dots to the front
+  //-----------------------------------------------------------------------------
+  
+  //............. Increase Line Width and Circle Size on Legend .................
+  var leg = svg.select(".legend")               // Select the legend
+    .select("#"+selected_id);                   // Select the legend group that was selected
+
+  leg.select(".legend-line")                    // Select the line in the legend
+    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+
+  leg.select(".legend-circle")                  // Select the dot in the legend
+    .attr("r",circle_size_select);              // Increase the dot size by 2
+  
+  leg.select(".legend-text")                    // Select the legend text
+    .style("font-weight","bold");               // Make text bold
+  //-----------------------------------------------------------------------------
+
+}
+//---------------------- End: Highlight a Selected Line --------------------------------------
+//
+//############################################################################################
+
+
+
+
+//############################################################################################
+//
+//....................... Remove Highlight from Selected Line ................................
+/*
+- This function removes the line selection so a new one can be applied
+- This function take in one argument: 
+    1. plot_id: The dom id of the plot (example: hazard-curves-plot)
+*/
+
+function plot_selection_reset(plot_id){
+
+  var svg = d3.select("#"+plot_id+" svg");        // Select the plot svg
+  
+  //............. Resize All Lines and Dots in Plot ...............
+  svg.selectAll(".line")                          // Select all lines
+    .attr("stroke-width",linewidth);              // Make all line have same line width
+ 
+  svg.selectAll(".dot")                           // Select all dots
+    .attr("r",circle_size);                       // Make all dots have same line width
+  //---------------------------------------------------------------
+
+  //................ Resize Lines and Dots in the Legend ..........
+  var leg = svg.select(".legend")                 // Select the legend
+    .selectAll(".legend-entry");                  // Select all legend entrys
+  
+    leg.select(".legend-text")                    // Select the legend text
+    .style("font-weight","initial");              // Make font weight default
+
+    leg.select(".legend-line")                    // Select the legend line
+    .attr("stroke-width",linewidth);              // Make all line in legend same line width
+
+    leg.select(".legend-circle")                  // Select the legend circles
+    .attr("r",circle_size);                       // Make all dots the same size 
+  //---------------------------------------------------------------
+}
+//------------------ End: Remove Highlight from Selected Line --------------------------------
+//
+//############################################################################################
+
+
+
+
+//############################################################################################
+//
+//............................ Add Tooltip ...................................................
+/*
+- This function makes a tooltip that displays the selected line, ground moition value,
+  and the excedence value when the mouse is hovering over a dot
+- This function takes in 3 arguments:
+    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
+    2. circle_select: the selected circle (on mouseover this is passes as "this" variable)
+    3. tooltip_height: height of tooltip box
+    4. tooltip_width: width of tooltip box
+    3. tooltip_text: An array of the text to display in the tooltip. Each array entry is a new line in the tooltip 
+
+NOTE: The tooltip text is currently using three lines. If more is desired the height of the tooltip 
+      will need to be adjusted. 
+*/
+
+function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,tooltip_text){
+
+  var tooltip = d3.select("#"+plot_id +" svg")            // Select tooltip
+    .select(".d3-tooltip");
+  
+  var svg = d3.select("#"+plot_id + " svg");              // Select plot svg
+  
+  //........ Find Where the Tooltip Should Be Placed Relative to the Circle .................
+  var plot_geom = svg.select(".all-data")                       // Select the bounding box of the data
+    .node()
+    .getBoundingClientRect();
+  var plot_width  = plot_geom.width;                            // Get the width of the actual plot where the data is
+  var plot_height = plot_geom.height;                           // Get the height of the actual plot where the data is
+  
+  var cx = parseFloat(d3.select(circle_select).attr("cx"));     // Get X location of dot
+  var cy = parseFloat(d3.select(circle_select).attr("cy"));     // Get Y location of dot
+
+  var xper = cx/plot_width;               // Get the X location in percentage
+  var yper = cy/plot_height;              // Get the Y location in percentage
+
+  var dy = 12;                            // Set the distance in Y between circle and tooltip
+
+  if (xper < 0.10){                       // If the X location of the dot is < 10%, have box start to the right of the circle
+    var xrect = cx;
+    var xtext = cx+10;
+  }else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
+    var xrect = cx-tooltip_width;
+    var xtext = cx-tooltip_width+10;
+  }else{                                  // Center box location in X
+    var xrect = cx-tooltip_width/2;
+    var xtext = cx-tooltip_width/2+10;
+  }
+
+  if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
+    var yrect = cy+dy;
+    var ytext = cy+dy+tooltip_height/4;
+  }else{                                  // Else put the box above the circle
+    var yrect = cy-tooltip_height-dy;
+    var ytext = cy-dy-(tooltip_height*3/4);
+  }
+  
+  var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
+  var text_trans = "translate("+xtext+","+ytext+")";    // The translation for the tooltip text
+  //----------------------------------------------------------------------------------------
+
+  //........................... Create the Tooltip Box .....................................
+  tooltip.append("rect")                        // Create a rectangle
+    .attr("class","tooltip-outline")            // Add a class to the rectangle
+    .attr("height",tooltip_height)              // Set height
+    .attr("width",tooltip_width)                // Set width
+    .attr("transform",rect_trans)               // Translate the rectangle to correct position
+    .attr("stroke","#999")                      // Set stroke color
+    .attr("fill","white");                      // Set fill color
+  //----------------------------------------------------------------------------------------
+  
+  //........................... Create the Tooltip Text ....................................
+  tooltip.selectAll("text")                     // Select all text fields in tooltip
+    .data(tooltip_text)                         // Join the text
+    .enter()
+    .append("text")                             // Create a text field for each text in array
+      .attr("class","tooltip-text")             // Add a class to each text
+      .attr("transform",text_trans)             // Translate text to correct location
+      .attr("font-size",11)                     // Set font size
+      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
+      .attr("alignment-baseline","central")     // Set to be aligned center
+      .text(function(d,i){return d});           // Set text
+  //----------------------------------------------------------------------------------------
+ 
+  //......................... Increase Size of Circle on Hover ............................. 
+  var rcircle = d3.select(circle_select).attr("r");     // Get circle size of current circle 
+  if (rcircle == circle_size){                          // If circle size is default, increase by 2
+    d3.select(circle_select).attr("r",circle_size_tooltip);
+  }else{                                                // If circle is already selected, increase by 4
+    d3.select(circle_select).attr("r",circle_size_tooltip_select);
+  }
+  //----------------------------------------------------------------------------------------
+
+  tooltip.raise();      // Bring tooltip to the front 
+}
+//------------------------- End: Add Tooltip -------------------------------------------------
+//
+//############################################################################################
+
+
+
+
+
+//############################################################################################
+//
+//............................ Remove Tooltip ................................................
+
+/*
+- This function removes the tooltip once the mouse leaves the circle
+- This function takes in 2 arguments:
+    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
+    2. circle_select: the selected circle (on mouseover this is passes as "this" variable)
+*/
+
+
+function tooltip_mouseout(plot_id,circle_select){
+
+  var tooltip = d3.select("#"+plot_id +" svg")        // Select the tooltip
+    .select(".d3-tooltip");
+
+  tooltip.selectAll("text").remove();                 // Remove all text
+  tooltip.select("rect").remove();                    // Remove the rectangle
+
+  //................. Resize Circle .....................................
+  var rcircle = d3.select(circle_select).attr("r");   // Bring the circle back to original size
+  if (rcircle == circle_size_tooltip_select){         // If line is highlighted, reduce by 2
+    d3.select(circle_select).attr("r",circle_size_select);
+  }else{                                            
+    d3.select(circle_select).attr("r",circle_size);
+  }
+  //---------------------------------------------------------------------
+
+  //................ Increase Circle Back If Line is Selected ...........
+  var current_linewidth = d3.select(circle_select.parentNode)     // Get circle selection parent
+    .select(".line")                                              // Get line
+    .attr("stroke-width");                                        // Get stroke width
+
+  if(current_linewidth == linewidth_size_select){                 // If line is highlighted, make sure dots are as well
+    d3.select(circle_select).attr("r",circle_size_select);
+  }  
+  //---------------------------------------------------------------------
+
+}
+//------------------------- End: Remove Tooltip ----------------------------------------------
+//
+//############################################################################################
+
+
+
+
+
+
+
+//############################################################################################
+//
+//........................... D3 Plot Function ...............................................
+
+/*
+- This function takes in an object with the following keys:
+    * series_data:  "contains arrays of x,y pairs. Must be formatted for d3"
+    * series_label: "array of corresponding labels"
+    * xvalues:      "X values"
+    * xlabel:       "X label"
+    * ylabel:       "Y label"
+    * plot_id:      "DOM id for plot"
+    * resize:       "resize element id"
+    * margin:       {top: ,right: , bottom: , left: }
+
+- An example:
+  var plot_info = {                           // Plot info object
+    series_data:   component_hazard_data,     // Series data to plot
+    series_labels: component_hazard_labels,   // Series labels
+    xvalues:       xvalues,                   // X values
+    xlabel:        xlabel,                    // X label
+    ylabel:        ylabel,                    // Y label
+    plot_id:       plot_id,                   // DOM ID for plot
+    margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
+    resize:       "component"                 // DOM ID for resize element 
+  };
+*/
+
+
+var circle_size = 4;                              // Radius of any circles
+var linewidth   = 3;                              // Line width for paths
+var circle_size_select         = circle_size+2;   // Radius when line is selected
+var circle_size_tooltip        = circle_size+2;   // Radius when hovering over a circle
+var circle_size_tooltip_select = circle_size+4    // Radius when hovering and line is selected
+var linewidth_size_select      = linewidth+2;     // Line width when selected
+
+function plot_curves(plot_info){
+
+  //....................... Get Plot Info .........................................
+  var series_data   = plot_info.series_data;        // Get the series data
+  var series_labels = plot_info.series_labels;      // Get the series labels
+  var series_imt    = plot_info.series_imt;         // Get IMT values (not display)
+  var xvalues       = plot_info.xvalues;            // Get the X values
+  var xlabel        = plot_info.xlabel;             // Get the X label
+  var ylabel        = plot_info.ylabel;             // Get the Y label
+  var plot_id       = plot_info.plot_id;            // Get the DOM id of the plot
+  var margin        = plot_info.margin;             // Get the margin values
+  var resize_id     = plot_info.resize;             // Get the resize DOM id
+
+  var plot_div_id   = document.getElementById(plot_id);
+  var resize_div_id = document.getElementById(resize_id+"-plot-resize");
+  //-------------------------------------------------------------------------------
+
+
+  //..................... Get Color Scheme ........................................
+  var ndata = series_data.length;         // Get how many data sets there are
+  if (ndata < 10){                        // If 10 or less data sets
+    var color  = d3.schemeCategory10;     // Get the color scheme with 10 colors
+  }else{                                  // If there are more than 10 data sets
+    var color  = d3.schemeCategory20;     // Get the color scheme with 20 colors
+  } 
+  //-------------------------------------------------------------------------------
+  
+
+  //...................... Replace Y values of 0 with null ........................  
+  series_data.forEach(function(data,idata){         // Loop through the data
+    data.forEach(function(dp,idp){                  // Loop through each data point
+      if (dp[1] == 0){                              // If a Y value is zero, set it to null
+        dp[1] = null;
+      }
+    })
+  });
+  //-------------------------------------------------------------------------------
+
+  
+
+  var y_extremes = get_y_extremes();                //  Get the Y extreme values: min and max
+  var x_extremes = get_x_extremes();                //  Get the X extreme values: min and max
+  
+  var height = plot_height();                       // Get the height of the plot element
+  var width  = plot_width();                        // Get the width of the plot element
+
+  var x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
+    .range([0,width])                               // Set range to width of plot element to scale data points
+    .domain(x_extremes)                             // Set the min and max X values
+    .nice();
+
+  var y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
+    .range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
+    .domain(y_extremes)                             // Set the min and max Y values
+    .nice()
+
+  var line = d3.line()                              // Set the D3 line
+    .defined(function(d,i) {return d[1] != null})   // Plot all but null values
+    .x(function(d,i) {return x_bounds(d[0])})       // Return X data scaled to width of plot 
+    .y(function(d,i) {return y_bounds(d[1])});      // Return Y data scaled to width of plot
+
+  
+  //.......................... Get X Min and Max Values ...........................
+  function get_x_extremes(){                 
+    var x_max = d3.max(xvalues,function(d,i){return d;});   // Get the X max value
+    var x_min = d3.min(xvalues,function(d,i){return d;});   // Get the X min value
+
+    return [x_min,x_max];                                   // Return an array of the min and max values
+  }
+  //-------------------------------------------------------------------------------
+
+  //.......................... Get Y Min and Max Values ...........................
+  function get_y_extremes(){
+    var y_values = [];                  // Array to hold all Y values
+    var counter = -1;                   // Counter
+    series_data.forEach(function(d,i){  // Loop through each data set
+      for(var jd in d){                 // Loop through each data point
+        counter+=1;                     // Increment
+        y_values[counter] = d[jd][1];   // Get Y value data point 
+      }
+    });
+
+    var y_max = d3.max(y_values);       // Get the Y max value
+    var y_min = d3.min(y_values);       // Get the Y min value
+
+    return [y_min,y_max];               // Return an array of the min and max values
+  }
+  //-------------------------------------------------------------------------------
+
+  //......................... Get Plot Height Function ............................
+  function plot_height(){
+    var height = plot_div_id.clientHeight;              // Get the height of the plot element
+    height = height - margin.top  - margin.bottom;      // Subtract the top and bottom margins
+    return height;                                      // Return plottable height
+  }
+  //-------------------------------------------------------------------------------
+  
+  //......................... Get Plot Width Function .............................
+  function plot_width(){
+    var width = plot_div_id.clientWidth;                // Get the width of the plot element
+    width  = width  - margin.left - margin.right;       // Subtract the left and right margins
+    return width;                                       // Return plottable width
+  }
+  //-------------------------------------------------------------------------------
+
+
+  //........................ Plot Resize Function .................................
+  function plot_resize(){
+    
+    var height = plot_height();                             // Get current plot height
+    var width = plot_width();                               // Get current plot width
+    
+    var svg = d3.select("#"+plot_id + " svg")               // Select the plot
+      .attr("width", width  + margin.left + margin.right)   // Update the svg width
+      .attr("height",height + margin.top  + margin.bottom); // Update the svg height
+
+    x_bounds                  // Reset the X range and domain
+      .range([0,width])
+      .domain(x_extremes)
+      .nice();
+
+    y_bounds
+      .range([height,0])      // Reset the Y range and domain
+      .domain(y_extremes)
+      .nice()
+
+    svg.select(".x-tick")                                   // Select the x-tick class
+      .attr("transform","translate(0,"+height+")")          // Update the X tick mark locations
+      .call(d3.axisBottom(x_bounds));                       // Update the X tick makrs with the X bounds
+
+    svg.select(".x-label")                                  // Select the x-label class
+      .attr("x",width/2.0)                                  // Update the X label X location                                
+      .attr("y",height+margin.bottom/2+10);                 // Update the X label Y location
+
+    svg.select(".y-tick")                                   // Select the y-tick class
+      .call(d3.axisLeft(y_bounds));                         // Update the Y tick marks with Y bounds
+    
+    svg.select(".y-label")                                  // Select the y-label class
+      .attr("x",0-height/2)                                 // Update Y label X location
+      .attr("y",0-margin.left/2-10);                        // Update Y label Y location
+
+    svg.selectAll(".line")                                  // Select all line classes
+      .attr("d",line);                                      // Update the paths
+
+    svg.selectAll(".dot")                                   // Select all the dot classes
+      .attr("cx",line.x())                                  // Update the X location of the circles
+      .attr("cy",line.y());                                 // Update the Y location of the circles
+
+    svg.selectAll(".legend-entry")                                  // Select the legend-entry class
+      .attr("transform","translate(10,"+(height*(1-0.08))+")");     // Update the location of the legend
+
+  }
+  //-------------------------------------------------------------------------------
+
+
+  //........................ Plot Function ........................................
+  function plot(){
+
+    d3.selectAll("#"+plot_id+ " svg")           // Remove all svg tags for the plot element
+      .remove();
+
+    //................. Create SVG Tag .......................
+    var svg = d3.select("#"+plot_id)            // Select the plot element
+      .append("svg")                            // Append a svg tag
+        .attr("width",  width + margin.left + margin.right)             // Set the width of the svg tag
+        .attr("height", height+ margin.top  + margin.bottom)            // Set the height of the svg tag
+        .attr("class","d3-plot")                                        // Set class
+      .append("g")                                                      // Append a group
+        .attr("transform","translate("+margin.left+","+margin.top+")")  // Position group by the top and left margins
+
+     svg.append("g")
+      .attr("class","d3-tooltip");
+      
+    //--------------------------------------------------------
+      
+    //.............. Create Group for Each Data Set .......... 
+    var series_enter = svg.append("g")          // Append a new group
+      .attr("class","all-data")                 // Make new group have a class of all-data
+      .selectAll("g")                           // Select all groups to create, inside the all-data class
+        .data(series_data)                      // Join data to groups 
+        .enter()                                // Get each new node 
+      .append("g")                              // Append a group for each data set
+        .attr("class","data")                   // Make new group have class of data
+        .attr("id", function(d,i){return series_imt[i]} )
+        .attr("fill","none")                    // Set group fill of none
+        .style("cursor","pointer");
+    //--------------------------------------------------------
+
+    //............ Plot Data Set as Paths ....................
+    series_enter.append("path")                 // Append a path tag to the data class
+      .attr("class","line")                     // Make new path tag have class of line
+      .attr("d",line)                           // Set the path using the line variable
+      .attr("stroke",function(d,i){return color[i];})   // Set the colors of each line
+      .attr("stroke-width",linewidth);          // Set line width 
+    //--------------------------------------------------------
+
+    
+    //............ Plot Data Set as Circles ..................
+    series_enter.selectAll("circle")                // Select all circles to create inside the data class
+      .data(function(d,i) {return d})               // Join the data to the circles
+      .enter()                                      // Get each new node
+      .filter(function(d,i){return d[1] != null})   // Filter out the Y values of null
+      .append("circle")                             // Append a new circle tag for each data point
+        .attr("class","dot")                        // Make new circle tag have class of dot
+        .attr("fill", function(d,i){                // Set the fill color to match that of the line color
+          return d3.select(this.parentNode.firstChild).style("stroke");   // Get color from correspond line 
+        })
+        .attr("cx",line.x())                        // Set the X locations of the circles
+        .attr("cy",line.y())                        // Set the Y locations of the circles
+        .attr("r", circle_size)                     // Set the radius for each circle
+    //--------------------------------------------------------
+
+    
+    //................. Setup the X Axis .....................
+    var x_axis = svg.append("g")                      // Create a new groupd under main svg group
+      .attr("class","x-axis");                        // Make new group have class of x-axis
+    
+    // X Tick Marks     
+    x_axis.append("g")                                // Append a new group under x-axis class
+      .attr("class","x-tick")                         // Set class to x-tick
+      .attr("transform","translate(0,"+height+")")    // Put X axis on the bottom of the plot
+      .call(d3.axisBottom(x_bounds));                 // Make tick marks
+    
+    // X Label
+    x_axis.append("text")                             // Append a text tag to the x-axis class
+      .attr("class","x-label")                        // Make text tag have class of x-label
+      .attr("text-anchor","middle")                   // Set text to be centered
+      .attr("alignment-baseline","middle")
+      .attr("x",width/2)                              // X location of X label
+      .attr("y", height+margin.bottom/2+10)           // Y location of X label
+      .text(xlabel);                                  // Set the text of the label
+    //--------------------------------------------------------
+
+
+
+    //................. Setup the Y Axis .....................
+    var y_axis = svg.append("g")          // Create a new group under main svg group
+      .attr("class","y-axis");            // Set class of new group to y-axis
+
+    // Y Tick marks
+    y_axis.append("g")                    // Append a new group to y-axis class
+      .attr("class","y-tick")             // Set class to y-tick
+      .call(d3.axisLeft(y_bounds));       // Set tick marks
+
+    // Y Label
+    y_axis.append("text")                 // Append a new text tag to y-axis class
+      .attr("class","y-label")            // Set class to y-label
+      .attr("transform","rotate(-90)")    // Rotate the text
+      .attr("text-anchor","middle")       // Set to center text
+      .attr("x",0-height/2)               // Set X location
+      .attr("y",0-margin.left/2-10)       // Set Y location
+      .text(ylabel);                      // Set the text of the label
+    //--------------------------------------------------------
+
+
+    //................. Set the Legend .......................
+    var nleg = series_labels.length-1;                              // Get how many legend entrys there are minus 1 for indexing
+
+    var legend = svg.append("g")                                    // Append a new group under main svg group     
+      .attr("class","legend")                                       // Set class to legend
+      .selectAll("g")                                               // Select all groups to create under legend class      
+        .data(series_labels)                                        // Join data to legend class
+        .enter()                                                    // Get each new node 
+      .append("g")                                                  // Append a group for each label
+        .attr("class","legend-entry")                               // Set class to legend-entry
+        .attr("id",function(d,i){return series_imt[nleg-i]})        // Set id to imt 
+        .attr("transform","translate(10,"+(height*(1-0.08))+")")    // Position legend to bottom-left
+        .style("cursor","pointer");
+    
+    
+    // Legend Text
+    legend.append("text")                                         // Append a text tag to legend-entry class
+      .attr("class","legend-text")
+      .attr("font-size","1em")
+      .attr("x",30)                                               // Set X location of each legend label
+      .attr("y", function(d,i){return 18*-i})                     // Set Y location of each legend label
+      .attr("alignment-baseline","central")                       // Set alignment
+      .text(function(d,i){return series_labels[nleg-i]});         // Set the text of each label, do nleg-i to put PGA at top of legend
+     
+    // Legend Line Indicator
+    legend.append("line")                                         // Append a svg line tag
+      .attr("class","legend-line")                                // Set class to legend-line
+      .attr("x2",24)                                              // Set width of line 
+      .attr("y1", function(d,i){return 18*-i})                    // Set Y location of starting point
+      .attr("y2", function(d,i){return 18*-i})                    // Set Y location of ending point
+      .attr("stroke-width",linewidth)                             // Set stroke width of line
+      .attr("stroke",function(d,i){return color[nleg-i]})         // Set color of line
+      .attr("fill","none");                                       // Set fill to none
+      
+    // Legend Circle on the Line
+    legend.append("circle")                                       // Append a svg circle tag
+      .attr("class","legend-circle")                              // Set class to legend-circle
+      .attr("cx",12)                                              // Set X location to center of line
+      .attr("cy",function(d,i){return 18*-i})                     // Set Y location
+      .attr("r",circle_size)                                      // Set radius
+      .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
+    //--------------------------------------------------------
+  
+
+  }
+  plot();                             // Plot the curves
+  //-------------------------------------------------------------------------------
+
+
+
+  //..................... Redraw Plot On Window Resize ............................
+  $(window).resize(function(){
+    plot_resize();
+  });
+  //-------------------------------------------------------------------------------
+ 
+  //.................... Redraw Plot when Resize Button is Pressed ................ 
+  resize_div_id.onclick = function(){
+    panel_resize(resize_id);
+    plot_resize(); 
+  }
+  //-------------------------------------------------------------------------------
+
+
+}
+//---------------------- End: D3 Plot Function -----------------------------------------------
+//
+//############################################################################################
+
+
+
+
+
+
+
 
