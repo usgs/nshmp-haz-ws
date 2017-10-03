@@ -21,6 +21,10 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
+var overlay_id     = document.getElementById("overlay");
+var loader_id      = document.getElementById("loader");
+var loader_text_id = document.getElementById("loader-text");
+loader_text_id.innerHTML = "Getting Menu"; 
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -59,6 +63,9 @@ $.when(                                                                   // Rea
   console.log("\n\n\n");
   console.log("Static Parameters: ");       console.log(static_parameters);   
   console.log("\n\n\n");
+
+  loader_id.style.display  = "none";
+  overlay_id.style.display = "none";
 
   //.................... Add Data Type ......................................  
   var main_pars    = ["edition","region","imt","vs30"];
@@ -201,7 +208,7 @@ function add_editions(){
   lon_id.value = null;                                // Reset the longitude values
   check_bounds();
 
-  var jregion_select   = region_id.selectedIndex;                   // Get the selected edition index value 
+  var jregion_select         = region_id.selectedIndex;                   // Get the selected edition index value 
   var region_select_value    = region_id.options[jregion_select].value;  // Get the selected edition from the edition menu  
   
   var noptions  = edition_id.options.length;           // Get length of options 
@@ -387,7 +394,9 @@ function check_bounds(is_submit){
 
   var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
   var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
-  var region_values  = parameters.region.values[jregion_select];    // Get the region values (parameters.region.values[region_index] in JSON file)
+  var region_values  = parameters.region.values.find(function(d,i){    // Get the region values (parameters.region.values[region_index] in JSON file)
+    return d.value == region_select;
+  });
   var min_lat = region_values.minlatitude;                          // Get the minimum latitude value
   var max_lat = region_values.maxlatitude;                          // Get the maximum latitude value
   var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
@@ -444,6 +453,10 @@ function check_bounds(is_submit){
 */
 
 plot_btn_id.onclick = function(){                                             // When button is pressed, perform the following
+  
+  loader_id.style.display  = "initial";
+  overlay_id.style.display = "initial";
+  loader_text_id.innerHTML = "Calculating";
     
   d3.selectAll("svg")           // Remove all svg tags for the plot element
     .remove();
@@ -762,6 +775,9 @@ function set_data(response,plot_id){
 //........................... Plot Hazard Curves .............................................
 
 function hazard_plot(response){
+  
+  loader_id.style.display  = "none";
+  overlay_id.style.display = "none";
 
   var plot_id  = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");
