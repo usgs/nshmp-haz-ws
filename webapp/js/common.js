@@ -7,15 +7,15 @@
 //........................ Read in Parameter Dependency JSON File ............................ 
 
 
-function get_parameters(){
+function get_parameters(callback){
   var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
   var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
   $.when(                                                                   // Read in the static and dynamic JSON files
     $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
-      dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
+      dynamic_parameters    = dynamic_json_return.parameters;           // Global variable: get the parameter key from the dynamic JSON file 
     }),
     $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
-      static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
+      static_parameters = static_json_return.parameters;                // Global variable: get the parameter key from the static JSON file
     })
   ).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
     console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
@@ -24,7 +24,7 @@ function get_parameters(){
     console.log("\n\n\n");
 
     //................. Add Edition Type ......................................  
-    var main_pars    = ["edition","region","imt","vs30"];
+    var main_pars    = ["edition","region"];
     var edition_type = ["static","dynamic"];
 
     for (var jt in edition_type){
@@ -56,8 +56,7 @@ function get_parameters(){
     //------------------------------------------------------------------------
 
     //....... Create a Single Parameter Object for Static and Dynamic .........
-    parameters = {                  // Global variable of parameters
-      type:  "",                    // type will either be static or dynamic based on which is choosen 
+    var combined_parameters = {                  // Global variable of parameters
       edition: {                    // Combined static and dynamic editions
         values: edition_values
       },
@@ -71,11 +70,11 @@ function get_parameters(){
         values: vs30_values
       }
     };
-    console.log("Combined Parameters: ");     console.log(parameters);   
+    console.log("Combined Parameters: ");     console.log(combined_parameters);   
     console.log("\n\n\n");
     //------------------------------------------------------------------------
     
-    return parameters;
+    callback(combined_parameters); 
   }); 
 }
 
@@ -107,6 +106,94 @@ function sort_displayorder(a,b){
 //############################################################################################
 
 
+
+
+
+
+
+//############################################################################################
+//
+//........................... Remove Options from Select Menus ...............................
+
+/*
+- The remove_options function will remove the selection options from the imt
+  and the vs30 menus so that they can be repopullated based on what is supported 
+  for the edition that was choosen
+*/
+
+function remove_options(id){
+  var dom_id = document.getElementById(id);          // Get the dom id 
+  var noptions = dom_id.options.length;
+  for (var jo=0;jo<noptions;jo++){                    // Loop through the number of options in each menu
+    dom_id.remove(0);                                 // Remove each menu option
+  }
+}
+//----------------------------- End: Remove Options ------------------------------------------
+//
+//############################################################################################
+
+
+
+
+
+
+//############################################################################################
+//
+//........................... Set Latitude and Longitude Bounds ..............................
+
+/*
+- The check_bounds function will look at the supported bounds for the region
+  as stated in the parameter depenency JSON file. 
+- The bounds are then add in the webpage under the text field to enter the values
+*/
+
+function check_bounds(is_submit){
+
+  var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
+  var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
+  var region_values  = parameters.region.values.find(function(d,i){    // Get the region values (parameters.region.values[region_index] in JSON file)
+    return d.value == region_select;
+  });
+  var min_lat = region_values.minlatitude;                          // Get the minimum latitude value
+  var max_lat = region_values.maxlatitude;                          // Get the maximum latitude value
+  var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
+  var max_lon = region_values.maxlongitude;                         // Get the maximum longitude value
+
+  lat_bounds_id.innerHTML = region_select + " bounds: " +
+                              " ["+min_lat+","+max_lat+"]";         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
+  lon_bounds_id.innerHTML = region_select + " bounds: " +
+                              " ["+min_lon+","+max_lon+"]";         // Set the longitude bound text for the webpage
+
+  var lat = lat_id.value;                                           // Get latitude value
+  var lon = lon_id.value;                                           // Get longitude value
+
+  var can_submit_lat = false;                                       // Boolean to see if latitude is within bounds
+  var can_submit_lon = false;                                       // Boolean to see if longitude is within bounds
+  if (is_submit){                                                   // Check bounds 
+    if (lat < min_lat || lat > max_lat){                            // Check to see if lat value exists and within bounds
+      lat_bounds_id.style.color = "red";                            // Set text color to red if not in bounds
+      can_submit_lat = false;                                       // Set flag false
+      lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
+    }else{
+      lat_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lat = true;                                        // Set flag true
+    }
+    if (lon < min_lon || lon > max_lon){                            // Check to see if lon value exists and within bounds
+      lon_bounds_id.style.color = "red";                            // Set text color to ref if not in bounds
+      can_submit_lon = false;                                       // Set false
+      lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
+    }else{
+      lon_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lon = true;                                        // Set true
+    }
+  }
+
+  return [can_submit_lat,can_submit_lon];
+}
+
+//----------------------------- End: Set Bounds ----------------------------------------------
+//
+//############################################################################################
 
 
 

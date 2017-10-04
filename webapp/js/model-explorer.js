@@ -1,3 +1,12 @@
+//############################################################
+//
+//  Contains all JavaScript for model-explorer.html
+//
+//  Some function are called from the common.js file
+//
+//
+//############################################################
+
 
 
 
@@ -34,110 +43,28 @@ loader_text_id.innerHTML = "Getting Menu";
 
 //############################################################################################
 //
-//........................ Read in Parameter Dependency JSON File ............................ 
-
+//........................ Get Parameter Dependencies ........................................ 
 /*
-- On start up the static and dynamic parameter dependicies JSON files get read in.
-- Once the JSON files are read in, the functions add_editions, add_regions, and add_options are called.
-
-- NOTE:  The following variables are global:
-          - edition_values
-          - region_values
-          - imt_values
-          - vs30_values
-          - parameters 
+- The set_parameters function is a callback function for the get_parameters function, in common.js,
+  that will get called once both the static and dynamic parameter dependency JSON files are
+  read in.
+  - The get_parameters function will return an object that contains all editions, regions, imts, 
+  and vs30.
 */
+function set_parameters(par){
+  loader_id.style.display  = "none";        // After the JSON files have been loaded, remove spinner
+  overlay_id.style.display = "none";        // Remove overlay 
 
-
-var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
-var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
-$.when(                                                                   // Read in the static and dynamic JSON files
-  $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
-    dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
-  }),
-  $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
-    static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
-  })
-).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
-  console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
-  console.log("\n\n\n");
-  console.log("Static Parameters: ");       console.log(static_parameters);   
-  console.log("\n\n\n");
- 
- 
-  loader_id.style.display  = "none";
-  overlay_id.style.display = "none";
-  
-  //.................. Combine Static and Dynamic Parameters ...............
-  edition_values = static_parameters.edition.                             // Global variable: Combine the static and dynamic editions
-                        values.concat(dynamic_parameters.edition.values);
-  region_values  = static_parameters.region.                              // Global variable: Combine the static and dynamic regions
-                        values.concat(dynamic_parameters.region.values);
-  imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
-  vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
-
-  //------------------------------------------------------------------------
-
-  //......... Sort Combined Parameters by Display Order Parameter ...........
-  edition_values.sort(sort_displayorder);                                 // Sort the editions by using sort_displayorder function
-  region_values.sort(sort_displayorder);                                  // Sort the regions by using sort_displayorder function       
-  imt_values.sort(sort_displayorder);                                     // Sort the IMTs by using sort_displayorder funtion
-  vs30_values.sort(sort_displayorder);                                    // Sort the Vs30 values by using sort_displayorder function
-  //------------------------------------------------------------------------
-
-  //....... Create a Single Parameter Object for Static and Dynamic .........
-  parameters = {                  // Global variable of parameters
-    type:  "",                    // type will either be static or dynamic based on which is choosen 
-    edition: {                    // Combined static and dynamic editions
-      values: edition_values
-    },
-    region: {                     // Combined static and dynamic editions
-      values: region_values
-    },
-    imt: {                        // Combined static and dynamic IMTs
-      values: imt_values
-    },
-    vs30: {                       // Combined static and dynamic Vs30
-      values: vs30_values
-    }
-  };
-  console.log("Combined Parameters: ");     console.log(parameters);   
-  console.log("\n\n\n");
-  //------------------------------------------------------------------------
-
+  parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   //.......................... Run Function ................................
   add_editions();                 // Add editions to menu
   add_regions();                  // Add regions to menu
   add_options();                  // Add all other options based on edition and regions selected
   //-----------------------------------------------------------------------
+};
 
-}); 
-
-
-//--------------------------- End: Parameter Dependency --------------------------------------
-//
-//############################################################################################
-
-
-
-
-
-//############################################################################################
-//
-//........................ Read in Parameter Dependency JSON File ............................ 
-
-/*
-- The sort_displayorder function takes a parameter, like edition, and sorts them based
-  on the display order given in the two JSON files
-- This function returns the subtraction of the display order values of two editions to see
-  which one should be displayed first (a negative value return is displayed first)
-*/
-
-function sort_displayorder(a,b){
-  return (a.displayorder - b.displayorder);
-}      
-
-//--------------------------- End: Parameter Dependency --------------------------------------
+get_parameters(set_parameters);     // Call get_parameters from common.js and send in callback to above
+//-------------------------- End: Get Parameter Dependencies ---------------------------------
 //
 //############################################################################################
 
@@ -199,11 +126,7 @@ function add_regions(){
   var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
   var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
   
-  
-  var noptions  = region_id.options.length;           // Get length of options 
-  for (var jr=0;jr<noptions;jr++){                    // Loop through all options and remove 
-    region_id.remove(0);
-  }
+  remove_options("region"); 
   
   lat_id.value = null;                                // Reset the latitude values
   lon_id.value = null;                                // Reset the longitude values
@@ -250,7 +173,8 @@ function add_regions(){
 */
 
 function add_options(){
-  remove_options();     // Remove all previous menu item
+  remove_options("imt");      // Remove all previous imt menu items
+  remove_options("vs30");     // Remove all previous vs30 menu items
 
   var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
   var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
@@ -291,94 +215,6 @@ function add_options(){
 }
 
 //----------------------------- End: Add Options ---------------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Remove Options from Select Menus ...............................
-
-/*
-- The remove_options function will remove the selection options from the imt
-  and the vs30 menus so that they can be repopullated based on what is supported 
-  for the edition that was choosen
-*/
-
-function remove_options(){
-
-  var ids = ["imt","vs30"];                             // Selection menu ids
-  for (ji in ids){                                      // Loop through the menus
-    var dom_id = document.getElementById(ids[ji]);      // Get the dom id from ids
-    var noptions = dom_id.options.length;
-    for (var jo=0;jo<noptions;jo++){                    // Loop through the number of options in each menu
-      dom_id.remove(0);                                 // Remove each menu option
-    }
-  }
-
-}
-//----------------------------- End: Remove Options ------------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Set Latitude and Longitude Bounds ..............................
-
-/*
-- The check_bounds function will look at the supported bounds for the region
-  as stated in the parameter depenency JSON file. 
-- The bounds are then add in the webpage under the text field to enter the values
-*/
-
-function check_bounds(is_submit){
-
-  var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
-  var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
-  var region_values  = parameters.region.values[jregion_select];    // Get the region values (parameters.region.values[region_index] in JSON file)
-  var min_lat = region_values.minlatitude;                          // Get the minimum latitude value
-  var max_lat = region_values.maxlatitude;                          // Get the maximum latitude value
-  var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
-  var max_lon = region_values.maxlongitude;                         // Get the maximum longitude value
-   
-  lat_bounds_id.innerHTML = region_select + " bounds: " +
-                              " ["+min_lat+","+max_lat+"]";         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
-  lon_bounds_id.innerHTML = region_select + " bounds: " +
-                              " ["+min_lon+","+max_lon+"]";         // Set the longitude bound text for the webpage
-
-  var lat = lat_id.value;                                           // Get latitude value
-  var lon = lon_id.value;                                           // Get longitude value
-
-  var can_submit_lat = false;                                       // Boolean to see if latitude is within bounds
-  var can_submit_lon = false;                                       // Boolean to see if longitude is within bounds
-  if (is_submit){                                                   // Check bounds 
-    if (lat < min_lat || lat > max_lat){                            // Check to see if lat value exists and within bounds
-      lat_bounds_id.style.color = "red";                            // Set text color to red if not in bounds
-      can_submit_lat = false;                                       // Set flag false
-      lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
-    }else{
-      lat_bounds_id.style.color = "black";                          // If within bounds set text to black
-      can_submit_lat = true;                                        // Set flag true
-    }
-    if (lon < min_lon || lon > max_lon){                            // Check to see if lon value exists and within bounds
-      lon_bounds_id.style.color = "red";                            // Set text color to ref if not in bounds
-      can_submit_lon = false;                                       // Set false
-      lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
-    }else{
-      lon_bounds_id.style.color = "black";                          // If within bounds set text to black
-      can_submit_lon = true;                                        // Set true
-    }
-  }
-  
-  return [can_submit_lat,can_submit_lon];
-}
-
-//----------------------------- End: Set Bounds ----------------------------------------------
 //
 //############################################################################################
 
