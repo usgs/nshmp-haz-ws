@@ -1,6 +1,7 @@
 
 
 
+
 //############################################################################################
 //
 //................................. Main DOM Ids ............................................. 
@@ -20,6 +21,8 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
+var xaxis_btn_id = document.getElementById("hazard-plot-xaxis");
+var yaxis_btn_id = document.getElementById("hazard-plot-yaxis");
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -431,7 +434,7 @@ function panel_resize(plot_name){
 //
 //........................... Format Information for D3 ......................................
 
-function format_plot_info(json_response,plot_id){
+function format_plot_info(json_response,plot_id,x_scale,y_scale){
 
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
   var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;  // Get the IMT selection
@@ -486,6 +489,10 @@ function format_plot_info(json_response,plot_id){
     xlabel:        xlabel,                              // X label
     ylabel:        ylabel,                              // Y label
     plot_id:       plot_id,                             // DOM ID for plot
+    x_scale:       x_scale,
+    y_scale:       y_scale,
+    xaxis_btn:    "hazard-plot-xaxis",
+    yaxis_btn:    "hazard-plot-yaxis",
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
     resize:       "hazard"                              // DOM ID for resize element 
   };
@@ -502,7 +509,6 @@ function format_plot_info(json_response,plot_id){
 //############################################################################################
 
 
-
 //############################################################################################
 //
 //........................... Plot Hazard Curves .............................................
@@ -511,13 +517,15 @@ function hazard_plot(response){
   
   loader_id.style.display  = "none";                                      // Remove the spinner
   overlay_id.style.display = "none";                                      // Remove the overlay
-
+  
   var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");             // Get title element
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
   
   //................... Setup Reponse for D3 and Plot ........................
-  var plot_info = format_plot_info(response,plot_id);                     // Get D3 plot data setup 
+  var x_scale = "log";
+  var y_scale = "log";
+  var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);     // Get D3 plot data setup 
   plot_curves(plot_info);                                                 // Plot the curves
   plot_hazard_selection(plot_id);                                         // Setup plot selections and tooltips 
   title_id.innerHTML = " at " + selected_imt_display;                     // Update plot title to have selected IMT
@@ -525,14 +533,20 @@ function hazard_plot(response){
 
   //................ Update Plot on IMT Menu Change ..........................
   imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update selected IMT on plot and component plot
-    var plot_info = format_plot_info(response,plot_id);                   // Update D3 data
+    var x_scale = xaxis_btn_id.value;
+    var y_scale = yaxis_btn_id.value;
+    var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);   // Update D3 data
     plot_curves(plot_info);                                               // Plot D3 data
     plot_hazard_selection(plot_id);                                       // Update plot selection and tooltips
     selected_imt_display = imt_id.options[imt_id.selectedIndex].text;     // Get the IMT selection
     title_id.innerHTML = " at " + selected_imt_display;                   // Update plot title
   };      
   //--------------------------------------------------------------------------
+ 
+
+       
   
+ 
 } 
 
 //---------------------- End: Plot Hazard Curves ---------------------------------------------

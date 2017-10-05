@@ -18,14 +18,12 @@
 /*.................... Plots ......................*/
 
 /*............... Main Plot Panel ................*/
-#component-plot-panel,
 #hazard-plot-panel{
   display: none;
 }
 /*------------------------------------------------*/
 
 /*............... Plot Resize ....................*/
-#component-plot-resize,
 #hazard-plot-resize{
   float: right;
 }
@@ -33,7 +31,6 @@
 
 
 /*.................. Plot Titles ..................*/
-#component-plot-title,
 #hazard-plot-title{
   margin: 0 auto;
   font-family: 'HelveticaNeue-Light',sans-serif;
@@ -44,7 +41,6 @@
 
 
 /*..................... Plots .....................*/
-#component-curves-plot,
 #hazard-curves-plot{
   margin: 0 auto;
 }
@@ -63,6 +59,13 @@
 
 /*.............. Plot Panel Heading .............. */
 .panel .panel-heading{
+  background-color: #f7f7f7;
+}
+/*-------------------------------------------------*/
+
+
+/*.............. Plot Panel Heading .............. */
+.panel .panel-footer{
   background-color: #f7f7f7;
 }
 /*-------------------------------------------------*/

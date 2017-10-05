@@ -31,10 +31,6 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
-var overlay_id     = document.getElementById("overlay");
-var loader_id      = document.getElementById("loader");
-var loader_text_id = document.getElementById("loader-text");
-loader_text_id.innerHTML = "Getting Menu";
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -223,8 +219,11 @@ function add_options(){
   edition choosen
 */
 
-
-plot_btn_id.addEventListener("click",get_selections);       // When button is pressed call get_selection
+$("footer").ready(function(){                                             // Wait for footer to load and add listener
+  raw_btn_id    = document.getElementById("raw-data");                    // Raw Data button id 
+  plot_btn_id   = document.getElementById("update-plot");                 // Update plot button id
+  plot_btn_id.addEventListener("click",get_selections);                   // When button is pressed call get_selection
+});
 
 //............. Call get_selection on Keyboard Enter on Lat ...........
 lat_id.onkeypress = function(key){                          // Submit URL on enter key
@@ -439,6 +438,10 @@ function hazard_plot(response){
     series_label_values:    imt_values,
     xlabel:        xlabel,                // X label
     ylabel:        ylabel,                // Y label
+    xaxis_btn:     "hazard-plot-xaxis",
+    yaxis_btn:     "hazard-plot-yaxis",
+    x_scale:       "log",
+    y_scale:       "log",
     plot_id:       plot_id,               // DOM ID for plot
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
     resize:       "hazard"                // DOM ID for resize element 
@@ -544,10 +547,19 @@ function component_curves_plot(response){
   var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;
   var title_id             = document.getElementById("component-plot-text");
   title_id.innerHTML       = " for " + selected_imt_display;
+
+  //................. Check X and Y Axis Scale ......................
+  var xaxis_btn_id = document.getElementById("component-plot-xaxis");
+  var yaxis_btn_id = document.getElementById("component-plot-yaxis");
+  if (xaxis_btn_id.value == "" || yaxis_btn_id.value == ""){            // If no value has been applied, set default scale
+    var x_scale = "log";
+    var y_scale = "log";
+  }else{                                                                // If value already set, get that value
+    var x_scale = xaxis_btn_id.value;
+    var y_scale = yaxis_btn_id.value;
+  }
+  //-----------------------------------------------------------------
  
-  //.................. Get Axis Information ..................................
-  //--------------------------------------------------------------------------
-    
   //................. Get Component Hazard Data ..............................
   var component_hazard_data   = [];                           // Array for component x,y pair data for D3
   var component_hazard_labels = [];                           // Array for component labels
@@ -576,6 +588,10 @@ function component_curves_plot(response){
     series_label_values:    component_hazard_labels,
     xlabel:        xlabel,                    // X label
     ylabel:        ylabel,                    // Y label
+    xaxis_btn:     "component-plot-xaxis",
+    yaxis_btn:     "component-plot-yaxis",
+    x_scale:       x_scale,
+    y_scale:       y_scale,
     plot_id:       plot_id,                   // DOM ID for plot
     margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
     resize:       "component"                 // DOM ID for resize element 

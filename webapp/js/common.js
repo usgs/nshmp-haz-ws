@@ -1,11 +1,27 @@
 
-
-
 //############################################################################################
 //
 //................................. Load Include Files ....................................... 
 
-$("#include-header").load("includes/header.html");                  // Load header 
+$("#include-header").load("includes/header.html",function(){
+  var title_id = document.getElementById("header-title");
+  var webapp = window.location.pathname.split("/").pop();
+  switch (webapp){
+    case "model-explorer.html":
+      var title = "Model Explorer";
+      break;
+    case "model-compare.html":
+      var title = "Model Compare";
+      break;
+    case "spectra-plot.html":
+      var title = "Response Spectra";
+      break;
+    default:
+      var title = "Please define title in common.js";
+  }
+  title_id.innerHTML = title;
+});                  
+
 $("#include-footer").load("includes/footer.html");                  // Load footer
 $("#include-spinner").load("includes/spinner.html",function(){      // Load spinner
   overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
@@ -591,14 +607,34 @@ function plot_curves(plot_info){
   var xlabel        = plot_info.xlabel;             // Get the X label
   var ylabel        = plot_info.ylabel;             // Get the Y label
   var plot_id       = plot_info.plot_id;            // Get the DOM id of the plot
+  var x_scale       = plot_info.x_scale;
+  var y_scale       = plot_info.y_scale;
   var margin        = plot_info.margin;             // Get the margin values
   var resize_id     = plot_info.resize;             // Get the resize DOM id
-
+  var xaxis_btn     = plot_info.xaxis_btn;
+  var yaxis_btn     = plot_info.yaxis_btn;
   var plot_div_id   = document.getElementById(plot_id);
   var resize_div_id = document.getElementById(resize_id+"-plot-resize");
   //-------------------------------------------------------------------------------
 
 
+  var xaxis_btn_id = document.getElementById(xaxis_btn);
+  var yaxis_btn_id = document.getElementById(yaxis_btn);
+  
+  xaxis_btn_id.value = x_scale;           // Set current X scale  
+  yaxis_btn_id.value = y_scale;           // Set current Y scale
+  if (x_scale == "log"){
+    xaxis_btn_id.innerHTML = "X-axis: Linear";
+  }else{
+    xaxis_btn_id.innerHTML = "X-axis: Log";
+  }
+  
+  if (y_scale == "log"){
+    yaxis_btn_id.innerHTML = "Y-axis: Linear";
+  }else{
+    yaxis_btn_id.innerHTML = "Y-axis: Log";
+  }
+  
   //..................... Get Color Scheme ........................................
   var ndata = series_data.length;         // Get how many data sets there are
   if (ndata < 10){                        // If 10 or less data sets
@@ -626,14 +662,30 @@ function plot_curves(plot_info){
   
   var height = plot_height();                       // Get the height of the plot element
   var width  = plot_width();                        // Get the width of the plot element
-
-  var x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
-    .range([0,width])                               // Set range to width of plot element to scale data points
+  
+  function get_xscale(){
+    if (x_scale == "log"){
+      var x_bounds = d3.scaleLog();                     // Set the X axis range and domain in log space                 
+    }else if (x_scale == "linear"){
+      var x_bounds = d3.scaleLinear();
+    }
+    return x_bounds;
+  }
+  var x_bounds = get_xscale();
+  x_bounds.range([0,width])                         // Set range to width of plot element to scale data points
     .domain(x_extremes)                             // Set the min and max X values
     .nice();
 
-  var y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
-    .range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
+  function get_yscale(){
+    if (y_scale == "log"){
+      var y_bounds = d3.scaleLog();                     // Set the X axis range and domain in log space                 
+    }else if (y_scale == "linear"){
+      var y_bounds = d3.scaleLinear();
+    }
+    return y_bounds;
+  }
+  var y_bounds = get_yscale();
+  y_bounds.range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
     .domain(y_extremes)                             // Set the min and max Y values
     .nice()
 
@@ -702,7 +754,7 @@ function plot_curves(plot_info){
 
 
   //........................ Plot Resize Function .................................
-  function plot_resize(){
+  function plot_resize(do_transition){
     
     var height = plot_height();                             // Get current plot height
     var width = plot_width();                               // Get current plot width
@@ -736,12 +788,22 @@ function plot_curves(plot_info){
       .attr("x",0-height/2)                                 // Update Y label X location
       .attr("y",0-margin.left/2-10);                        // Update Y label Y location
 
-    svg.selectAll(".line")                                  // Select all line classes
-      .attr("d",line);                                      // Update the paths
-
-    svg.selectAll(".dot")                                   // Select all the dot classes
-      .attr("cx",line.x())                                  // Update the X location of the circles
-      .attr("cy",line.y());                                 // Update the Y location of the circles
+    var svg_line = svg.selectAll(".line");
+    var svg_dot  = svg.selectAll(".dot");
+    if (do_transition){
+      svg_line.transition()
+        .duration(500)
+        .attr("d",line);
+      
+      svg_dot.transition()
+        .duration(500)
+        .attr("cx",line.x())
+        .attr("cy",line.y());
+    }else{
+      svg_line.attr("d",line);
+      svg_dot.attr("cx",line.x())                                  // Update the X location of the circles
+        .attr("cy",line.y());                                 // Update the Y location of the circles
+    }
 
     svg.selectAll(".legend-entry")                                  // Select the legend-entry class
       .attr("transform","translate(10,"+(height*(1-0.08))+")");     // Update the location of the legend
@@ -913,6 +975,36 @@ function plot_curves(plot_info){
   }
   //-------------------------------------------------------------------------------
 
+
+  xaxis_btn_id.onclick = function(){
+    var xscale_check = this.value;
+    if (xscale_check == "log"){
+      x_scale = "linear";
+      this.value = "linear";
+      this.innerHTML = "X-axis: Log"  
+    }else if (xscale_check == "linear"){
+      x_scale = "log";
+      this.value = "log";
+      this.innerHTML = "X-axis: Linear"  
+    } 
+    x_bounds = get_xscale();
+    plot_resize(true);
+  }
+
+  yaxis_btn_id.onclick = function(){
+    var yscale_check = this.value;
+    if (yscale_check == "log"){
+      y_scale = "linear";
+      this.value = "linear";
+      this.innerHTML = "Y-axis: Log"  
+    }else if (yscale_check == "linear"){
+      y_scale = "log";
+      this.value = "log";
+      this.innerHTML = "Y-axis: Linear"  
+    } 
+    y_bounds = get_yscale();
+    plot_resize(true);
+  }
 }
 
 //---------------------- End: D3 Plot Function -----------------------------------------------
