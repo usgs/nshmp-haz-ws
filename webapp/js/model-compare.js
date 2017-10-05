@@ -224,31 +224,8 @@ function add_options(){
   //-----------------------------------------------------------------------------------------
 
   //.................. Add IMT and Vs30 Values to Menu with Supported Selecteable ...........
-  for (var js in supports){                                           // Loop through supported parameters 
-    var dom_id = document.getElementById(supports[js]);               // Get DOM id
-    var parameter_values = parameters[supports[js]].values;           // Get all parameter values
-    var selected_values  = eval(supports[js]+"_check");               // Get array of all selected supported values
-    var supported_values = parameter_values.filter(function(d,i){     // Add all values to menu and return only values that are in common 
-      var option      = document.createElement("option");             // Create option element
-      var value       = parameter_values[i].value;                    // Get value
-      var display     = parameter_values[i].display;                  // Get text
-      option.value    = value;                                        // Set value
-      option.id       = value;                                        // Set id
-      option.text     = display;                                      // Set text
-      option.disabled = true;                                         // Disable option
-      dom_id.add(option);                                             // Add option 
-      return selected_values.every(function(dp,ip){                   // Search through all selcted values and return what is in common 
-        return dp.includes(d.value);
-      })
-    });
-    supported_values.forEach(function(sv,isv){                        // Loop through the supported values
-      var jsupport = parameter_values.findIndex(function(v,iv){       // Find the index where the suppoted value is 
-        return v.value == sv.value;
-      });
-      dom_id.options[jsupport].disabled = false;                      // Make supported value be selectable
-    });
-    dom_id.value = supported_values[0].value;                         // Set default value to first supported value
-  }
+  common_supports("imt",imt_check);
+  common_supports("vs30",vs30_check);
   //-----------------------------------------------------------------------------------------
 
 
@@ -273,27 +250,37 @@ function add_options(){
   edition choosen
 */
 
-plot_btn_id.addEventListener("click",get_selections);       // When button is pressed, perform the following
 
+plot_btn_id.addEventListener("click",get_selections);       // When button is pressed call get_selection
+
+//............. Call get_selection on Keyboard Enter on Lat ...........
 lat_id.onkeypress = function(key){                          // Submit URL on enter key
   var key_code = key.which || key.keyCode;
   if (key_code == 13){
     get_selections();
   }
 }
+//---------------------------------------------------------------------
 
+//............. Call get_selection on Keyboard Enter on Lon ...........
 lon_id.onkeypress = function(key){                          // Submit URL on enter key
   var key_code = key.which || key.keyCode;
   if (key_code == 13){
     get_selections();
   }
 }
+//---------------------------------------------------------------------
+
 
 
 function get_selections(){
     
-  d3.selectAll("svg")   // Remove all svg tags for the plot element
+  var svg = d3.selectAll("svg");      // Get all svg element 
+  svg.select(".all-data")             // Remove data
     .remove();
+  svg.select(".legend")               // Remove legend
+    .remove();
+
 
   //.............. Get All Selections from the Menus ...................
   var selected_editions = edition_id.selectedOptions;                         // Get all selected editions
@@ -324,7 +311,7 @@ function get_selections(){
       var data_type     = edition_info.data_type;
       var edition_value = edition_info.value;
       var region_value  = region_info[data_type+"_value"];
-      url_info[je] = make_url(edition_value,region_value,lat,lon,vs30,data_type);     // Make URL to call
+      url_info[je] = make_hazard_url(edition_value,region_value,lat,lon,vs30,data_type);     // Make URL to call
     }
     
     get_hazard(url_info);                       // Call get_hazard, call all urls
@@ -340,55 +327,6 @@ function get_selections(){
 } 
 
 //---------------------- End: Get Menu Selections/Values -------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//................................ Make URL to Query .........................................
-
-/*
-Format of Dynamic URL:
-  https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
-
-Format of Static URL:
-  https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
-*/
-
-
-function make_url(edition,region,lat,lon,vs30,data_type){
-  
-  if (data_type == "static"){                         // If data type is static, setup static URL
-    var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";   // Set the URL base
-    var url_info =  {
-      data_type: "static",          // Set data type
-      url: url_base +               // Construct the URL to call the nshmp-haz code
-      edition       + "/" +         // Add edition to URL
-      region        + "/" +         // Add region to URL
-      lon           + "/" +         // Add longitude to URL
-      lat           + "/" +         // Add latitude to URL
-      "any"         + "/" +         // Add IMT to URL (return all IMTs)
-      vs30                          // Add vs30 to URL
-    };
-  }else if (data_type == "dynamic"){                // If data type is dynamic, setup dynamic URL
-    var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";    // Set the URL base
-    var url_info =  {
-      data_type: "dynamic",           // Set data type
-      url: url_base +                 // Construct the URL to call the nshmp-haz code
-      "?edition="   + edition   +     // Add edition to URL
-      "&region="    + region    +     // Add region to URL
-      "&longitude=" + lon       +     // Add longitude to URL
-      "&latitude="  + lat       +     // Add latitude to URL
-      "&vs30="      + vs30            // Add vs30 to URL
-    };
-  }
-  return url_info;
-}
-
-//---------------------------- End: Make URL to Query ----------------------------------------
 //
 //############################################################################################
 
@@ -497,7 +435,6 @@ function panel_resize(plot_name){
 //
 //........................... Format Information for D3 ......................................
 
-
 function format_plot_info(json_response,plot_id){
 
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
@@ -530,38 +467,43 @@ function format_plot_info(json_response,plot_id){
     //--------------------------------------------------------------------------
   
     //........................ Set Data for D3 .................................
-    xvalues                   = response.metadata[xvalue_variable];
-    series_data[jr]           = d3.zip(xvalues,data[jtotal][yvalue_variable]);                    // Create the array of x,y pairs for D3
-    series_label_displays[jr] = response.metadata.edition.display;                                // Create the array of labels
-    series_label_values[jr]   = response.metadata.edition.value;
+    var xvalues               = response.metadata[xvalue_variable];               // Get X values
+    series_data[jr]           = d3.zip(xvalues,data[jtotal][yvalue_variable]);    // Create the array of x,y pairs for D3
+    series_label_displays[jr] = response.metadata.edition.display;                // Create the array of label displays
+    series_label_values[jr]   = response.metadata.edition.value;                  // Create the array of label values
     //--------------------------------------------------------------------------
   }
   //-------------------------------------------------------------------------------------
  
   //.................. Get Axis Information ..................................
-  var metadata = json_response[0][0].metadata;          // Get metadata of a response
-  var xlabel   = metadata.xlabel;                // Get X label 
-  var ylabel   = metadata.ylabel;                // Get Y label
+  var metadata = json_response[0][0].metadata;    // Get metadata of a response
+  var xlabel   = metadata.xlabel;                 // Get X label 
+  var ylabel   = metadata.ylabel;                 // Get Y label
   //--------------------------------------------------------------------------
   
 
   //.................... Plot Info Object for D3 .............................
-  var plot_info = {                                   // Plot info object
-    series_data:              series_data,            // Series data to plot
-    series_label_displays:    series_label_displays,  // Series label displays
-    series_label_values:      series_label_values,    // Series label values
-    xlabel:        xlabel,                // X label
-    ylabel:        ylabel,                // Y label
-    plot_id:       plot_id,               // DOM ID for plot
+  var plot_info = {                                     // Plot info object
+    series_data:              series_data,              // Series data to plot
+    series_label_displays:    series_label_displays,    // Series label displays
+    series_label_values:      series_label_values,      // Series label values
+    xlabel:        xlabel,                              // X label
+    ylabel:        ylabel,                              // Y label
+    plot_id:       plot_id,                             // DOM ID for plot
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-    resize:       "hazard"                // DOM ID for resize element 
+    resize:       "hazard"                              // DOM ID for resize element 
   };
+  console.log("\n\n Plot Information: ");    console.log(plot_info);
+  console.log("\n\n");
   return plot_info;                       // Return the plot info object
   //--------------------------------------------------------------------------
   
 
 }
 
+//---------------------- End: Format Data for D3 ---------------------------------------------
+//
+//############################################################################################
 
 
 
@@ -571,34 +513,41 @@ function format_plot_info(json_response,plot_id){
 
 function hazard_plot(response){
   
-  loader_id.style.display  = "none";
-  overlay_id.style.display = "none";
+  loader_id.style.display  = "none";                                      // Remove the spinner
+  overlay_id.style.display = "none";                                      // Remove the overlay
 
-  var plot_id  = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
-  var title_id = document.getElementById("hazard-plot-text");
-
+  var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
+  var title_id = document.getElementById("hazard-plot-text");             // Get title element
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
-  var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;  // Get the IMT selection
-   
-  var plot_info = format_plot_info(response,plot_id);  
-  console.log("\n\n Hazard Plot Information: ");    console.log(plot_info);
-  plot_curves(plot_info);                 // Plot the curves
-  plot_hazard_selection(plot_id);
-  title_id.innerHTML = " at " + selected_imt_display;
+  
+  //................... Setup Reponse for D3 and Plot ........................
+  var plot_info = format_plot_info(response,plot_id);                     // Get D3 plot data setup 
+  plot_curves(plot_info);                                                 // Plot the curves
+  plot_hazard_selection(plot_id);                                         // Setup plot selections and tooltips 
+  title_id.innerHTML = " at " + selected_imt_display;                     // Update plot title to have selected IMT
+  //--------------------------------------------------------------------------
 
   //................ Update Plot on IMT Menu Change ..........................
-  imt_id.onchange = function(){                                             // When the selection menu of IMT changes, update selected IMT on plot and component plot
-    var plot_info = set_data(response,plot_id);
-    plot_curves(plot_info);
-    plot_hazard_selection(plot_id); 
-    selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
-    title_id.innerHTML = " at " + selected_imt_display;
+  imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update selected IMT on plot and component plot
+    var plot_info = format_plot_info(response,plot_id);                   // Update D3 data
+    plot_curves(plot_info);                                               // Plot D3 data
+    plot_hazard_selection(plot_id);                                       // Update plot selection and tooltips
+    selected_imt_display = imt_id.options[imt_id.selectedIndex].text;     // Get the IMT selection
+    title_id.innerHTML = " at " + selected_imt_display;                   // Update plot title
   };      
   //--------------------------------------------------------------------------
   
 } 
 
+//---------------------- End: Plot Hazard Curves ---------------------------------------------
+//
+//############################################################################################
 
+
+
+//############################################################################################
+//
+//........................... Setup Plot Selections ..........................................
 
 function plot_hazard_selection(plot_id){
 
@@ -606,10 +555,9 @@ function plot_hazard_selection(plot_id){
   d3.select("#"+plot_id + " svg")                               // Get plot svg
     .selectAll(".data")                                         // Select all data, lines and circles 
     .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
-      var selected_edition_value = d3.select(this).attr("id");      // Get selected id
-
-      plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
-      plot_selection(plot_id,selected_edition_value);               // Update plot with new selection
+      var selected_edition_value = d3.select(this).attr("id");  // Get selected id
+      plot_selection_reset(plot_id);                            // Remove any current selection on plot
+      plot_selection(plot_id,selected_edition_value);           // Update plot with new selection
     }); 
   //--------------------------------------------------------------------------
   
@@ -618,10 +566,9 @@ function plot_hazard_selection(plot_id){
     .select(".legend")                                          // Select legend
     .selectAll(".legend-entry")                                 // Select all legend entrys
     .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
-      var selected_edition_value = d3.select(this).attr("id");      // Get selected id
-                                    
+      var selected_edition_value = d3.select(this).attr("id");  // Get selected id
       plot_selection_reset(plot_id);                            // Remove any current slections from plot     
-      plot_selection(plot_id,selected_edition_value);               // Update with new selection
+      plot_selection(plot_id,selected_edition_value);           // Update with new selection
     });
   //--------------------------------------------------------------------------
       
@@ -633,8 +580,8 @@ function plot_hazard_selection(plot_id){
     .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
       var xval = d3.select(this).data()[0][0];                          // Get ground motion value
       var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
-      var edition_value   = d3.select(this.parentNode).attr("id");          // Get the selected id of the data group
-      var edition_display = edition_id.options[edition_value].text;                 // Get the IMT display from the menu
+      var edition_value   = d3.select(this.parentNode).attr("id");      // Get the selected id of the data group
+      var edition_display = edition_id.options[edition_value].text;     // Get the display from the menu
       var tooltip_text = [                                              // Set the tooltip text
         "Edition: "+ edition_display,
         "GM (g): " + xval,
@@ -644,13 +591,13 @@ function plot_hazard_selection(plot_id){
       tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
     })
     .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
-      tooltip_mouseout(plot_id,this);
+      tooltip_mouseout(plot_id,this);                                   // Remove tooltip
     });
   //--------------------------------------------------------------------------
 
 }
 
-//---------------------- End: Plot Hazard Curves --------------------------------------------
+//---------------------- End: Setup Plot Selections ------------------------------------------
 //
 //############################################################################################
 

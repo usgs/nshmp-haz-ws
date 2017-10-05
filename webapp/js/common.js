@@ -39,12 +39,12 @@ function get_parameters(callback){
 
    
     //.................. Combine Static and Dynamic Parameters ...............
-    edition_values = static_parameters.edition.                             // Global variable: Combine the static and dynamic editions
+    var edition_values = static_parameters.edition.                             // Combine the static and dynamic editions
                           values.concat(dynamic_parameters.edition.values);
-    region_values  = static_parameters.region.                              // Global variable: Combine the static and dynamic regions
+    var region_values  = static_parameters.region.                              // Combine the static and dynamic regions
                           values.concat(dynamic_parameters.region.values);
-    imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
-    vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
+    var imt_values     = static_parameters.imt.values;                          // Combine the static and dynamic IMTs
+    var vs30_values    = static_parameters.vs30.values;                         // Combine the static and dynamic Vs30 values
 
     //------------------------------------------------------------------------
 
@@ -196,6 +196,88 @@ function check_bounds(is_submit){
 //############################################################################################
 
 
+//############################################################################################
+//
+//............................ Check for Common Supported Values ..............................
+
+function common_supports(id,selected_values){
+
+  var dom_id           = document.getElementById(id);               // Get to dom id of the supported variable for the selection menu
+  var parameter_values = parameters[id].values;                     // Set string to get the parameter values of each supported variable (parameters.imt) 
+  var supported_values = parameter_values.filter(function(d,i){
+    var option      = document.createElement("option");             // Create an option element 
+    var value       = parameter_values[i].value;
+    var display     = parameter_values[i].display;
+    display         = display.replace("&amp;","&");
+    option.id       = value;                                        // Set an id based on value
+    option.text     = display;                                      // Set display
+    option.value    = value;                                        // Set the selection options values 
+    option.disabled = true;
+    dom_id.add(option);                                             // Add the options to the menus of imt and vs30
+    return  selected_values.every(function(dp,ip){
+      return dp.includes(d.value);
+    })
+  });
+  supported_values.forEach(function(sv,isv){
+    var jsupport = parameter_values.findIndex(function(v,iv){
+      return sv.value == v.value;
+    })
+    dom_id.options[jsupport].disabled = false;
+  });
+  dom_id.value = supported_values[0].value;                         // Set the default value to Please Select ... 
+
+}
+//---------------------- End: Check for Common Supported Values ------------------------------
+//
+//############################################################################################
+
+
+
+
+//############################################################################################
+//
+//................................ Make URL to Query .........................................
+
+/*
+Format of Dynamic URL:
+  https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
+
+Format of Static URL:
+  https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
+*/
+
+function make_hazard_url(edition,region,lat,lon,vs30,data_type){
+
+  if (data_type == "static"){                         // If data type is static, setup static URL
+    var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";   // Set the URL base
+    var url_info =  {
+      data_type: "static",          // Set data type
+      url: url_base +               // Construct the URL to call the nshmp-haz code
+      edition       + "/" +         // Add edition to URL
+      region        + "/" +         // Add region to URL
+      lon           + "/" +         // Add longitude to URL
+      lat           + "/" +         // Add latitude to URL
+      "any"         + "/" +         // Add IMT to URL (return all IMTs)
+      vs30                          // Add vs30 to URL
+    };
+  }else if (data_type == "dynamic"){                // If data type is dynamic, setup dynamic URL
+    var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";    // Set the URL base
+    var url_info =  {
+      data_type: "dynamic",           // Set data type
+      url: url_base +                 // Construct the URL to call the nshmp-haz code
+      "?edition="   + edition   +     // Add edition to URL
+      "&region="    + region    +     // Add region to URL
+      "&longitude=" + lon       +     // Add longitude to URL
+      "&latitude="  + lat       +     // Add latitude to URL
+      "&vs30="      + vs30            // Add vs30 to URL
+    };
+  }
+  return url_info;
+}
+
+//---------------------------- End: Make URL to Query ----------------------------------------
+//
+//############################################################################################
 
 
 //############################################################################################

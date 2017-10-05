@@ -17,6 +17,7 @@
 var edition_id    = document.getElementById("edition");                     // Edition select menu id $("#edition") 
 var region_id     = document.getElementById("region");                      // Region select menu id 
 var imt_id        = document.getElementById("imt");                         // IMT select menu id
+var vs30_id       = document.getElementById("vs30");                        // Vs30 select menu id
 var lat_bounds_id = document.getElementById("lat_bounds");                  // Latitude bounds label id
 var lon_bounds_id = document.getElementById("lon_bounds");                  // Longitude bounds label id
 var lat_id        = document.getElementById("lat");                         // Latitude input id
@@ -58,8 +59,6 @@ function set_parameters(par){
   parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   //.......................... Run Function ................................
   add_editions();                 // Add editions to menu
-  add_regions();                  // Add regions to menu
-  add_options();                  // Add all other options based on edition and regions selected
   //-----------------------------------------------------------------------
 };
 
@@ -85,6 +84,7 @@ get_parameters(set_parameters);     // Call get_parameters from common.js and se
 function add_editions(){
 
   var edition_default = "E2008";                        // On startup the default edition will be E2008
+  var edition_values  = parameters.edition.values;      // Get edition values
   var nedition        = edition_values.length;          // Get how many editions there are
   edition_id.size     = nedition;                       // Set menu size 
  
@@ -98,6 +98,8 @@ function add_editions(){
     edition_id.add(option);                             // Add the options to the edition selection menu
   }
   edition_id.value = edition_default;                   // Set the selection menu to the default edition
+  
+  add_regions();                  // Add regions to menu
 }
 
 //----------------------------- End: Add Editions --------------------------------------------
@@ -122,6 +124,7 @@ function add_regions(){
 
   var jedition_select   = edition_id.selectedIndex;                   // Get the selected edition index value 
   var edition_select    = edition_id.options[jedition_select].value;  // Get the selected edition from the edition menu  
+  var edition_values    = parameters.edition.values;                  // Get all editions
   var edition_supports  = edition_values[jedition_select].supports;   // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSON file) 
   var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
   var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
@@ -150,6 +153,7 @@ function add_regions(){
   var region_default = supported_regions[0];          // Get default region value
   region_id.value = region_default;                   // Set value in menu
   
+  check_bounds();                                     // Show the bounds for selected region
   add_options();                                      // Add other options based on selected region
 
 }
@@ -176,44 +180,31 @@ function add_options(){
   remove_options("imt");      // Remove all previous imt menu items
   remove_options("vs30");     // Remove all previous vs30 menu items
 
+  //............................... Region Selection ...............................
   var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
   var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
+  var region_values     = parameters.region.values;                           // Get all region values
   var region_supports   = region_values[jregion_select].supports;             // Get the selected region's support parameters (parameters.region.values[index].supports in JSON file) 
-  
-  var parameter_defaults = {                                                  // Variable for parameter defaults to first supported value
-       imt:  region_supports.imt[0],                                          // IMT default
-       vs30: region_supports.vs30[0]                                          // Vs30 default 
-    }
-  var supports = ["imt","vs30"];                                              // The edition support strings
-  
-  for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
-    var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var supported_values = region_supports[supports[js]];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
-    var parameter_values = parameters[supports[js]].values;                        // Set string to get the parameter values of each supported variable (parameters.imt) 
+  //--------------------------------------------------------------------------------
 
-    
-    for (var jp in parameter_values){                                         // Loop through the edition support values
-      var option    = document.createElement("option");                       // Create an option element 
-      var value     = parameter_values[jp].value;
-      var display   = parameter_values[jp].display;
-      display       = display.replace("&amp;","&");
-      option.id     = value;                                                  // Set an id based on value
-      option.text   = display;                                                // Set display
-      option.value  = value;                                                  // Set the selection options values 
-      dom_id.add(option);                                                     // Add the options to the menus of imt and vs30
-      option_id = document.getElementById(parameter_values[jp].value);        // Get dom id of option
-      option_id.disabled = true;                                              // Set all to disabled at first
-      for (var jsv in supported_values){                                      // Loop through the parameter values for a supported variable (parameters.imt in JSON file)
-        if (supported_values[jsv] == parameter_values[jp].value)              // Find the matching value to set the text from the display key 
-        {option_id.disabled   = false;}
-      }
-    }
-    dom_id.value = supported_values[0];                                       // Set the default value to Please Select ... 
-  } 
-  check_bounds();                                                             // Show the bounds for selected region
+  //............................... Edition Selection ...............................
+  var jedition_select   = edition_id.selectedIndex;                           // Get selected edition index value
+  var edition_select    = edition_id.options[jedition_select].value           // Get selected edition value
+  var edition_values    = parameters.edition.values;                          // Get all edition values
+  var edition_supports  = edition_values[jedition_select].supports;           // Get selected edition supports
+  //--------------------------------------------------------------------------------
+
+  //............................... Set Menu with Options ...........................
+  var options = ["imt","vs30"];                           // Option ids
+  for (var jo in options){                                // Loop through options
+    var support_values = [];                              // Array to hold array of support values
+    support_values.push(edition_supports[options[jo]]);   // Add edition supported values
+    support_values.push(region_supports[options[jo]]);    // Add region supported values
+    common_supports(options[jo],support_values);          // Find common supports and add to menu
+  }
+  //--------------------------------------------------------------------------------
 
 }
-
 //----------------------------- End: Add Options ---------------------------------------------
 //
 //############################################################################################
@@ -232,54 +223,59 @@ function add_options(){
   edition choosen
 */
 
-plot_btn_id.onclick = function(){                                             // When button is pressed, perform the following
+
+plot_btn_id.addEventListener("click",get_selections);       // When button is pressed call get_selection
+
+//............. Call get_selection on Keyboard Enter on Lat ...........
+lat_id.onkeypress = function(key){                          // Submit URL on enter key
+  var key_code = key.which || key.keyCode;
+  if (key_code == 13){
+    get_selections();
+  }
+}
+//---------------------------------------------------------------------
+
+//............. Call get_selection on Keyboard Enter on Lon ...........
+lon_id.onkeypress = function(key){                          // Submit URL on enter key
+  var key_code = key.which || key.keyCode;
+  if (key_code == 13){
+    get_selections();
+  }
+}
+//---------------------------------------------------------------------
+
+
+function get_selections(){                                             // When button is pressed, perform the following
   
   
-  d3.selectAll("svg")
+  var svg = d3.selectAll("svg");
+  svg.select(".all-data")
+    .remove();
+  svg.select(".legend")
     .remove();
 
-  //.............. Get All Selections from the Menus ...................
-  var menu_ids = ["edition","region","lon","lat","imt","vs30"];               // Menu id strings for the selection menus
-  var jed = 0; var jre = 1; var jlon = 2; 
-  var jlat = 3; var jimt = 4; var jvs = 5;                                    // Indices for each corresponing selction string
-
-  var selection_values = [];                                                  // Allocate an array to store the parameters
-  
-  for (var ji in menu_ids){                                                   // Loop through the menu ids
-    var menu_id = menu_ids[ji];                                               // Set a single menu id
-    var dom_id  = document.getElementById(menu_id);                           // Get the dom id of the menu id
-    
-    if (menu_id == "lon" || menu_id == "lat"){                                // If getting latitude or longitude, get the inputted value
-      selection_values[ji] = dom_id.value;                                    // Get selection value
-    }else{                                                                    // Else the value is selected from a menu
-      selection_values[ji] = dom_id.options[dom_id.selectedIndex].value;      // Get selection value
-    }
-  }
+  //.............. Get All Selections from the Menus ...................      
+  var selected_edition  = edition_id.options[edition_id.selectedIndex].value; // Get all selected editions
+  var selected_region   = region_id.options[region_id.selectedIndex].value;   // Get selected region
+  var vs30              = vs30_id.options[vs30_id.selectedIndex].value;       // Get selected vs30
+  var lat = lat_id.value;                                                     // Get inputted lat
+  var lon = lon_id.value;                                                     // Get inputted lon
   //-------------------------------------------------------------------
 
-  var can_submit = check_bounds(true);
-
   //................. Check If Static or Dynamic Edition ..............
+  var can_submit = check_bounds(true);
   if (can_submit[0] && can_submit[1]){
     loader_id.style.display  = "initial";
     overlay_id.style.display = "initial";
     loader_text_id.innerHTML = "Calculating";
 
-    var edition_selection = selection_values[jed];                              // Get selected edition 
-    var static_edition_values  = static_parameters.edition.values;              // Get all static edition values
-    var dynamic_edition_values = dynamic_parameters.edition.values;             // Get all dynamic edition values
-    for (var je in dynamic_edition_values){                                     // Loop through all dynamic editions 
-      if (edition_selection == dynamic_edition_values[je].value){               // Check if selected edition is dynamic
-        parameters.type = "dynamic";                                            // If using dynamic set the type 
-        dynamic_call(selection_values);                                         // Use dynamic web services
-      }
-    }
-    for (var je in static_edition_values){                                      // Loop through all static editions
-      if (edition_selection == static_edition_values[je].value){                // Check if selected edition is static
-        parameters.type = "static";                                             // If using static set the type
-        static_call(selection_values);                                          // Use static web services
-      }
-    }
+    var edition_info = parameters.edition.values.find(function(d,i){            // Get edition info
+      return selected_edition == d.value;
+    });
+    var data_type = edition_info.data_type;                                     // Get edition data type 
+    parameters.data_type = data_type;                                           // Set edition data type in parameters object
+    var url_info = make_hazard_url(selected_edition,selected_region,lat,lon,vs30,data_type);     // Make URL info to query 
+    get_hazard(url_info);
   }
   //--------------------------------------------------------------------
 
@@ -295,101 +291,6 @@ plot_btn_id.onclick = function(){                                             //
 
 //############################################################################################
 //
-//........................... Call Dynamic Web Services  .....................................
-
-/*
-Format of URL:
-https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
-
-Where:
-
-- edition [E2008, E2014, E2007]
-- region [COUS, WUS, CEUS, AK]
-- longitude (-360..360) °
-- latitude [-90..90] °
-- imt (intensity measure type) [PGA, SA0P2, SA1P0]
-- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
-*/
-
-function dynamic_call(selection_values){
-
-  //.................... Setup URL .............................
-  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
-  var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";                // Set the URL base
-  var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
-            "?edition="+selection_values[jed]    +                                          // Add edition to URL
-            "&region="+selection_values[jre]     +                                          // Add region to URL
-            "&longitude="+selection_values[jlon] +                                          // Add longitude to URL
-            "&latitude="+selection_values[jlat]  +                                          // Add latitude to URL
-            "&vs30="+selection_values[jvs];                                                 // Add vs30 to URL
-  //-----------------------------------------------------------
-
-  get_hazard(url);                                                                        // Call get_hazard function           
-  
-  //..................... Get Raw Data Button ..................
-  raw_btn_id.onclick = function(){
-    window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
-  };
-  //-----------------------------------------------------------
-
-}
-//---------------------- End: Call Dynamic Web Services --------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Call Static Web Services  ......................................
-
-/*
-  Format of URL:
-  https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
-
-Where:
-
-- edition [E2014R1, E2008R3, E2008R2, E2007R1, E1998R1, E2003R1, E2012R1, E2012R2]
-- region [COUS0P05, WUS0P05, CEUS0P10, AK0P10, HI0P02, PRVI0P01, GNMI0P10, AMSAM0P05]
-- longitude (-360..360) °
-- latitude [-90..90] °
-- imt (intensity measure type) [PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0]
-- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
-*/
-
-function static_call(selection_values){
-
-  //.................... Setup URL .............................
-  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
-  var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";               // Set the URL base
-  var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
-            selection_values[jed]  + "/" +                                                  // Add edition to URL
-            selection_values[jre]  + "/" +                                                  // Add region to URL
-            selection_values[jlon] + "/" +                                                  // Add longitude to URL
-            selection_values[jlat] + "/" +                                                  // Add latitude to URL
-            "any"                  + "/" +                                                  // Add IMT to URL (return all IMTs)
-            selection_values[jvs];                                                          // Add vs30 to URL
-  //-----------------------------------------------------------
-
-  get_hazard(url);                                                                        // Call get_hazard function           
-
-  //..................... Get Raw Data Button ..................
-  raw_btn_id.onclick = function(){
-    window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
-  };
-  //-----------------------------------------------------------
-
-}
-//---------------------- End: Call Static Web Services ---------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
 //........................... Call the nshmp-haz Code Given URL ..............................
 
 /*
@@ -399,9 +300,9 @@ function static_call(selection_values){
   the get_selections function.
 */
 
-function get_hazard(url){
+function get_hazard(url_info){
 
-  $.getJSON(url,function(json_return){                    // Get the JSON file that the code generates
+  $.getJSON(url_info.url,function(json_return){           // Get the JSON file that the code generates
     var status = json_return.status;                      // Get the status of the return 
     if (status == "success"){                             // If the code returned a success then get the response from the JSON file
       var response = json_return.response;                // Get the respose from the JSON file
@@ -431,7 +332,7 @@ var plot_size_max = "col-lg-12";
 
 function plot_setup(){
 
-  var type = parameters.type;
+  var type = parameters.data_type;
 
   if (type == "dynamic"){
     hazard_panel_id.style.display    = "initial";  
@@ -481,20 +382,6 @@ function panel_resize(plot_name){
 
 
 
-/*
-function plot_collapse(plot_name){
-  var plot_collapse_id = document.getElementById(plot_name+"-plot-collapse");
-  var arrow_up    = "glyphicon glyphicon-chevron-up";
-  var arrow_down  = "glyphicon glyphicon-chevron-down";
-  
-  if (plot_collapse_id.className == arrow_up){
-    plot_collapse_id.className = arrow_down;
-  }
-  else{
-    plot_collapse_id.className = arrow_up;
-  }
-}
-*/
 
 
 
@@ -512,10 +399,10 @@ function hazard_plot(response){
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;    // Get the IMT selection
   
   //.................. JSON Variables based on Edition Type ..................
-  if (parameters.type == "dynamic"){        // If using dynamic edition
+  if (parameters.data_type == "dynamic"){        // If using dynamic edition
     var xvalue_variable = "xvalues";
     var yvalue_variable = "yvalues";
-  }else if (parameters.type == "static"){   // If using static edition
+  }else if (parameters.data_type == "static"){   // If using static edition
     var xvalue_variable = "xvals";
     var yvalue_variable = "yvals";
   } 
@@ -533,7 +420,7 @@ function hazard_plot(response){
   var imt_values          = [];
   for (var jr in response){
     var data                = response[jr].data;                                                // Get the data for each response
-    if (parameters.type == "dynamic"){
+    if (parameters.data_type == "dynamic"){
       var jtotal             = data.findIndex(function(d,i){return d.component == "Total"});     // Return the index for the Total component
     }else{
       var jtotal            = 0;
@@ -567,7 +454,7 @@ function hazard_plot(response){
   //--------------------------------------------------------------------------
 
   //........ Call Component Curves when using Dynamic Edition ................
-  if (parameters.type == "dynamic"){                                        // If using dynamic edition
+  if (parameters.data_type == "dynamic"){                                        // If using dynamic edition
     component_curves_plot(response);                                        // Plot component curves      
   }
   //--------------------------------------------------------------------------
@@ -577,7 +464,7 @@ function hazard_plot(response){
     var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value
     plot_selection_reset(plot_id);                                          // Remove any current IMT selection on plot
     plot_selection(plot_id,selected_imt_value);                             // Update with new selection
-    if (parameters.type == "dynamic"){                                      // If using dynamic
+    if (parameters.data_type == "dynamic"){                                      // If using dynamic
       component_curves_plot(response);                                      // Plot component curves with new selection
     }
   };      
@@ -593,7 +480,7 @@ function hazard_plot(response){
       plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
       plot_selection(plot_id,selected_imt_value);               // Update plot with new selection
 
-      if (parameters.type == "dynamic"){                        // If using dynamic edition
+      if (parameters.data_type == "dynamic"){                        // If using dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
       }
     }); 
@@ -610,7 +497,7 @@ function hazard_plot(response){
       plot_selection_reset(plot_id);                            // Remove any current slections from plot     
       plot_selection(plot_id,selected_imt_value);               // Update with new selection
 
-      if (parameters.type == "dynamic"){                        // If using a dynamic edition
+      if (parameters.data_type == "dynamic"){                        // If using a dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
       }
     });
