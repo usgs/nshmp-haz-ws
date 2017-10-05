@@ -13,8 +13,6 @@ var lat_bounds_id = document.getElementById("lat_bounds");                  // L
 var lon_bounds_id = document.getElementById("lon_bounds");                  // Longitude bounds label id
 var lat_id        = document.getElementById("lat");                         // Latitude input id
 var lon_id        = document.getElementById("lon");                         // Longitude input id
-var plot_btn_id   = document.getElementById("update-plot");                 // Plot button id 
-var raw_btn_id    = document.getElementById("raw-data");                    // Raw Data button id 
 var hazard_panel_id     = document.getElementById("hazard-plot-panel");     // Hazard plot panel id
 var hazard_plot_id      = document.getElementById("hazard-curves-plot");    // Hazard plot id
 var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // Hazard plot resize glyphicon id
@@ -22,14 +20,9 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
-var overlay_id     = document.getElementById("overlay");                    // Overlay id for loading
-var loader_id      = document.getElementById("loader");                     // Loader id
-var loader_text_id = document.getElementById("loader-text");                // Loader text
-loader_text_id.innerHTML = "Getting Menu";                                  // Set loader text on start 
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
-
 
 
 
@@ -250,8 +243,11 @@ function add_options(){
   edition choosen
 */
 
-
-plot_btn_id.addEventListener("click",get_selections);       // When button is pressed call get_selection
+$("footer").ready(function(){                                             // Wait for footer to load and add listener
+  raw_btn_id    = document.getElementById("raw-data");                    // Raw Data button id 
+  plot_btn_id   = document.getElementById("update-plot");                 // Update plot button id
+  plot_btn_id.addEventListener("click",get_selections);                   // When button is pressed call get_selection
+});
 
 //............. Call get_selection on Keyboard Enter on Lat ...........
 lat_id.onkeypress = function(key){                          // Submit URL on enter key
@@ -272,7 +268,6 @@ lon_id.onkeypress = function(key){                          // Submit URL on ent
 //---------------------------------------------------------------------
 
 
-
 function get_selections(){
     
   var svg = d3.selectAll("svg");      // Get all svg element 
@@ -281,6 +276,7 @@ function get_selections(){
   svg.select(".legend")               // Remove legend
     .remove();
 
+  
 
   //.............. Get All Selections from the Menus ...................
   var selected_editions = edition_id.selectedOptions;                         // Get all selected editions

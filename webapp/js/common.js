@@ -1,6 +1,23 @@
 
 
 
+//############################################################################################
+//
+//................................. Load Include Files ....................................... 
+
+$("#include-header").load("includes/header.html");                  // Load header 
+$("#include-footer").load("includes/footer.html");                  // Load footer
+$("#include-spinner").load("includes/spinner.html",function(){      // Load spinner
+  overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
+  loader_id      = document.getElementById("loader");               // Global variable: Loader id
+  loader_text_id = document.getElementById("loader-text");          // Global Variable: Loader text
+  loader_text_id.innerHTML = "Processing";                          // Set loader text on start
+});
+
+//--------------------------- End: Load Include Files ----------------------------------------
+//
+//############################################################################################
+
 
 //############################################################################################
 //
