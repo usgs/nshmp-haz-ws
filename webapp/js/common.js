@@ -787,9 +787,13 @@ function plot_curves(plot_info){
     svg.select(".y-label")                                  // Select the y-label class
       .attr("x",0-height/2)                                 // Update Y label X location
       .attr("y",0-margin.left/2-10);                        // Update Y label Y location
+    
+    var translate = legend_location();
+    var svg_legend = svg.selectAll(".legend-entry");
 
     var svg_line = svg.selectAll(".line");
     var svg_dot  = svg.selectAll(".dot");
+    
     if (do_transition){
       svg_line.transition()
         .duration(500)
@@ -799,18 +803,18 @@ function plot_curves(plot_info){
         .duration(500)
         .attr("cx",line.x())
         .attr("cy",line.y());
+      
+      svg_legend.transition()
+        .duration(500)
+        .attr("transform",translate);
+      
     }else{
       svg_line.attr("d",line);
       svg_dot.attr("cx",line.x())                                  // Update the X location of the circles
         .attr("cy",line.y());                                 // Update the Y location of the circles
+      svg_legend.attr("transform",translate);
     }
 
-    var translate = legend_location();
-    svg.selectAll(".legend-entry")                                  // Select the legend-entry class
-      .attr("transform",translate);     // Update the location of the legend
-  
-
-    
   }
   //-------------------------------------------------------------------------------
 
@@ -934,7 +938,6 @@ function plot_curves(plot_info){
     //................. Set the Legend .......................
     var nleg = series_label_displays.length-1;                              // Get how many legend entrys there are minus 1 for indexing
     
-    
     var legend = svg.append("g")                                    // Append a new group under main svg group     
       .attr("class","legend")                                       // Set class to legend
       .selectAll("g")                                               // Select all groups to create under legend class      
@@ -973,6 +976,7 @@ function plot_curves(plot_info){
       .attr("r",circle_size)                                      // Set radius
       .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
     
+    // Set translation 
     var translate = legend_location();
     legend.attr("transform",translate)    // Position legend to bottom-left
     //--------------------------------------------------------
