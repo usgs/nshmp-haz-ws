@@ -282,7 +282,22 @@ label.control-spacer {
 .axes-btn{
   padding:0 5px;
 }
-/*-------------- End: Axis Buttons ------------------*/
+
+.axes-btn>.btn{
+  background-color: #fff;
+  border-radius: 2px;
+}
+
+.axes-btn>.btn:focus{
+  outline: 0;
+}
+
+.axes-btn>.btn:active{
+  background-color:#BDBDBD;
+}
+
+
+/*-------------- End: Axes Buttons ------------------*/
 /**/
 /*###################################################*/
 
