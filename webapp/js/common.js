@@ -805,11 +805,30 @@ function plot_curves(plot_info){
         .attr("cy",line.y());                                 // Update the Y location of the circles
     }
 
+    var translate = legend_location();
     svg.selectAll(".legend-entry")                                  // Select the legend-entry class
-      .attr("transform","translate(10,"+(height*(1-0.08))+")");     // Update the location of the legend
+      .attr("transform",translate);     // Update the location of the legend
+  
 
+    
   }
   //-------------------------------------------------------------------------------
+
+  function legend_location(){
+    var legend_geom = d3.select("#"+plot_id+" svg")
+      .select(".legend")                       // Select the bounding box of the data
+      .node()
+      .getBoundingClientRect();
+    var legend_width  = legend_geom.width;
+    var legend_height = legend_geom.height;
+    
+    if (x_scale == "linear" || y_scale == "linear"){
+      var translate = "translate("+(width-legend_width)+","+legend_height+")";
+    }else{
+      var translate = "translate(10,"+(height*(1-0.08))+")";
+    }
+    return translate; 
+  } 
 
 
   //........................ Plot Function ........................................
@@ -914,7 +933,8 @@ function plot_curves(plot_info){
 
     //................. Set the Legend .......................
     var nleg = series_label_displays.length-1;                              // Get how many legend entrys there are minus 1 for indexing
-
+    
+    
     var legend = svg.append("g")                                    // Append a new group under main svg group     
       .attr("class","legend")                                       // Set class to legend
       .selectAll("g")                                               // Select all groups to create under legend class      
@@ -923,7 +943,6 @@ function plot_curves(plot_info){
       .append("g")                                                  // Append a group for each label
         .attr("class","legend-entry")                               // Set class to legend-entry
         .attr("id",function(d,i){return series_label_values[nleg-i]})        // Set id to imt 
-        .attr("transform","translate(10,"+(height*(1-0.08))+")")    // Position legend to bottom-left
         .style("cursor","pointer");
     
     
@@ -953,6 +972,9 @@ function plot_curves(plot_info){
       .attr("cy",function(d,i){return 18*-i})                     // Set Y location
       .attr("r",circle_size)                                      // Set radius
       .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
+    
+    var translate = legend_location();
+    legend.attr("transform",translate)    // Position legend to bottom-left
     //--------------------------------------------------------
   
 
