@@ -901,13 +901,16 @@ function plot_curves(plot_info){
     x_axis.append("g")                                // Append a new group under x-axis class
       .attr("class","x-tick")                         // Set class to x-tick
       .attr("transform","translate(0,"+height+")")    // Put X axis on the bottom of the plot
+      .style("font-size","10px")
       .call(d3.axisBottom(x_bounds));                 // Make tick marks
+   
     
     // X Label
     x_axis.append("text")                             // Append a text tag to the x-axis class
       .attr("class","x-label")                        // Make text tag have class of x-label
       .attr("text-anchor","middle")                   // Set text to be centered
       .attr("alignment-baseline","middle")
+      .style("font-size","12px")
       .attr("x",width/2)                              // X location of X label
       .attr("y", height+margin.bottom/2+10)           // Y location of X label
       .text(xlabel);                                  // Set the text of the label
@@ -922,6 +925,7 @@ function plot_curves(plot_info){
     // Y Tick marks
     y_axis.append("g")                    // Append a new group to y-axis class
       .attr("class","y-tick")             // Set class to y-tick
+      .style("font-size","10px")
       .call(d3.axisLeft(y_bounds));       // Set tick marks
 
     // Y Label
@@ -929,6 +933,7 @@ function plot_curves(plot_info){
       .attr("class","y-label")            // Set class to y-label
       .attr("transform","rotate(-90)")    // Rotate the text
       .attr("text-anchor","middle")       // Set to center text
+      .style("font-size","12px")
       .attr("x",0-height/2)               // Set X location
       .attr("y",0-margin.left/2-10)       // Set Y location
       .text(ylabel);                      // Set the text of the label
@@ -952,9 +957,9 @@ function plot_curves(plot_info){
     // Legend Text
     legend.append("text")                                         // Append a text tag to legend-entry class
       .attr("class","legend-text")
-      .attr("font-size","1em")
+      .attr("font-size","10px")
       .attr("x",30)                                               // Set X location of each legend label
-      .attr("y", function(d,i){return 18*-i})                     // Set Y location of each legend label
+      .attr("y", function(d,i){return 14*-i})                     // Set Y location of each legend label
       .attr("alignment-baseline","central")                       // Set alignment
       .text(function(d,i){return series_label_displays[nleg-i]}); // Set the text of each label, do nleg-i to put PGA at top of legend
      
@@ -962,8 +967,8 @@ function plot_curves(plot_info){
     legend.append("line")                                         // Append a svg line tag
       .attr("class","legend-line")                                // Set class to legend-line
       .attr("x2",24)                                              // Set width of line 
-      .attr("y1", function(d,i){return 18*-i})                    // Set Y location of starting point
-      .attr("y2", function(d,i){return 18*-i})                    // Set Y location of ending point
+      .attr("y1", function(d,i){return 14*-i})                    // Set Y location of starting point
+      .attr("y2", function(d,i){return 14*-i})                    // Set Y location of ending point
       .attr("stroke-width",linewidth)                             // Set stroke width of line
       .attr("stroke",function(d,i){return color[nleg-i]})         // Set color of line
       .attr("fill","none");                                       // Set fill to none
@@ -972,7 +977,7 @@ function plot_curves(plot_info){
     legend.append("circle")                                       // Append a svg circle tag
       .attr("class","legend-circle")                              // Set class to legend-circle
       .attr("cx",12)                                              // Set X location to center of line
-      .attr("cy",function(d,i){return 18*-i})                     // Set Y location
+      .attr("cy",function(d,i){return 14*-i})                     // Set Y location
       .attr("r",circle_size)                                      // Set radius
       .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
     

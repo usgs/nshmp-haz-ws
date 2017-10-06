@@ -97,8 +97,6 @@ var comparable_region = [
 //............................... Add Regions to Menu .......................................
 function add_regions(){
   
-  region_id.size = comparable_region.length;          // Update the size of the select menu 
-
   for (var jcr in comparable_region){                 // Loop through all comparable regions and add to menu
     var option   = document.createElement("option");  // Create a option element
     var region   = comparable_region[jcr];            // Get a region 
@@ -394,9 +392,23 @@ var plot_size_max = "col-lg-12";
 function plot_setup(){
   hazard_panel_id.style.display    = "initial";  
   hazard_panel_id.className        = plot_size_max; 
-  hazard_plot_id.style.height      = "40vw";
   hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
   
+  var header_size = document.getElementById("header").clientHeight;
+  var footer_size = document.getElementById("footer").clientHeight;
+  var panel_header_size = document.getElementById("hazard-plot-title").clientHeight;
+  var panel_footer_size = document.getElementById("hazard-axes-btns").clientHeight;
+  console.log("Plot Height: " + hazard_plot_id.clientHeight);
+  console.log("Header Height: " + header_size);
+  console.log("Footer Height: " + footer_size);
+  console.log("Panel Header Height: " + panel_header_size);
+  console.log("Panel Footer Height: " + panel_footer_size);
+ 
+  var total_height = (0.90*window.innerHeight)- header_size-footer_size-panel_header_size-panel_footer_size;
+  console.log("Total: " + total_height);
+
+  hazard_plot_id.style.height = total_height + "px";
+
 }
 //---------------------- End: Plot Setup -----------------------------------------------------
 //
@@ -415,12 +427,12 @@ function panel_resize(plot_name){
   if (panel_id.className == plot_size_min){
     resize_id.className  = "glyphicon glyphicon-resize-small";
     panel_id.className   = plot_size_max;
-    plot_id.style.height = "40vw";
+    plot_id.style.height = "60vmin";
   }
   else if (panel_id.className == plot_size_max){
     resize_id.className  = "glyphicon glyphicon-resize-full";
     panel_id.className   = plot_size_min; 
-    plot_id.style.height = "24vw";
+    plot_id.style.height = "40vmin";
   }
 }
 //---------------------- End: Resize Plot  ---------------------------------------------------
