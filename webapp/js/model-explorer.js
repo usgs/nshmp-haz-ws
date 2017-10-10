@@ -31,6 +31,7 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
+$("#loader").ready(function(){spinner("on")});
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -49,9 +50,7 @@ var component_resize_id = document.getElementById("component-plot-resize"); // C
   and vs30.
 */
 function set_parameters(par){
-  loader_id.style.display  = "none";        // After the JSON files have been loaded, remove spinner
-  overlay_id.style.display = "none";        // Remove overlay 
-
+  spinner("off");
   parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   //.......................... Run Function ................................
   add_editions();                 // Add editions to menu
@@ -81,8 +80,6 @@ function add_editions(){
 
   var edition_default = "E2008";                        // On startup the default edition will be E2008
   var edition_values  = parameters.edition.values;      // Get edition values
-  var nedition        = edition_values.length;          // Get how many editions there are
-  edition_id.size     = nedition;                       // Set menu size 
  
   for (var je in edition_values){                       // Loop through each edition and add that edition as an option in selection menu
     var option    = document.createElement("option");   // Create an option element 
@@ -264,9 +261,7 @@ function get_selections(){                                             // When b
   //................. Check If Static or Dynamic Edition ..............
   var can_submit = check_bounds(true);
   if (can_submit[0] && can_submit[1]){
-    loader_id.style.display  = "initial";
-    overlay_id.style.display = "initial";
-    loader_text_id.innerHTML = "Calculating";
+    spinner("on");
 
     var edition_info = parameters.edition.values.find(function(d,i){            // Get edition info
       return selected_edition == d.value;
@@ -338,8 +333,8 @@ function plot_setup(){
     hazard_panel_id.className        = plot_size_min;  
     component_panel_id.style.display = "initial";  
     component_panel_id.className     = plot_size_min;  
-    hazard_plot_id.style.height      = "24vw";
-    component_plot_id.style.height   = "24vw";
+    hazard_plot_id.style.height      = "20vw";
+    component_plot_id.style.height   = "20vw";
     hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
     component_resize_id.className    = "glyphicon glyphicon-resize-full";
   }else if (type == "static"){
@@ -372,7 +367,7 @@ function panel_resize(plot_name){
   else if (panel_id.className == plot_size_max){
     resize_id.className = "glyphicon glyphicon-resize-full";
     panel_id.className = plot_size_min; 
-    plot_id.style.height = "24vw";
+    plot_id.style.height = "20vw";
   }
 }
 //---------------------- End: Resize Plot  ---------------------------------------------------
@@ -391,8 +386,7 @@ function panel_resize(plot_name){
 
 function hazard_plot(response){
 
-  loader_id.style.display  = "none";
-  overlay_id.style.display = "none";
+  spinner("off");
 
   var plot_id = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;    // Get the IMT selection

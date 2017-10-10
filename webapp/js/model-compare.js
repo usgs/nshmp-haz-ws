@@ -17,12 +17,11 @@ var lon_id        = document.getElementById("lon");                         // L
 var hazard_panel_id     = document.getElementById("hazard-plot-panel");     // Hazard plot panel id
 var hazard_plot_id      = document.getElementById("hazard-curves-plot");    // Hazard plot id
 var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // Hazard plot resize glyphicon id
-var component_panel_id  = document.getElementById("component-plot-panel");  // Component plot panel id
-var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
-var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
 var xaxis_btn_id = document.getElementById("hazard-plot-xaxis");
 var yaxis_btn_id = document.getElementById("hazard-plot-yaxis");
+
+$("#loader").ready(function(){spinner("on")});
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -40,8 +39,7 @@ var yaxis_btn_id = document.getElementById("hazard-plot-yaxis");
   and vs30.
 */
 function set_parameters(par){            
-  loader_id.style.display  = "none";        // After the JSON files have been loaded, remove spinner
-  overlay_id.style.display = "none";        // Remove overlay 
+  spinner("off");
  
   parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   add_regions();                            // Call add_regions, add regions to select menu
@@ -277,7 +275,7 @@ function get_selections(){
   svg.select(".legend")               // Remove legend
     .remove();
 
-  
+  spinner("on");  
 
   //.............. Get All Selections from the Menus ...................
   var selected_editions = edition_id.selectedOptions;                         // Get all selected editions
@@ -292,9 +290,6 @@ function get_selections(){
   //................. Setup URLs to Submit .............................
   var can_submit = check_bounds(true);                          // Set if bounds are good
   if (can_submit[0] && can_submit[1]){                          // If lat and lon are within bounds, continue
-    loader_id.style.display  = "initial";                       // Display spinner
-    overlay_id.style.display = "initial";                       // Display overlay
-    loader_text_id.innerHTML = "Calculating";                   // Update loader text
     
     var region_info = comparable_region.find(function(d,i){     // Find region info from selected region and comparable_region
       return d.value == selected_region; 
@@ -391,24 +386,13 @@ var plot_size_max = "col-lg-12";
 
 function plot_setup(){
   hazard_panel_id.style.display    = "initial";  
-  hazard_panel_id.className        = plot_size_max; 
   hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
-  
-  var header_size = document.getElementById("header").clientHeight;
-  var footer_size = document.getElementById("footer").clientHeight;
-  var panel_header_size = document.getElementById("hazard-plot-title").clientHeight;
-  var panel_footer_size = document.getElementById("hazard-axes-btns").clientHeight;
-  console.log("Plot Height: " + hazard_plot_id.clientHeight);
-  console.log("Header Height: " + header_size);
-  console.log("Footer Height: " + footer_size);
-  console.log("Panel Header Height: " + panel_header_size);
-  console.log("Panel Footer Height: " + panel_footer_size);
  
-  var total_height = (0.90*window.innerHeight)- header_size-footer_size-panel_header_size-panel_footer_size;
-  console.log("Total: " + total_height);
-
-  hazard_plot_id.style.height = total_height + "px";
-
+  var header_height = document.getElementById("hazard-plot-title").clientHeight;
+  var footer_height = document.getElementById("hazard-axes-btns").clientHeight;
+  hazard_plot_id.style.top    = header_height + "px";
+  hazard_plot_id.style.bottom = footer_height + "px";
+  hazard_panel_id.value = "max";
 }
 //---------------------- End: Plot Setup -----------------------------------------------------
 //
@@ -424,15 +408,15 @@ function panel_resize(plot_name){
   var resize_id = document.getElementById(plot_name+"-plot-resize");
   var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
   var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
-  if (panel_id.className == plot_size_min){
+
+  if (panel_id.value == "min"){
     resize_id.className  = "glyphicon glyphicon-resize-small";
-    panel_id.className   = plot_size_max;
-    plot_id.style.height = "60vmin";
-  }
-  else if (panel_id.className == plot_size_max){
-    resize_id.className  = "glyphicon glyphicon-resize-full";
-    panel_id.className   = plot_size_min; 
-    plot_id.style.height = "40vmin";
+    panel_id.value = "max";
+    panel_id.style.margin = "20px";
+  }else if(panel_id.value == "max") { 
+    resize_id.className   = "glyphicon glyphicon-resize-full";
+    panel_id.value = "min";
+    panel_id.style.margin = "150px 200px";
   }
 }
 //---------------------- End: Resize Plot  ---------------------------------------------------
@@ -526,9 +510,8 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
 //........................... Plot Hazard Curves .............................................
 
 function hazard_plot(response){
-  
-  loader_id.style.display  = "none";                                      // Remove the spinner
-  overlay_id.style.display = "none";                                      // Remove the overlay
+ 
+  spinner("off"); 
   
   var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");             // Get title element
@@ -539,17 +522,19 @@ function hazard_plot(response){
   var y_scale = "log";
   var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);     // Get D3 plot data setup 
   plot_curves(plot_info);                                                 // Plot the curves
-  plot_hazard_selection(plot_id);                                         // Setup plot selections and tooltips 
+  plot_selection(plot_id);
+  plot_tooltip(plot_id);                                         // Setup plot selections and tooltips 
   title_id.innerHTML = " at " + selected_imt_display;                     // Update plot title to have selected IMT
   //--------------------------------------------------------------------------
 
   //................ Update Plot on IMT Menu Change ..........................
-  imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update selected IMT on plot and component plot
+  imt_id.onchange = function(){                                           // When the selection menu of IMT changes, update selected IMT on plot 
     var x_scale = xaxis_btn_id.value;
     var y_scale = yaxis_btn_id.value;
     var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);   // Update D3 data
     plot_curves(plot_info);                                               // Plot D3 data
-    plot_hazard_selection(plot_id);                                       // Update plot selection and tooltips
+    plot_selection(plot_id);
+    plot_tooltip(plot_id);                                       // Update plot selection and tooltips
     selected_imt_display = imt_id.options[imt_id.selectedIndex].text;     // Get the IMT selection
     title_id.innerHTML = " at " + selected_imt_display;                   // Update plot title
   };      
@@ -571,30 +556,9 @@ function hazard_plot(response){
 //
 //........................... Setup Plot Selections ..........................................
 
-function plot_hazard_selection(plot_id){
+function plot_tooltip(plot_id){
 
-  //.................. Highlight Line when Selected on Plot ..................
-  d3.select("#"+plot_id + " svg")                               // Get plot svg
-    .selectAll(".data")                                         // Select all data, lines and circles 
-    .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
-      var selected_edition_value = d3.select(this).attr("id");  // Get selected id
-      plot_selection_reset(plot_id);                            // Remove any current selection on plot
-      plot_selection(plot_id,selected_edition_value);           // Update plot with new selection
-    }); 
-  //--------------------------------------------------------------------------
-  
-  //.............. Highlight Line when Legend Entry Selected .................
-  d3.select("#"+plot_id + " svg")                               // Get plot svg
-    .select(".legend")                                          // Select legend
-    .selectAll(".legend-entry")                                 // Select all legend entrys
-    .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
-      var selected_edition_value = d3.select(this).attr("id");  // Get selected id
-      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
-      plot_selection(plot_id,selected_edition_value);           // Update with new selection
-    });
-  //--------------------------------------------------------------------------
-      
-
+ 
   //.............. Add Tooltip on Hover over a Point ..........................
   d3.select("#"+plot_id + " svg")                                       // Get plot svg
     .select(".all-data")                                                // Select data group

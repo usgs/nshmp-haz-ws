@@ -8,7 +8,6 @@
 <!-- ................... Head ................ -->
 <head>
 
-  <title>NSHMP Model Compare</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- ............. Bootstrap ............ -->
@@ -128,31 +127,30 @@
   <!-- -->
   <!-- ................................. Plots ............................................. -->
   <div id="content">
-
+   
+ 
     <!-- ................. Hazard Curves Plot ........... -->
-    <div id="hazard-plot-panel" >
-      <div class="panel panel-default">
-        <!-- Plot Title -->
-        <div class="panel-heading" id="hazard-plot-title">
-          Hazard Curves 
-          <span id="hazard-plot-text"></span>  
-          <span id="hazard-plot-resize" ></span>
-        </div> 
-        <!-- Plot -->
-        <div class="panel-content" id="hazard-curves-plot"></div>
-        <!-- Plot Buttons -->
-        <div class="panel-footer"  id="hazard-axes-btns">
-          <div class="btn-group btn-group-justified" role="group">
-            <div class="btn-group axes-btn" role="group" >
-              <button type="button" class="btn btn-default" id="hazard-plot-xaxis">X-axis</button>
-            </div>
-            <div class="btn-group axes-btn" role="group">
-              <button type="button" class="btn btn-default" id="hazard-plot-yaxis">Y-axis</button>
-            </div>
+    <div id="hazard-plot-panel" class="panel panel-default">
+      <!-- Plot Title -->
+      <div class="panel-heading" id="hazard-plot-title">
+        Hazard Curves 
+        <span id="hazard-plot-text"></span>  
+        <span id="hazard-plot-resize" ></span>
+      </div> 
+      <!-- Plot -->
+      <div class="panel-content" id="hazard-curves-plot"></div>
+      <!-- Plot Buttons -->
+      <div class="panel-footer"  id="hazard-axes-btns">
+        <div class="btn-group btn-group-justified" role="group">
+          <div class="btn-group axes-btn" role="group" >
+            <button type="button" class="btn btn-default" id="hazard-plot-xaxis">X-axis</button>
+          </div>
+          <div class="btn-group axes-btn" role="group">
+            <button type="button" class="btn btn-default" id="hazard-plot-yaxis">Y-axis</button>
           </div>
         </div>
-
       </div>
+
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
 
@@ -161,37 +159,36 @@
   <!-- -->
   <!-- ##################################################################################### -->
 
+
+
+  <!-- ######################################################## -->
+  <!-- -->
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/model-compare.js"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+  <!-- -->
+  <!-- ######################################################## -->
+
+
+
 </body>
 <!-- ................... Body ................ -->
 
 </html>
-
-
-<!-- ######################################################## -->
-<!-- -->
-<!-- ................. Import JavaScript .................... -->
-
-<!-- ............ jQuery ................ -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!-- ............ jQuery ................ -->
-
-
-<!-- ............. Bootstrap ............ -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<!-- ............. Bootstrap ............ -->
-
-<!-- ..... Application Specific JavaScript ......... -->
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="js/common.js"></script>
-<script src="js/model-compare.js"></script>
-<!-- ..... Application Specific JavaScript ......... -->
-
-
-<!-- ............... End: Import JavaScript ................. -->
-<!-- -->
-<!-- ######################################################## -->
-
-
-
-
 

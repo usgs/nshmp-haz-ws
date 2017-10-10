@@ -8,7 +8,6 @@
 <!-- ................... Head ................ -->
 <head>
 
-  <title>NSHMP Model Explorer</title>
   <meta name="veiwport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Call the National Seismic Hazard Mapiping Project web services code">
   
@@ -63,7 +62,7 @@
         <!-- .................. Edition Menu ........................ -->
         <div class="form-group">
           <label class="control-spacer control-group" for="edition"> Edition: </label>
-          <select class="form-control" id="edition" size=11 autofocus onchange="add_regions()">
+          <select class="form-control" id="edition" autofocus onchange="add_regions()">
           </select>
         </div>
         <!-- ............. End: Edition Menu ........................ -->
@@ -131,7 +130,7 @@
   <div id="content">
 
     <!-- ................. Hazard Curves Plot ........... -->
-    <div id="hazard-plot-panel" >
+    <div id="hazard-plot-panel" class="col-lg-6">
       <div class="panel panel-default">
         <div class="panel-heading" id="hazard-plot-title">
           Hazard Curves 
@@ -155,7 +154,7 @@
     <!-- ................. Hazard Curves Plot ........... -->
 
     <!-- .............. Component Curves Plot ........... -->
-    <div  id="component-plot-panel" >
+    <div  id="component-plot-panel" class="col-lg-6">
       <div  class="panel panel-default">
         <div class="panel-heading" id="component-plot-title">
           Component Curves <span id="component-plot-text"></span> 
@@ -183,35 +182,37 @@
   <!-- -->
   <!-- ##################################################################################### -->
 
+
+
+  <!-- ######################################################## -->
+  <!-- -->
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/model-explorer.js"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+  <!-- -->
+  <!-- ######################################################## -->
+
+
+
 </body>
 <!-- ................... Body ................ -->
 
 </html>
-
-
-<!-- ######################################################## -->
-<!-- -->
-<!-- ................. Import JavaScript .................... -->
-
-<!-- ............ jQuery ................ -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!-- ............ jQuery ................ -->
-
-
-<!-- ............. Bootstrap ............ -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<!-- ............. Bootstrap ............ -->
-
-
-<!-- ..... Application Specific JavaScript ......... -->
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="js/common.js"></script>
-<script src="js/model-explorer.js"></script>
-<!-- ..... Application Specific JavaScript ......... -->
-
-
-<!-- ............... End: Import JavaScript ................. -->
-<!-- -->
-<!-- ######################################################## -->
-
 

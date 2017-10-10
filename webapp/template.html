@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 
 
@@ -8,14 +6,13 @@
 <!-- ................... Head ................ -->
 <head>
 
-  <title>NSHMP Template</title>
-  <meta name="veiwport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- ............. Bootstrap ............ -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <!-- ............. Bootstrap ............ -->
 
+   
   <!-- ........... CSS Files ....... -->
   <link rel="stylesheet" href="css/template.css">
   <!-- ........... CSS Files ....... -->
@@ -27,42 +24,27 @@
 
 <!-- ................... Body ................ -->
 <body>
+
+
+  <!-- ########################################### -->
+  <!-- -->
+  <!-- ............ Include Files ................ -->
+
+  <!-- ........... Include Header ................ -->
+  <div id="include-header"></div>
+  <!-- ........... Include Header ................ -->
   
+  <!-- ............. Include Footer .............. -->
+  <div id="include-footer"></div>  
+  <!-- ............. Include Footer .............. -->
 
-  <!-- ############################################ -->
-  <!-- -->
-  <!-- .................. Header ................... -->
-  <div id="header">
-    <span class="title">NSHMP</span>
-    <div id="header-menu" 
-         class="dropdown-toggle"  
-         data-toggle="dropdown"> 
-      <span class="glyphicon glyphicon-menu-hamburger"></span>
-    </div>
-    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="header-menu" >
-      <li><a href="spectra-plot.html"  >Response Spectra</a> </li>
-      <li><a href="model-explorer.html">Model Explorer  </a> </li>
-    </ul>
-  </div>
-  <!-- .................. Header ................... -->
-  <!-- -->
-  <!-- ############################################ -->
-  
+  <!-- .......... Include Spinner ................ -->
+  <div id="include-spinner"></div>
+  <!-- .......... Include Spinner ................ -->
 
-
-  <!-- ############################################ -->
+  <!-- .......... End: Include Files ............. -->
   <!-- -->
-  <!-- .................. Footer .................. -->
-  <div id="footer">
-    <button class="btn btn-primary">Button</button>
-    <span>
-      <button style="float:right;" class="btn btn-danger">Button</button>
-    </span>
-  </div>  
-  <!-- .................. Footer .................. -->
-  <!-- -->
-  <!-- ############################################ -->
-
+  <!-- ########################################### -->
 
 
   <!-- ##################################################################################### -->
@@ -71,34 +53,6 @@
   <div id="control" >
     <form id="inputs">
       <div class="form-horizontal">
-
-        <!-- .................. Select Menu ........................ -->
-        <div class="form-group">
-          <label class="control-spacer control-group"> Menu Item: </label>
-          <select class="form-control" size="5">
-          </select>
-        </div>
-        <!-- ............. End: Select Menu ........................ -->
-
-
-        <!-- .................. Input Menu ...................... -->
-        <div class="form-group form-group-sm form-inline">
-          <label class="control-spacer control-group"> Input: </label> <br>
-          <div class="input-group">
-            <input class="form-control" type="text" />
-            <div class="input-group-addon">&#176;</div>
-          </div>
-        </div>
-        <!-- .................. End: Input Menu ................. -->
-
-
-        <!-- .................. IMT Menu ............................ -->
-        <div class="form-group form-group-sm">
-          <label class="control-spacer control-group"> Menu Item: </label>
-          <select class="form-control">
-          </select>
-        </div>
-        <!-- .................. End: Imt Menu ....................... -->
 
       </div> 
     </form>
@@ -113,44 +67,65 @@
   <!-- -->
   <!-- ................................. Plots ............................................. -->
   <div id="content">
-    Main content
+   
+ 
+    <!-- ................. Hazard Curves Plot ........... -->
+    <div class="panel panel-default">
+      <!-- Plot Title -->
+      <div class="panel-heading" >
+        Plot Title 
+      </div> 
+      <!-- Plot -->
+      <div class="panel-content" style="height: 500px"></div>
+      <!-- Plot Buttons -->
+      <div class="panel-footer"  id="hazard-axes-btns">
+        <div class="btn-group btn-group-justified" role="group">
+          <div class="btn-group axes-btn" role="group" >
+            <button type="button" class="btn btn-default" id="hazard-plot-xaxis">X-axis</button>
+          </div>
+          <div class="btn-group axes-btn" role="group">
+            <button type="button" class="btn btn-default" id="hazard-plot-yaxis">Y-axis</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ................. Hazard Curves Plot ........... -->
 
   </div> 
   <!-- .............................. End: Plots ........................................... -->
   <!-- -->
   <!-- ##################################################################################### -->
 
+
+
+  <!-- ######################################################## -->
+  <!-- -->
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="js/common.js"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+  <!-- -->
+  <!-- ######################################################## -->
+
+
+
 </body>
 <!-- ................... Body ................ -->
 
 </html>
-
-
-<!-- ######################################################## -->
-<!-- -->
-<!-- ................. Import JavaScript .................... -->
-
-
-<!-- ............ jQuery ................ -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!-- ............ jQuery ................ -->
-
-
-<!-- ............. Bootstrap ............ -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>  
-<!-- ............. Bootstrap ............ -->
-
-
-<!-- ................... D3 .............. -->
-<script src="js/d3.min.js" type="text/javascript" charset="UTF-8"></script>
-<!-- ................... D3 .............. -->
-
-
-<!-- ..... Application Specific JavaScript ......... -->
-<script src=""></script>
-<!-- ..... Application Specific JavaScript ......... -->
-
-<!-- ............... End: Import JavaScript ................. -->
-<!-- -->
-<!-- ######################################################## -->
 

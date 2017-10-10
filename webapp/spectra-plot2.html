@@ -1,0 +1,445 @@
+
+
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ................... Head ................ -->
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- ............. Bootstrap ............ -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <!-- ............. Bootstrap ............ -->
+
+   
+  <!-- ........... CSS Files ....... -->
+  <link rel="stylesheet" href="css/template.css">
+  <link rel="stylesheet" href="css/spectra2.css">
+  <!-- ........... CSS Files ....... -->
+ 
+</head>
+<!-- ................... Head ................ -->
+
+
+
+<!-- ................... Body ................ -->
+<body>
+
+
+  <!-- ########################################### -->
+  <!-- -->
+  <!-- ............ Include Files ................ -->
+
+  <!-- ........... Include Header ................ -->
+  <div id="include-header"></div>
+  <!-- ........... Include Header ................ -->
+  
+  <!-- ............. Include Footer .............. -->
+  <div id="include-footer"></div>  
+  <!-- ............. Include Footer .............. -->
+
+  <!-- .......... Include Spinner ................ -->
+  <div id="include-spinner"></div>
+  <!-- .......... Include Spinner ................ -->
+
+  <!-- .......... End: Include Files ............. -->
+  <!-- -->
+  <!-- ########################################### -->
+
+
+  <!-- ##################################################################################### -->
+  <!-- -->
+  <!-- ................................. Control Panel ..................................... -->
+
+
+  <div id="control">
+
+    <!--
+    The reponse spectra control panel contains form elements used as calculation
+    parameters and controls that manipulate those parameters. The controls are
+    typically radio-button style choices, however mixing radio buttons into the
+    parameter form creates problems as we do not want the values of these controls
+    submitted, but without the 'name' field, they do not behave properly. For the
+    time being, such controls are implemented as regular button groups with added
+    toggle (e.g. single-selction) behavior added that is reflected by the 'active'
+    CSS class.
+    -->
+  
+    <label for="gmms" class="control-group">Ground Motion Models:</label>
+   
+    <div id="gmm-sorter" class="btn-group btn-group-xs" data-toggle="buttons">
+      <label class="btn btn-default active"
+             data-toggle="tooltip"
+             data-container="body"
+             title="Sort by Group"
+             for="gmm-sort-group">
+        <input type="radio"
+               value="group"
+               name="gmm-sort"
+               id="gmm-sort-group"
+               aria-label="Sort by Group"
+               checked="true" />
+        <span class="glyphicon glyphicon-list"
+              aria-hidden="true" />
+      </label>
+      <label class="btn btn-default"
+             data-toggle="tooltip"
+             data-container="body"
+             title="Sort Alphabetically"
+             for="gmm-sort-alpha">
+        <input type="radio"
+               value="alpha"
+               name="gmm-sort"
+               id="gmm-sort-alpha"
+               aria-label="Sort Alphabetically" />
+          <span class="glyphicon glyphicon-sort-by-alphabet"
+                aria-hidden="true" />
+        </input>
+      </label>
+    </div>
+  
+    <form id="inputs">
+      <select class="form-control input-sm" name="gmm" id="gmms" size="16" multiple="true"></select>
+    
+      <div class="form-horizontal">
+        
+        <label class="control-spacer control-group">Event Parameters:</label>
+        <div class="form-group form-group-sm show-grid">
+          <label class="col-sm-2 control-label" for="Mw">M<sub>W</sub></label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="Mw" name="Mw">
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="rake">Rake</label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="rake" name="rake">
+              <span class="input-group-addon">°</span>
+            </div>
+          </div>
+          <div class="col-sm-6 col-sm-offset-1">
+            <div id="fault-style" class="btn-group btn-group-xs" data-toggle="buttons">
+              <button type="button" id="fault-style-strike" class="btn btn-default active" title="Strike-Slip">Strike-Slip</button>
+              <button type="button" id="fault-style-normal" class="btn btn-default" title="Normal">Normal</button>
+              <button type="button" id="fault-style-reverse" class="btn btn-default" title="Normal">Reverse</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="zHyp">Z<sub>HYP</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" readonly="true" id="zHyp" name="zHyp">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <div class="col-sm-6 col-sm-offset-1">
+            <label for="z-check" class="control-label secondary-input">
+              <input id="z-check" type="checkbox" checked="true">
+              Centered down-dip
+            </label>
+          </div>
+        </div>
+    
+        <label class="control-spacer control-group">Source Geometry:</label>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="zTop">Z<sub>TOP</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="zTop" name="zTop">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <label class="col-sm-1 control-label" for="dip">Dip</label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="number" class="form-control" id="dip" name="dip" min="0" max="90">
+              <span class="input-group-addon">°</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="width">Width</label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="width" name="width">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+        </div>
+    
+        <label class="control-spacer control-group">Path Parameters:</label>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="rX">R<sub>X</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="rX" name="rX">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <label class="col-sm-1 control-label disabled" for="rY">R<sub>Y</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" disabled="true" id="rY" name="rY">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="rRup">R<sub>RUP</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" readonly="true" id="rRup" name="rRup">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <div class="col-sm-1"></div>
+          <div class="col-sm-6">
+            <label for="r-check" class="control-label secondary-input">
+              <input id="r-check" type="checkbox" checked="true">
+              Derive R<sub>JB</sub> and R<sub>RUP</sub>
+            </label>
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="rJB">R<sub>JB</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" readonly="true" id="rJB" name="rJB">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <div class="col-sm-6 col-sm-offset-1">
+            <div id="hw-fw" class="btn-group btn-group-xs">
+              <button type="button" id="hw-fw-hw" class="btn btn-default active" title="Hanging Wall">Hanging</button>
+              <button type="button" id="hw-fw-fw" class="btn btn-default" title="Foot Wall">Foot Wall</button>
+            </div>
+          </div>
+        </div>
+    
+        <label class="control-spacer control-group">Site &amp; Basin:</label>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="vs30">V<sub>S</sub>30</label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" id="vs30" name="vs30">
+              <span class="input-group-addon"><sup>m</sup>⁄<sub>s</sub></span>
+            </div>
+          </div>
+          <div class="col-sm-6 col-sm-offset-1">
+            <div id="vs-infer" class="btn-group btn-group-xs disabled" data-toggle="buttons">
+              <label class="btn btn-default" title="Vs30 Measured" for="vs-measured">
+                Measured
+                <input type="radio" value="measured" id="vs-measured" name="vsInf">
+              </label>
+              <label class="btn btn-default active" title="Vs30 Inferred" for="vs-inferred">
+                Inferred
+                <input type="radio" value="inferred" id="vs-inferred" name="vsInf" checked="true">
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="z1p0">Z<sub>1.0</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" placeholder="default" id="z1p0" name="z1p0">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+          <label class="col-sm-1 control-label" for="z2p5">Z<sub>2.5</sub></label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" placeholder="default" id="z2p5" name="z2p5">
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+        </div>
+    
+      </div>
+    </form>
+
+  </div>
+  
+  <!-- ............................ End: Control Panel ..................................... -->
+  <!-- -->
+  <!-- ##################################################################################### -->
+
+
+
+  <!-- ##################################################################################### -->
+  <!-- -->
+  <!-- ................................. Plots ............................................. -->
+  <div id="content">
+   
+ 
+    <!-- ................. Hazard Curves Plot ........... -->
+    <div id="spectra-plot-panel" class="panel panel-default">
+      <!-- Plot Title -->
+      <div class="panel-heading" id="spectra-plot-title">
+        Response Spectra
+        <span id="spectra-plot-resize" ></span>
+      </div> 
+      <!-- Plot -->
+      <div class="panel-content" id="spectra-plot"></div>
+      <!-- Plot Buttons -->
+      <div class="panel-footer"  id="spectra-axes-btns">
+        <div class="btn-group btn-group-justified" role="group">
+          <div class="btn-group axes-btn" role="group" >
+            <button type="button" class="btn btn-default" id="spectra-plot-xaxis">X-axis</button>
+          </div>
+          <div class="btn-group axes-btn" role="group">
+            <button type="button" class="btn btn-default" id="spectra-plot-yaxis">Y-axis</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ................. Hazard Curves Plot ........... -->
+
+  </div> 
+  <!-- .............................. End: Plots ........................................... -->
+  <!-- -->
+  <!-- ##################################################################################### -->
+
+
+
+  <!-- ######################################################## -->
+  <!-- -->
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/spectra.js" type="text/javascript" charset="UTF-8"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+  <!-- -->
+  <!-- ######################################################## -->
+
+
+<script type="text/javascript">
+
+
+$("#footer").ready(function(){
+  $("#update-plot").click(function () {
+    updatePlot("/nshmp-haz-ws/spectra?" + $("#inputs").serialize());
+  });
+});
+
+$("#gmms").change(function() {
+  var disable = $(":selected", this).length == 0;
+  $("#update-plot").prop("disabled", disable);
+});
+
+
+function updatePlot(url) {
+
+  var plot_id = "spectra-plot"
+  var spectra_plot_id = document.getElementById(plot_id);
+  var plot_panel_id = document.getElementById("spectra-plot-panel");
+  plot_panel_id.style.display = "initial";
+  
+  var header_height = document.getElementById("spectra-plot-title").clientHeight;
+  var footer_height = document.getElementById("spectra-axes-btns").clientHeight;
+  spectra_plot_id.style.top    = header_height + "px";
+  spectra_plot_id.style.bottom = footer_height + "px";
+  
+  d3.json(url, function(error, response) {
+    if (error) return console.warn(error);
+    if (response.status == "ERROR") {
+      svg.append("text")
+          .attr("y", margin.top)
+          .attr("x", margin.left)
+          .text(response.message);
+      return;
+    }  
+
+    var dataset = response.means;
+    var series = dataset.data;
+    var xlabel = dataset.xLabel;
+    var ylabel = dataset.yLabel;
+
+    var y_scale = "linear";
+    var x_scale = "linear";
+
+    var series_label_displays = [];
+    var series_label_values   = [];
+    var series_data           = [];
+  
+    series.forEach(function(d, i) {
+      series_label_displays.push(d.label);
+      series_label_values.push(d.id);
+      series_data.push(d3.zip(d.data.xs, d.data.ys));
+    });
+ 
+    var plot_info = {                                     // Plot info object
+      series_data:              series_data,              // Series data to plot
+      series_label_displays:    series_label_displays,    // Series label displays
+      series_label_values:      series_label_values,      // Series label values
+      xlabel:        xlabel,                              // X label
+      ylabel:        ylabel,                              // Y label
+      plot_id:       plot_id,                             // DOM ID for plot
+      x_scale:       x_scale,                             
+      y_scale:       y_scale,
+      xaxis_btn:    "spectra-plot-xaxis",
+      yaxis_btn:    "spectra-plot-yaxis",
+      margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
+      resize:       "spectra"                              // DOM ID for resize element 
+    };
+    console.log("\n\n Plot Information: ");    console.log(plot_info);
+    console.log("\n\n");
+    
+    plot_curves(plot_info);
+  
+    plot_selection(plot_id); 
+
+    d3.select("#"+plot_id + " svg")                                       // Get plot svg
+      .select(".all-data")                                                // Select data group
+      .selectAll(".dot")                                                  // Select all circles
+      .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
+        var xval = d3.select(this).data()[0][0];                          // Get X value
+        var yval = d3.select(this).data()[0][1].toExponential(4);         // Get Y value
+        var value   = d3.select(this.parentNode).attr("id");      // Get the selected id of the data group
+        var jdisplay = series.findIndex(function(d,i){
+          return d.id == value;
+        });
+        var display = series[jdisplay].label;
+        var tooltip_text = [                                              // Set the tooltip text
+          "GMM: "+ display,
+          "Period (s): " + xval,
+          "MGM (g): "    + yval]
+        var tooltip_width  = 265;                                         // Set the tooltip box height
+        var tooltip_height = 60;                                          // Set the tooltip box width
+        tooltip_mouseover(plot_id,this,tooltip_text);      // Make tooltip
+      })
+      .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
+        tooltip_mouseout(plot_id,this);                                   // Remove tooltip
+      });
+
+  });
+}
+
+
+
+
+
+  </script>
+
+</body>
+</html>

@@ -17,7 +17,7 @@
 /*.................... Plots ......................*/
 
 /*............... Main Plot Panel ................*/
-#hazard-plot-panel{
+#spectra-plot-panel{
   position: absolute;
   top: 0;
   right: 0;
@@ -58,14 +58,14 @@
 
 
 /*............... Plot Resize ....................*/
-#hazard-plot-resize{
+#spectra-plot-resize{
   float: right;
 }
 /*------------------------------------------------*/
 
 
 /*.................. Plot Titles ..................*/
-#hazard-plot-title{
+#spectra-plot-title{
   margin: 0;
   font-family: 'HelveticaNeue-Light',sans-serif;
   font-size: 1.5em;
@@ -75,14 +75,14 @@
 
 
 /*..................... Plots .....................*/
-#hazard-curves-plot{
+#spectra--plot{
   margin: 0 auto;
 }
 /*-------------------------------------------------*/
 
 
 /*.............. Plot Panel Glyphicons ........... */
-.panel .panel-heading .glyphicon{
+.panel>.panel-heading>.glyphicon{
   font-size: .85em;
   text-align: middle;
   font-weight: 100;
@@ -98,21 +98,84 @@
 /*#################################################*/
 
 
-
-
-/*#################################################*/
-/**/
-/*............... Lat/Lon Bounds ..................*/
-
-#lat_bounds,
-#lon_bounds{
-  color: black;
-  opacity: 0.8;
+optgroup {
+  color: SteelBlue;
 }
-/*------------- End: Lat/Lon Bounds ---------------*/
-/**/
-/*#################################################*/
 
 
+#gmm-sorter {
+  float: right;
+}
+
+
+
+#addata {
+  float: right;
+  /*margin-top: 20px;*/
+}
+
+
+
+.form-group-sm .form-control {
+  height: 24px;
+  padding: 2px 4px;
+}
+
+.input-group-sm .input-group-addon {
+  height: 24px;
+  padding: 2px 4px;
+}
+
+[class*="col-sm-"] {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.form-horizontal .form-group-sm .units {
+  text-align: left;
+  padding-top: 4px;
+}
+
+.secondary-input {
+  font-weight: normal;
+}
+
+.disabled {
+  color: #aaa;
+}
+
+.btn-group {
+  padding-top: 1px;
+}
+
+
+/* plot */
+
+/*text {
+  font: 10px sans-serif;
+}
+*/
+
+.axis-label {
+  font-size: 1.2em;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.legend line,
+.lines {
+  fill: none;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 
 

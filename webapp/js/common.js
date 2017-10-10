@@ -3,11 +3,13 @@
 //
 //................................. Load Include Files ....................................... 
 
+//.................................... Load Header and Set Title .............................
 $("#include-header").load("includes/header.html",function(){
-  var title_id = document.getElementById("header-title");
-  var webapp = window.location.pathname.split("/").pop();
+  var title_id = document.getElementById("header-title");         // Get the header title dom id
+  var webapp = window.location.pathname.split("/").pop();         // Get the current file name
+
   switch (webapp){
-    case "model-explorer.html":
+    case "model-explorer.html":                           
       var title = "Model Explorer";
       break;
     case "model-compare.html":
@@ -19,26 +21,62 @@ $("#include-header").load("includes/header.html",function(){
     default:
       var title = "Please define title in common.js";
   }
-  title_id.innerHTML = title;
+  title_id.innerHTML = title;               // Set the header title
+  document.title     = "NSHMP " + title;    // Set the tab title
 });                  
+//--------------------------------------------------------------------------------------------
 
-$("#include-footer").load("includes/footer.html");                  // Load footer
-$("#include-spinner").load("includes/spinner.html",function(){      // Load spinner
-  overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
-  loader_id      = document.getElementById("loader");               // Global variable: Loader id
-  loader_text_id = document.getElementById("loader-text");          // Global Variable: Loader text
-  loader_text_id.innerHTML = "Processing";                          // Set loader text on start
-});
+//................................... Load Footer ............................................
+$("#include-footer").load("includes/footer.html");         
+//--------------------------------------------------------------------------------------------
+
+//................................... Load Spinner ...........................................
+$("#include-spinner").load("includes/spinner.html");        
+//--------------------------------------------------------------------------------------------
 
 //--------------------------- End: Load Include Files ----------------------------------------
 //
 //############################################################################################
 
 
+
+//############################################################################################
+//
+//................................. Turn On/Off Spinner ...................................... 
+
+/*
+-  This function wil turn on or off a loading spinner that is centered in the screen.
+-  To turn on the spinner just call spinner("on");
+-  To turn off the spinner just call spinner("off");
+*/
+
+function spinner(stat){
+  
+  var overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
+  var loader_id      = document.getElementById("loader");               // Global variable: Loader id
+  var loader_text_id = document.getElementById("loader-text");          // Global Variable: Loader text
+
+  if (stat.toLowerCase() == "on"){                // If argument string is "on", then show the spinner
+    overlay_id.style.display = "initial";
+    loader_id.style.display  = "initial";
+    loader_text_id.innerHTML = "Processing";          
+  }else if (stat.toLowerCase() == "off"){         // If argument string is "off", then remove the spinner
+    overlay_id.style.display = "none";
+    loader_id.style.display  = "none";
+  }
+
+}
+
+//--------------------------- End: Turn On/Off Spinner ---------------------------------------
+//
+//############################################################################################
+
+
+
+
 //############################################################################################
 //
 //........................ Read in Parameter Dependency JSON File ............................ 
-
 
 function get_parameters(callback){
   var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
@@ -313,6 +351,8 @@ function make_hazard_url(edition,region,lat,lon,vs30,data_type){
 //############################################################################################
 
 
+
+
 //############################################################################################
 //
 //........................... Highlight a Selected Line ......................................
@@ -325,37 +365,60 @@ function make_hazard_url(edition,region,lat,lon,vs30,data_type){
 
 */
 
-function plot_selection(plot_id,selected_id){
+function plot_selection(plot_id){
   
   var svg = d3.select("#"+plot_id + " svg");    // Select the svg of the plot id
 
-  //............ Increase Line Width and Dot size of Selected Plot ..............
-  var selected = svg.select(".all-data")        // Select the all data group
-    .select("#"+selected_id);                   // Select the data group that was selected 
+ //.................. Highlight Line when Selected on Plot ..................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .selectAll(".data")                                         // Select all data, lines and circles 
+    .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
+      var selected_id = d3.select(this).attr("id");  // Get selected id
+      plot_selection_reset(plot_id);                            // Remove any current selection on plot
+      make_selection(selected_id);           // Update plot with new selection
+    });
+  //--------------------------------------------------------------------------
 
-   selected.select(".line")                     // Select the line that was choosen
-    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+  //.............. Highlight Line when Legend Entry Selected .................
+  d3.select("#"+plot_id + " svg")                               // Get plot svg
+    .select(".legend")                                          // Select legend
+    .selectAll(".legend-entry")                                 // Select all legend entrys
+    .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
+      var selected_id = d3.select(this).attr("id");  // Get selected id
+      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
+      make_selection(selected_id);           // Update with new selection
+    });
+  //--------------------------------------------------------------------------
 
-    selected.selectAll(".dot")                  // Select all dot along the line
-    .attr("r",circle_size_select);              // Increase the dot size by 2
 
-    selected.raise();                           // Bring the line and dots to the front
-  //-----------------------------------------------------------------------------
-  
-  //............. Increase Line Width and Circle Size on Legend .................
-  var leg = svg.select(".legend")               // Select the legend
-    .select("#"+selected_id);                   // Select the legend group that was selected
+  function make_selection(selected_id){
+    //............ Increase Line Width and Dot size of Selected Plot ..............
+    var selected = svg.select(".all-data")        // Select the all data group
+      .select("#"+selected_id);                   // Select the data group that was selected 
 
-  leg.select(".legend-line")                    // Select the line in the legend
-    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+     selected.select(".line")                     // Select the line that was choosen
+      .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
 
-  leg.select(".legend-circle")                  // Select the dot in the legend
-    .attr("r",circle_size_select);              // Increase the dot size by 2
-  
-  leg.select(".legend-text")                    // Select the legend text
-    .style("font-weight","bold");               // Make text bold
-  //-----------------------------------------------------------------------------
+      selected.selectAll(".dot")                  // Select all dot along the line
+      .attr("r",circle_size_select);              // Increase the dot size by 2
 
+      selected.raise();                           // Bring the line and dots to the front
+    //-----------------------------------------------------------------------------
+    
+    //............. Increase Line Width and Circle Size on Legend .................
+    var leg = svg.select(".legend")               // Select the legend
+      .select("#"+selected_id);                   // Select the legend group that was selected
+
+    leg.select(".legend-line")                    // Select the line in the legend
+      .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+
+    leg.select(".legend-circle")                  // Select the dot in the legend
+      .attr("r",circle_size_select);              // Increase the dot size by 2
+    
+    leg.select(".legend-text")                    // Select the legend text
+      .style("font-weight","bold");               // Make text bold
+    //-----------------------------------------------------------------------------
+  }
 }
 
 //---------------------- End: Highlight a Selected Line --------------------------------------
@@ -425,7 +488,7 @@ NOTE: The tooltip text is currently using three lines. If more is desired the he
       will need to be adjusted. 
 */
 
-function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,tooltip_text){
+function tooltip_mouseover(plot_id,circle_select,tooltip_text){
 
   var tooltip = d3.select("#"+plot_id +" svg")            // Select tooltip
     .select(".d3-tooltip");
@@ -447,6 +510,26 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,to
 
   var dy = 12;                            // Set the distance in Y between circle and tooltip
 
+  //........................... Create the Tooltip Text ....................................
+  tooltip.selectAll("text")                     // Select all text fields in tooltip
+    .data(tooltip_text)                         // Join the text
+    .enter()
+    .append("text")                             // Create a text field for each text in array
+      .attr("class","tooltip-text")             // Add a class to each text
+      .style("visibility","hidden")
+      .attr("font-size",11)                     // Set font size
+      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
+      .attr("alignment-baseline","central")     // Set to be aligned center
+      .text(function(d,i){return d});           // Set text
+
+  var tooltip_geom   = tooltip.node()
+    .getBoundingClientRect();
+
+  var tooltip_width  = parseFloat(tooltip_geom.width + 1);
+  var tooltip_height = parseFloat(tooltip_geom.height + 1 );
+  //----------------------------------------------------------------------------------------
+
+
   if (xper < 0.10){                       // If the X location of the dot is < 10%, have box start to the right of the circle
     var xrect = cx;
     var xtext = cx+10;
@@ -460,10 +543,10 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,to
 
   if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
     var yrect = cy+dy;
-    var ytext = cy+dy+tooltip_height/4;
+    var ytext = cy+dy+tooltip_height;
   }else{                                  // Else put the box above the circle
     var yrect = cy-tooltip_height-dy;
-    var ytext = cy-dy-(tooltip_height*3/4);
+    var ytext = cy-dy-(tooltip_height-10);
   }
   
   var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
@@ -473,25 +556,19 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,to
   //........................... Create the Tooltip Box .....................................
   tooltip.append("rect")                        // Create a rectangle
     .attr("class","tooltip-outline")            // Add a class to the rectangle
-    .attr("height",tooltip_height)              // Set height
-    .attr("width",tooltip_width)                // Set width
+    .attr("height",tooltip_height+10)              // Set height
+    .attr("width",tooltip_width+20)                // Set width
     .attr("transform",rect_trans)               // Translate the rectangle to correct position
     .attr("stroke","#999")                      // Set stroke color
+    .style("padding","10px")
     .attr("fill","white");                      // Set fill color
   //----------------------------------------------------------------------------------------
   
-  //........................... Create the Tooltip Text ....................................
-  tooltip.selectAll("text")                     // Select all text fields in tooltip
-    .data(tooltip_text)                         // Join the text
-    .enter()
-    .append("text")                             // Create a text field for each text in array
-      .attr("class","tooltip-text")             // Add a class to each text
-      .attr("transform",text_trans)             // Translate text to correct location
-      .attr("font-size",11)                     // Set font size
-      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
-      .attr("alignment-baseline","central")     // Set to be aligned center
-      .text(function(d,i){return d});           // Set text
-  //----------------------------------------------------------------------------------------
+  tooltip.selectAll(".tooltip-text")
+    .style("visibility","initial")
+    .attr("transform",text_trans)
+    .raise();
+
  
   //......................... Increase Size of Circle on Hover ............................. 
   var rcircle = d3.select(circle_select).attr("r");     // Get circle size of current circle 
@@ -788,7 +865,7 @@ function plot_curves(plot_info){
       .attr("x",0-height/2)                                 // Update Y label X location
       .attr("y",0-margin.left/2-10);                        // Update Y label Y location
     
-    var translate = legend_location();
+    var translate = legend_location(height,width);
     var svg_legend = svg.selectAll(".legend-entry");
 
     var svg_line = svg.selectAll(".line");
@@ -818,9 +895,9 @@ function plot_curves(plot_info){
   }
   //-------------------------------------------------------------------------------
 
-  function legend_location(){
+  function legend_location(height,width){
     var legend_geom = d3.select("#"+plot_id+" svg")
-      .select(".legend")                       // Select the bounding box of the data
+      .select(".legend")   
       .node()
       .getBoundingClientRect();
     var legend_width  = legend_geom.width;
@@ -829,7 +906,7 @@ function plot_curves(plot_info){
     if (x_scale == "linear" || y_scale == "linear"){
       var translate = "translate("+(width-legend_width)+","+legend_height+")";
     }else{
-      var translate = "translate(10,"+(height*(1-0.08))+")";
+      var translate = "translate(10,"+(height*(1-0.05))+")";
     }
     return translate; 
   } 
@@ -957,9 +1034,9 @@ function plot_curves(plot_info){
     // Legend Text
     legend.append("text")                                         // Append a text tag to legend-entry class
       .attr("class","legend-text")
-      .attr("font-size","10px")
+      .attr("font-size","12px")
       .attr("x",30)                                               // Set X location of each legend label
-      .attr("y", function(d,i){return 14*-i})                     // Set Y location of each legend label
+      .attr("y", function(d,i){return 16*-i})                     // Set Y location of each legend label
       .attr("alignment-baseline","central")                       // Set alignment
       .text(function(d,i){return series_label_displays[nleg-i]}); // Set the text of each label, do nleg-i to put PGA at top of legend
      
@@ -967,8 +1044,8 @@ function plot_curves(plot_info){
     legend.append("line")                                         // Append a svg line tag
       .attr("class","legend-line")                                // Set class to legend-line
       .attr("x2",24)                                              // Set width of line 
-      .attr("y1", function(d,i){return 14*-i})                    // Set Y location of starting point
-      .attr("y2", function(d,i){return 14*-i})                    // Set Y location of ending point
+      .attr("y1", function(d,i){return 16*-i})                    // Set Y location of starting point
+      .attr("y2", function(d,i){return 16*-i})                    // Set Y location of ending point
       .attr("stroke-width",linewidth)                             // Set stroke width of line
       .attr("stroke",function(d,i){return color[nleg-i]})         // Set color of line
       .attr("fill","none");                                       // Set fill to none
@@ -977,12 +1054,12 @@ function plot_curves(plot_info){
     legend.append("circle")                                       // Append a svg circle tag
       .attr("class","legend-circle")                              // Set class to legend-circle
       .attr("cx",12)                                              // Set X location to center of line
-      .attr("cy",function(d,i){return 14*-i})                     // Set Y location
+      .attr("cy",function(d,i){return 16*-i})                     // Set Y location
       .attr("r",circle_size)                                      // Set radius
       .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
     
     // Set translation 
-    var translate = legend_location();
+    var translate = legend_location(height,width);
     legend.attr("transform",translate)    // Position legend to bottom-left
     //--------------------------------------------------------
   
