@@ -221,31 +221,40 @@ function buildInputs(usage) {
 //
 //................................... Plot ............................................
 
+//............................. Footer Buttons .......................................
 $("#footer").ready(function(){
-  $("#update-plot").click(function (){
-    var url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();
-    updatePlot(url);
+
+  $("#update-plot").prop("disabled",true);                            // Disable plot button on start up
+  $("#raw-data").prop("disabled",true);                               // Disable raw data button on start up
+
+  $("#update-plot").click(function (){                                // If update button is click, update plot
+    var url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();    // Make URL
+    updatePlot(url);                                                  // Plot
   });
+
+  
+  $("#gmms").change(function() {                                      // Check selection of GMMs
+    var disable = $(":selected", this).length == 0;                   // Check to see if there is a selection
+    $("#update-plot").prop("disabled", disable);                      // Update button status
+    $("#raw-data").prop("disabled", disable);                         // Update button status
+  });
+
 });
+//------------------------------------------------------------------------------------
 
 
 
-$("#gmms").change(function() {
-  var disable = $(":selected", this).length == 0;
-  $("#update-plot").prop("disabled", disable);
-});
-
+//................................. Get Data and Plot ................................
 function updatePlot(url) {
 
-  var plot_id = "spectra-plot"
-  var spectra_plot_id = document.getElementById(plot_id);
-  var plot_panel_id = document.getElementById("spectra-plot-panel");
-  plot_panel_id.style.display = "initial";
+  var plot_id         = document.getElementById("spectra-plot");                    // Get plot dom 
+  var plot_panel_id   = document.getElementById("spectra-plot-panel");              // Get spectra plot panel dom 
+  plot_panel_id.style.display = "initial";                                          // Set panel to be visible
   
-  var header_height = document.getElementById("spectra-plot-title").clientHeight;
-  var footer_height = document.getElementById("spectra-axes-btns").clientHeight;
-  spectra_plot_id.style.top    = header_height + "px";
-  spectra_plot_id.style.bottom = footer_height + "px";
+  var header_height = document.getElementById("spectra-plot-title").clientHeight;   // Get panel header height
+  var footer_height = document.getElementById("spectra-axes-btns").clientHeight;    // Get panel footer height
+  plot_id.style.top    = header_height + "px";                                      // Adjust panel content for plot
+  plot_id.style.bottom = footer_height + "px";                                      // Adjust panel content for plot
   
   d3.json(url, function(error, response) {
     if (error) return console.warn(error);
@@ -283,14 +292,14 @@ function updatePlot(url) {
       series_label_values:      series_label_values,      // Series label values
       xlabel:        xlabel,                              // X label
       ylabel:        ylabel,                              // Y label
-      plot_id:       plot_id,                             // DOM ID for plot
+      plot_id:       "spectra-plot",                      // DOM ID for plot
       x_scale:       x_scale,                             
       y_scale:       y_scale,
       tooltip_text:  tooltip_text,
       xaxis_btn:    "spectra-plot-xaxis",
       yaxis_btn:    "spectra-plot-yaxis",
       margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-      resize:       "spectra"                              // DOM ID for resize element 
+      resize:       "spectra"                             // DOM ID for resize element 
     };
     console.log("\n\n Plot Information: ");    console.log(plot_info);
     console.log("\n\n");
@@ -303,6 +312,7 @@ function updatePlot(url) {
 
   });
 }
+//------------------------------------------------------------------------------------
 
 
 //---------------------------- End: Plot ----------------------------------------------

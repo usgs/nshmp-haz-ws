@@ -9,15 +9,22 @@
 <head>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="UTF-8"> 
+
+  <!-- Title is defined in common.js -->
+
   <!-- ............. Bootstrap ............ -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+   <!-- 
+      Do not upgrade to Bootstrap 3.3.7; focus ring shows up on radio
+      button groups and interferes with tooltip visibility.
+    -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <!-- ............. Bootstrap ............ -->
 
    
   <!-- ........... CSS Files ....... -->
-  <link rel="stylesheet" href="css/template.css">
-  <link rel="stylesheet" href="css/spectra.css">
+  <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/spectra.css"  type="text/css">
   <!-- ........... CSS Files ....... -->
  
 </head>
@@ -321,7 +328,8 @@
 
   <!-- ..... Application Specific JavaScript ......... -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/common.js"></script>
+  <script src="js/common.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="js/plot.js"    type="text/javascript" charset="UTF-8"></script>
   <script src="js/spectra.js" type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
