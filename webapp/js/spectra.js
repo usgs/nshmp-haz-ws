@@ -1,4 +1,8 @@
 
+
+spinner("on");      // Put up a spinner while loading 
+
+
 var rakes = {
   "checkRange": function(mech, value) {
     if (mech == "reverse") return (value > 45.0 && value < 135.0) ? value : 90.0;
@@ -171,6 +175,8 @@ function rake_val() {
 
 /* process usage response */
 function buildInputs(usage) {
+  spinner("off"); // Remove spinner once loaded 
+
   var params = usage.parameters;
 
   /* Alphabetical GMMs. */
@@ -229,6 +235,7 @@ $("#footer").ready(function(){
 
   $("#update-plot").click(function (){                                // If update button is click, update plot
     var url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();    // Make URL
+    spinner("on");                                                    // Turn on spinner while getting data
     updatePlot(url);                                                  // Plot
   });
 
@@ -246,7 +253,7 @@ $("#footer").ready(function(){
 
 //................................. Get Data and Plot ................................
 function updatePlot(url) {
-
+  
   var plot_id         = document.getElementById("spectra-plot");                    // Get plot dom 
   var plot_panel_id   = document.getElementById("spectra-plot-panel");              // Get spectra plot panel dom 
   plot_panel_id.style.display = "initial";                                          // Set panel to be visible
@@ -265,6 +272,7 @@ function updatePlot(url) {
           .text(response.message);
       return;
     }  
+    spinner("off");   // Remove spinner once loaded
 
     var dataset = response.means;
     var series = dataset.data;

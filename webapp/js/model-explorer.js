@@ -577,8 +577,6 @@ function component_curves_plot(response){
   plot_curves(plot_info);                     // Plot the curves
   //--------------------------------------------------------------------------
  
-   
-
 
 } 
 //---------------------- End: Plot Component Curves ------------------------------------------

@@ -2,13 +2,12 @@
 
 //############################################################################################
 //
-//........................... Highlight a Selected Line ......................................
+//........................ Listen for a Line/Circle Selection ................................
 
 /*
-- This function will highlight a selected line on a plot
-- This function takes in two arguments:
+- This function will wait for selected line or dot and then call to highlight it
+- This function takes in one argument:
     1. plot_id: the dom id of the plot (example: hazard-curves-plot)
-    2. selected_id: the id of the selected line (example: PGA)
 
 */
 
@@ -33,13 +32,24 @@ function plot_selection(plot_id){
     });
   //--------------------------------------------------------------------------
 
-
 }
 
-//---------------------- End: Highlight a Selected Line --------------------------------------
+//------------------- End: Listen for a Line/Circle Selection --------------------------------
 //
 //############################################################################################
 
+
+
+//############################################################################################
+//
+//........................... Highlight a Selected Line ......................................
+
+/*
+- This function will highlight a selected line on a plot
+- This function takes in two arguments:
+    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
+    2. selected_id: the id of the selected line (example: PGA)
+*/
 
 function make_selection(plot_id,selected_id){
   
@@ -73,6 +83,11 @@ function make_selection(plot_id,selected_id){
     .style("font-weight","bold");               // Make text bold
   //-----------------------------------------------------------------------------
 }
+//---------------------- End: Highlight a Selected Line --------------------------------------
+//
+//############################################################################################
+
+
 
 
 //############################################################################################
@@ -149,23 +164,23 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
   
 
   //........................... Create the Tooltip Text ....................................
-  tooltip.selectAll("text")                     // Select all text fields in tooltip
-    .data(tooltip_text)                         // Join the text
+  tooltip.selectAll("text")                           // Select all text fields in tooltip
+    .data(tooltip_text)                               // Join the text
     .enter()
-    .append("text")                             // Create a text field for each text in array
-      .attr("class","tooltip-text")             // Add a class to each text
-      .style("visibility","hidden")
-      .attr("font-size",11)                     // Set font size
-      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
-      .attr("alignment-baseline","text-before-edge")     // Set to be aligned center
-      .text(function(d,i){return d});           // Set text
+    .append("text")                                   // Create a text field for each text in array
+      .attr("class","tooltip-text")                   // Add a class to each text
+      .style("visibility","hidden")                   // Make text hidden as it is not in right location yet
+      .attr("font-size",11)                           // Set font size
+      .attr("y",function(d,i){return i*16} )          // Set Y location of each text
+      .attr("alignment-baseline","text-before-edge")  // Set to be aligned center
+      .text(function(d,i){return d});                 // Set text
 
-  var tooltip_geom   = tooltip.node()
+  var tooltip_geom   = tooltip.node()                 // Get dimensions of text box
     .getBoundingClientRect();
 
-  var pad = 10;                           // Padding
-  var tooltip_width  = tooltip_geom.width  + 2*pad;
-  var tooltip_height = tooltip_geom.height + 2*pad;
+  var pad = 10;                                       // Padding
+  var tooltip_width  = tooltip_geom.width  + 2*pad;   // Get tooltip width and add padding
+  var tooltip_height = tooltip_geom.height + 2*pad;   // Get tooltip height and add padding
   //----------------------------------------------------------------------------------------
 
 
@@ -217,10 +232,12 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
     .attr("fill","white");                      // Set fill color
   //----------------------------------------------------------------------------------------
   
+  //......................... Translate Text to Correct Spot ...............................
   tooltip.selectAll(".tooltip-text")
     .style("visibility","initial")
     .attr("transform",text_trans)
     .raise();
+  //---------------------------------------------------------------------------------------- 
 
  
   //......................... Increase Size of Circle on Hover ............................. 
@@ -300,24 +317,36 @@ function tooltip_mouseout(plot_id,circle_select){
 
 /*
 - This function takes in an object with the following keys:
-    * series_data:  "contains arrays of x,y pairs. Must be formatted for d3"
-    * series_label: "array of corresponding labels"
-    * xlabel:       "X label"
-    * ylabel:       "Y label"
+    * series_data:            [contains arrays of x,y pairs. Must be formatted for d3],
+    * series_label_display:   ["array of corresponding label displays"],
+    * series_label_values     ["array of corresponding label values/ids"],
+    * xlabel:       "The X label"
+    * ylabel:       "The Y label"
     * plot_id:      "DOM id for plot"
+    * x_scale:      "Starting X scale (linear or log)",
+    * y_scale:      "Starting Y scale (linear or log",
+    * tooltip_text: ["Array of 3 string for tooltip: selection display, X value, Y value"],
+    * xaxis_btn:    "X axis button dom id",
+    * yaxis_btn:    "Y axis button dom id",
     * resize:       "resize element id"
     * margin:       {top: ,right: , bottom: , left: }
 
 - An example:
-  var plot_info = {                           // Plot info object
-    series_data:   component_hazard_data,     // Series data to plot
-    series_labels: component_hazard_labels,   // Series labels
-    xlabel:        xlabel,                    // X label
-    ylabel:        ylabel,                    // Y label
-    plot_id:       plot_id,                   // DOM ID for plot
-    margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
-    resize:       "component"                 // DOM ID for resize element 
-  };
+    var plot_info = {                                     // Plot info object
+      series_data:              [1,0.5],                  // Series data to plot
+      series_label_displays:    "Frankel et al. (1996",   // Series label displays
+      series_label_values:      "FRANKEL_96",             // Series label values
+      xlabel:        "Period,                             // X label
+      ylabel:        "Ground Motion",                     // Y label
+      plot_id:       "spectra-plot",                      // DOM ID for plot
+      x_scale:       "linear",                            // Starting scale (linear or log)
+      y_scale:       "linear",
+      tooltip_text:  ["GMM","X value","Y value"],         // Array of 3 string for tooltip
+      xaxis_btn:    "spectra-plot-xaxis",                 // X axis button dom id
+      yaxis_btn:    "spectra-plot-yaxis",                 // Y axis button dom id
+      margin:       {top:30,right:15,bottom:50,left:70},  // Margin for plot
+      resize:       "spectra"                             // DOM ID for resize element 
+    };
 */
 
 
