@@ -1,9 +1,102 @@
+/*
+####################################################
+#
+#   CSS for the model-compare webpage
+#
+#
+#####################################################
+*/
 
-#plot-title {
-  font-family: 'HelveticaNeue-Light', sans-serif;
-  font-size: 2.4em;
+
+
+
+
+
+/*#################################################*/
+/**/
+/*.................... Plots ......................*/
+
+/*............... Main Plot Panel ................*/
+#spectra-plot-panel{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 20px;
+  display: none;
+}
+/*------------------------------------------------*/
+
+/*.............. Plot Panel Heading .............. */
+.panel>.panel-heading{
+  background-color: #f7f7f7;
+}
+/*-------------------------------------------------*/
+
+
+/*.............. Plot Panel Footer .............. */
+.panel-footer{
+  background-color: #f7f7f7;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+/*-------------------------------------------------*/
+
+
+/*.............. Plot Panel Content .............. */
+.panel-content{
+  position: absolute;
+  top:0;
+  right:0;
+  bottom:0;
+  left:0;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Resize ....................*/
+#spectra-plot-resize{
+  float: right;
+}
+/*------------------------------------------------*/
+
+
+/*.................. Plot Titles ..................*/
+#spectra-plot-title{
+  margin: 0;
+  font-family: 'HelveticaNeue-Light',sans-serif;
+  font-size: 1.5em;
   line-height: 1.2;
 }
+/*-------------------------------------------------*/
+
+
+/*..................... Plots .....................*/
+#spectra--plot{
+  margin: 0 auto;
+}
+/*-------------------------------------------------*/
+
+
+/*.............. Plot Panel Glyphicons ........... */
+.panel>.panel-heading>.glyphicon{
+  font-size: .85em;
+  text-align: middle;
+  font-weight: 100;
+  opacity: .7; 
+}
+/*-------------------------------------------------*/
+
+
+
+
+/*------------- End: Plots ------------------------*/
+/**/
+/*#################################################*/
+
 
 optgroup {
   color: SteelBlue;
@@ -14,18 +107,7 @@ optgroup {
   float: right;
 }
 
-#plot {
-  width: 100%;
-  height: 100%;
-  /*border: 1px solid red;*/
-  overflow: hidden;
-}
 
-/*svg {
-  width: 100%;
-  height: calc(100% - 200px);
-}
-*/
 
 #addata {
   float: right;

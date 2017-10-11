@@ -21,7 +21,7 @@ var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // H
 var xaxis_btn_id = document.getElementById("hazard-plot-xaxis");
 var yaxis_btn_id = document.getElementById("hazard-plot-yaxis");
 
-$("#loader").ready(function(){spinner("on")});
+spinner("on");
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################

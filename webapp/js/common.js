@@ -51,20 +51,21 @@ $("#include-spinner").load("includes/spinner.html");
 */
 
 function spinner(stat){
-  
-  var overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
-  var loader_id      = document.getElementById("loader");               // Global variable: Loader id
-  var loader_text_id = document.getElementById("loader-text");          // Global Variable: Loader text
 
-  if (stat.toLowerCase() == "on"){                // If argument string is "on", then show the spinner
-    overlay_id.style.display = "initial";
-    loader_id.style.display  = "initial";
-    loader_text_id.innerHTML = "Processing";          
-  }else if (stat.toLowerCase() == "off"){         // If argument string is "off", then remove the spinner
-    overlay_id.style.display = "none";
-    loader_id.style.display  = "none";
-  }
+  $("#loader").ready(function(){                                          // Make sure dom is loaded 
+    var overlay_id     = document.getElementById("overlay");              // Global variable: Overlay id for loading
+    var loader_id      = document.getElementById("loader");               // Global variable: Loader id
+    var loader_text_id = document.getElementById("loader-text");          // Global Variable: Loader text
 
+    if (stat.toLowerCase() == "on"){                // If argument string is "on", then show the spinner
+      overlay_id.style.display = "initial";
+      loader_id.style.display  = "initial";
+      loader_text_id.innerHTML = "Processing";          
+    }else if (stat.toLowerCase() == "off"){         // If argument string is "off", then remove the spinner
+      overlay_id.style.display = "none";
+      loader_id.style.display  = "none";
+    }
+  });
 }
 
 //--------------------------- End: Turn On/Off Spinner ---------------------------------------

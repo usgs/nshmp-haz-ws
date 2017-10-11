@@ -31,7 +31,7 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
-$("#loader").ready(function(){spinner("on")});
+spinner("on");
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
