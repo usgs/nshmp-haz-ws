@@ -807,34 +807,34 @@ function plot_curves(plot_info){
 
 
   //............................... Tooltip ........................................
-  d3.select("#"+plot_id + " svg")                                       // Get plot svg
-      .select(".all-data")                                              // Select data group
-      .selectAll(".dot")                                                // Select all circles
-      .on("mouseover",function(d,i){                                    // If a the mouse pointer is over a circle, add tooltip about that circle
-        if (x_scale == "log"){
-          var xval   = d3.select(this).data()[0][0].toExponential(3);   // Get X value in log
-        }else if (y_scale == "linear"){
-          var xval   = d3.select(this).data()[0][0].toFixed(3);         // Get X value 
-        }
-        if (y_scale == "log"){
-          var yval   = d3.select(this).data()[0][1].toExponential(3);   // Get Y value in log
-        }else if (y_scale == "linear"){
-          var yval   = d3.select(this).data()[0][1].toFixed(3);         // Get Y value
-        }
-        var value    = d3.select(this.parentNode).attr("id");           // Get the selected id of the data group
-        var jdisplay = series_label_values.findIndex(function(d,i){     // Find index where id is 
-          return d == value;
-        });
-        var display = series_label_displays[jdisplay];                  // Get display 
-        var text = [                                                    // Set the tooltip text
-          tooltip_text[0] + ": " + display,
-          tooltip_text[1] + ": " + xval,
-          tooltip_text[2] + ": " + yval]
-        tooltip_mouseover(plot_id,this,text);                           // Make tooltip
-      })
-      .on("mouseout",function(d,i){                                     // When mouse pointer leaves circle, remove tooltip
-        tooltip_mouseout(plot_id,this);                                 // Remove tooltip
+  d3.select("#"+plot_id + " svg")                                     // Get plot svg
+    .select(".all-data")                                              // Select data group
+    .selectAll(".dot")                                                // Select all circles
+    .on("mouseover",function(d,i){                                    // If a the mouse pointer is over a circle, add tooltip about that circle
+      if (x_scale == "log"){
+        var xval   = d3.select(this).data()[0][0].toExponential(3);   // Get X value in log
+      }else if (x_scale == "linear"){
+        var xval   = d3.select(this).data()[0][0].toFixed(3);         // Get X value 
+      }
+      if (y_scale == "log"){
+        var yval   = d3.select(this).data()[0][1].toExponential(3);   // Get Y value in log
+      }else if (y_scale == "linear"){
+        var yval   = d3.select(this).data()[0][1].toFixed(3);         // Get Y value
+      }
+      var value    = d3.select(this.parentNode).attr("id");           // Get the selected id of the data group
+      var jdisplay = series_label_values.findIndex(function(d,i){     // Find index where id is 
+        return d == value;
       });
+      var display = series_label_displays[jdisplay];                  // Get display 
+      var text = [                                                    // Set the tooltip text
+        tooltip_text[0] + ": " + display,
+        tooltip_text[1] + ": " + xval,
+        tooltip_text[2] + ": " + yval]
+      tooltip_mouseover(plot_id,this,text);                           // Make tooltip
+    })
+    .on("mouseout",function(d,i){                                     // When mouse pointer leaves circle, remove tooltip
+      tooltip_mouseout(plot_id,this);                                 // Remove tooltip
+    });
   //-------------------------------------------------------------------------------
 
 
