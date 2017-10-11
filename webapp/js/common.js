@@ -370,56 +370,24 @@ function plot_selection(plot_id){
   
   var svg = d3.select("#"+plot_id + " svg");    // Select the svg of the plot id
 
- //.................. Highlight Line when Selected on Plot ..................
-  d3.select("#"+plot_id + " svg")                               // Get plot svg
-    .selectAll(".data")                                         // Select all data, lines and circles 
+  //.................. Highlight Line when Selected on Plot ..................
+  svg.selectAll(".data")                                         // Select all data, lines and circles 
     .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
       var selected_id = d3.select(this).attr("id");  // Get selected id
-      plot_selection_reset(plot_id);                            // Remove any current selection on plot
-      make_selection(selected_id);           // Update plot with new selection
+      make_selection(plot_id,selected_id);           // Update plot with new selection
     });
   //--------------------------------------------------------------------------
 
   //.............. Highlight Line when Legend Entry Selected .................
-  d3.select("#"+plot_id + " svg")                               // Get plot svg
-    .select(".legend")                                          // Select legend
+  svg.select(".legend")                                          // Select legend
     .selectAll(".legend-entry")                                 // Select all legend entrys
     .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
       var selected_id = d3.select(this).attr("id");  // Get selected id
-      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
-      make_selection(selected_id);           // Update with new selection
+      make_selection(plot_id,selected_id);           // Update with new selection
     });
   //--------------------------------------------------------------------------
 
 
-  function make_selection(selected_id){
-    //............ Increase Line Width and Dot size of Selected Plot ..............
-    var selected = svg.select(".all-data")        // Select the all data group
-      .select("#"+selected_id);                   // Select the data group that was selected 
-
-     selected.select(".line")                     // Select the line that was choosen
-      .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
-
-      selected.selectAll(".dot")                  // Select all dot along the line
-      .attr("r",circle_size_select);              // Increase the dot size by 2
-
-      selected.raise();                           // Bring the line and dots to the front
-    //-----------------------------------------------------------------------------
-    
-    //............. Increase Line Width and Circle Size on Legend .................
-    var leg = svg.select(".legend")               // Select the legend
-      .select("#"+selected_id);                   // Select the legend group that was selected
-
-    leg.select(".legend-line")                    // Select the line in the legend
-      .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
-
-    leg.select(".legend-circle")                  // Select the dot in the legend
-      .attr("r",circle_size_select);              // Increase the dot size by 2
-    
-    leg.select(".legend-text")                    // Select the legend text
-      .style("font-weight","bold");               // Make text bold
-    //-----------------------------------------------------------------------------
-  }
 }
 
 //---------------------- End: Highlight a Selected Line --------------------------------------
@@ -427,6 +395,38 @@ function plot_selection(plot_id){
 //############################################################################################
 
 
+function make_selection(plot_id,selected_id){
+  
+  plot_selection_reset(plot_id);                            // Remove any current selection on plot
+  var svg = d3.select("#"+plot_id + " svg");    // Select the svg of the plot id
+  
+  //............ Increase Line Width and Dot size of Selected Plot ..............
+  var selected = svg.select(".all-data")        // Select the all data group
+    .select("#"+selected_id);                   // Select the data group that was selected 
+
+   selected.select(".line")                     // Select the line that was choosen
+    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+
+    selected.selectAll(".dot")                  // Select all dot along the line
+    .attr("r",circle_size_select);              // Increase the dot size by 2
+
+    selected.raise();                           // Bring the line and dots to the front
+  //-----------------------------------------------------------------------------
+  
+  //............. Increase Line Width and Circle Size on Legend .................
+  var leg = svg.select(".legend")               // Select the legend
+    .select("#"+selected_id);                   // Select the legend group that was selected
+
+  leg.select(".legend-line")                    // Select the line in the legend
+    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
+
+  leg.select(".legend-circle")                  // Select the dot in the legend
+    .attr("r",circle_size_select);              // Increase the dot size by 2
+  
+  leg.select(".legend-text")                    // Select the legend text
+    .style("font-weight","bold");               // Make text bold
+  //-----------------------------------------------------------------------------
+}
 
 
 //############################################################################################
@@ -472,6 +472,11 @@ function plot_selection_reset(plot_id){
 
 
 
+
+
+
+
+
 //############################################################################################
 //
 //............................ Add Tooltip ...................................................
@@ -496,6 +501,28 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
   
   var svg = d3.select("#"+plot_id + " svg");              // Select plot svg
   
+
+  //........................... Create the Tooltip Text ....................................
+  tooltip.selectAll("text")                     // Select all text fields in tooltip
+    .data(tooltip_text)                         // Join the text
+    .enter()
+    .append("text")                             // Create a text field for each text in array
+      .attr("class","tooltip-text")             // Add a class to each text
+      .style("visibility","hidden")
+      .attr("font-size",11)                     // Set font size
+      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
+      .attr("alignment-baseline","text-before-edge")     // Set to be aligned center
+      .text(function(d,i){return d});           // Set text
+
+  var tooltip_geom   = tooltip.node()
+    .getBoundingClientRect();
+
+  var pad = 10;                           // Padding
+  var tooltip_width  = tooltip_geom.width  + 2*pad;
+  var tooltip_height = tooltip_geom.height + 2*pad;
+  //----------------------------------------------------------------------------------------
+
+
   //........ Find Where the Tooltip Should Be Placed Relative to the Circle .................
   var plot_geom = svg.select(".all-data")                       // Select the bounding box of the data
     .node()
@@ -509,47 +536,26 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
   var xper = cx/plot_width;               // Get the X location in percentage
   var yper = cy/plot_height;              // Get the Y location in percentage
 
-  var dy = 12;                            // Set the distance in Y between circle and tooltip
-
-  //........................... Create the Tooltip Text ....................................
-  tooltip.selectAll("text")                     // Select all text fields in tooltip
-    .data(tooltip_text)                         // Join the text
-    .enter()
-    .append("text")                             // Create a text field for each text in array
-      .attr("class","tooltip-text")             // Add a class to each text
-      .style("visibility","hidden")
-      .attr("font-size",11)                     // Set font size
-      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
-      .attr("alignment-baseline","central")     // Set to be aligned center
-      .text(function(d,i){return d});           // Set text
-
-  var tooltip_geom   = tooltip.node()
-    .getBoundingClientRect();
-
-  var tooltip_width  = parseFloat(tooltip_geom.width + 1);
-  var tooltip_height = parseFloat(tooltip_geom.height + 1 );
-  //----------------------------------------------------------------------------------------
-
-
-  if (xper < 0.10){                       // If the X location of the dot is < 10%, have box start to the right of the circle
+  var dy  = 12;                           // Set the distance in Y between circle and tooltip
+  if (xper < 0.30){                       // If the X location of the dot is < 10%, have box start to the right of the circle
     var xrect = cx;
-    var xtext = cx+10;
+    var xtext = cx+pad;
   }else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
     var xrect = cx-tooltip_width;
-    var xtext = cx-tooltip_width+10;
+    var xtext = cx-tooltip_width+pad;
   }else{                                  // Center box location in X
     var xrect = cx-tooltip_width/2;
-    var xtext = cx-tooltip_width/2+10;
+    var xtext = cx-tooltip_width/2+pad;
   }
 
   if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
     var yrect = cy+dy;
-    var ytext = cy+dy+tooltip_height;
+    var ytext = cy+dy+pad;
   }else{                                  // Else put the box above the circle
     var yrect = cy-tooltip_height-dy;
-    var ytext = cy-dy-(tooltip_height-10);
+    var ytext = cy-dy-tooltip_height+pad;
   }
-  
+
   var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
   var text_trans = "translate("+xtext+","+ytext+")";    // The translation for the tooltip text
   //----------------------------------------------------------------------------------------
@@ -557,8 +563,8 @@ function tooltip_mouseover(plot_id,circle_select,tooltip_text){
   //........................... Create the Tooltip Box .....................................
   tooltip.append("rect")                        // Create a rectangle
     .attr("class","tooltip-outline")            // Add a class to the rectangle
-    .attr("height",tooltip_height+10)              // Set height
-    .attr("width",tooltip_width+20)                // Set width
+    .attr("height",tooltip_height)              // Set height
+    .attr("width",tooltip_width)                // Set width
     .attr("transform",rect_trans)               // Translate the rectangle to correct position
     .attr("stroke","#999")                      // Set stroke color
     .style("padding","10px")
@@ -691,6 +697,7 @@ function plot_curves(plot_info){
   var resize_id     = plot_info.resize;             // Get the resize DOM id
   var xaxis_btn     = plot_info.xaxis_btn;
   var yaxis_btn     = plot_info.yaxis_btn;
+  var tooltip_text  = plot_info.tooltip_text;
   var plot_div_id   = document.getElementById(plot_id);
   var resize_div_id = document.getElementById(resize_id+"-plot-resize");
   //-------------------------------------------------------------------------------
@@ -1084,7 +1091,11 @@ function plot_curves(plot_info){
   }
   //-------------------------------------------------------------------------------
 
+  //.......................... Setup Plot Selection ...............................
+  plot_selection(plot_id);
+  //-------------------------------------------------------------------------------
 
+  //............................. X Axis Scale ....................................
   xaxis_btn_id.onclick = function(){
     var xscale_check = this.value;
     if (xscale_check == "log"){
@@ -1099,7 +1110,9 @@ function plot_curves(plot_info){
     x_bounds = get_xscale();
     plot_resize(true);
   }
+  //-------------------------------------------------------------------------------
 
+  //............................. Y Axis Scale ....................................
   yaxis_btn_id.onclick = function(){
     var yscale_check = this.value;
     if (yscale_check == "log"){
@@ -1114,6 +1127,43 @@ function plot_curves(plot_info){
     y_bounds = get_yscale();
     plot_resize(true);
   }
+  //-------------------------------------------------------------------------------
+
+
+
+  //............................... Tooltip ........................................
+  d3.select("#"+plot_id + " svg")                                       // Get plot svg
+      .select(".all-data")                                              // Select data group
+      .selectAll(".dot")                                                // Select all circles
+      .on("mouseover",function(d,i){                                    // If a the mouse pointer is over a circle, add tooltip about that circle
+        if (x_scale == "log"){
+          var xval   = d3.select(this).data()[0][0].toExponential(3);   // Get X value in log
+        }else if (y_scale == "linear"){
+          var xval   = d3.select(this).data()[0][0].toFixed(3);         // Get X value 
+        }
+        if (y_scale == "log"){
+          var yval   = d3.select(this).data()[0][1].toExponential(3);   // Get Y value in log
+        }else if (y_scale == "linear"){
+          var yval   = d3.select(this).data()[0][1].toFixed(3);         // Get Y value
+        }
+        var value    = d3.select(this.parentNode).attr("id");           // Get the selected id of the data group
+        var jdisplay = series_label_values.findIndex(function(d,i){     // Find index where id is 
+          return d == value;
+        });
+        var display = series_label_displays[jdisplay];                  // Get display 
+        var text = [                                                    // Set the tooltip text
+          tooltip_text[0] + ": " + display,
+          tooltip_text[1] + ": " + xval,
+          tooltip_text[2] + ": " + yval]
+        tooltip_mouseover(plot_id,this,text);                           // Make tooltip
+      })
+      .on("mouseout",function(d,i){                                     // When mouse pointer leaves circle, remove tooltip
+        tooltip_mouseout(plot_id,this);                                 // Remove tooltip
+      });
+  //-------------------------------------------------------------------------------
+
+
+
 }
 
 //---------------------- End: D3 Plot Function -----------------------------------------------

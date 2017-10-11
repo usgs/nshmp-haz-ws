@@ -361,7 +361,6 @@ function get_hazard(url_info){
         response[jr] = response_json.response;
       }
     }
-    plot_setup();                     // Setup the plot
     hazard_plot(response);            // Plot the response
   });
   //----------------------------------------------------------------------------------
@@ -376,34 +375,10 @@ function get_hazard(url_info){
 
 
 
-
-//############################################################################################
-//
-//........................... Plot Setup .....................................................
-
-var plot_size_min = "col-lg-8 col-lg-offset-2";
-var plot_size_max = "col-lg-12";
-
-function plot_setup(){
-  hazard_panel_id.style.display    = "initial";  
-  hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
- 
-  var header_height = document.getElementById("hazard-plot-title").clientHeight;
-  var footer_height = document.getElementById("hazard-axes-btns").clientHeight;
-  hazard_plot_id.style.top    = header_height + "px";
-  hazard_plot_id.style.bottom = footer_height + "px";
-  hazard_panel_id.value = "max";
-}
-//---------------------- End: Plot Setup -----------------------------------------------------
-//
-//############################################################################################
-
-
-
 //############################################################################################
 //
 //........................... Resize Plot ....................................................
-
+/*
 function panel_resize(plot_name){
   var resize_id = document.getElementById(plot_name+"-plot-resize");
   var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
@@ -419,6 +394,7 @@ function panel_resize(plot_name){
     panel_id.style.margin = "150px 200px";
   }
 }
+*/
 //---------------------- End: Resize Plot  ---------------------------------------------------
 //
 //############################################################################################
@@ -478,6 +454,7 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
   
 
   //.................... Plot Info Object for D3 .............................
+  var tooltip_text = ["Edition", "GM (g)", "AFE"];
   var plot_info = {                                     // Plot info object
     series_data:              series_data,              // Series data to plot
     series_label_displays:    series_label_displays,    // Series label displays
@@ -487,6 +464,7 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
     plot_id:       plot_id,                             // DOM ID for plot
     x_scale:       x_scale,
     y_scale:       y_scale,
+    tooltip_text: tooltip_text,
     xaxis_btn:    "hazard-plot-xaxis",
     yaxis_btn:    "hazard-plot-yaxis",
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
@@ -513,6 +491,12 @@ function hazard_plot(response){
  
   spinner("off"); 
   
+  hazard_panel_id.style.display    = "initial";  
+  var header_height = document.getElementById("hazard-plot-title").clientHeight;
+  var footer_height = document.getElementById("hazard-axes-btns").clientHeight;
+  hazard_plot_id.style.top    = header_height + "px";
+  hazard_plot_id.style.bottom = footer_height + "px";
+
   var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");             // Get title element
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection
@@ -522,8 +506,6 @@ function hazard_plot(response){
   var y_scale = "log";
   var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);     // Get D3 plot data setup 
   plot_curves(plot_info);                                                 // Plot the curves
-  plot_selection(plot_id);
-  plot_tooltip(plot_id);                                         // Setup plot selections and tooltips 
   title_id.innerHTML = " at " + selected_imt_display;                     // Update plot title to have selected IMT
   //--------------------------------------------------------------------------
 
@@ -533,59 +515,19 @@ function hazard_plot(response){
     var y_scale = yaxis_btn_id.value;
     var plot_info = format_plot_info(response,plot_id,x_scale,y_scale);   // Update D3 data
     plot_curves(plot_info);                                               // Plot D3 data
-    plot_selection(plot_id);
-    plot_tooltip(plot_id);                                       // Update plot selection and tooltips
     selected_imt_display = imt_id.options[imt_id.selectedIndex].text;     // Get the IMT selection
     title_id.innerHTML = " at " + selected_imt_display;                   // Update plot title
   };      
   //--------------------------------------------------------------------------
  
 
-       
-  
- 
 } 
-
 //---------------------- End: Plot Hazard Curves ---------------------------------------------
 //
 //############################################################################################
 
 
 
-//############################################################################################
-//
-//........................... Setup Plot Selections ..........................................
-
-function plot_tooltip(plot_id){
-
- 
-  //.............. Add Tooltip on Hover over a Point ..........................
-  d3.select("#"+plot_id + " svg")                                       // Get plot svg
-    .select(".all-data")                                                // Select data group
-    .selectAll(".dot")                                                  // Select all circles
-    .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
-      var xval = d3.select(this).data()[0][0];                          // Get ground motion value
-      var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
-      var edition_value   = d3.select(this.parentNode).attr("id");      // Get the selected id of the data group
-      var edition_display = edition_id.options[edition_value].text;     // Get the display from the menu
-      var tooltip_text = [                                              // Set the tooltip text
-        "Edition: "+ edition_display,
-        "GM (g): " + xval,
-        "AFE: "    + yval]
-      var tooltip_width  = 265;                                         // Set the tooltip box height
-      var tooltip_height = 60;                                          // Set the tooltip box width
-      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
-    })
-    .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
-      tooltip_mouseout(plot_id,this);                                   // Remove tooltip
-    });
-  //--------------------------------------------------------------------------
-
-}
-
-//---------------------- End: Setup Plot Selections ------------------------------------------
-//
-//############################################################################################
 
 
 

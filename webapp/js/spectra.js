@@ -213,3 +213,100 @@ function buildInputs(usage) {
     .forEach(function (key, index) {
       $("input[name='" + key + "']").val(params[key].value); });
 }
+
+
+
+
+//#####################################################################################
+//
+//................................... Plot ............................................
+
+$("#footer").ready(function(){
+  $("#update-plot").click(function (){
+    var url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();
+    updatePlot(url);
+  });
+});
+
+
+
+$("#gmms").change(function() {
+  var disable = $(":selected", this).length == 0;
+  $("#update-plot").prop("disabled", disable);
+});
+
+function updatePlot(url) {
+
+  var plot_id = "spectra-plot"
+  var spectra_plot_id = document.getElementById(plot_id);
+  var plot_panel_id = document.getElementById("spectra-plot-panel");
+  plot_panel_id.style.display = "initial";
+  
+  var header_height = document.getElementById("spectra-plot-title").clientHeight;
+  var footer_height = document.getElementById("spectra-axes-btns").clientHeight;
+  spectra_plot_id.style.top    = header_height + "px";
+  spectra_plot_id.style.bottom = footer_height + "px";
+  
+  d3.json(url, function(error, response) {
+    if (error) return console.warn(error);
+    if (response.status == "ERROR") {
+      svg.append("text")
+          .attr("y", margin.top)
+          .attr("x", margin.left)
+          .text(response.message);
+      return;
+    }  
+
+    var dataset = response.means;
+    var series = dataset.data;
+    var xlabel = dataset.xLabel;
+    var ylabel = dataset.yLabel;
+
+    var y_scale = "linear";
+    var x_scale = "linear";
+
+    var series_label_displays = [];
+    var series_label_values   = [];
+    var series_data           = [];
+  
+    series.forEach(function(d, i) {
+      series_label_displays.push(d.label);
+      series_label_values.push(d.id);
+      series_data.push(d3.zip(d.data.xs, d.data.ys));
+    });
+    
+    var tooltip_text = ["GMM", "Period (s)", "MGM (g)"]
+ 
+    var plot_info = {                                     // Plot info object
+      series_data:              series_data,              // Series data to plot
+      series_label_displays:    series_label_displays,    // Series label displays
+      series_label_values:      series_label_values,      // Series label values
+      xlabel:        xlabel,                              // X label
+      ylabel:        ylabel,                              // Y label
+      plot_id:       plot_id,                             // DOM ID for plot
+      x_scale:       x_scale,                             
+      y_scale:       y_scale,
+      tooltip_text:  tooltip_text,
+      xaxis_btn:    "spectra-plot-xaxis",
+      yaxis_btn:    "spectra-plot-yaxis",
+      margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
+      resize:       "spectra"                              // DOM ID for resize element 
+    };
+    console.log("\n\n Plot Information: ");    console.log(plot_info);
+    console.log("\n\n");
+    
+    plot_curves(plot_info);
+
+    $("#raw-data").click(function(){
+      window.open(url);
+    });
+
+  });
+}
+
+
+//---------------------------- End: Plot ----------------------------------------------
+//
+//#####################################################################################
+
+

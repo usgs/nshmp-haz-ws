@@ -426,6 +426,7 @@ function hazard_plot(response){
   //--------------------------------------------------------------------------
 
   //.................... Plot Info Object for D3 .............................
+  var tooltip_text = ["IMT", "GM (g)", "AFE"];
   var plot_info = {                       // Plot info object
     series_data:            total_hazard_data,     // Series data to plot
     series_label_displays:  total_hazard_labels,   // Series labels
@@ -436,6 +437,7 @@ function hazard_plot(response){
     yaxis_btn:     "hazard-plot-yaxis",
     x_scale:       "log",
     y_scale:       "log",
+    tooltip_text:  tooltip_text,
     plot_id:       plot_id,               // DOM ID for plot
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
     resize:       "hazard"                // DOM ID for resize element 
@@ -447,7 +449,7 @@ function hazard_plot(response){
 
   //............... Highlight Selected IMT ...................................
   var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value 
-  plot_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
+  make_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
   //--------------------------------------------------------------------------
 
   //........ Call Component Curves when using Dynamic Edition ................
@@ -459,8 +461,7 @@ function hazard_plot(response){
   //................ Update Plot Selection on IMT Menu Change ................
   imt_id.onchange = function(){                                             // When the selection menu of IMT changes, update selected IMT on plot and component plot
     var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value
-    plot_selection_reset(plot_id);                                          // Remove any current IMT selection on plot
-    plot_selection(plot_id,selected_imt_value);                             // Update with new selection
+    make_selection(plot_id,selected_imt_value);                             // Update with new selection
     if (parameters.data_type == "dynamic"){                                      // If using dynamic
       component_curves_plot(response);                                      // Plot component curves with new selection
     }
@@ -471,11 +472,11 @@ function hazard_plot(response){
   d3.select("#"+plot_id + " svg")                               // Get plot svg
     .selectAll(".data")                                         // Select all data, lines and circles 
     .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
+      
       var selected_imt_value = d3.select(this).attr("id");      // Get selected id
       imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
 
-      plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
-      plot_selection(plot_id,selected_imt_value);               // Update plot with new selection
+      make_selection(plot_id,selected_imt_value);               // Update plot with new selection
 
       if (parameters.data_type == "dynamic"){                        // If using dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
@@ -490,9 +491,9 @@ function hazard_plot(response){
     .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
       var selected_imt_value = d3.select(this).attr("id");      // Get selected id
       imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
-                                    
-      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
-      plot_selection(plot_id,selected_imt_value);               // Update with new selection
+      console.log("Click Legend: " ); console.log(selected_imt_value); 
+
+      make_selection(plot_id,selected_imt_value);               // Update with new selection
 
       if (parameters.data_type == "dynamic"){                        // If using a dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
@@ -501,27 +502,6 @@ function hazard_plot(response){
   //--------------------------------------------------------------------------
       
 
-  //.............. Add Tooltip on Hover over a Point ..........................
-  d3.select("#"+plot_id + " svg")                                       // Get plot svg
-    .select(".all-data")                                                // Select data group
-    .selectAll(".dot")                                                  // Select all circles
-    .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
-      var xval = d3.select(this).data()[0][0];                          // Get ground motion value
-      var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
-      var imt_value   = d3.select(this.parentNode).attr("id");          // Get the selected id of the data group
-      var imt_display = imt_id.options[imt_value].text;                 // Get the IMT display from the menu
-      var tooltip_text = [                                              // Set the tooltip text
-        "IMT: "    + imt_display,
-        "GM (g): " + xval,
-        "AFE: "    + yval]
-      var tooltip_width  = 225;                                         // Set the tooltip box height
-      var tooltip_height = 60;                                          // Set the tooltip box width
-      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
-    })
-    .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
-      tooltip_mouseout(plot_id,this);
-    });
-  //--------------------------------------------------------------------------
   
 } 
 //---------------------- End: Plot Hazard Curves --------------------------------------------
@@ -576,16 +556,18 @@ function component_curves_plot(response){
   //--------------------------------------------------------------------------
 
   //.................... Plot Info Object for D3 .............................
-  var plot_info = {                           // Plot info object
-    series_data:            component_hazard_data,     // Series data to plot
-    series_label_displays:  component_hazard_labels,   // Series labels
-    series_label_values:    component_hazard_labels,
-    xlabel:        xlabel,                    // X label
-    ylabel:        ylabel,                    // Y label
+  var tooltip_text = ["Component", "GM (g)", "AFE"];
+  var plot_info = {                                     // Plot info object
+    series_data:            component_hazard_data,      // Series data to plot
+    series_label_displays:  component_hazard_labels,    // Series labels
+    series_label_values:    component_hazard_labels,  
+    xlabel:        xlabel,                              // X label
+    ylabel:        ylabel,                              // Y label
     xaxis_btn:     "component-plot-xaxis",
     yaxis_btn:     "component-plot-yaxis",
     x_scale:       x_scale,
     y_scale:       y_scale,
+    tooltip_text:  tooltip_text,
     plot_id:       plot_id,                   // DOM ID for plot
     margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
     resize:       "component"                 // DOM ID for resize element 
@@ -596,53 +578,6 @@ function component_curves_plot(response){
   //--------------------------------------------------------------------------
  
    
-  //.................. Highlight Line when Selected on Plot ..................
-  d3.select("#"+plot_id + " svg")                             // Get plot svg
-    .selectAll(".data")                                       // Select all data
-    .on("click",function(d,i){                                // If any data is selected, highlight the corresponds line and dots
-      var selected_component = d3.select(this).attr("id");    // Get selected line id
-
-      plot_selection_reset(plot_id);                          // Remove any current selections
-      plot_selection(plot_id,selected_component);             // Update new selection
-    }); 
-  //--------------------------------------------------------------------------
-  
-
-  //.............. Highlight Line when Legend Entry Selected .................
-  d3.select("#"+plot_id + " svg")                             // Get plot svg
-    .select(".legend")                                        // Select legend
-    .selectAll(".legend-entry")                               // Select all legend entrys
-    .on("click",function(d,i){                                // If any legend entry is selected, highlight cooresponding line and dots
-      var selected_component = d3.select(this).attr("id");    // Get selected legend id
-
-      plot_selection_reset(plot_id);                          // Remove any current selections
-      plot_selection(plot_id,selected_component);             // Update new selection
-    });
-  //--------------------------------------------------------------------------
-
-
-  //.............. Add Tooltip on Hover over a Point ..........................
-  d3.select("#"+plot_id + " svg")                                     // Get plot svg
-    .select(".all-data")                                              // Select main data group
-    .selectAll(".dot")                                                // Select all dots
-    .on("mouseover",function(d,i){                                    // If mouse is over a dot, put up a tooltip 
-      var selection_id   = d3.select(this.parentNode).attr("id");     // Get selection id of data group
-      var xval = d3.select(this).data()[0][0];                        // Get the ground motion value
-      var yval = d3.select(this).data()[0][1].toExponential(4);       // Get the exceedence value
-      var tooltip_text = [                                            // Setup the tooltip text
-        selection_id ,                                                // Component type
-        "GM (g): " + xval,                                            // Ground moition value
-        "AFE: "    + yval]                                            // Exceedence value
-      
-      var tooltip_width  = 115;                                       // Set the tooltip box height
-      var tooltip_height = 60;                                        // Set the tooltip box width
-      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);                   // Add tool tip 
-
-    })
-    .on("mouseout",function(d,i){                                     // When mouse pointer leaves dot, remove tooltip
-      tooltip_mouseout(plot_id,this);                                 // Remove tooltip
-    });
-  //--------------------------------------------------------------------------
 
 
 } 
