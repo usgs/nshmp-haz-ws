@@ -72,7 +72,7 @@
         <!-- .................. Edition Menu ........................ -->
         <div class="form-group">
           <label class="control-spacer control-group" for="edition"> Edition: </label>
-          <select class="form-control" id="edition" multiple onchange="add_options()">
+          <select class="form-control" id="edition" multiple size=5 onchange="add_options()">
           </select>
         </div>
         <!-- ............. End: Edition Menu ........................ -->
@@ -133,27 +133,54 @@
    
  
     <!-- ................. Hazard Curves Plot ........... -->
-    <div id="hazard-plot-panel" class="panel panel-default">
-      <!-- Plot Title -->
-      <div class="panel-heading" id="hazard-plot-title">
-        Hazard Curves 
-        <span id="hazard-plot-text"></span>  
-        <span id="hazard-plot-resize" ></span>
-      </div> 
-      <!-- Plot -->
-      <div class="panel-content" id="hazard-curves-plot"></div>
-      <!-- Plot Buttons -->
-      <div class="panel-footer"  id="hazard-axes-btns">
-        <div class="btn-group btn-group-justified" role="group">
-          <div class="btn-group axes-btn" role="group" >
-            <button type="button" class="btn btn-default" id="hazard-plot-xaxis">X-axis</button>
-          </div>
-          <div class="btn-group axes-btn" role="group">
-            <button type="button" class="btn btn-default" id="hazard-plot-yaxis">Y-axis</button>
+    <div class="plot-panel hidden">
+      <div id="hazard-plot-panel" class="panel panel-default">
+        <!-- Plot Title -->
+        <div class="panel-heading" id="hazard-plot-title">
+          Hazard Curves 
+          <span id="hazard-plot-text"></span>  
+          <span class="plot-resize" id="hazard-plot-resize" ></span>
+        </div> 
+        <!-- Plot Title -->
+
+        <!-- Plot -->
+        <div class="panel-content" id="hazard-curves-plot"></div>
+        <!-- Plot -->
+
+        <!-- Plot Buttons -->
+        <div class="panel-footer"  id="hazard-axes-btns">
+          <div class="form-inline axes-btns">
+            <!-- X-axis Button -->
+            <div class="form-group form-group-sm"> 
+              <label  for="hazard-plot-xaxis" > X-axis </label>
+              <div class="btn-group btn-group-sm" id="hazard-plot-xaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="log" >Log
+                </label>
+              </div>
+            </div>
+            <!-- X-axis Button -->
+
+            <!-- Y-axis Button -->
+            <div class="form-group form-group-sm">
+              <label  for="hazard-plot-yaxis" > Y-axis </label>
+              <div class="btn-group btn-group-sm" id="hazard-plot-yaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="log" >Log
+                </label>
+              </div>
+            </div>
+            <!-- Y-axis Button -->
           </div>
         </div>
+        <!-- Plot Buttons -->
       </div>
-
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
 
@@ -161,7 +188,6 @@
   <!-- .............................. End: Plots ........................................... -->
   <!-- -->
   <!-- ##################################################################################### -->
-
 
 
   <!-- ######################################################## -->

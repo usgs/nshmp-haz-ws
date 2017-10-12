@@ -321,56 +321,17 @@ function get_hazard(url_info){
 //
 //........................... Plot Setup .....................................................
 
-var plot_size_min = "col-lg-6";
-var plot_size_max = "col-lg-12";
-
 function plot_setup(){
 
   var type = parameters.data_type;
 
   if (type == "dynamic"){
-    hazard_panel_id.style.display    = "initial";  
-    hazard_panel_id.className        = plot_size_min;  
-    component_panel_id.style.display = "initial";  
-    component_panel_id.className     = plot_size_min;  
-    hazard_plot_id.style.height      = "20vw";
-    component_plot_id.style.height   = "20vw";
-    hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
-    component_resize_id.className    = "glyphicon glyphicon-resize-full";
+    $(".plot-panel").css("height","500px");
   }else if (type == "static"){
-    hazard_panel_id.style.display    = "initial";  
-    component_panel_id.style.display = "none";
-    hazard_panel_id.className        = plot_size_max; 
-    hazard_plot_id.style.height      = "35vw";
-    hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
+    $(".plot-panel").css("height","100%");
   } 
 }
 //---------------------- End: Plot Setup -----------------------------------------------------
-//
-//############################################################################################
-
-
-
-//############################################################################################
-//
-//........................... Resize Plot ....................................................
-
-function panel_resize(plot_name){
-  var resize_id = document.getElementById(plot_name+"-plot-resize");
-  var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
-  var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
-  if (panel_id.className == plot_size_min){
-    resize_id.className = "glyphicon glyphicon-resize-small";
-    panel_id.className = plot_size_max;
-    plot_id.style.height = "35vw";
-  }
-  else if (panel_id.className == plot_size_max){
-    resize_id.className = "glyphicon glyphicon-resize-full";
-    panel_id.className = plot_size_min; 
-    plot_id.style.height = "20vw";
-  }
-}
-//---------------------- End: Resize Plot  ---------------------------------------------------
 //
 //############################################################################################
 
@@ -440,10 +401,8 @@ function hazard_plot(response){
     tooltip_text:  tooltip_text,
     plot_id:       plot_id,               // DOM ID for plot
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-    resize:       "hazard"                // DOM ID for resize element 
+    resize:       "hazard-plot-resize"                 // DOM ID for resize element 
   };
-  console.log("Hazard Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
   plot_curves(plot_info);                 // Plot the curves
   //--------------------------------------------------------------------------
 
@@ -491,7 +450,6 @@ function hazard_plot(response){
     .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
       var selected_imt_value = d3.select(this).attr("id");      // Get selected id
       imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
-      console.log("Click Legend: " ); console.log(selected_imt_value); 
 
       make_selection(plot_id,selected_imt_value);               // Update with new selection
 
@@ -525,13 +483,8 @@ function component_curves_plot(response){
   //................. Check X and Y Axis Scale ......................
   var xaxis_btn_id = document.getElementById("component-plot-xaxis");
   var yaxis_btn_id = document.getElementById("component-plot-yaxis");
-  if (xaxis_btn_id.value == "" || yaxis_btn_id.value == ""){            // If no value has been applied, set default scale
-    var x_scale = "log";
-    var y_scale = "log";
-  }else{                                                                // If value already set, get that value
-    var x_scale = xaxis_btn_id.value;
-    var y_scale = yaxis_btn_id.value;
-  }
+  var x_scale = "log";
+  var y_scale = "log";
   //-----------------------------------------------------------------
  
   //................. Get Component Hazard Data ..............................
@@ -570,10 +523,8 @@ function component_curves_plot(response){
     tooltip_text:  tooltip_text,
     plot_id:       plot_id,                   // DOM ID for plot
     margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
-    resize:       "component"                 // DOM ID for resize element 
+    resize:       "component-plot-resize"               // DOM ID for resize element 
   };
-  console.log("Component Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
   plot_curves(plot_info);                     // Plot the curves
   //--------------------------------------------------------------------------
  

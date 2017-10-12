@@ -156,7 +156,6 @@ function add_editions(){
     option.selected = true;                                           // Select all editions
     edition_id.add(option);                                           // Add option to edition menu
   }
-  edition_id.size = edition_id.options.length;                        // Set size of the menu 
   //-----------------------------------------------------------------------------------------
 
   add_options();  // Add other options based on selected region
@@ -375,31 +374,6 @@ function get_hazard(url_info){
 
 
 
-//############################################################################################
-//
-//........................... Resize Plot ....................................................
-/*
-function panel_resize(plot_name){
-  var resize_id = document.getElementById(plot_name+"-plot-resize");
-  var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
-  var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
-
-  if (panel_id.value == "min"){
-    resize_id.className  = "glyphicon glyphicon-resize-small";
-    panel_id.value = "max";
-    panel_id.style.margin = "20px";
-  }else if(panel_id.value == "max") { 
-    resize_id.className   = "glyphicon glyphicon-resize-full";
-    panel_id.value = "min";
-    panel_id.style.margin = "150px 200px";
-  }
-}
-*/
-//---------------------- End: Resize Plot  ---------------------------------------------------
-//
-//############################################################################################
-
-
 
 
 //############################################################################################
@@ -468,10 +442,8 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
     xaxis_btn:    "hazard-plot-xaxis",
     yaxis_btn:    "hazard-plot-yaxis",
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-    resize:       "hazard"                              // DOM ID for resize element 
+    resize:       "hazard-plot-resize"                              // DOM ID for resize element 
   };
-  console.log("\n\n Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
   return plot_info;                       // Return the plot info object
   //--------------------------------------------------------------------------
   
@@ -490,13 +462,7 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
 function hazard_plot(response){
  
   spinner("off"); 
-  
-  hazard_panel_id.style.display    = "initial";  
-  var header_height = document.getElementById("hazard-plot-title").clientHeight;
-  var footer_height = document.getElementById("hazard-axes-btns").clientHeight;
-  hazard_plot_id.style.top    = header_height + "px";
-  hazard_plot_id.style.bottom = footer_height + "px";
-
+ 
   var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");             // Get title element
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;   // Get the IMT selection

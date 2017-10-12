@@ -256,12 +256,6 @@ function updatePlot(url) {
   
   var plot_id         = document.getElementById("spectra-plot");                    // Get plot dom 
   var plot_panel_id   = document.getElementById("spectra-plot-panel");              // Get spectra plot panel dom 
-  plot_panel_id.style.display = "initial";                                          // Set panel to be visible
-  
-  var header_height = document.getElementById("spectra-plot-title").clientHeight;   // Get panel header height
-  var footer_height = document.getElementById("spectra-axes-btns").clientHeight;    // Get panel footer height
-  plot_id.style.top    = header_height + "px";                                      // Adjust panel content for plot
-  plot_id.style.bottom = footer_height + "px";                                      // Adjust panel content for plot
   
   d3.json(url, function(error, response) {
     if (error) return console.warn(error);
@@ -307,10 +301,8 @@ function updatePlot(url) {
       xaxis_btn:    "spectra-plot-xaxis",
       yaxis_btn:    "spectra-plot-yaxis",
       margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-      resize:       "spectra"                             // DOM ID for resize element 
+      resize:       "spectra-plot-resize"                 // DOM ID for resize element 
     };
-    console.log("\n\n Plot Information: ");    console.log(plot_info);
-    console.log("\n\n");
     
     plot_curves(plot_info);
 

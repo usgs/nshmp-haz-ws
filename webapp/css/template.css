@@ -200,7 +200,6 @@ label.control-spacer {
   bottom: 0;
   right: 0;
   margin: 2em 0 3.5em 400px;
-  padding: 20px;
   overflow: auto;
 }
 /*-------------- End: Main Content -------------------*/
@@ -289,25 +288,98 @@ label.control-spacer {
 /**/
 /*................... Axes Buttons ..................*/
 
-.axes-btn{
-  padding:0 5px;
+.axes-btns{
+  text-align: center;
 }
 
-.axes-btn>.btn{
-  background-color: #fff;
-  border-radius: 2px;
+.axes-btns>.form-group{ 
+  margin: 0 5%;
+  font-size: 12px;
 }
 
-.axes-btn>.btn:focus{
-  outline: 0;
+.axes-btns>.form-group>.btn-group>.btn{
+  width: 55px;
+  margin: 5px 0;
 }
-
-.axes-btn>.btn:active{
-  background-color:#BDBDBD;
-}
-
 
 /*-------------- End: Axes Buttons ------------------*/
 /**/
 /*###################################################*/
+
+
+
+
+/*#################################################*/
+/**/
+/*.................... Plots ......................*/
+
+
+
+/*............... Plot Panel Container ............*/
+#content>.plot-panel{
+  position: relative;
+  height: 100%;
+  padding:20px;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel ......................*/
+#content>.plot-panel>.panel{
+  position: relative;
+  height: 100%;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Header ...............*/
+#content>.plot-panel>.panel>.panel-heading{
+  background-color: #f7f7f7;
+  font-family: 'HelveticaNeue-Light',sans-serif;
+  font-size: 1.25em;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Content ...............*/
+#content>.plot-panel>.panel>.panel-content{
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Footer ...............*/
+#content>.plot-panel>.panel>.panel-footer{
+  background-color: #f7f7f7;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 5px 0;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Resize ....................*/
+#content>.plot-panel>.panel>.panel-heading>.plot-resize{
+  float: right;
+  font-size: .85em;
+  font-weight: 100;
+  opacity: .7; 
+}
+
+#content>.plot-panel>.panel>.panel-heading>.plot-resize:hover{
+  cursor: pointer;
+}
+/*------------------------------------------------*/
+
+
+
+
+/*------------- End: Plots ------------------------*/
+/**/
+/*#################################################*/
+
 

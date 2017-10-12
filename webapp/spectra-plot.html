@@ -282,29 +282,59 @@
   <!-- ................................. Plots ............................................. -->
   <div id="content">
  
-    <!-- ................. Hazard Curves Plot ........... -->
-    <div id="spectra-plot-panel" class="panel panel-default">
-      <!-- Plot Title -->
-      <div class="panel-heading" id="spectra-plot-title">
-        Response Spectra
-        <span id="spectra-plot-resize" ></span>
-      </div> 
-      <!-- Plot -->
-      <div class="panel-content" id="spectra-plot"></div>
-      <!-- Plot Buttons -->
-      <div class="panel-footer"  id="spectra-axes-btns">
-        <div class="btn-group btn-group-justified" role="group">
-          <div class="btn-group axes-btn" role="group" >
-            <button type="button" class="btn btn-default" id="spectra-plot-xaxis">X-axis</button>
-          </div>
-          <div class="btn-group axes-btn" role="group">
-            <button type="button" class="btn btn-default" id="spectra-plot-yaxis">Y-axis</button>
+    <!-- ................. Spectra Plot ................. -->
+    <div class="plot-panel hidden">
+      <div id="spectra-plot-panel" class="panel panel-default">
+        <!-- Plot Title -->
+        <div class="panel-heading" id="spectra-plot-title">
+          Response Spectra
+          <span id="spectra-plot-text"></span>
+          <span class="plot-resize" id="spectra-plot-resize" ></span>
+        </div> 
+        <!-- Plot Title -->
+
+        <!-- Plot -->
+        <div class="panel-content" id="spectra-plot"></div>
+        <!-- Plot -->
+
+        <!-- Plot Buttons -->
+        <div class="panel-footer"  id="spectra-axes-btns">
+          <div class="form-inline axes-btns">
+            <!-- X-axis Button -->
+            <div class="form-group form-group-sm">
+              <label  for="spectra-plot-xaxis" > X-axis </label>
+              <div class="btn-group btn-group-sm" id="spectra-plot-xaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="log" >Log
+                </label>
+              </div>
+            </div>
+            <!-- X-axis Button -->
+
+            <!-- Y-axis Button -->
+            <div class="form-group form-group-sm">
+              <label  for="spectra-plot-yaxis" > Y-axis </label>
+              <div class="btn-group btn-group-sm " id="spectra-plot-yaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="log" >Log
+                </label>
+              </div>
+            </div>
+            <!-- Y-axis Button -->
           </div>
         </div>
+        <!-- Plot Buttons -->
       </div>
-
     </div>
-    <!-- ................. Hazard Curves Plot ........... -->
+    <!-- ................. Spectra Plot .................. -->
+
+
 
   </div> 
   <!-- .............................. End: Plots ........................................... -->

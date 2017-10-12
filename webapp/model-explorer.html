@@ -130,53 +130,111 @@
   <!-- ................................. Plots ............................................. -->
   <div id="content">
 
+
     <!-- ................. Hazard Curves Plot ........... -->
-    <div id="hazard-plot-panel" class="col-lg-6">
-      <div class="panel panel-default">
+    <div class="plot-panel col-lg-6 hidden">
+      <div class="panel panel-default" id="hazard-plot-panel">
+        <!-- Plot Title -->
         <div class="panel-heading" id="hazard-plot-title">
-          Hazard Curves 
-          <span id="hazard-plot-resize" ></span>
+          Hazard Curves
+          <span id="hazard-plot-text"></span>
+          <span class="plot-resize" id="hazard-plot-resize" ></span>
         </div> 
+        <!-- Plot Title -->
+
+        <!-- Plot -->
         <div class="panel-content" id="hazard-curves-plot"></div>
+        <!-- Plot -->
+
         <!-- Plot Buttons -->
-        <div class="panel-footer"  id="axes-btn">
-          <div class="btn-group btn-group-justified" role="group">
-            <div class="btn-group axes-btn" role="group" >
-              <button type="button" class="btn btn-default" id="hazard-plot-xaxis">X-axis</button>
+        <div class="panel-footer"  id="hazard-axes-btns">
+          <div class="form-inline axes-btns">
+            <!-- X-axis Button -->
+            <div class="form-group form-group-sm">                                   
+              <label  for="hazard-plot-xaxis" > X-axis </label>
+              <div class="btn-group btn-group-sm" id="hazard-plot-xaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="log" >Log
+                </label>
+              </div>
             </div>
-            <div class="btn-group axes-btn" role="group">
-              <button type="button" class="btn btn-default" id="hazard-plot-yaxis">Y-axis</button>
+            <!-- X-axis Button -->
+
+            <!-- Y-axis Button -->
+            <div class="form-group form-group-sm">
+              <label  for="hazard-plot-yaxis" > Y-axis </label>
+              <div class="btn-group btn-group-sm" id="hazard-plot-yaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="log" >Log
+                </label>
+              </div>
             </div>
+            <!-- Y-axis Button -->
           </div>
         </div>
-      
+        <!-- Plot Buttons -->
       </div>
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
 
-    <!-- .............. Component Curves Plot ........... -->
-    <div  id="component-plot-panel" class="col-lg-6">
-      <div  class="panel panel-default">
+    <!-- ................. Component Curves Plot ........... -->
+    <div class="plot-panel col-lg-6 hidden">
+      <div class="panel panel-default" id="component-plot-panel">
+        <!-- Plot Title -->
         <div class="panel-heading" id="component-plot-title">
-          Component Curves <span id="component-plot-text"></span> 
-          <span id="component-plot-resize" ></span>
-        </div>
-        <div id="component-curves-plot"> </div>
+          Component Curves
+          <span id="component-plot-text"></span>
+          <span class="plot-resize" id="component-plot-resize" ></span>
+        </div> 
+        <!-- Plot Title -->
+
+        <!-- Plot -->
+        <div class="panel-content" id="component-curves-plot"></div>
+        <!-- Plot -->
+
         <!-- Plot Buttons -->
-        <div class="panel-footer"  id="axes-btn">
-          <div class="btn-group btn-group-justified" role="group">
-            <div class="btn-group axes-btn" role="group" >
-              <button type="button" class="btn btn-default" id="component-plot-xaxis">X-axis</button>
+        <div class="panel-footer"  id="component-axes-btns">
+          <div class="form-inline axes-btns">
+            <!-- X-axis Button -->
+            <div class="form-group form-group-sm">                                   
+              <label  for="component-plot-xaxis" > X-axis </label>
+              <div class="btn-group btn-group-sm" id="component-plot-xaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="xaxis" value="log" >Log
+                </label>
+              </div>
             </div>
-            <div class="btn-group axes-btn" role="group">
-              <button type="button" class="btn btn-default" id="component-plot-yaxis">Y-axis</button>
+            <!-- X-axis Button -->
+
+            <!-- Y-axis Button -->
+            <div class="form-group form-group-sm">
+              <label  for="component-plot-yaxis" > Y-axis </label>
+              <div class="btn-group btn-group-sm" id="component-plot-yaxis" data-toggle="buttons">
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="linear" >Linear
+                </label>
+                <label class="btn btn-sm btn-default">
+                  <input type="radio" name="yaxis" value="log" >Log
+                </label>
+              </div>
             </div>
+            <!-- Y-axis Button -->
           </div>
         </div>
-      
+        <!-- Plot Buttons -->
       </div>
     </div>
-    <!-- .............. Component Curves Plot ........... -->
+    <!-- ................. Component Curves Plot ........... -->
+
 
   </div> 
   <!-- .............................. End: Plots ........................................... -->
