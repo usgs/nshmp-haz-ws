@@ -1,51 +1,29 @@
 package gov.usgs.earthquake.nshmp.www;
 
+
 //..................... Import .........................
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
+import gov.usgs.earthquake.nshmp.internal.GeoJson.FeatureCollection;
+import gov.usgs.earthquake.nshmp.internal.GeoJson;
+import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 //----------------------------------------------------------
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 
-/*
- * Web servlet produces a JSON file of the test sites at 
- * nshmp-haz-ws/testsites
- */
-
-@WebServlet("/testsites")
-public class TestSites extends HttpServlet{
+public class TestSites{
   
-  @Override
-  public void doGet(
-      HttpServletRequest request,
-      HttpServletResponse response)
-    throws ServletException, IOException{
+  //....................... Return Json String of Test Sites ......................................
+  public static String Sites(){
     
     //................ Initial Setup ...................
-    PrintWriter out = response.getWriter();   // Create object to print to web page
-   
     Gson gson = new GsonBuilder()             // Create gson object to print in JSON format
        .setPrettyPrinting()
        .create();   
@@ -63,86 +41,65 @@ public class TestSites extends HttpServlet{
   
     
     //................... Create Object With All Regions and Locations ...................
-    ArrayList<Object> regions = new ArrayList<>();            // Create a array list of objects to hold each region
-    
-    for(String key : nshmpSites.keySet()) {                   // Loop through each region 
-      Map<String,double[]> siteMap = new HashMap<>();      // Create a map of site names and locations
-      
-      for (NshmpSite site : nshmpSites.get(key)) {            // Loop through each site
-        double siteLat   = site.location().lat();               // Get lat
-        double siteLon   = site.location().lon();               // Get lon
-        double[] siteLoc = {siteLat,siteLon};                 // Create a array for lat,lon
-        String siteName  = site.toString();
-        siteMap.put(siteName, siteLoc);                           // Add site name and location to map
+    List<Feature> features = new ArrayList<>();                               // Array list of Feature
+    List<FeatureCollection<Feature>> regionCollection = new ArrayList<>();    // Array list of FeatureCollection
+
+    for(String key : nshmpSites.keySet()) {                                   // Loop through each region   
+      for (NshmpSite site : nshmpSites.get(key)) {                            // Loop through all sites in a region
+        features.add(GeoJson.createPoint(site, site.id()));                   // Create a feature for each site
       }  
-      TestSite<Map<String,double[]>> site = new TestSite<>(key,siteMap);   // Create new map with site names, locations, site id, and display (See TestSite below)
-      regions.add(site);                                      // Add the new map to regions array list
+      FeatureCollection<Feature> region = new FeatureCollection<>();          // Create a feature collection for each region
+      CollectionProperties prop = new CollectionProperties(key);              // Create feature collection properties
+      region.properties = prop;               // Set properties for the feature collection
+      region.features = features;             // Set features for the feature collection
+      regionCollection.add(region);           // Add the feature collection of a region to array list of collections
+    }      
+    FeatureCollection<FeatureCollection<Feature>> featureCollection = new FeatureCollection<>();    // Create a feature collection of feature collection
+    featureCollection.features = regionCollection;        // Set the features
+    String jsonString = gson.toJson(featureCollection);   // Create JSON string
+    return jsonString;                                    // Return JSON string
+    //------------------------------------------------------------------------------------ 
+  }
+  //-----------------------------------------------------------------------------------------------
+
+
+  //............. Properties Object for each Feature ................
+  static class CollectionProperties{
+    private String regionId;
+    private String regionDisplay;
+  
+    public CollectionProperties(String region) {
+      switch(region) {
+        case "ceus":
+          this.regionId      = "CEUS";
+          this.regionDisplay = "Central & Eastern US";
+          break;
+        case "wus":
+          this.regionId      = "WUS";
+          this.regionDisplay = "Western US";
+          break;
+        case "ak":
+          this.regionId      ="AK";
+          this.regionDisplay =" Alaska";
+          break;
+        case "facilities":
+          this.regionId      = "FACILITIES";
+          this.regionDisplay = "US National Labs";
+          break;
+        case "nehrp":
+          this.regionId      = "NEHRP";
+          this.regionDisplay = "NEHRP Sites";
+          break;
+        case "nrc":
+          this.regionId      = "NRC";
+          this.regionDisplay = "Restricted CEUS Set";
+          break;
+        default:
+          this.regionId      = "NA";
+          this.regionDisplay = "Not Defined";
+      }
     }
-    SiteValues<Object> testSites = new SiteValues<>(regions); // Create the final object              
-    
-    out.println(gson.toJson(testSites));                      // Print test site object in JSON format to webpage
-    //------------------------------------------------------------------------------------
   }
-}
-
-
-//................ Final Test Sites Object .............
-class SiteValues<T>{
-  private T testsites;
-  private String description;
-  
-  public SiteValues(T regions) {
-    this.description = "Test sites";
-    this.testsites = regions;
-  }
-}
-//--------------------------------------------------------
-
-
-
-//.............. Create a Object for Test Site ...........
-class TestSite<T>{
-  private T values;
-  private String id;
-  private String display;
-  
-  public TestSite(String siteKey, T siteMap) {
-    String[] siteInfo = new String[2];
-    switch(siteKey) {
-      case "ceus":
-        siteInfo = new String[]{"CEUS","Central & Eastern US"};
-        break;
-      case "wus":
-        siteInfo = new String[]{"WUS","Western US"};
-        break;
-      case "ak":
-        siteInfo = new String[]{"AK"," Alaska"};
-        break;
-      case "facilities":
-        siteInfo = new String[]{"FACILITIES","US National Labs"};
-        break;
-      case "nehrp":
-        siteInfo = new String[]{"NEHRP","NEHRP Sites"};
-        break;
-      case "nrc":
-        siteInfo = new String[]{"NRC","Restricted CEUS Set"};
-        break;
-      default:
-        siteInfo = new String[] {"NA","Not Defined"};
-    }
-    this.values = siteMap;
-    this.id = siteInfo[0];
-    this.display = siteInfo[1];
-  }
+  //---------------------------------------------------------------
   
 }
-//-------------------------------------------------------
-
-
-
-
-
-
-
-
-  
