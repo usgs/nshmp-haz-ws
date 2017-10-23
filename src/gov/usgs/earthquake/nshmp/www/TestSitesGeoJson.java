@@ -1,16 +1,14 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 //..................... Import .........................
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,19 +21,16 @@ import gov.usgs.earthquake.nshmp.internal.NshmpSite;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 //----------------------------------------------------------
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+
 
 
 /*
- * Web servlet produces a JSON file of the test sites at 
- * nshmp-haz-ws/testsites
+ * Web servlet produces a GeoJSON file of the test sites at 
+ * nshmp-haz-ws/testsitesGeo
  */
 
-@WebServlet("/testsites")
-public class TestSites extends HttpServlet{
+@WebServlet("/testsitesGeo")
+public class TestSitesGeoJson extends HttpServlet{
   
   @Override
   public void doGet(
@@ -63,37 +58,42 @@ public class TestSites extends HttpServlet{
   
     
     //................... Create Object With All Regions and Locations ...................
-    ArrayList<Object> regions = new ArrayList<>();            // Create a array list of objects to hold each region
+    ArrayList<Object> features = new ArrayList<>();            
     
-    for(String key : nshmpSites.keySet()) {                   // Loop through each region 
-      Map<String,double[]> siteMap = new HashMap<>();      // Create a map of site names and locations
-      
-      for (NshmpSite site : nshmpSites.get(key)) {            // Loop through each site
-        double siteLat   = site.location().lat();               // Get lat
-        double siteLon   = site.location().lon();               // Get lon
-        double[] siteLoc = {siteLat,siteLon};                 // Create a array for lat,lon
-        String siteName  = site.toString();
-        siteMap.put(siteName, siteLoc);                           // Add site name and location to map
+    for(String key : nshmpSites.keySet()) {                     
+      for (NshmpSite site : nshmpSites.get(key)) {            
+        Feature<Object> feature = new Feature<>(key,site);
+        features.add(feature);                           
       }  
-      TestSite<Map<String,double[]>> site = new TestSite<>(key,siteMap);   // Create new map with site names, locations, site id, and display (See TestSite below)
-      regions.add(site);                                      // Add the new map to regions array list
-    }
-    SiteValues<Object> testSites = new SiteValues<>(regions); // Create the final object              
-    
-    out.println(gson.toJson(testSites));                      // Print test site object in JSON format to webpage
+    }           
+    FeatureCollection<Object> featureCollection = new FeatureCollection<>(features);
+    String jsonString = gson.toJson(featureCollection);
+    out.println(jsonString);                      // Print test site object in JSON format to webpage
     //------------------------------------------------------------------------------------
+    
+    //............................. Make GeoJson File .....................................
+    /*
+    String FgeoJson = "testSites.geojson";
+    try(BufferedWriter writer = new BufferedWriter(new FileWriter(FgeoJson))){
+      writer.write(jsonString);
+    }catch(IOException e) {
+      System.out.println("ERROR: " + e.getMessage());
+    }
+    */
+    //--------------------------------------------------------------------------------------
+    
   }
 }
 
 
 //................ Final Test Sites Object .............
-class SiteValues<T>{
-  private T testsites;
-  private String description;
+class FeatureCollection<T>{
+  private String type;
+  private T features;
   
-  public SiteValues(T regions) {
-    this.description = "Test sites";
-    this.testsites = regions;
+  public FeatureCollection(T features) {
+    this.type     = "FeatureCollection";
+    this.features = features;
   }
 }
 //--------------------------------------------------------
@@ -101,12 +101,44 @@ class SiteValues<T>{
 
 
 //.............. Create a Object for Test Site ...........
-class TestSite<T>{
-  private T values;
-  private String id;
-  private String display;
+class Feature<T>{
+  private String type;
+  private Geometry geometry;
+  private Properties properties;
   
-  public TestSite(String siteKey, T siteMap) {
+  public Feature(String siteKey, NshmpSite site) {
+    type = "Feature";
+    this.geometry   = new Geometry(site);
+    this.properties = new Properties(siteKey,site);
+    
+  }
+  
+}
+//-------------------------------------------------------
+
+
+class Geometry{
+  private String type;
+  private double[] coordinates = new double[2];
+  
+  public Geometry(NshmpSite site) {
+    this.type = "Point";
+    this.coordinates[0] = site.location().lon();
+    this.coordinates[1] = site.location().lat();
+  }
+}
+
+
+
+
+class Properties{
+  private String siteName;
+  private String siteId;
+  private String region;
+  private String regionId;
+ 
+  
+  public Properties(String siteKey,NshmpSite site) {
     String[] siteInfo = new String[2];
     switch(siteKey) {
       case "ceus":
@@ -130,19 +162,14 @@ class TestSite<T>{
       default:
         siteInfo = new String[] {"NA","Not Defined"};
     }
-    this.values = siteMap;
-    this.id = siteInfo[0];
-    this.display = siteInfo[1];
+   
+    this.siteName = site.toString();
+    this.siteId   = site.id();
+    this.regionId = siteInfo[0];
+    this.region   = siteInfo[1];
+    
   }
   
 }
-//-------------------------------------------------------
-
-
-
-
-
-
-
 
   
