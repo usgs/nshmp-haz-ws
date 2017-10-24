@@ -18,6 +18,9 @@ $("#include-header").load("includes/header.html",function(){
     case "spectra-plot.html":
       var title = "Response Spectra";
       break;
+    case "util.html":
+      var title = "Utilities";
+      break;
     default:
       var title = "Please define title in common.js";
   }

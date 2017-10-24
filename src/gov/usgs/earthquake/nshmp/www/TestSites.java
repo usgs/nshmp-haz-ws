@@ -20,8 +20,13 @@ import com.google.gson.GsonBuilder;
 
 public class TestSites{
   
+  public static void main(String[] args) {
+    String jsonString = Sites("CEUS");
+    System.out.println(jsonString);
+  }
+  
   //....................... Return Json String of Test Sites ......................................
-  public static String Sites(){
+  public static String Sites(String queryInfo){
     
     //................ Initial Setup ...................
     Gson gson = new GsonBuilder()             // Create gson object to print in JSON format
@@ -57,7 +62,15 @@ public class TestSites{
     FeatureCollection<FeatureCollection<Feature>> featureCollection = new FeatureCollection<>();    // Create a feature collection of feature collection
     featureCollection.features = regionCollection;        // Set the features
     String jsonString = gson.toJson(featureCollection);   // Create JSON string
-    return jsonString;                                    // Return JSON string
+    
+    for (FeatureCollection<Feature> fc: regionCollection ) {
+      CollectionProperties p = (CollectionProperties) fc.properties;
+      if (p.regionId.equals(queryInfo)) {
+        jsonString = gson.toJson(fc);
+      }
+    }
+    
+    return jsonString;
     //------------------------------------------------------------------------------------ 
   }
   //-----------------------------------------------------------------------------------------------
@@ -65,8 +78,8 @@ public class TestSites{
 
   //............. Properties Object for each Feature ................
   static class CollectionProperties{
-    private String regionId;
-    private String regionDisplay;
+    public String regionId;
+    public String regionDisplay;
   
     public CollectionProperties(String region) {
       switch(region) {
@@ -79,8 +92,8 @@ public class TestSites{
           this.regionDisplay = "Western US";
           break;
         case "ak":
-          this.regionId      ="AK";
-          this.regionDisplay =" Alaska";
+          this.regionId      = "AK";
+          this.regionDisplay = "Alaska";
           break;
         case "facilities":
           this.regionId      = "FACILITIES";
