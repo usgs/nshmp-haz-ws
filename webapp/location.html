@@ -1,0 +1,160 @@
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ................... Head ................ -->
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"> 
+
+  <!-- Title is defined in common.js -->  
+  
+  <!-- ............. Bootstrap ............ -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <!-- ............. Bootstrap ............ -->
+
+   
+  <!-- ........... CSS Files ....... -->
+  <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/location.css" type="text/css">
+  <!-- ........... CSS Files ....... -->
+ 
+</head>
+<!-- ................... Head ................ -->
+
+
+
+<!-- ................... Body ................ -->
+<body>
+
+
+  <!-- ########################################### -->
+  <!-- -->
+  <!-- ............ Include Files ................ -->
+
+  <!-- ........... Include Header ................ -->
+  <div id="include-header"></div>
+  <!-- ........... Include Header ................ -->
+  
+  <!-- ............. Include Footer .............. -->
+  <div id="include-footer"></div>  
+  <!-- ............. Include Footer .............. -->
+
+  <!-- .......... Include Spinner ................ -->
+  <div id="include-spinner"></div>
+  <!-- .......... Include Spinner ................ -->
+
+  <!-- .......... End: Include Files ............. -->
+  <!-- -->
+  <!-- ########################################### -->
+
+
+
+  <!-- ##################################################################################### -->
+  <!-- -->
+  <!-- ................................. Map ............................................... -->
+  <div id="content" >
+
+    <div class="map-panel">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          Hello
+        </div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="panel panel-default">
+        <div class="panel-body">
+
+          <form id="inputs">
+            <div class="form-horizontal">
+
+             	<!-- .................. Region Menu ......................... -->
+							<div class="form-group">
+								<label  for="region" > Region: </label><br>
+								<div class="btn-group-vertical" id="region" data-toggle="buttons">
+								</div>
+							</div>
+              <!-- .................. End: Region Menu .................... -->
+                
+              <!-- ................ Test Site Menu ........................ -->
+              <div class="form-group form-group-sm">
+                <label class="control-spacer control-group" for="testsite"> Test Site: </label>
+                <select class="form-control" id="testsite" autofocus>
+                </select>
+              </div>
+              <!-- ............... End: Test Site Menu .................... -->
+
+              <!-- .................. Enter Latitude ...................... -->
+              <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+                <label class="control-spacer control-group" 
+                  for="lat"> Latitude: <br> <small id="lat_bounds"></small>
+                </label> <br>
+                <div class="input-group">
+                  <input id="lat" class="form-control" type="text" name="lat"  />
+                  <div class="input-group-addon">&#176;</div>
+                </div>
+              </div>
+              <!-- .................. End: Enter Latitude ................. -->
+
+              <!-- .................. Enter Logitude ...................... -->
+              <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+                <label class="control-spacer control-group" 
+                  for="lon"> Longitude: <br> <small id="lon_bounds"></small>
+                </label> <br>
+                <div class="input-group">
+                  <input id="lon" class="form-control"  type="text" name="lon" />
+                  <div class="input-group-addon">&#176;</div>
+                </div>
+              </div>
+              <!-- .................. End: Enter Logitude ................. -->
+
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div> 
+  <!-- ............................ End: Map ..................................... -->
+  <!-- -->
+  <!-- ##################################################################################### -->
+
+
+
+
+
+  <!-- ######################################################## -->
+  <!-- -->
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="js/common.js"  	type="text/javascript" charset="UTF-8"></script>
+  <script src="js/location.js"  type="text/javascript" charset="UTF-8"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+  <!-- -->
+  <!-- ######################################################## -->
+
+
+
+</body>
+<!-- ................... Body ................ -->
+
+</html>
+

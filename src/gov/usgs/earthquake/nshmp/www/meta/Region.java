@@ -64,10 +64,10 @@ public enum Region implements Constrained {
   final double minlongitude;
   final double maxlongitude;
 
-  final double uiminlatitude;
-  final double uimaxlatitude;
-  final double uiminlongitude;
-  final double uimaxlongitude;
+  public final double uiminlatitude;
+  public final double uimaxlatitude;
+  public final double uiminlongitude;
+  public final double uimaxlongitude;
 
   /* not serialized */
   final transient Set<Imt> imts;

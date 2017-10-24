@@ -9,20 +9,25 @@ import java.util.List;
 import java.util.Map;
 
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
+import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.FeatureCollection;
 import gov.usgs.earthquake.nshmp.internal.GeoJson;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 //----------------------------------------------------------
 
 
 public class TestSites{
   
   public static void main(String[] args) {
-    String jsonString = Sites("CEUS");
-    System.out.println(jsonString);
+    Region test = Region.WUS;
+    Gson gson = new GsonBuilder()
+        .setPrettyPrinting()
+        .create();
+    System.out.println(test.uimaxlatitude);
   }
   
   //....................... Return Json String of Test Sites ......................................
@@ -39,9 +44,9 @@ public class TestSites{
     nshmpSites.put("ceus",NshmpSite.ceus());                        
     nshmpSites.put("wus", NshmpSite.wus());
     nshmpSites.put("ak", NshmpSite.alaska());
-    nshmpSites.put("facilities", NshmpSite.facilities());
-    nshmpSites.put("nehrp", NshmpSite.nehrp());
-    nshmpSites.put("nrc", NshmpSite.nrc());
+    //nshmpSites.put("facilities", NshmpSite.facilities());
+    //nshmpSites.put("nehrp", NshmpSite.nehrp());
+    //nshmpSites.put("nrc", NshmpSite.nrc());
     //--------------------------------------------------------
   
     
@@ -63,10 +68,10 @@ public class TestSites{
     featureCollection.features = regionCollection;        // Set the features
     String jsonString = gson.toJson(featureCollection);   // Create JSON string
     
-    for (FeatureCollection<Feature> fc: regionCollection ) {
-      CollectionProperties p = (CollectionProperties) fc.properties;
-      if (p.regionId.equals(queryInfo)) {
-        jsonString = gson.toJson(fc);
+    for (FeatureCollection<Feature> fc: regionCollection ) {          // Loop through each feature collection
+      CollectionProperties cp = (CollectionProperties) fc.properties; // Create collection properties obect
+      if (cp.regionId.equals(queryInfo)) {                            // Check if region id matches url query
+        jsonString = gson.toJson(fc);                                 // Return feature collection of searched region
       }
     }
     
@@ -78,22 +83,32 @@ public class TestSites{
 
   //............. Properties Object for each Feature ................
   static class CollectionProperties{
-    public String regionId;
-    public String regionDisplay;
+    private String regionId;
+    private String regionDisplay;
+    
+    private final double uiminlatitude;
+    private final double uimaxlatitude;
+    private final double uiminlongitude;
+    private final double uimaxlongitude;
+    
+    private transient Region region;  // transient = Don't serialize 
   
-    public CollectionProperties(String region) {
-      switch(region) {
+    public CollectionProperties(String regionId) {
+      switch(regionId) {
         case "ceus":
           this.regionId      = "CEUS";
           this.regionDisplay = "Central & Eastern US";
+          this.region        = Region.CEUS;
           break;
         case "wus":
           this.regionId      = "WUS";
           this.regionDisplay = "Western US";
+          this.region        = Region.WUS;
           break;
         case "ak":
           this.regionId      = "AK";
           this.regionDisplay = "Alaska";
+          this.region        = Region.AK;
           break;
         case "facilities":
           this.regionId      = "FACILITIES";
@@ -111,6 +126,10 @@ public class TestSites{
           this.regionId      = "NA";
           this.regionDisplay = "Not Defined";
       }
+      this.uiminlatitude  = this.region.uiminlatitude;
+      this.uimaxlatitude  = this.region.uimaxlatitude;
+      this.uiminlongitude = this.region.uiminlongitude;
+      this.uimaxlongitude = this.region.uimaxlongitude;
     }
   }
   //---------------------------------------------------------------

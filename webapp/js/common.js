@@ -22,6 +22,9 @@ $("#include-header").load("includes/header.html",function(){
       var title = "Utilities";
       break;
     default:
+    case "location.html":
+      var title = "Test Site Map";
+      break;
       var title = "Please define title in common.js";
   }
   title_id.innerHTML = title;               // Set the header title
