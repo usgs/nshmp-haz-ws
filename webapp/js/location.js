@@ -43,7 +43,7 @@ $("#region").on("change",getRegion);
 function getRegion(){
   
   var regionSelect = $("#region [class*=active] input").val();
-
+  console.log("\n\n");
   testSites.forEach(function(featureCollection){
     var regionId = featureCollection.properties.regionId;
     if (regionId == regionSelect){
