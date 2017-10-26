@@ -27,6 +27,19 @@
 
 
 
+.scrollable-menu{
+  height: auto;
+  max-height: 500px;
+  overflow-x: hidden;
+  padding: 5px;
+}
+
+.scrollable-menu>li:hover{
+  cursor: pointer;
+  background-color: #999;
+}
+
+
 /*#################################################*/
 /**/
 /*.................... Plots ......................*/
@@ -54,7 +67,13 @@
 }
 /*-------------------------------------------------*/
 
-.panel{
+#map{
+  margin: 0 auto;
+  padding: 0;
+}
+
+.panel,
+.panel-body{
   height: 100%;
 }
 

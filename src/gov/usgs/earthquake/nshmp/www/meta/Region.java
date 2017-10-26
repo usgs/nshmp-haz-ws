@@ -59,10 +59,10 @@ public enum Region implements Constrained {
 
   private final String label;
 
-  final double minlatitude;
-  final double maxlatitude;
-  final double minlongitude;
-  final double maxlongitude;
+  public final double minlatitude;
+  public final double maxlatitude;
+  public final double minlongitude;
+  public final double maxlongitude;
 
   public final double uiminlatitude;
   public final double uimaxlatitude;

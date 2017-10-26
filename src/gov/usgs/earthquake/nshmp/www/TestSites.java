@@ -22,13 +22,6 @@ import com.google.gson.annotations.Expose;
 
 public class TestSites{
   
-  public static void main(String[] args) {
-    Region test = Region.WUS;
-    Gson gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
-    System.out.println(test.uimaxlatitude);
-  }
   
   //....................... Return Json String of Test Sites ......................................
   public static String Sites(String queryInfo){
@@ -51,11 +44,12 @@ public class TestSites{
   
     
     //................... Create Object With All Regions and Locations ...................
-    List<Feature> features = new ArrayList<>();                               // Array list of Feature
+    
     List<FeatureCollection<Feature>> regionCollection = new ArrayList<>();    // Array list of FeatureCollection
 
     for(String key : nshmpSites.keySet()) {                                   // Loop through each region   
-      for (NshmpSite site : nshmpSites.get(key)) {                            // Loop through all sites in a region
+     List<Feature> features = new ArrayList<>();                              // Array list of Feature
+     for (NshmpSite site : nshmpSites.get(key)) {                             // Loop through all sites in a region
         features.add(GeoJson.createPoint(site, site.id()));                   // Create a feature for each site
       }  
       FeatureCollection<Feature> region = new FeatureCollection<>();          // Create a feature collection for each region
@@ -90,6 +84,11 @@ public class TestSites{
     private final double uimaxlatitude;
     private final double uiminlongitude;
     private final double uimaxlongitude;
+    
+    private final double minlatitude;
+    private final double maxlatitude;
+    private final double minlongitude;
+    private final double maxlongitude;
     
     private transient Region region;  // transient = Don't serialize 
   
@@ -130,6 +129,11 @@ public class TestSites{
       this.uimaxlatitude  = this.region.uimaxlatitude;
       this.uiminlongitude = this.region.uiminlongitude;
       this.uimaxlongitude = this.region.uimaxlongitude;
+      
+      this.minlatitude  = this.region.minlatitude;
+      this.maxlatitude  = this.region.maxlatitude;
+      this.minlongitude = this.region.minlongitude;
+      this.maxlongitude = this.region.maxlongitude;
     }
   }
   //---------------------------------------------------------------

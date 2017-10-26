@@ -277,6 +277,48 @@ function check_bounds(is_submit){
   return [can_submit_lat,can_submit_lon];
 }
 
+
+function checkBounds(regionSelect,bounds,is_submit){
+
+  var min_lat = bounds.minlatitude;                          // Get the minimum latitude value
+  var max_lat = bounds.maxlatitude;                          // Get the maximum latitude value
+  var min_lon = bounds.minlongitude;                         // Get the minimum longitude value
+  var max_lon = bounds.maxlongitude;                         // Get the maximum longitude value
+
+  $("#latBounds").text(regionSelect + " bounds: " +
+                              " ["+min_lat+","+max_lat+"]");         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
+  $("#lonBounds").text(regionSelect + " bounds: " +
+                              " ["+min_lon+","+max_lon+"]");         // Set the longitude bound text for the webpage
+
+  var lat = $("#lat").val();                                           // Get latitude value
+  var lon = $("#lon").val();                                           // Get longitude value
+
+  var can_submit_lat = false;                                       // Boolean to see if latitude is within bounds
+  var can_submit_lon = false;                                       // Boolean to see if longitude is within bounds
+  if (is_submit){                                                   // Check bounds 
+    if (lat < min_lat || lat > max_lat){                            // Check to see if lat value exists and within bounds
+      lat_bounds_id.style.color = "red";                            // Set text color to red if not in bounds
+      can_submit_lat = false;                                       // Set flag false
+      lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
+    }else{
+      lat_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lat = true;                                        // Set flag true
+    }
+    if (lon < min_lon || lon > max_lon){                            // Check to see if lon value exists and within bounds
+      lon_bounds_id.style.color = "red";                            // Set text color to ref if not in bounds
+      can_submit_lon = false;                                       // Set false
+      lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
+    }else{
+      lon_bounds_id.style.color = "black";                          // If within bounds set text to black
+      can_submit_lon = true;                                        // Set true
+    }
+  }
+
+  return [can_submit_lat,can_submit_lon];
+}
+
+
+
 //----------------------------- End: Set Bounds ----------------------------------------------
 //
 //############################################################################################

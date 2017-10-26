@@ -59,8 +59,7 @@
 
     <div class="map-panel">
       <div class="panel panel-default">
-        <div class="panel-body">
-          Hello
+        <div class="panel-body" id="map">
         </div>
       </div>
     </div>
@@ -83,15 +82,27 @@
               <!-- ................ Test Site Menu ........................ -->
               <div class="form-group form-group-sm">
                 <label class="control-spacer control-group" for="testsite"> Test Site: </label>
-                <select class="form-control" id="testsite" autofocus>
+                <select class="form-control" id="testsite" >
                 </select>
               </div>
+              <!--
+              <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" 
+                  type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  Please select ...
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu scrollable-menu" id="testsite" aria-labelledby="dropdownMenu1">
+                </ul>
+              </div>
+              -->
+
               <!-- ............... End: Test Site Menu .................... -->
 
               <!-- .................. Enter Latitude ...................... -->
               <div class="form-group form-group-sm form-inline" onsubmit="return false;">
                 <label class="control-spacer control-group" 
-                  for="lat"> Latitude: <br> <small id="lat_bounds"></small>
+                  for="lat"> Latitude: <br> <small id="latBounds"></small>
                 </label> <br>
                 <div class="input-group">
                   <input id="lat" class="form-control" type="text" name="lat"  />
@@ -103,7 +114,7 @@
               <!-- .................. Enter Logitude ...................... -->
               <div class="form-group form-group-sm form-inline" onsubmit="return false;">
                 <label class="control-spacer control-group" 
-                  for="lon"> Longitude: <br> <small id="lon_bounds"></small>
+                  for="lon"> Longitude: <br> <small id="lonBounds"></small>
                 </label> <br>
                 <div class="input-group">
                   <input id="lon" class="form-control"  type="text" name="lon" />
@@ -142,8 +153,11 @@
   <!-- ............. Bootstrap ............ -->
 
   <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
   <script src="js/common.js"  	type="text/javascript" charset="UTF-8"></script>
   <script src="js/location.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="js/plot.js"  type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
 
