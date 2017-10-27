@@ -37,9 +37,9 @@ public class TestSites{
     nshmpSites.put("ceus",NshmpSite.ceus());                        
     nshmpSites.put("wus", NshmpSite.wus());
     nshmpSites.put("ak", NshmpSite.alaska());
-    //nshmpSites.put("facilities", NshmpSite.facilities());
-    //nshmpSites.put("nehrp", NshmpSite.nehrp());
-    //nshmpSites.put("nrc", NshmpSite.nrc());
+    nshmpSites.put("facilities", NshmpSite.facilities());
+    nshmpSites.put("nehrp", NshmpSite.nehrp());
+    nshmpSites.put("nrc", NshmpSite.nrc());
     //--------------------------------------------------------
   
     
@@ -112,18 +112,22 @@ public class TestSites{
         case "facilities":
           this.regionId      = "FACILITIES";
           this.regionDisplay = "US National Labs";
+          this.region        = Region.COUS;
           break;
         case "nehrp":
           this.regionId      = "NEHRP";
-          this.regionDisplay = "NEHRP Sites";
+          this.regionDisplay = "NEHRP";
+          this.region        =  Region.COUS;
           break;
         case "nrc":
           this.regionId      = "NRC";
-          this.regionDisplay = "Restricted CEUS Set";
+          this.regionDisplay = "NRC";
+          this.region        = Region.CEUS;
           break;
         default:
           this.regionId      = "NA";
           this.regionDisplay = "Not Defined";
+          this.region        = Region.COUS;
       }
       this.uiminlatitude  = this.region.uiminlatitude;
       this.uimaxlatitude  = this.region.uimaxlatitude;

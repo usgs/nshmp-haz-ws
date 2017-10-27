@@ -2,6 +2,7 @@
 
 
 
+
 $(function(){  
   var url = "/nshmp-haz-ws/util/testsites";
   $.getJSON(url,function(jsonReturn){
@@ -110,12 +111,38 @@ function coordinates(){
 }
 
 
+function siteRadius() {
+  
+  var rDefault = 5;
+  var e    = d3.event;
+  if (e == null || e == undefined){
+    var scale = rDefault;
+  }else{
+    var isSelected = "active" == d3.select(this)
+      .attr("class");
+    var rDefault = isSelected ? rDefault*rScale : rDefault; 
+    var scale = e.transform != null ?  rDefault/e.transform.k :rDefault; 
+  }
+  return scale;
+}
 
 
-$("#region").change(function(){
-  d3.select("#map svg").remove();
-  plotMap()
-});
+
+function siteData(){
+  var region = regionSelect();    
+  var lat = [];
+  var lon = []; 
+  region.features.forEach(function(d,i){
+    lon[i] = d.geometry.coordinates[0];
+    lat[i] = d.geometry.coordinates[1];
+  });
+  return d3.zip(lon,lat);
+}
+
+
+
+var rScale = 2.5;
+
 function plotMap(){
 
   var margin = {top: 20,right: 20,bottom: 20,left: 20};
@@ -143,10 +170,6 @@ function plotMap(){
   var height = plotHeight();
   var width  = plotWidth();
   
-  var rMin = 4.5;
-	var rMax = 7;
-	var rDelta = rMax - rMin;
-	var rSelect = 9;
 
   var projection = d3.geoAlbersUsa()
     .scale(width)
@@ -156,10 +179,6 @@ function plotMap(){
   var path = d3.geoPath()
     .projection(projection);
   
-  function siteRadius() {
-    var scale = 4.5 / d3.event.transform.k ; 
-    return scale;
-  }
 
   var svgHeight = height + margin.top   + margin.bottom;
   var svgWidth  = width  + margin.right + margin.left;
@@ -169,12 +188,13 @@ function plotMap(){
     .on("zoom",zoom);
 
   function zoom(){
-    d3.select(".map").attr("transform",d3.event.transform);
+    d3.select(".map")
+      .attr("transform",d3.event.transform);
     d3.select(".sites")
       .attr("transform",d3.event.transform);
     d3.select(".sites")
-      .selectAll("path")
-      .attr("d",path.pointRadius(siteRadius()));
+      .selectAll("circle")
+      .attr("r",siteRadius);
     d3.select(".map-borders")
       .attr("transform",d3.event.transform)
       .attr("stroke-width",1.5 / d3.event.transform.k+"px");
@@ -197,7 +217,7 @@ function plotMap(){
     d3.json(mapUrl,function(error,map){
       if (error) throw error;
       var geoJson = topojson.feature(map,map.objects.states); 
-      var borders = topojson.mesh(map,map.objects.states,function(a,b){return a!==b;});
+      borders = topojson.mesh(map,map.objects.states,function(a,b){return a!==b;});
       
       svg.append("g")
         .attr("class","map")
@@ -214,20 +234,22 @@ function plotMap(){
         .attr("d",path(borders) )
         .attr("stroke","white")
         .attr("fill","none");
-      
+     
+      var sites = siteData();
       svg.append("g")
         .attr("class","sites")
-        .selectAll("path")
-        .data(region.features)
+        .selectAll("circle")
+        .data(sites)
         .enter()
-        .append("path")
-        .attr("d",path)
-        .attr("id",function(d,i){return d.properties.locationId})
+        .append("circle")
+        .attr("cx",function(d,i){return projection(d)[0]})
+        .attr("cy",function(d,i){return projection(d)[1]})
+        .attr("r",siteRadius())
         .attr("fill","red")
+        .attr("id",function(d,i){return region.features[i].properties.locationId})
         .on("mouseover",siteOver)
         .on("mouseout",siteOut);
       
-
     });
  }
  plot();
@@ -252,16 +274,22 @@ function plotMap(){
     
     projection
       .scale(width)
-      .translate([width/2,height/2]);
+      .translate([width/2,height/2])
+      .fitSize([width,height],region);
     
     svg.select(".map")
       .selectAll("path")
       .attr("d",path);
+    
+    svg.select(".map-borders")
+      .select("path")
+      .attr("d",path(borders) );
       
       
     svg.select(".sites")
-      .selectAll("path")
-      .attr("d",path); 
+      .selectAll("circle")
+      .attr("cx",function(d,i){return projection(d)[0]})
+      .attr("cy",function(d,i){return projection(d)[1]});
     
   }
         
@@ -270,16 +298,88 @@ function plotMap(){
   });
 
 
-  $("li").mouseover(function(){
-    console.log("Hello");
+  $("#testsite").change(function(){
+    var region = regionSelect();
+    
+    d3.select(".sites")
+      .selectAll("circle")
+      .attr("r",siteRadius());
+    
+    var r = d3.select(".sites")
+      .selectAll("circle")
+      .attr("r");
+    console.log(r);
+    
+    d3.select("#map svg")
+      .select(".sites")
+      .selectAll("circle")
+      .attr("class","");
+
+    var site = siteSelect();
+    
+    if (site != "default"){
+
+      var siteId = site.properties.locationId;
+      var siteSelected = d3.select("#map svg")
+        .select(".sites")
+        .selectAll("circle")
+        .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
+
+      siteSelected
+        .attr("r",r*rScale)
+        .attr("class","active");
+     } 
+
+    
+    var r = d3.select(".sites")
+      .selectAll("circle")
+      .attr("r");
+    console.log(r);
   });
 
-  
-  function siteOver(){
-    var loc = d3.mouse(document.getElementsByClassName("svgMainGroup")[0] );
-    var x = loc[0];
-    var y = loc[1];
+
+  $("#region").change(function(){
+    plotUpdate(); 
+
+    var region = regionSelect();
+    var width  = plotWidth();
+    var height = plotHeight();
+    var sites  = siteData(); 
     
+    d3.select("#map svg")
+      .select(".sites")
+      .selectAll("circle")
+      .attr("class","");
+
+    var svgSites = d3.select("#map svg")
+      .select(".sites")
+      .selectAll("circle")
+      .data(sites);
+    
+    svgSites.exit().remove();
+    
+    svgSites.enter()
+      .append("circle")
+      .on("mouseover",siteOver)
+      .on("mouseout",siteOut);
+
+    d3.select("#map svg")
+    .select(".sites")
+    .selectAll("circle")
+    .transition()
+      .duration(500)
+      .attr("cx",function(d,i){return projection(d)[0]})
+      .attr("cy",function(d,i){return projection(d)[1]})
+      .attr("r",siteRadius())
+      .attr("id",function(d,i){return region.features[i].properties.locationId})
+      .attr("fill","red");
+
+  });
+  
+
+  function siteOver(){
+    var region = regionSelect();
+
     var siteId = d3.select(this).attr("id");
     
     var site = region.features.find(function(f,i){
@@ -295,116 +395,17 @@ function plotMap(){
       "Longitude: " + lon
     ];
 
-    var tooltip = new Tooltip("map",x,y,tooltipText);
+    var tooltip = new Tooltip("map",tooltipText);
     tooltip.setTooltip();
-   /* 
-    var tooltip = d3.select(".svgMainGroup")
-      .append("g")
-      .attr("class","d3-tooltip");
-      
-    tooltip.append("rect")
-      .attr("x",x+10)
-      .attr("y",y+10)
-      .attr("width",50)
-      .attr("height",50)
-      .attr("fill","white")
-      .attr("stroke","#999");
-  */
+    tooltip.setRadius(this,rScale);
   }
 
 
   function siteOut(){
+    var r = d3.select(this).attr("r");
+    d3.select(this).attr("r",r/rScale);
     d3.select(".d3-tooltip")
       .remove();
   }
         
 } 
-
-
-
-
-
-class Tooltip{
-  constructor(mapId,x,y,text){
-    this.mapId = mapId;
-    this.x = x;
-    this.y = y;
-    this.dy = 10;
-    this.text = text;
-  }
-
-  setTooltip(){
-    var svg = d3.select("#"+this.mapId+" svg")
-      .select("g");
-    var tooltip = svg.append("g")
-      .attr("class","d3-tooltip");
-    
-    tooltip.selectAll("text")                       
-      .data(this.text)                             
-      .enter()
-      .append("text")                                 
-        .attr("class","tooltip-text")                 
-        .style("visibility","hidden")                 
-        .attr("font-size",11)                         
-        .attr("y",function(d,i){return i*16} )        
-        .attr("alignment-baseline","text-before-edge")
-        .text(function(d,i){return d});               
-
-    var tooltip_geom   = tooltip.node()               
-      .getBoundingClientRect();
-
-    var pad = 10;                                     
-    var tooltip_width  = tooltip_geom.width  + 2*pad; 
-    var tooltip_height = tooltip_geom.height + 2*pad; 
-
-
-    var plot_geom = svg.node()
-			.getBoundingClientRect();
-		var plot_width  = plot_geom.width;                            // Get the width of the actual plot where the data is
-		var plot_height = plot_geom.height;                           // Get the height of the actual plot where the data is
-
-
-		var xper = this.x/plot_width;               // Get the X location in percentage
-		var yper = this.y/plot_height;              // Get the Y location in percentage
-
-		if (xper < 0.30){                       // If the X location of the dot is < 10%, have box start to the right of the circle
-			var xrect = this.x;
-			var xtext = this.x+pad;
-		}else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
-			var xrect = this.x-tooltip_width;
-			var xtext = this.x-tooltip_width+pad;
-		}else{                                  // Center box location in X
-			var xrect = this.x-tooltip_width/2;
-			var xtext = this.x-tooltip_width/2+pad;
-		}
-
-		if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
-			var yrect = this.y+this.dy;
-			var ytext = this.y+this.dy+pad;
-		}else{                                  // Else put the box above the circle
-			var yrect = this.y-tooltip_height-this.dy;
-			var ytext = this.y-this.dy-tooltip_height+pad;
-		}
-
-		var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
-		var text_trans = "translate("+xtext+","+ytext+")";    // The translation for the tooltip text
-
-
-    tooltip.append("rect")                        // Create a rectangle
-      .attr("class","tooltip-outline")            // Add a class to the rectangle
-      .attr("height",tooltip_height)              // Set height
-      .attr("width",tooltip_width)                // Set width
-      .attr("transform",rect_trans)               // Translate the rectangle to correct position
-      .attr("stroke","#999")                      // Set stroke color
-      .style("padding","10px")
-      .attr("fill","white");                      // Set fill color
-
-    tooltip.selectAll(".tooltip-text")
-      .style("visibility","initial")
-      .attr("transform",text_trans)
-      .raise();
-
-
-  }
-
-}
