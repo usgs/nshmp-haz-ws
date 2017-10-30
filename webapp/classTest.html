@@ -29,10 +29,6 @@
 <body>
 
 
-  <!-- ########################################### -->
-  <!-- -->
-  <!-- ............ Include Files ................ -->
-
   <!-- ........... Include Header ................ -->
   <div id="include-header"></div>
   <!-- ........... Include Header ................ -->
@@ -45,25 +41,15 @@
   <div id="include-spinner"></div>
   <!-- .......... Include Spinner ................ -->
 
-  <!-- .......... End: Include Files ............. -->
-  <!-- -->
-  <!-- ########################################### -->
 
-
-  <!-- ##################################################################################### -->
-  <!-- -->
   <!-- ................................. Plots ............................................. -->
   <div id="content" style="margin: 2em 0 3.5em 0">
    
   </div> 
   <!-- .............................. End: Plots ........................................... -->
-  <!-- -->
-  <!-- ##################################################################################### -->
 
 
 
-  <!-- ######################################################## -->
-  <!-- -->
   <!-- ................. Import JavaScript .................... -->
 
   <!-- ............ jQuery ................ -->
@@ -77,21 +63,39 @@
 
   <!-- ..... Application Specific JavaScript ......... -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/common.js"  type="text/javascript" charset="UTF-8"></script>
-  <script src="js/classes/plot.js"    type="text/javascript" charset="UTF-8"></script>
+  <script src="js/common.js"    type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/plot.js"  type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
 
   <!-- ............... End: Import JavaScript ................. -->
-  <!-- -->
-  <!-- ######################################################## -->
 
 
 <script>
 
-var test  = new Plot("content");
+var plotTest  = new Plot("content");
 var title = "Test Title";
-test.setTitle(title);
+plotTest.setTitle(title);
+
+var data = [
+  [0,0.1],
+  [1,0.5],
+  [2,1.0],
+  [3,1.5]];
+
+plotTest.data   = data;
+plotTest.labels = ["Test Label"];
+plotTest.xlabel = "X-label Test";
+plotTest.ylabel = "Y-label Test";
+plotTest.xscale = "log";
+plotTest.yscale = "log";
+
+console.log("Data");    console.log(plotTest.data);
+console.log("Labels");  console.log(plotTest.labels);
+console.log("X-label: " + plotTest.xlabel);
+console.log("Y-label: " + plotTest.ylabel);
+console.log("X-scale: " + plotTest.xscale);
+console.log("Y-scale: " + plotTest.yscale);
 </script>
 
 
