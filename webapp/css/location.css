@@ -27,11 +27,38 @@
 
 
 
+#testsite-menu{
+  width: 100%;
+}
+
+#menu-text{
+  float: left;
+}
+
+.caret{
+  float:right;
+}
+
+#testsite>li.active::before{
+  content: "\2713";
+  padding-right: 5px;
+}
+
+#testsite>li.active{
+  font-weight: bold;
+  padding-left: 0;
+}
+
+#testsite>li{
+  padding-left: 15px;
+}
+
 .scrollable-menu{
   height: auto;
   max-height: 500px;
-  overflow-x: hidden;
+  overflow-x: scroll;
   padding: 5px;
+  margin-bottom: 50px;
 }
 
 .scrollable-menu>li:hover{

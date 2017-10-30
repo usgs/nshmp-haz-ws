@@ -51,10 +51,11 @@ function regionSelect(){
 
 function siteSelect(){
   var region = regionSelect();
-  var siteSelect = $("#testsite option:selected").val();
+  var siteSelect = $("#testsite [class*='active']").attr("id");
   var site = region.features.find(function(f,i){
     return f.properties.locationId == siteSelect;
   });
+  console.log(site);
   return site != undefined ?  site : "default"; 
 }
 
@@ -65,19 +66,25 @@ $("#region").change(function(){setTestSites()});
 function setTestSites(){
   $("#lat").val("");
   $("#lon").val("");
-  
-  var siteOptions = $().add(
+ 
+  $("#menu-text").text("Please select ..."); 
+
+  var siteOptions = $();
+  /*
+  .add(
     $("<option>")
     .attr("value","default")
     .text("Please select ...")
+    .attr("data-trigger","hover")
   );
+  */
   
   var region = regionSelect();
   region.features.forEach(function(feature){
     var site   = feature.properties.location;
     var siteId = feature.properties.locationId;
     siteOptions = siteOptions.add( 
-      $("<option>")
+      $("<li>")
       .attr("value",siteId)
       .attr("id",siteId)
       .text(site)
@@ -89,12 +96,11 @@ function setTestSites(){
   var bounds   = region.properties;
   checkBounds(regionId,bounds);
 
-
+  
 }
 
 
 
-$("#testsite").change(function(){coordinates()});
 function coordinates(){
   var region = regionSelect();
   var site   = siteSelect();
@@ -141,6 +147,7 @@ function siteData(){
 
 
 
+
 var rScale = 2.5;
 
 function plotMap(){
@@ -179,7 +186,6 @@ function plotMap(){
   var path = d3.geoPath()
     .projection(projection);
   
-
   var svgHeight = height + margin.top   + margin.bottom;
   var svgWidth  = width  + margin.right + margin.left;
 
@@ -259,7 +265,10 @@ function plotMap(){
 
   function plotUpdate(){
     var region = regionSelect();
-
+    
+    console.log(path.bounds(region));
+    
+    
     var height = plotHeight();
     var width  = plotWidth(); 
     var svgHeight = height + margin.top   + margin.bottom;
@@ -298,49 +307,57 @@ function plotMap(){
   });
 
 
-  $("#testsite").change(function(){
-    var region = regionSelect();
-    
-    d3.select(".sites")
-      .selectAll("circle")
-      .attr("r",siteRadius());
-    
-    var r = d3.select(".sites")
-      .selectAll("circle")
-      .attr("r");
-    console.log(r);
-    
-    d3.select("#map svg")
-      .select(".sites")
-      .selectAll("circle")
-      .attr("class","");
-
-    var site = siteSelect();
-    
-    if (site != "default"){
-
-      var siteId = site.properties.locationId;
-      var siteSelected = d3.select("#map svg")
+  $("#testsite-menu").click(function(){
+    $("#testsite li").hover(function(){
+      var region = regionSelect();
+      
+      d3.select(".sites")
+        .selectAll("circle")
+        .attr("r",siteRadius());
+      
+      var r = d3.select(".sites")
+        .selectAll("circle")
+        .attr("r");
+      
+      d3.select("#map svg")
         .select(".sites")
         .selectAll("circle")
-        .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
+        .attr("class","");
+      
+      var siteId = this.id;
+      var site   = $(this).text();
 
-      siteSelected
-        .attr("r",r*rScale)
-        .attr("class","active");
-     } 
+      if (siteId != "default"){
 
+        var siteSelected = d3.select("#map svg")
+          .select(".sites")
+          .selectAll("circle")
+          .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
+
+        siteSelected
+          .attr("r",r*rScale)
+          .attr("class","active");
+       } 
+
+      
+      var r = d3.select(".sites")
+        .selectAll("circle")
+        .attr("r");
+      console.log(r);
     
-    var r = d3.select(".sites")
-      .selectAll("circle")
-      .attr("r");
-    console.log(r);
-  });
+      $(this).click(function(){
+        $("#testsite li").removeClass("active");
+        $("#menu-text").text(site);
+        $(this).addClass("active");
+        coordinates();
+      });
+    });
+  })
 
 
   $("#region").change(function(){
     plotUpdate(); 
-
+    
     var region = regionSelect();
     var width  = plotWidth();
     var height = plotHeight();
@@ -386,8 +403,8 @@ function plotMap(){
       return f.properties.locationId == siteId;
     });
     var siteName = site.properties.location;
-    var lat      = site.geometry.coordinates[0];
-    var lon      = site.geometry.coordinates[1];
+    var lon      = site.geometry.coordinates[0];
+    var lat      = site.geometry.coordinates[1];
 
     var tooltipText = [
       "Site: "      + siteName,

@@ -80,22 +80,16 @@
               <!-- .................. End: Region Menu .................... -->
                 
               <!-- ................ Test Site Menu ........................ -->
-              <div class="form-group form-group-sm">
+              <div class="dropdown" id="testsite-dropdown">
                 <label class="control-spacer control-group" for="testsite"> Test Site: </label>
-                <select class="form-control" id="testsite" >
-                </select>
-              </div>
-              <!--
-              <div class="dropdown">
-                <button class="btn btn-default dropdown-toggle" 
-                  type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                  Please select ...
+                <button class="btn btn-sm btn-default dropdown-toggle" 
+                  type="button" id="testsite-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                 <span id="menu-text">Please select ... </span> 
                   <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu scrollable-menu" id="testsite" aria-labelledby="dropdownMenu1">
+                <ul class="dropdown-menu scrollable-menu form-control" id="testsite" aria-labelledby="testsite-menu">
                 </ul>
               </div>
-              -->
 
               <!-- ............... End: Test Site Menu .................... -->
 
@@ -129,13 +123,12 @@
         </div>
       </div>
     </div>
-
+    
   </div> 
   <!-- ............................ End: Map ..................................... -->
   <!-- -->
   <!-- ##################################################################################### -->
-
-
+  
 
 
 
@@ -155,7 +148,7 @@
   <!-- ..... Application Specific JavaScript ......... -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
-  <script src="js/classes/tooltip.js"  	type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/tooltip.js"  	type="text/javascript" charset="UTF-8"></script>
   <script src="js/common.js"  	type="text/javascript" charset="UTF-8"></script>
   <script src="js/location.js"  type="text/javascript" charset="UTF-8"></script>
   <script src="js/plot.js"  type="text/javascript" charset="UTF-8"></script>
