@@ -26,7 +26,7 @@
 
 
 
-
+/*
 #testsite-menu{
   width: 100%;
 }
@@ -39,31 +39,51 @@
   float:right;
 }
 
-#testsite>li.active::before{
-  content: "\2713";
-  padding-right: 5px;
-}
 
-#testsite>li.active{
-  font-weight: bold;
-  padding-left: 0;
-}
 
 #testsite>li{
-  padding-left: 15px;
+  padding-left: 10px;
 }
 
-.scrollable-menu{
-  height: auto;
-  max-height: 500px;
+*/
+
+
+.list-group-item{
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+#region{
+  width: 100%;
+  font-size: 12px;
+}
+
+
+#testsite{
+  height: 250px;
   overflow-x: scroll;
-  padding: 5px;
-  margin-bottom: 50px;
+  padding: 0;
 }
 
-.scrollable-menu>li:hover{
-  cursor: pointer;
-  background-color: #999;
+#testsite{
+  width: 100%;
+}
+
+#testsite>label{
+  font-size: 11px;
+}
+
+
+#map-checkbox{
+  position: absolute;
+  bottom: 20px;
+  padding: 10px 0;
+}
+
+
+#inputs,
+.form-horizontal{
+  height: 100%;
 }
 
 
@@ -77,7 +97,7 @@
   position: absolute;
   padding: 20px 0 20px 20px;
   top:0;
-  right: 325px;
+  right: 300px;
   bottom: 0;
   left:0;
 }
@@ -90,7 +110,7 @@
   top:0;
   right: 0;
   bottom: 0;
-  width: 325px;
+  width: 300px;
 }
 /*-------------------------------------------------*/
 

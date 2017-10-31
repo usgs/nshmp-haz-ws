@@ -71,16 +71,17 @@
           <form id="inputs">
             <div class="form-horizontal">
 
-             	<!-- .................. Region Menu ......................... -->
-							<div class="form-group">
-								<label  for="region" > Region: </label><br>
-								<div class="btn-group-vertical" id="region" data-toggle="buttons">
-								</div>
-							</div>
+              <!-- .................. Region Menu ......................... -->
+              <div class="form-group">
+                <label  for="region" > Region: </label><br>
+                <div class="btn-group-vertical" id="region" data-toggle="buttons">
+                </div>
+              </div>
               <!-- .................. End: Region Menu .................... -->
                 
               <!-- ................ Test Site Menu ........................ -->
-              <div class="dropdown" id="testsite-dropdown">
+              <!--
+              <div class="dropdown form-group" id="testsite-dropdown">
                 <label class="control-spacer control-group" for="testsite"> Test Site: </label>
                 <button class="btn btn-sm btn-default dropdown-toggle" 
                   type="button" id="testsite-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -90,13 +91,20 @@
                 <ul class="dropdown-menu scrollable-menu form-control" id="testsite" aria-labelledby="testsite-menu">
                 </ul>
               </div>
-
+              -->
+              <div class="form-group">
+                <label class="control-spacer control-group" for="testsite"> Test: </label>
+                <div class="panel panel-default" id="testsite-panel">
+                  <div class="btn-group-vertical" id="testsite" data-toggle="buttons">
+                  </div>
+                </div>
+              </div>
               <!-- ............... End: Test Site Menu .................... -->
 
               <!-- .................. Enter Latitude ...................... -->
               <div class="form-group form-group-sm form-inline" onsubmit="return false;">
                 <label class="control-spacer control-group" 
-                  for="lat"> Latitude: <br> <small id="latBounds"></small>
+                  for="lat"> Latitude: <br> <small id="lat-bounds"></small>
                 </label> <br>
                 <div class="input-group">
                   <input id="lat" class="form-control" type="text" name="lat"  />
@@ -108,7 +116,7 @@
               <!-- .................. Enter Logitude ...................... -->
               <div class="form-group form-group-sm form-inline" onsubmit="return false;">
                 <label class="control-spacer control-group" 
-                  for="lon"> Longitude: <br> <small id="lonBounds"></small>
+                  for="lon"> Longitude: <br> <small id="lon-bounds"></small>
                 </label> <br>
                 <div class="input-group">
                   <input id="lon" class="form-control"  type="text" name="lon" />
@@ -116,7 +124,15 @@
                 </div>
               </div>
               <!-- .................. End: Enter Logitude ................. -->
-
+             
+              <!-- ............... Snap to 0.1 Degrees .................... --> 
+              <div class="checkbox" id="map-checkbox">
+                <label> 
+                  <input type="checkbox" id="snap-grid"> Snap to 0.1&#176;
+                </label>
+              </div>   
+              <!-- ............ End Snap to 0.1 Degrees ................... --> 
+              
             </div>
           </form>
 

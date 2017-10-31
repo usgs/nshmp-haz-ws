@@ -63,7 +63,7 @@ public class TestSites{
     String jsonString = gson.toJson(featureCollection);   // Create JSON string
     
     for (FeatureCollection<Feature> fc: regionCollection ) {          // Loop through each feature collection
-      CollectionProperties cp = (CollectionProperties) fc.properties; // Create collection properties obect
+      CollectionProperties cp = (CollectionProperties) fc.properties; // Create collection properties obejct
       if (cp.regionId.equals(queryInfo)) {                            // Check if region id matches url query
         jsonString = gson.toJson(fc);                                 // Return feature collection of searched region
       }

@@ -21,10 +21,10 @@ $("#include-header").load("includes/header.html",function(){
     case "util.html":
       var title = "Utilities";
       break;
-    default:
     case "location.html":
       var title = "Test Site Map";
       break;
+    default:
       var title = "Please define title in common.js";
   }
   title_id.innerHTML = title;               // Set the header title
@@ -285,9 +285,9 @@ function checkBounds(regionSelect,bounds,is_submit){
   var min_lon = bounds.minlongitude;                         // Get the minimum longitude value
   var max_lon = bounds.maxlongitude;                         // Get the maximum longitude value
 
-  $("#latBounds").text(regionSelect + " bounds: " +
+  $("#lat-bounds").text(regionSelect + " bounds: " +
                               " ["+min_lat+","+max_lat+"]");         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
-  $("#lonBounds").text(regionSelect + " bounds: " +
+  $("#lon-bounds").text(regionSelect + " bounds: " +
                               " ["+min_lon+","+max_lon+"]");         // Set the longitude bound text for the webpage
 
   var lat = $("#lat").val();                                           // Get latitude value

@@ -51,7 +51,7 @@ function regionSelect(){
 
 function siteSelect(){
   var region = regionSelect();
-  var siteSelect = $("#testsite [class*='active']").attr("id");
+  var siteSelect = $("#testsite [class*='active']").children().attr("value");
   var site = region.features.find(function(f,i){
     return f.properties.locationId == siteSelect;
   });
@@ -79,7 +79,10 @@ function setTestSites(){
   );
   */
   
+
   var region = regionSelect();
+  
+  /*
   region.features.forEach(function(feature){
     var site   = feature.properties.location;
     var siteId = feature.properties.locationId;
@@ -87,9 +90,23 @@ function setTestSites(){
       $("<li>")
       .attr("value",siteId)
       .attr("id",siteId)
+      .attr("class","list-group-item")
       .text(site)
     );
   })
+  */
+  region.features.forEach(function(feature){ 
+    var site   = feature.properties.location;
+    var siteId = feature.properties.locationId;
+      siteOptions = siteOptions.add(
+        $("<label>").addClass("btn btn-default").append(
+          $("<input/>")
+            .attr("name","region")
+            .attr("value",siteId)
+            .attr("type","radio")
+        ).append(site)
+      )
+  });
   $("#testsite").empty().append(siteOptions);
   
   var regionId = region.properties.regionId;
@@ -97,6 +114,10 @@ function setTestSites(){
   checkBounds(regionId,bounds);
 
   
+
+
+
+
 }
 
 
@@ -107,6 +128,9 @@ function coordinates(){
   if (site != "default"){
     var lon = site.geometry.coordinates[0];
     var lat = site.geometry.coordinates[1];
+    var isChecked = $("#snap-grid").is(":checked");
+    lon = isChecked ? Math.round(lon*10.0)/10.0 : lon;
+    lat = isChecked ? Math.round(lat*10.0)/10.0 : lat;
     $("#lat").val(lat);
     $("#lon").val(lon);
   }else{ 
@@ -118,18 +142,20 @@ function coordinates(){
 
 
 function siteRadius() {
-  
-  var rDefault = 5;
+  var r = 5;
+  try {
+    if (d3.select(this).attr("class") == "active")
+      r = d3.select(this).attr("r");
+  }catch(err){
+    console.log(err);
+  }
   var e    = d3.event;
-  if (e == null || e == undefined){
-    var scale = rDefault;
-  }else{
+  if (e != null || e != undefined){
     var isSelected = "active" == d3.select(this)
       .attr("class");
-    var rDefault = isSelected ? rDefault*rScale : rDefault; 
-    var scale = e.transform != null ?  rDefault/e.transform.k :rDefault; 
+    r = e.transform != null ?  r/e.transform.k :r; 
   }
-  return scale;
+  return r;
 }
 
 
@@ -138,13 +164,19 @@ function siteData(){
   var region = regionSelect();    
   var lat = [];
   var lon = []; 
+  var isChecked = $("#snap-grid").is(":checked");
+
   region.features.forEach(function(d,i){
-    lon[i] = d.geometry.coordinates[0];
-    lat[i] = d.geometry.coordinates[1];
+    if (isChecked){
+      lon[i] = Math.round(d.geometry.coordinates[0]*10.0)/10.0;
+      lat[i] = Math.round(d.geometry.coordinates[1]*10.0)/10.0;
+    }else{
+      lon[i] = d.geometry.coordinates[0];
+      lat[i] = d.geometry.coordinates[1];
+    }
   });
   return d3.zip(lon,lat);
 }
-
 
 
 
@@ -266,8 +298,7 @@ function plotMap(){
   function plotUpdate(){
     var region = regionSelect();
     
-    console.log(path.bounds(region));
-    
+    //console.log(path.bounds(region));
     
     var height = plotHeight();
     var width  = plotWidth(); 
@@ -302,60 +333,86 @@ function plotMap(){
     
   }
         
+
+
   $(window).resize(function(){
     plotUpdate();
   });
 
 
-  $("#testsite-menu").click(function(){
-    $("#testsite li").hover(function(){
+
+  $("#snap-grid").change(function(){
+    updateSites();
+    coordinates();
+  });
+
+
+  $("#testsite").ready(function(){
+    /* 
+   $("#testsite label").mouseleave(function(){
+      console.log("mouse leave");
+      console.log(this); 
       var region = regionSelect();
       
       d3.select(".sites")
         .selectAll("circle")
-        .attr("r",siteRadius());
+        .attr("r",siteRadius);
       
-      var r = d3.select(".sites")
-        .selectAll("circle")
-        .attr("r");
-      
-      d3.select("#map svg")
+      var siteId = this.childNodes[0].value;
+
+      var siteSelected = d3.select("#map svg")
         .select(".sites")
         .selectAll("circle")
-        .attr("class","");
+        .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
+
+      var r = siteSelected
+        .attr("r");
+         
+      siteSelected
+        .attr("r",r/rScale);
+     
+   });
+    */
+    
+    $("#testsite label").mouseenter(function(){
+      $(this).off("click");
       
-      var siteId = this.id;
-      var site   = $(this).text();
+      var region = regionSelect();
+      
+      d3.select(".sites")
+        .selectAll("circle")
+        .attr("r",siteRadius);
+      
+      var siteId = this.childNodes[0].value;
 
-      if (siteId != "default"){
+      var siteSelected = d3.select("#map svg")
+        .select(".sites")
+        .selectAll("circle")
+        .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
 
-        var siteSelected = d3.select("#map svg")
+      var r = siteSelected
+        .attr("r");
+         
+      siteSelected
+        .attr("r",r*rScale);
+      
+      $(this).click(function(){
+        d3.select("#map svg")
           .select(".sites")
           .selectAll("circle")
-          .select(function(d,i){return region.features[i].properties.locationId == siteId ? this : null});
-
-        siteSelected
-          .attr("r",r*rScale)
-          .attr("class","active");
-       } 
-
-      
-      var r = d3.select(".sites")
-        .selectAll("circle")
-        .attr("r");
-      console.log(r);
-    
-      $(this).click(function(){
-        $("#testsite li").removeClass("active");
-        $("#menu-text").text(site);
+          .attr("class","");
         $(this).addClass("active");
+        siteSelected.attr("class","active");
         coordinates();
       });
+      
     });
   })
 
 
-  $("#region").change(function(){
+
+  $("#region").change(updateSites);
+  function updateSites(){
     plotUpdate(); 
     
     var region = regionSelect();
@@ -391,7 +448,7 @@ function plotMap(){
       .attr("id",function(d,i){return region.features[i].properties.locationId})
       .attr("fill","red");
 
-  });
+  }
   
 
   function siteOver(){
@@ -403,8 +460,12 @@ function plotMap(){
       return f.properties.locationId == siteId;
     });
     var siteName = site.properties.location;
-    var lon      = site.geometry.coordinates[0];
-    var lat      = site.geometry.coordinates[1];
+    
+    var isChecked = $("#snap-grid").is(":checked");
+    var lon = site.geometry.coordinates[0];
+    var lat = site.geometry.coordinates[1];
+    lon = isChecked ? Math.round(lon*10.0)/10.0 : lon;
+    lat = isChecked ? Math.round(lat*10.0)/10.0 : lat;
 
     var tooltipText = [
       "Site: "      + siteName,
