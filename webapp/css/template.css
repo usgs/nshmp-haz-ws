@@ -288,18 +288,16 @@ label.control-spacer {
 /**/
 /*................... Axes Buttons ..................*/
 
-.axes-btns{
-  text-align: center;
-}
 
 .axes-btns>.form-group{ 
-  margin: 0 5%;
+  margin: 0 2%;
   font-size: 12px;
 }
 
 .axes-btns>.form-group>.btn-group>.btn{
   width: 55px;
   margin: 5px 0;
+  text-align: center;
 }
 
 /*-------------- End: Axes Buttons ------------------*/

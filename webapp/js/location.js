@@ -67,34 +67,11 @@ function setTestSites(){
   $("#lat").val("");
   $("#lon").val("");
  
-  $("#menu-text").text("Please select ..."); 
 
   var siteOptions = $();
-  /*
-  .add(
-    $("<option>")
-    .attr("value","default")
-    .text("Please select ...")
-    .attr("data-trigger","hover")
-  );
-  */
   
 
   var region = regionSelect();
-  
-  /*
-  region.features.forEach(function(feature){
-    var site   = feature.properties.location;
-    var siteId = feature.properties.locationId;
-    siteOptions = siteOptions.add( 
-      $("<li>")
-      .attr("value",siteId)
-      .attr("id",siteId)
-      .attr("class","list-group-item")
-      .text(site)
-    );
-  })
-  */
   region.features.forEach(function(feature){ 
     var site   = feature.properties.location;
     var siteId = feature.properties.locationId;
@@ -143,19 +120,16 @@ function coordinates(){
 
 function siteRadius() {
   var r = 5;
-  try {
-    if (d3.select(this).attr("class") == "active")
-      r = d3.select(this).attr("r");
-  }catch(err){
-    console.log(err);
-  }
   var e    = d3.event;
+  var isSelected = false;
+  try {
+    isSelected = "active" == d3.select(this)
+    .attr("class");
+  }catch(err){}
   if (e != null || e != undefined){
-    var isSelected = "active" == d3.select(this)
-      .attr("class");
     r = e.transform != null ?  r/e.transform.k :r; 
   }
-  return r;
+  return isSelected ? r*rScale : r;
 }
 
 
@@ -210,7 +184,7 @@ function plotMap(){
   var width  = plotWidth();
   
 
-  var projection = d3.geoAlbersUsa()
+  var projection = d3.geoMercator()
     .scale(width)
     .translate([width/2,height/2])
     .fitSize([width,height],region);
@@ -245,22 +219,27 @@ function plotMap(){
         .attr("class","testSiteMap")
         .attr("width",svgWidth)
         .attr("height", svgHeight)
+        .call(zoom)
         .append("g")
           .attr("class","svgMainGroup")
           .attr("transform","translate("+margin.left+","+margin.top+")");
 
-    svg.call(zoom);
 
-    var mapUrl = "/nshmp-haz-ws/data/us.json";
-    d3.json(mapUrl,function(error,map){
-      if (error) throw error;
-      var geoJson = topojson.feature(map,map.objects.states); 
-      borders = topojson.mesh(map,map.objects.states,function(a,b){return a!==b;});
+    var americaMap = "/nshmp-haz-ws/data/americas.json";
+    var bordersMap = "/nshmp-haz-ws/data/us.json";
+
+    $.when(
+      $.getJSON(americaMap),
+      $.getJSON(bordersMap)
+    ).done(function(m,b){
+      borders = topojson.mesh(b[0],b[0].objects.states,function(a,b){return a!==b;});
+      map     = m[0];
+      
       
       svg.append("g")
         .attr("class","map")
         .selectAll("path")
-        .data(geoJson.features)
+        .data(map.features)
         .enter()
         .append("path")
         .attr("d",path)
@@ -287,7 +266,7 @@ function plotMap(){
         .attr("id",function(d,i){return region.features[i].properties.locationId})
         .on("mouseover",siteOver)
         .on("mouseout",siteOut);
-      
+      siteMenuSelect();
     });
  }
  plot();
@@ -331,6 +310,7 @@ function plotMap(){
       .attr("cx",function(d,i){return projection(d)[0]})
       .attr("cy",function(d,i){return projection(d)[1]});
     
+    siteMenuSelect();
   }
         
 
@@ -346,20 +326,12 @@ function plotMap(){
     coordinates();
   });
 
-
-  $("#testsite").ready(function(){
-    /* 
+  function siteMenuSelect(){
    $("#testsite label").mouseleave(function(){
-      console.log("mouse leave");
-      console.log(this); 
       var region = regionSelect();
       
-      d3.select(".sites")
-        .selectAll("circle")
-        .attr("r",siteRadius);
       
       var siteId = this.childNodes[0].value;
-
       var siteSelected = d3.select("#map svg")
         .select(".sites")
         .selectAll("circle")
@@ -368,23 +340,20 @@ function plotMap(){
       var r = siteSelected
         .attr("r");
          
-      siteSelected
-        .attr("r",r/rScale);
+      isActive = siteSelected.attr("class");
+      if (isActive != "active"){
+        siteSelected
+          .attr("r",r/rScale);
+      }
      
    });
-    */
     
     $("#testsite label").mouseenter(function(){
       $(this).off("click");
       
       var region = regionSelect();
       
-      d3.select(".sites")
-        .selectAll("circle")
-        .attr("r",siteRadius);
-      
       var siteId = this.childNodes[0].value;
-
       var siteSelected = d3.select("#map svg")
         .select(".sites")
         .selectAll("circle")
@@ -393,21 +362,27 @@ function plotMap(){
       var r = siteSelected
         .attr("r");
          
-      siteSelected
-        .attr("r",r*rScale);
+      isActive = siteSelected.attr("class");
+      if (isActive != "active"){
+        siteSelected
+          .attr("r",r*rScale);
+      }
       
       $(this).click(function(){
         d3.select("#map svg")
           .select(".sites")
           .selectAll("circle")
-          .attr("class","");
+          .attr("class","")
+          .attr("r",r);
         $(this).addClass("active");
-        siteSelected.attr("class","active");
+        siteSelected
+          .attr("class","active")
+          .attr("r",r*rScale);
         coordinates();
       });
       
     });
-  })
+  }
 
 
 

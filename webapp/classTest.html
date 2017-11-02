@@ -75,7 +75,7 @@
 
 var data = [
   [
-    [0,0.1],
+    [0.1,0.1],
     [1,0.5],
     [2,1.0],
     [3,1.5],
@@ -90,7 +90,7 @@ plotTest.data   = data;
 plotTest.labels = ["Test Label"];
 plotTest.xlabel = "X-label Test";
 plotTest.ylabel = "Y-label Test";
-plotTest.setPlotScale("log","linear");
+plotTest.setPlotScale("linear","log");
 plotTest.removeSmallValues(0);
 plotTest.plotData();
 plotTest.setLegend();

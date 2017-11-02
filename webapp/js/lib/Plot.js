@@ -1,7 +1,9 @@
 
 
 
-
+//#####################################################################################################
+//
+//................................. Plot Class ........................................................
 
 class Plot{
 
@@ -24,14 +26,14 @@ class Plot{
       .selectAll(".plot-panel").size();
     
     if (nplots > 0){
-      var colSize     = "col-lg-6";
+      var colSize = "col-lg-6";
       this.content
         .selectAll(".plot-panel")
         .each(function(d,i){
           d3.select(this).classed(colSize,true);
         });
     }else{
-      var colSize     = "col-lg-12";
+      var colSize = "col-lg-12";
     }
        
 
@@ -69,7 +71,7 @@ class Plot{
 
     this.xAxisBtns = this.xAxisForm
       .append("div")
-        .attr("class","btn-group btn-group-sm")
+        .attr("class","btn-group btn-group-sm ")
         .attr("id","x-axis-btns")
         .attr("data-toggle","buttons");
 
@@ -111,6 +113,32 @@ class Plot{
       .html("<input type='radio' name='yaxis' value='log'/> Log");
     //--------------------------------------------
 
+  /* 
+    //......... Add Data Button ..................
+    this.addDataBtn = this.footerBtns
+      .append("form")
+      .attr("class","form-group form-group-sm")
+      .style("float","right");
+       
+    this.addDataBtn
+      .append("label")
+      .attr("for","add-data-file")
+      .text("Add data");
+
+    this.addDataBtn
+      .append("input")
+      .attr("type","file")
+      .attr("name","add-data-file")
+      .attr("id","add-data-file");
+     
+    this.addDataBtn
+      .append("button")
+      .attr("class","btn btn-xs btn-default")
+      .attr("type","button")
+      .attr("id","add-data-btn")
+      .text("Submit"); 
+  */
+  
   }
 
   
@@ -172,7 +200,7 @@ class Plot{
   plotData(){
     this.plotPanel.classed("hidden",false);                 // Remove class hidden
     updatePlotSize(this); 
-  
+    
     //..................... Get Color Scheme ........................................
     var ndata = this.data.length;           // Get how many data sets there are
     if (ndata < 10){                        // If 10 or less data sets
@@ -184,28 +212,30 @@ class Plot{
     var color = this.color;
      
     //........................ Line Function ........................................
-    var line = d3.line()                              // Set the D3 line
+    this.line = d3.line()                              // Set the D3 line
       .defined(function(d,i) {return d[1] != null})   // Plot all but null values
       .x(function(d,i) {return xbounds(d[0])})       // Return X data scaled to width of plot 
       .y(function(d,i) {return ybounds(d[1])});      // Return Y data scaled to width of plot
     //------------------------------------------------------------------------------- 
   
     //........................ Get Values ...........................................
-    var yextremes = getYextremes(this);                //  Get the Y extreme values: min and max
-    var xextremes = getXextremes(this);                //  Get the X extreme values: min and max
+    this.yextremes = getYextremes(this);                //  Get the Y extreme values: min and max
+    this.xextremes = getXextremes(this);                //  Get the X extreme values: min and max
     
     var height = plotHeight(this);                       // Get the height of the plot element
     var width  = plotWidth(this);                        // Get the width of the plot element
     
-    var xbounds = getYscale(this);
-    xbounds.range([0,width])                         // Set range to width of plot element to scale data points
-      .domain(xextremes)                             // Set the min and max X values
+    this.xbounds = getXscale(this);
+    this.xbounds.range([0,width])                         // Set range to width of plot element to scale data points
+      .domain(this.xextremes)                             // Set the min and max X values
       .nice();
-    
-    var ybounds = getYscale(this);
-    ybounds.range([height,0])                        // Set the range inverted to make SVG Y axis from bottom instead of top 
-      .domain(yextremes)                             // Set the min and max Y values
+    var xbounds = this.xbounds;
+
+    this.ybounds = getYscale(this);
+    this.ybounds.range([height,0])                        // Set the range inverted to make SVG Y axis from bottom instead of top 
+      .domain(this.yextremes)                             // Set the min and max Y values
       .nice()
+    var ybounds = this.ybounds;
     //------------------------------------------------------------------------------- 
   
     //................. Create SVG Tag .......................
@@ -239,7 +269,7 @@ class Plot{
     //............ Plot Data Set as Paths ....................
     series_enter.append("path")                 // Append a path tag to the data class
       .attr("class","line")                     // Make new path tag have class of line
-      .attr("d",line)                           // Set the path using the line variable
+      .attr("d",this.line)                           // Set the path using the line variable
       .attr("stroke",function(d,i){return color[i];})   // Set the colors of each line
       .attr("stroke-width",3);          // Set line width 
     //--------------------------------------------------------
@@ -255,26 +285,26 @@ class Plot{
         .attr("fill", function(d,i){                // Set the fill color to match that of the line color
           return d3.select(this.parentNode.firstChild).style("stroke");   // Get color from correspond line 
         })
-        .attr("cx",line.x())                        // Set the X locations of the circles
-        .attr("cy",line.y())                        // Set the Y locations of the circles
+        .attr("cx",this.line.x())                        // Set the X locations of the circles
+        .attr("cy",this.line.y())                        // Set the Y locations of the circles
         .attr("r", 5)                     // Set the radius for each circle
     //--------------------------------------------------------
 
     
     //................. Setup the X Axis .....................
-    var x_axis = this.svg.append("g")                      // Create a new groupd under main svg group
+    this.xaxis = this.svg.append("g")                      // Create a new groupd under main svg group
       .attr("class","x-axis");                        // Make new group have class of x-axis
     
     // X Tick Marks     
-    x_axis.append("g")                                // Append a new group under x-axis class
+    this.xaxis.append("g")                                // Append a new group under x-axis class
       .attr("class","x-tick")                         // Set class to x-tick
       .attr("transform","translate(0,"+height+")")    // Put X axis on the bottom of the plot
       .style("font-size","10px")
-      .call(d3.axisBottom(xbounds));                 // Make tick marks
+      .call(d3.axisBottom(this.xbounds));                 // Make tick marks
    
     
     // X Label
-    x_axis.append("text")                             // Append a text tag to the x-axis class
+    this.xaxis.append("text")                             // Append a text tag to the x-axis class
       .attr("class","x-label")                        // Make text tag have class of x-label
       .attr("text-anchor","middle")                   // Set text to be centered
       .attr("alignment-baseline","middle")
@@ -287,17 +317,17 @@ class Plot{
 
 
     //................. Setup the Y Axis .....................
-    var y_axis = this.svg.append("g")          // Create a new group under main svg group
+    this.yaxis = this.svg.append("g")          // Create a new group under main svg group
       .attr("class","y-axis");            // Set class of new group to y-axis
 
     // Y Tick marks
-    y_axis.append("g")                    // Append a new group to y-axis class
+    this.yaxis.append("g")                    // Append a new group to y-axis class
       .attr("class","y-tick")             // Set class to y-tick
       .style("font-size","10px")
-      .call(d3.axisLeft(ybounds));       // Set tick marks
+      .call(d3.axisLeft(this.ybounds));       // Set tick marks
 
     // Y Label
-    y_axis.append("text")                 // Append a new text tag to y-axis class
+    this.yaxis.append("text")                 // Append a new text tag to y-axis class
       .attr("class","y-label")            // Set class to y-label
       .attr("transform","rotate(-90)")    // Rotate the text
       .attr("text-anchor","middle")       // Set to center text
@@ -307,6 +337,31 @@ class Plot{
       .text(this.ylabel);                      // Set the text of the label
     //--------------------------------------------------------
   
+    var plot = this; 
+    $(window).resize(function(){
+      plotResize(plot);
+    });
+ 
+ 
+  this.xAxisBtns.on("change",function(){console.log("Hello")});
+  /* 
+    //............................. X Axis Scale ....................................
+    this..onchange = function(){
+      x_scale = $("#"+xaxis_btn + " [class*=active] input").val();
+      x_bounds = get_xscale();
+      plot_resize(true);
+    }
+    //-------------------------------------------------------------------------------
+
+    //............................. Y Axis Scale ....................................
+    var yaxis_btn_id = document.getElementById(yaxis_btn);
+    yaxis_btn_id.onchange = function(){
+      y_scale = $("#"+yaxis_btn + " [class*=active] input").val();
+      y_bounds = get_yscale();
+      plot_resize(true);
+    }
+    //-------------------------------------------------------------------------------
+  */
   }
   
 
@@ -357,16 +412,20 @@ class Plot{
       .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
     
     // Set translation 
-    var translate = legend_location(this,height,width);
+    var translate = legendLocation(this,height,width);
     legend.attr("transform",translate)    // Position legend to bottom-left
   } 
   //--------------------------------------------------------
  
   
-
-  
-
 }
+
+//----------------------------------- End: Plot Class -------------------------------------------------
+//
+//#####################################################################################################
+
+
+
 
 
 //......................... Set Plot Panel Content Height .......................
@@ -382,7 +441,6 @@ function updatePlotSize(plot){
     .height;
   
   var pad = plotHeaderHeight + plotFooterHeight + "px";   // Get the total height of header and footer in px
-  console.log(pad); 
   var nplots = plot.content
     .selectAll(".panel-body").size();
   
@@ -487,7 +545,6 @@ function plotHeight(plot){
       .node()
       .getBoundingClientRect()
       .height;
-  console.log(height);
   height = height - plot.margin.top  - plot.margin.bottom;      // Subtract the top and bottom margins
   return height;                                                // Return plottable height
 }
@@ -508,7 +565,7 @@ function plotWidth(plot){
 
 
 //........................ Set Legend Location Function .........................
-function legend_location(plot,height,width){
+function legendLocation(plot,height,width){
   var legend_geom = plot.svg
     .select(".legend")   
     .node()
@@ -525,6 +582,91 @@ function legend_location(plot,height,width){
 } 
 //-------------------------------------------------------------------------------
 
+
+
+//........................ Plot Resize Function .................................
+function plotResize(plot,do_transition){
+  
+  updatePlotSize(plot);
+
+  var height = plotHeight(plot);                             // Get current plot height
+  var width = plotWidth(plot);                               // Get current plot width
+  
+  plot.plot.select("svg")                                      // Select the plot
+    .attr("width", width  + plot.margin.left + plot.margin.right)   // Update the svg width
+    .attr("height",height + plot.margin.top  + plot.margin.bottom); // Update the svg height
+
+  plot.xbounds                  // Reset the X range and domain
+    .range([0,width])
+    .domain(plot.xextremes)
+    .nice();
+
+  plot.ybounds
+    .range([height,0])      // Reset the Y range and domain
+    .domain(plot.yextremes)
+    .nice()
+
+  plot.svg
+    .select(".x-tick")                                   // Select the x-tick class
+    .attr("transform","translate(0,"+height+")")          // Update the X tick mark locations
+    .call(d3.axisBottom(plot.xbounds));                       // Update the X tick makrs with the X bounds
+
+  plot.svg
+    .select(".x-label")                                  // Select the x-label class
+    .attr("x",width/2.0)                                  // Update the X label X location                                
+    .attr("y",height+plot.margin.bottom/2+10);                 // Update the X label Y location
+
+  plot.svg
+    .select(".y-tick")                                   // Select the y-tick class
+    .call(d3.axisLeft(plot.ybounds));                         // Update the Y tick marks with Y bounds
+  
+  plot.svg
+    .select(".y-label")                                  // Select the y-label class
+    .attr("x",0-height/2)                                 // Update Y label X location
+    .attr("y",0-plot.margin.left/2-10);                        // Update Y label Y location
+  
+  var translate = legendLocation(plot,height,width);
+  var svg_legend = plot.svg.selectAll(".legend-entry");
+
+  var svg_line = plot.svg.selectAll(".line");
+  var svg_dot  = plot.svg.selectAll(".dot");
+  
+  if (do_transition){
+    svg_line.transition()
+      .duration(500)
+      .attr("d",plot.line);
+    
+    svg_dot.transition()
+      .duration(500)
+      .attr("cx",plot.line.x())
+      .attr("cy",plot.line.y());
+    
+    svg_legend.transition()
+      .duration(500)
+      .attr("transform",translate);
+    
+  }else{
+    svg_line.attr("d",plot.line);
+    svg_dot.attr("cx",plot.line.x())                                  // Update the X location of the circles
+      .attr("cy",plot.line.y());                                 // Update the Y location of the circles
+    svg_legend.attr("transform",translate);
+  }
+
+}
+//-------------------------------------------------------------------------------
+
+
+
+/*
+$("#add-data-btn").ready(function(){
+  $("#add-data-btn").on("click",function(){
+    var Fdata = $("#add-data-file").val(); 
+    Fdata = Fdata.split("\\").pop();
+    var reader = new FileReader();
+    console.log(reader.readAsText(Fdata));
+  })
+});
+*/
 
 
 /*
@@ -573,102 +715,10 @@ function plot_curves(plot_info){
 
 
 
-  //........................ Plot Resize Function .................................
-  function plot_resize(do_transition){
-    
-    var header_height = panel_id
-      .getElementsByClassName("panel-heading")[0]
-      .clientHeight;
-    var footer_height = panel_id
-      .getElementsByClassName("panel-footer")[0]
-      .clientHeight;
-    var pad = header_height + footer_height + "px";
-    plot_div_id.style.height = "calc(100% - "+pad+")";  
-
-    var height = plot_height();                             // Get current plot height
-    var width = plot_width();                               // Get current plot width
-    
-    var svg = d3.select("#"+plot_id + " svg")               // Select the plot
-      .attr("width", width  + margin.left + margin.right)   // Update the svg width
-      .attr("height",height + margin.top  + margin.bottom); // Update the svg height
-
-    x_bounds                  // Reset the X range and domain
-      .range([0,width])
-      .domain(x_extremes)
-      .nice();
-
-    y_bounds
-      .range([height,0])      // Reset the Y range and domain
-      .domain(y_extremes)
-      .nice()
-
-    svg.select(".x-tick")                                   // Select the x-tick class
-      .attr("transform","translate(0,"+height+")")          // Update the X tick mark locations
-      .call(d3.axisBottom(x_bounds));                       // Update the X tick makrs with the X bounds
-
-    svg.select(".x-label")                                  // Select the x-label class
-      .attr("x",width/2.0)                                  // Update the X label X location                                
-      .attr("y",height+margin.bottom/2+10);                 // Update the X label Y location
-
-    svg.select(".y-tick")                                   // Select the y-tick class
-      .call(d3.axisLeft(y_bounds));                         // Update the Y tick marks with Y bounds
-    
-    svg.select(".y-label")                                  // Select the y-label class
-      .attr("x",0-height/2)                                 // Update Y label X location
-      .attr("y",0-margin.left/2-10);                        // Update Y label Y location
-    
-    var translate = legend_location(height,width);
-    var svg_legend = svg.selectAll(".legend-entry");
-
-    var svg_line = svg.selectAll(".line");
-    var svg_dot  = svg.selectAll(".dot");
-    
-    if (do_transition){
-      svg_line.transition()
-        .duration(500)
-        .attr("d",line);
-      
-      svg_dot.transition()
-        .duration(500)
-        .attr("cx",line.x())
-        .attr("cy",line.y());
-      
-      svg_legend.transition()
-        .duration(500)
-        .attr("transform",translate);
-      
-    }else{
-      svg_line.attr("d",line);
-      svg_dot.attr("cx",line.x())                                  // Update the X location of the circles
-        .attr("cy",line.y());                                 // Update the Y location of the circles
-      svg_legend.attr("transform",translate);
-    }
-
-  }
-  //-------------------------------------------------------------------------------
   
 
 
 
-  //........................ Plot Function ........................................
-  function plot(){
-    
-
-
-  
-
-  }
-  plot();                             // Plot the curves
-  //-------------------------------------------------------------------------------
-
-
-
-  //..................... Redraw Plot On Window Resize ............................
-  $(window).resize(function(){
-    plot_resize();
-  });
-  //-------------------------------------------------------------------------------
- 
   //.................... Redraw Plot when Resize Button is Pressed ................ 
   resize_div_id.onclick = function(){
     panel_resize(resize_id);
@@ -681,23 +731,6 @@ function plot_curves(plot_info){
   //-------------------------------------------------------------------------------
 
   
-  //............................. X Axis Scale ....................................
-  var xaxis_btn_id = document.getElementById(xaxis_btn);
-  xaxis_btn_id.onchange = function(){
-    x_scale = $("#"+xaxis_btn + " [class*=active] input").val();
-    x_bounds = get_xscale();
-    plot_resize(true);
-  }
-  //-------------------------------------------------------------------------------
-
-  //............................. Y Axis Scale ....................................
-  var yaxis_btn_id = document.getElementById(yaxis_btn);
-  yaxis_btn_id.onchange = function(){
-    y_scale = $("#"+yaxis_btn + " [class*=active] input").val();
-    y_bounds = get_yscale();
-    plot_resize(true);
-  }
-  //-------------------------------------------------------------------------------
 
 
 
