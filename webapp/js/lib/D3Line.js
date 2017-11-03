@@ -1,154 +1,42 @@
+'use strict';
 
 
 
-//#####################################################################################################
-//
-//................................. Plot Class ........................................................
-
-class Plot{
+class D3Line extends D3View{
 
 
-  constructor(divContId){
-    let _this = this;    
-    console.log(_this);
-    this.data;
-    this.labels;
-    this.xlabel; 
-    this.ylabel;
-    this.xscale;
-    this.yscale;
-    this.margin = {top: 20,right: 20,bottom: 50, left: 50}; 
+  constructor(el){
+    let _this,
+        _svgD3,
+        _gD3,
+        _width,
+        _height;
+         
     
-    this.divContId = divContId;
+    _this = super(el);
 
-    this.content = d3.select("#"+divContId);
+    _this.data;
+    _this.labels;
+    _this.xlabel; 
+    _this.ylabel;
+    _this.xscale;
+    _this.yscale;
+    _this.margin = {top: 20,right: 20,bottom: 50, left: 50}; 
+  
     
-    var nplots = this.content
-      .selectAll(".plot-panel").size();
-    
-    if (nplots > 0){
-      var colSize = "col-lg-6";
-      this.content
-        .selectAll(".plot-panel")
-        .each(function(d,i){
-          d3.select(this).classed(colSize,true);
-        });
-    }else{
-      var colSize = "col-lg-12";
-    }
-       
-
-    this.plotPanel = this.content
-      .append("div")
-        .attr("class","plot-panel " + colSize)
-      .append("div")
-        .attr("class","panel panel-default hidden");
-    
-    this.plotHeader = this.plotPanel
-      .append("div")
-        .attr("class","panel-heading");
-
-    this.plot = this.plotPanel
-      .append("div")
-        .attr("class","panel-body");
-    
-    this.plotFooter = this.plotPanel
-      .append("div")
-        .attr("class","panel-footer");
-
-    this.footerBtns = this.plotFooter
-      .append("div")
-        .attr("class","form-inline axes-btns");
-
-    //............. X Axis Buttons ...............
-    this.xAxisForm = this.footerBtns
-      .append("div")
-        .attr("class","form-group form-group-sm");
-    
-    this.xAxisForm
-      .append("label")
-        .attr("for","x-axis-btns")
-        .text("X-axis");
-
-    this.xAxisBtns = this.xAxisForm
-      .append("div")
-        .attr("class","btn-group btn-group-sm ")
-        .attr("id","x-axis-btns")
-        .attr("data-toggle","buttons");
-
-    this.xAxisBtns
-      .append("label")
-        .attr("class","btn btn-sm btn-default")
-      .html("<input type='radio' name='xaxis' value='linear'/> Linear");
-    
-    this.xAxisBtns
-      .append("label")
-        .attr("class","btn btn-sm btn-default")
-      .html("<input type='radio' name='xaxis' value='log'/> Log");
-    //--------------------------------------------
-      
-    //............. Y Axis Buttons ...............
-    this.yAxisForm = this.footerBtns
-      .append("div")
-        .attr("class","form-group form-group-sm");
-    
-    this.yAxisForm
-      .append("label")
-        .attr("for","y-axis-btns")
-        .text("Y-axis");
-
-    this.yAxisBtns = this.yAxisForm
-      .append("div")
-        .attr("class","btn-group btn-group-sm")
-        .attr("id","y-axis-btns")
-        .attr("data-toggle","buttons");
-
-    this.yAxisBtns
-      .append("label")
-        .attr("class","btn btn-sm btn-default")
-      .html("<input type='radio' name='yaxis' value='linear'/> Linear");
-    
-    this.yAxisBtns
-      .append("label")
-        .attr("class","btn btn-sm btn-default")
-      .html("<input type='radio' name='yaxis' value='log'/> Log");
-    //--------------------------------------------
-
-  /* 
-    //......... Add Data Button ..................
-    this.addDataBtn = this.footerBtns
-      .append("form")
-      .attr("class","form-group form-group-sm")
-      .style("float","right");
-       
-    this.addDataBtn
-      .append("label")
-      .attr("for","add-data-file")
-      .text("Add data");
-
-    this.addDataBtn
-      .append("input")
-      .attr("type","file")
-      .attr("name","add-data-file")
-      .attr("id","add-data-file");
-     
-    this.addDataBtn
-      .append("button")
-      .attr("class","btn btn-xs btn-default")
-      .attr("type","button")
-      .attr("id","add-data-btn")
-      .text("Submit"); 
-  */
+    _
+    _svgD3 = d3.select(_this.plotBody)
+        .append("svg")
+        .attr("width",  width + this.margin.left + this.margin.right) 
+        .attr("height", height+ this.margin.top  + this.margin.bottom)
+        .attr("class","d3-plot")
+        .append("g")
+        .attr("transform","translate("+this.margin.left+","+ this.margin.top+")")
+  
+  
   
   }
-
   
-  //............. Set Plot Title ...........
-  setTitle(title){
-    this.plotHeader
-      .text(title); 
-  }
-  //---------------------------------------
   
   //........... Set Margin ................
   setMargin(margin){
@@ -195,6 +83,29 @@ class Plot{
   //-------------------------------------------------------------------------------
  
  
+  //......................... Get Plot Height Function .........................
+  static plotHeight(){
+    var height = plot.plot
+        .node()
+        .getBoundingClientRect()
+        .height;
+    height = height - plot.margin.top  - plot.margin.bottom;      
+    return height;                                               
+  }
+  //----------------------------------------------------------------------------
+
+
+
+//......................... Get Plot Width Function .............................
+function plotWidth(plot){
+  var width = plot.plot
+      .node()
+      .getBoundingClientRect()
+      .width;
+  width = width - plot.margin.top  - plot.margin.bottom;      // Subtract the top and bottom margins
+  return width;                                       // Return plottable width
+}
+//-------------------------------------------------------------------------------
   
   
   
@@ -249,7 +160,7 @@ class Plot{
         .attr("transform","translate("+this.margin.left+","+ this.margin.top+")")  // Position group by the top and left margins
 
      this.svg.append("g")
-      .attr("class","d3-tooltip");
+     // Position group by the top and left margins   .attr("class","d3-tooltip");
       
     //--------------------------------------------------------
     
@@ -421,9 +332,6 @@ class Plot{
   
 }
 
-//----------------------------------- End: Plot Class -------------------------------------------------
-//
-//#####################################################################################################
 
 
 
@@ -540,29 +448,6 @@ function getYextremes(plot){
 
 
 
-//......................... Get Plot Height Function ............................
-function plotHeight(plot){
-  var height = plot.plot
-      .node()
-      .getBoundingClientRect()
-      .height;
-  height = height - plot.margin.top  - plot.margin.bottom;      // Subtract the top and bottom margins
-  return height;                                                // Return plottable height
-}
-//-------------------------------------------------------------------------------
-
-
-
-//......................... Get Plot Width Function .............................
-function plotWidth(plot){
-  var width = plot.plot
-      .node()
-      .getBoundingClientRect()
-      .width;
-  width = width - plot.margin.top  - plot.margin.bottom;      // Subtract the top and bottom margins
-  return width;                                       // Return plottable width
-}
-//-------------------------------------------------------------------------------
 
 
 //........................ Set Legend Location Function .........................
