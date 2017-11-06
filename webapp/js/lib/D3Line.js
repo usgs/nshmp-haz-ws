@@ -8,9 +8,13 @@ class D3Line extends D3View{
   constructor(el){
     let _this,
         _svgD3,
-        _gD3,
+        _plotD3,
         _width,
-        _height;
+        _height,
+        _svgHeight,
+        _svgWidth,
+        _xD3,
+        _yD3;
          
     
     _this = super(el);
@@ -21,58 +25,55 @@ class D3Line extends D3View{
     _this.ylabel;
     _this.xscale;
     _this.yscale;
-    _this.margin = {top: 20,right: 20,bottom: 50, left: 50}; 
-  
     
-    _
+
+
     _svgD3 = d3.select(_this.plotBody)
         .append("svg")
-        .attr("width",  width + this.margin.left + this.margin.right) 
-        .attr("height", height+ this.margin.top  + this.margin.bottom)
-        .attr("class","d3-plot")
-        .append("g")
-        .attr("transform","translate("+this.margin.left+","+ this.margin.top+")")
-  
-  
-  
+        .attr("class","D3Line");
+        
+        
+    _plotD3 = _svgD3.append("g")
+        .attr("class","plot");
+
+    _plotD3.append("g")
+        .attr("class","all-data");
+        
+    _xD3 = _plotD3.append("g")
+        .attr("class","x-axis");
+    _xD3.append("g")
+        .attr("class","x-tick");
+    _xD3.append("text")
+        .attr("class","x-label");
+         
+    _yD3 = _plotD3.append("g")
+        .attr("class","y-axis");
+    _yD3.append("g")
+        .attr("class","y-tick");
+    _yD3.append("text")
+        .attr("class","y-label");
+
+    _plotD3.append("g")
+        .attr("class","legend"); 
+
+    _plotD3.append("g")
+        .attr("class","d3-tooltip"); 
+
+
+    _this.svg  = _this.el.querySelector(".D3Line");
+    _this.plot = _this.svg.querySelector(".plot");
+    _this.allData = _this.svg.querySelector(".all-data");
+    _this.xAxis = _this.svg.querySelector(".x-axis"); 
+    _this.yAxis = _this.svg.querySelector(".y-axis"); 
+    _this.legend = _this.svg.querySelector(".legend");
   }
   
-  
-  //........... Set Margin ................
-  setMargin(margin){
-    this.margin.top    = margin.top;
-    this.margin.right  = margin.right;
-    this.margin.bottom = margin.bottom;
-    this.margin.left   = margin.left;
-  }
-  //---------------------------------------
-
-  //............ Set Plot X/Y Scale ..................
-  setPlotScale(xscale,yscale){
-    this.xscale = xscale.toLowerCase();
-    this.yscale = yscale.toLowerCase();
-    
-    // X Axis Scale
-    this.xAxisBtns.selectAll("input").each(function(d,i){
-      var btn = d3.select(this);
-      if (btn.attr("value") == xscale) d3.select(this.parentNode).classed("active",true); 
-    });
-
-    // Y Axis Scale
-    this.yAxisBtns.selectAll("input").each(function(d,i){
-      var btn = d3.select(this);
-      if (btn.attr("value") == yscale) d3.select(this.parentNode).classed("active",true); 
-    });
-
-  }
-  //--------------------------------------------------
-
  
- 
-  //...................... Replace Y values with null ........................  
+  //....................... Replace Y values with null ......................... 
   removeSmallValues(limit){
     this.data.forEach(function(d,id){        
       d.forEach(function(dp,idp){                
+        console.log(dp[1]);
         if (dp[1] <= limit){                         
           dp[1] = null;
           dp[0] = null;
@@ -80,182 +81,215 @@ class D3Line extends D3View{
       })
     });
   }
-  //-------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
  
  
   //......................... Get Plot Height Function .........................
-  static plotHeight(){
-    var height = plot.plot
-        .node()
+  static plotHeight(obj,isSvg){
+    let _this,
+        _bodyHeight,
+        _titleHeight,
+        _footerHeight,
+        _options,
+        _height,
+        _panelMargin,
+        _margin;
+
+    _this = obj;
+    _options = _this.options;
+
+    _bodyHeight = _this.plotBody
         .getBoundingClientRect()
         .height;
-    height = height - plot.margin.top  - plot.margin.bottom;      
-    return height;                                               
+
+    _footerHeight = _this.plotFooter
+        .getBoundingClientRect()
+        .height;
+    
+    _titleHeight = _this.plotTitle
+        .getBoundingClientRect()
+        .height;
+   
+    _panelMargin = _footerHeight + _titleHeight;
+    _margin = _options.marginTop + _options.marginBottom;
+    
+    _height = isSvg ?  _bodyHeight - _panelMargin :
+        _bodyHeight - _panelMargin - _margin; 
+    
+    return _height;
   }
   //----------------------------------------------------------------------------
 
 
+  //......................... Get Plot Height Function .........................
+  static plotWidth(obj,isSvg){
+    let _this,
+        _bodyWidth,
+        _options,
+        _width,
+        _margin;
 
-//......................... Get Plot Width Function .............................
-function plotWidth(plot){
-  var width = plot.plot
-      .node()
-      .getBoundingClientRect()
-      .width;
-  width = width - plot.margin.top  - plot.margin.bottom;      // Subtract the top and bottom margins
-  return width;                                       // Return plottable width
-}
-//-------------------------------------------------------------------------------
-  
+    _this = obj;
+    _options = _this.options;
+
+    _bodyWidth = _this.plotBody
+        .getBoundingClientRect()
+        .width;
+
+    _margin = _options.marginLeft + _options.marginRight;
+    
+    _width = isSvg ?  _bodyWidth :
+        _bodyWidth - _margin; 
+    
+    return _width;
+  }
+  //----------------------------------------------------------------------------
+
   
   
   plotData(){
-    this.plotPanel.classed("hidden",false);                 // Remove class hidden
-    updatePlotSize(this); 
+    let _this,
+        _ndata,
+        _height,
+        _width,
+        _seriesEnter;
     
-    //..................... Get Color Scheme ........................................
-    var ndata = this.data.length;           // Get how many data sets there are
-    if (ndata < 10){                        // If 10 or less data sets
-       this.color  = d3.schemeCategory10;     // Get the color scheme with 10 colors
-    }else{                                  // If there are more than 10 data sets
-      this.color  = d3.schemeCategory20;     // Get the color scheme with 20 colors
-    } 
-    //-------------------------------------------------------------------------------
-    var color = this.color;
+    
+    _this = this;
+    _this.line;
+    _this.color;
+    _this.yExtremes;
+    _this.xExtremes;
+    _this.xBounds;
+    _this.yBounds;
      
-    //........................ Line Function ........................................
-    this.line = d3.line()                              // Set the D3 line
-      .defined(function(d,i) {return d[1] != null})   // Plot all but null values
-      .x(function(d,i) {return xbounds(d[0])})       // Return X data scaled to width of plot 
-      .y(function(d,i) {return ybounds(d[1])});      // Return Y data scaled to width of plot
-    //------------------------------------------------------------------------------- 
+    //..................... Get Color Scheme ...................................
+    _ndata = this.data.length;           
+    _this.color = _ndata < 10 ? d3.schemeCategory10 : d3.schemeCategory20;
+    //--------------------------------------------------------------------------
+     
+    //........................ Line Function ...................................
+    _this.line = d3.line()                            
+      .defined(function(d,i) {return d[1] != null})  
+      .x(function(d,i) {return _this.xBounds(d[0])})        
+      .y(function(d,i) {return _this.yBounds(d[1])});      
+    //-------------------------------------------------------------------------- 
   
-    //........................ Get Values ...........................................
-    this.yextremes = getYextremes(this);                //  Get the Y extreme values: min and max
-    this.xextremes = getXextremes(this);                //  Get the X extreme values: min and max
-    
-    var height = plotHeight(this);                       // Get the height of the plot element
-    var width  = plotWidth(this);                        // Get the width of the plot element
-    
-    this.xbounds = getXscale(this);
-    this.xbounds.range([0,width])                         // Set range to width of plot element to scale data points
-      .domain(this.xextremes)                             // Set the min and max X values
-      .nice();
-    var xbounds = this.xbounds;
 
-    this.ybounds = getYscale(this);
-    this.ybounds.range([height,0])                        // Set the range inverted to make SVG Y axis from bottom instead of top 
-      .domain(this.yextremes)                             // Set the min and max Y values
-      .nice()
-    var ybounds = this.ybounds;
-    //------------------------------------------------------------------------------- 
+    //........................ Get Values ......................................
+    _this.yExtremes = getYextremes(_this);
+    _this.xExtremes = getXextremes(_this);
+    
+    _height = D3Line.plotHeight(_this);
+    _width  = D3Line.plotWidth(_this);
+    
+    _this.xBounds = getXscale(_this);
+    _this.xBounds.range([0,_width])
+        .domain(_this.xExtremes)
+        .nice();
+
+    _this.yBounds = getYscale(this);
+    _this.yBounds.range([_height,0])
+        .domain(_this.yExtremes)
+        .nice();
+    //-------------------------------------------------------------------------- 
   
-    //................. Create SVG Tag .......................
-    this.svg = this.plot            // Select the plot element
-      .append("svg")                            // Append a svg tag
-        .attr("width",  width + this.margin.left + this.margin.right)             // Set the width of the svg tag
-        .attr("height", height+ this.margin.top  + this.margin.bottom)            // Set the height of the svg tag
-        .attr("class","d3-plot")                                        // Set class
-      .append("g")                                                      // Append a group
-        .attr("transform","translate("+this.margin.left+","+ this.margin.top+")")  // Position group by the top and left margins
-
-     this.svg.append("g")
-     // Position group by the top and left margins   .attr("class","d3-tooltip");
+    d3.select(_this.svg)
+        .attr("width",D3Line.plotWidth(_this,true))
+        .attr("height",D3Line.plotHeight(_this,true));
       
-    //--------------------------------------------------------
+    d3.select(_this.svg)
+        .select(".plot")
+        .attr("transform","translate("+
+            _this.options.marginLeft+","+ _this.options.marginTop+")")  
+      
     
-    var labels = this.labels; 
-    //.............. Create Group for Each Data Set .......... 
-    var series_enter = this.svg.append("g")          // Append a new group
-      .attr("class","all-data")                 // Make new group have a class of all-data
-      .selectAll("g")                           // Select all groups to create, inside the all-data class
-        .data(this.data)                      // Join data to groups 
-        .enter()                                // Get each new node 
-      .append("g")                              // Append a group for each data set
-        .attr("class","data")                   // Make new group have class of data
-        .attr("id", function(d,i){return labels[i]} )
-        .attr("fill","none")                    // Set group fill of none
+    //.............. Create Group for Each Data Set ............................ 
+    _seriesEnter = d3.select(_this.allData)
+        .selectAll("g")           
+        .data(_this.data)        
+        .enter()                
+        .append("g")              
+        .attr("class","data")   
+        .attr("id", function(d,i){return _this.labels[i]} )
+        .attr("fill","none")   
         .style("cursor","pointer");
-    //--------------------------------------------------------
+    //--------------------------------------------------------------------------
+    
 
-    //............ Plot Data Set as Paths ....................
-    series_enter.append("path")                 // Append a path tag to the data class
-      .attr("class","line")                     // Make new path tag have class of line
-      .attr("d",this.line)                           // Set the path using the line variable
-      .attr("stroke",function(d,i){return color[i];})   // Set the colors of each line
-      .attr("stroke-width",3);          // Set line width 
-    //--------------------------------------------------------
+    //..................... Plot Data Set as Paths .............................
+    _seriesEnter.append("path")
+        .attr("class","line") 
+        .attr("d",this.line)
+        .attr("stroke",function(d,i){return _this.color[i];}) 
+        .attr("stroke-width",_this.options.linewidth);
+    //--------------------------------------------------------------------------
 
-  
-    //............ Plot Data Set as Circles ..................
-    series_enter.selectAll("circle")                // Select all circles to create inside the data class
-      .data(function(d,i) {return d})               // Join the data to the circles
-      .enter()                                      // Get each new node
-      .filter(function(d,i){return d[1] != null})   // Filter out the Y values of null
-      .append("circle")                             // Append a new circle tag for each data point
-        .attr("class","dot")                        // Make new circle tag have class of dot
-        .attr("fill", function(d,i){                // Set the fill color to match that of the line color
-          return d3.select(this.parentNode.firstChild).style("stroke");   // Get color from correspond line 
+     
+    //...................... Plot Data Set as Circles ..........................
+    _seriesEnter.selectAll("circle")
+        .data(function(d,i) {return d})
+        .enter()
+        .filter(function(d,i){return d[1] != null})
+        .append("circle") 
+        .attr("class","dot") 
+        .attr("fill", function(d,i){
+          return d3.select(this.parentNode.firstChild).style("stroke");
         })
-        .attr("cx",this.line.x())                        // Set the X locations of the circles
-        .attr("cy",this.line.y())                        // Set the Y locations of the circles
-        .attr("r", 5)                     // Set the radius for each circle
-    //--------------------------------------------------------
-
+        .attr("cx",_this.line.x())
+        .attr("cy",_this.line.y())
+        .attr("r", _this.options.pointRadius)
+    //--------------------------------------------------------------------------
     
-    //................. Setup the X Axis .....................
-    this.xaxis = this.svg.append("g")                      // Create a new groupd under main svg group
-      .attr("class","x-axis");                        // Make new group have class of x-axis
     
+    //......................... Setup the X Axis ...............................
     // X Tick Marks     
-    this.xaxis.append("g")                                // Append a new group under x-axis class
-      .attr("class","x-tick")                         // Set class to x-tick
-      .attr("transform","translate(0,"+height+")")    // Put X axis on the bottom of the plot
-      .style("font-size","10px")
-      .call(d3.axisBottom(this.xbounds));                 // Make tick marks
+    d3.select(_this.xAxis)
+        .select(".x-tick")
+        .attr("transform","translate(0,"+_height+")") 
+        .style("font-size","10px")
+        .call(d3.axisBottom(_this.xBounds));
    
     
     // X Label
-    this.xaxis.append("text")                             // Append a text tag to the x-axis class
-      .attr("class","x-label")                        // Make text tag have class of x-label
-      .attr("text-anchor","middle")                   // Set text to be centered
-      .attr("alignment-baseline","middle")
-      .style("font-size","12px")
-      .attr("x",width/2)                              // X location of X label
-      .attr("y", height+this.margin.bottom/2+10)           // Y location of X label
-      .text(this.xlabel);                                  // Set the text of the label
-    //--------------------------------------------------------
+    d3.select(_this.xAxis)
+        .select(".x-label")
+        .attr("text-anchor","middle") 
+        .attr("alignment-baseline","middle")
+        .style("font-size","12px")
+        .attr("x", _width/2) 
+        .attr("y", _height+_this.options.marginBottom/2+10)
+        .text(this.xlabel);
+    //--------------------------------------------------------------------------
 
 
 
-    //................. Setup the Y Axis .....................
-    this.yaxis = this.svg.append("g")          // Create a new group under main svg group
-      .attr("class","y-axis");            // Set class of new group to y-axis
-
+    //....................... Setup the Y Axis .................................
     // Y Tick marks
-    this.yaxis.append("g")                    // Append a new group to y-axis class
-      .attr("class","y-tick")             // Set class to y-tick
-      .style("font-size","10px")
-      .call(d3.axisLeft(this.ybounds));       // Set tick marks
+    d3.select(_this.yAxis)
+        .select(".y-tick")
+        .style("font-size","10px")
+        .call(d3.axisLeft(_this.yBounds));
 
     // Y Label
-    this.yaxis.append("text")                 // Append a new text tag to y-axis class
-      .attr("class","y-label")            // Set class to y-label
-      .attr("transform","rotate(-90)")    // Rotate the text
-      .attr("text-anchor","middle")       // Set to center text
-      .style("font-size","12px")
-      .attr("x",0-height/2)               // Set X location
-      .attr("y",0-this.margin.left/2-10)       // Set Y location
-      .text(this.ylabel);                      // Set the text of the label
-    //--------------------------------------------------------
-  
+    d3.select(_this.yAxis)
+        .select(".y-label")
+        .attr("transform","rotate(-90)")
+        .attr("text-anchor","middle")
+        .style("font-size","12px")
+        .attr("x",0- _height/2)
+        .attr("y",0- _this.options.marginLeft/2-10)
+        .text(this.ylabel);
+    //--------------------------------------------------------------------------
+ 
+    /* 
     var plot = this; 
     $(window).resize(function(){
       plotResize(plot);
     });
  
  
-  this.xAxisBtns.on("change",function(){console.log("Hello")});
+    */
   /* 
     //............................. X Axis Scale ....................................
     this..onchange = function(){
@@ -276,7 +310,7 @@ function plotWidth(plot){
   */
   }
   
-
+  /*
   //................. Set the Legend .......................
   setLegend(){
     var labels = this.labels;
@@ -328,7 +362,7 @@ function plotWidth(plot){
     legend.attr("transform",translate)    // Position legend to bottom-left
   } 
   //--------------------------------------------------------
- 
+ */
   
 }
 
@@ -379,42 +413,47 @@ function updatePlotSize(plot){
 
 
 
-//........................ Get X Scale Function ..................................
-function getXscale(plot){
-  if (plot.xscale == "log"){
-    var xbounds = d3.scaleLog();       
-  }else if (plot.xscale == "linear"){
-    var xbounds = d3.scaleLinear();
+//........................ Get X Scale Function ................................
+function getXscale(obj){
+  let _this = obj.options;
+
+  if (_this.xAxisScale == "log"){
+    var xBounds = d3.scaleLog();       
+  }else if (_this.xAxisScale == "linear"){
+    var xBounds = d3.scaleLinear();
   }
-  return xbounds;
+  return xBounds;
 }
-//------------------------------------------------------------------------------- 
+//------------------------------------------------------------------------------ 
 
 
 
-//........................ Get Y Scale Function ..................................
-function getYscale(plot){
-  if (plot.yscale == "log"){
-    var ybounds = d3.scaleLog();      
-  }else if (plot.yscale == "linear"){
-    var ybounds = d3.scaleLinear();
+
+//........................ Get X Scale Function ................................
+function getYscale(obj){
+  let _this = obj.options;
+
+  if (_this.yAxisScale == "log"){
+    var yBounds = d3.scaleLog();       
+  }else if (_this.yAxisScale == "linear"){
+    var yBounds = d3.scaleLinear();
   }
-  return ybounds;
+  return yBounds;
 }
-//------------------------------------------------------------------------------- 
-
+//------------------------------------------------------------------------------ 
 
 
 //..................... Get X Min and Max Values Functions ......................
-function getXextremes(plot){
-  var x_max = d3.max(plot.data,function(ds,is){
+function getXextremes(_this){
+
+  var x_max = d3.max(_this.data,function(ds,is){
     var tmp = d3.max(ds,function(dp,ip){
       return dp[0];
     });
     return tmp;
   });
   
-  var x_min = d3.min(plot.data,function(ds,is){
+  var x_min = d3.min(_this.data,function(ds,is){
     var tmp = d3.min(ds,function(dp,ip){
       return dp[0];
     });
@@ -427,15 +466,15 @@ function getXextremes(plot){
 
 
 //.................... Get Y Min and Max Values  Functions ......................
-function getYextremes(plot){
-  var y_max = d3.max(plot.data,function(ds,is){
+function getYextremes(_this){
+  var y_max = d3.max(_this.data,function(ds,is){
     var tmp = d3.max(ds,function(dp,ip){
       return dp[1];
     });
     return tmp;
   });
   
-  var y_min = d3.min(plot.data,function(ds,is){
+  var y_min = d3.min(_this.data,function(ds,is){
     var tmp = d3.min(ds,function(dp,ip){
       return dp[1];
     });
