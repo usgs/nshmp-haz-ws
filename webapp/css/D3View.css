@@ -1,0 +1,103 @@
+
+
+
+
+
+
+.D3View{
+  position: relative;                                                           
+  height: 100%;
+  padding: 20px;
+}
+
+
+#content>.col-lg-6{
+  height: 50%;
+}
+
+#content>.col-lg-12{
+  height: 100%;
+}
+
+.D3View>.panel{
+  position: relative;                                                           
+  height: 100%;
+}
+
+
+/*............... Plot Panel Header ...............*/                           
+.D3View>.panel>.panel-heading{                                     
+  background-color: #f7f7f7;                                                    
+  font-family: 'HelveticaNeue-Light',sans-serif;                                
+  font-size: 1.25em;                                                            
+  height: 2.5em;
+  margin: 0;
+}                                                                               
+/*-------------------------------------------------*/                           
+                                                                                
+                                                                                
+/*............... Plot Panel Content ...............*/                          
+.D3View>.panel>.panel-body{                                        
+  position: relative;                                                           
+  height: calc(100% - 6.5em);
+  padding: 0;                                                                   
+}                                                                               
+/*-------------------------------------------------*/                           
+                                                                                
+                                                                                
+/*............... Plot Panel Footer ...............*/                           
+.D3View>.panel>.panel-footer{                                      
+  background-color: #f7f7f7;                                                    
+  position: absolute;                                                           
+  right: 0;                                                                     
+  bottom: 0;                                                                    
+  left: 0; 
+  padding: .25em 10px;
+  margin: 0;
+}                                                                               
+
+/*-------------------------------------------------*/                           
+                                                                                
+                                                                                
+
+
+.D3View .btn-left{
+  padding-left: 5px;
+}
+
+.D3View .btn-left .btn{
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+
+
+.d3View .btn-right .btn{
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+
+.D3View .btn-right{
+  padding-right: 5px;
+}
+
+.D3View .axes-btns label{
+  padding-right: 4px;
+}
+
+
+.D3View .axes-btns .form-group{
+  margin: 0;
+}
+
+
+.D3View .axes-btns .form-control {
+    width:auto;
+}
+
+.D3View .axes-btns .form-group {
+    display: inline-block;
+}
+
+
+
+
