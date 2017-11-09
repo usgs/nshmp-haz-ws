@@ -1,98 +1,176 @@
-
+'use strict'
 
 class Tooltip{
   
   //............ Contructor ...................
-  constructor(mapId,text){
-    this.mapId = mapId;
-    this.dy = parseFloat(10);
-    this.text = text;
+  constructor(plotObj,selection){
     
-    this.mouseCoord = d3.mouse(d3.select("#"+this.mapId+" svg g").node());
-    this.x = this.mouseCoord[0];
-    this.y = this.mouseCoord[1];
-  }
-  //-------------------------------------------
+    let _this,
+        _label,
+        _mouseCoord,
+        _tooltipGeom,
+        _plotGeom;
+    
+    
+    _this = this;
+    _this.offset;
+    _this.mouseX;
+    _this.xVal;
+    _this.yVal;
+    _this.padding;
+    _this.text;
+    _this.tooltipHeight;
+    _this.tooltipWidth;
+    _this.selection;
 
-  setTooltip(){
-    var svg = d3.select("#"+this.mapId+" svg")
-      .select("g");
+    _this.offset = parseFloat(plotObj.options.tooltipOffset);
+    _mouseCoord = d3.mouse(plotObj.plot);
+    _this.mouseX = _mouseCoord[0];
+    _this.mouseY = _mouseCoord[1];
+    _this.xVal = d3.select(selection).data()[0][0];                              
+    _this.yVal = d3.select(selection).data()[0][1];
+    _this.padding = parseFloat(plotObj.options.tooltipPadding);
+    _this.selection = selection;
+     
+    let _labelId = d3.select(selection.parentNode).attr("id");
+    let _iLabel = plotObj.labelIds.indexOf(_labelId);
+    _label = plotObj.labels[_iLabel];
     
-    var tooltip = svg.append("g")
-      .attr("class","d3-tooltip");
-    
-    tooltip.selectAll("text")                       
-      .data(this.text)                             
-      .enter()
-      .append("text")                                 
+    _this.text = [
+        plotObj.options.tooltipText[0] + ": " + _label,
+        plotObj.options.tooltipText[1] + ": " + _this.xVal,
+        plotObj.options.tooltipText[2] + ": " + _this.yVal
+      ];
+
+    d3.select(plotObj.tooltip)
+        .selectAll("text")                       
+        .data(_this.text)                             
+        .enter()
+        .append("text")                                 
         .attr("class","tooltip-text")                 
-        .style("visibility","hidden")                 
         .attr("font-size",11)                         
+        .style("visibility","hidden")
         .attr("y",function(d,i){return i*16} )        
         .attr("alignment-baseline","text-before-edge")
         .text(function(d,i){return d});               
 
-    var tooltip_geom   = tooltip.node()               
-      .getBoundingClientRect();
+    _tooltipGeom   = plotObj.tooltip               
+        .getBoundingClientRect();
 
-    var pad = parseFloat(10);
-    var tooltip_width  = parseFloat(tooltip_geom.width  + 2*pad); 
-    var tooltip_height = parseFloat(tooltip_geom.height + 2*pad); 
+    _this.tooltipWidth  = parseFloat(_tooltipGeom.width  + 2*_this.padding); 
+    _this.tooltipHeight = parseFloat(_tooltipGeom.height + 2*_this.padding); 
 
 
-    var plot_geom = svg.node()
+    _plotGeom = plotObj.svg
 			.getBoundingClientRect();
-		var plot_width  = plot_geom.width;                            // Get the width of the actual plot where the data is
-		var plot_height = plot_geom.height;                           // Get the height of the actual plot where the data is
+		_this.plotWidth  = _plotGeom.width; 
+		_this.plotHeight = _plotGeom.height;
 
+    Tooltip.tooltipLocation(_this);
 
-		var xper = this.x/plot_width;               // Get the X location in percentage
-		var yper = this.y/plot_height;              // Get the Y location in percentage
+    d3.select(plotObj.tooltip)
+        .append("rect")                     
+        .attr("class","tooltip-outline")   
+        .attr("height",_this.tooltipHeight)    
+        .attr("width",_this.tooltipWidth)     
+        .attr("transform",_this.rectTrans)   
+        .attr("stroke","#999")         
+        .attr("fill","white");        
 
-		if (xper < 0.30){                       // If the X location of the dot is < 10%, have box start to the right of the circle
-			var xrect = (this.x);
-			var xtext = (this.x+pad);
-		}else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
-			var xrect = (this.x-tooltip_width);
-			var xtext = (this.x-tooltip_width+pad);
-		}else{                                  // Center box location in X
-			var xrect = (this.x-tooltip_width/2);
-			var xtext = (this.x-tooltip_width/2+pad);
-		}
-
-		if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
-			var yrect = (this.y+this.dy);
-			var ytext = (this.y+this.dy+pad);
-		}else{                                  // Else put the box above the circle
-			var yrect = (this.y-tooltip_height-this.dy);
-			var ytext = (this.y-this.dy-tooltip_height+pad);
-		}
-
-		var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
-		var text_trans = "translate("+xtext+","+ytext+")";    // The translation for the tooltip text
-
-
-    tooltip.append("rect")                        // Create a rectangle
-      .attr("class","tooltip-outline")            // Add a class to the rectangle
-      .attr("height",tooltip_height)              // Set height
-      .attr("width",tooltip_width)                // Set width
-      .attr("transform",rect_trans)               // Translate the rectangle to correct position
-      .attr("stroke","#999")                      // Set stroke color
-      .attr("fill","white");                      // Set fill color
-
-    tooltip.selectAll(".tooltip-text")
+    d3.select(plotObj.tooltip)
+      .selectAll(".tooltip-text")
       .style("visibility","initial")
-      .attr("transform",text_trans)
+      .attr("transform",_this.textTrans)
       .raise();
 
-
+    
   }
 
 
-  setRadius(circle,scale){
-    var r = d3.select(circle).attr("r");
-    d3.select(circle)
-      .attr("r",scale*r);
+
+  static tooltipLocation(Tooltip){
+    let _this = Tooltip,
+        _xRect,
+        _xText,
+        _yText,
+        _yRect,
+        _xPer,
+        _yPer,
+        rectTrans,
+        textTrans;
+
+		_xPer = _this.mouseX/_this.plotWidth; 
+		_yPer = _this.mouseY/_this.plotHeight; 
+
+		if (_xPer < 0.30){              
+			_xRect = (_this.mouseX);
+			_xText = (_this.mouseX+_this.padding);
+		}else if (_xPer > 0.70){         
+			_xRect = (_this.mouseX-_this.tooltipWidth);
+			_xText = (_this.mouseX-_this.tooltipWidth+_this.padding);
+		}else{                               
+			_xRect = (_this.mouseX-_this.tooltipWidth/2);
+			_xText = (_this.mouseX-_this.tooltipWidth/2+_this.padding);
+		}
+
+		if (_yPer < 0.25){                   
+			_yRect = (_this.mouseY+_this.offset);
+			_yText = (_this.mouseY+_this.offset+_this.padding);
+		}else{                             
+			_yRect = (_this.mouseY-_this.tooltipHeight-_this.offset);
+			_yText = (_this.mouseY-_this.offset-_this.tooltipHeight+_this.padding);
+		}
+
+		rectTrans = "translate("+_xRect+","+_yRect+")"; 
+		textTrans = "translate("+_xText+","+_yText+")"; 
+  
+    _this.rectTrans = rectTrans;
+    _this.textTrans = textTrans;
+  }
+
+
+
+
+  increaseRadius(plotObj){
+    let _this = this;
+    let options = plotObj.options;
+
+    var r = d3.select(_this.selection).attr("r");
+    
+    if (r == options.pointRadiusSelection){
+      d3.select(_this.selection)
+        .attr("r",options.pointRadiusTooltip);
+    }else if (r == options.pointRadius){
+      d3.select(_this.selection)
+        .attr("r",options.pointRadiusSelection);
+    }
+  }
+
+  
+  decreaseRadius(plotObj){
+    let _this = this;
+    let options = plotObj.options;
+    var r = d3.select(_this.selection).attr("r");
+    
+    if (r == options.pointRadiusSelection){
+      d3.select(_this.selection)
+        .attr("r",options.pointRadius);
+    }else if (r == options.pointRadiusTooltip){
+      d3.select(_this.selection)
+        .attr("r",options.pointRadiusSelection);
+    }
+  }
+
+
+
+  destroy(plotObj){
+    for (let obj in this){
+      this[obj] = null;
+    }
+    
+    d3.select(plotObj.tooltip)
+        .selectAll("*")
+        .remove();
 
   }
 

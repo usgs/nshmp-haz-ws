@@ -50,7 +50,7 @@
 *        default 20
 *
 * @param options.marginTop {Integer}
-*        default 50
+*        default 60
 *
 * @param options.pointRadius {Integer}
 *        default 5
@@ -96,10 +96,10 @@ class D3View{
         _colSize,
         _elD3,
         _footerBtnsD3,
-        _plotPanelD3,
-        _plotTitleD3,
         _plotBodyD3,
         _plotFooterD3,
+        _plotPanelD3,
+        _plotTitleD3,
         _xAxisFormD3,
         _xAxisBtnsD3,
         _yAxisFormD3,
@@ -108,29 +108,33 @@ class D3View{
     _this = this;
     _this.el;
     _this.options;
-    _this.plotPanel;
-    _this.plotTitle;
     _this.plotBody;
     _this.plotFooter;
+    _this.plotPanel;
+    _this.plotTitle;
     //--------------------------------------------------------------------------
     
 
-    //............................ Default Options ............................
+    //............................ Default Options .............................
     _this.options = {
-      isTitleHidden: true,
       legendLocation: "topright",
       linewidth: 3,
+      linewidthSelection: 5,
       marginBottom: 50,
-      marginLeft: 50,
+      marginLeft: 60,
       marginRight: 20,
       marginTop: 20,
       pointRadius: 5,
+      pointRadiusSelection: 8,
+      pointRadiusTooltip: 10,
       title: "",
+      tooltipOffset: 10,
+      tooltipPadding: 10,
+      tooltipText: ["","X Value","Y Value"],
       xAxisScale: "log",
-      yAxisScale: "log",
+      yAxisScale: "log"
     };
-    console.log(_this);
-    //-------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     
      
     //..................... Bootstrap Panel for the Plot .......................
@@ -146,8 +150,7 @@ class D3View{
     // Create bootstrap panel header for plot title
     _plotTitleD3 = _plotPanelD3
         .append("div")
-        .attr("class","panel-heading")
-        .classed("hidden",_this.options.isTitleHidden);
+        .attr("class","panel-heading");
 
     // Create bootstrap panel body to hold plot
     _plotBodyD3 = _plotPanelD3
@@ -159,10 +162,14 @@ class D3View{
         .append("div")
         .attr("class","panel-footer");
 
+
+
+    /*
     // Create container for the buttons
     _footerBtnsD3 = _plotFooterD3
         .append("div")
         .attr("class","form-inline axes-btns");
+
     //--------------------------------------------------------------------------
 
 
@@ -184,16 +191,39 @@ class D3View{
 
     _xAxisBtnsD3
         .append("label")
-        .attr("class","btn btn-sm btn-default")
+        .attr("class","btn btn-sm btn-default x-axis-btns")
         .html("<input type='radio' name='xaxis' value='linear'/> Linear");
     
     _xAxisBtnsD3
         .append("label")
-        .attr("class","btn btn-sm btn-default active")
+        .attr("class","btn btn-sm btn-default x-axis-btns active")
         .html("<input type='radio' name='xaxis' value='log'/> Log");
     //--------------------------------------------------------------------------
 
       
+    //...................... Plot/Data Option Buttons ..........................
+    _xAxisFormD3 = _footerBtnsD3
+        .append("div")
+        .attr("class","form-group form-group-sm plot-data");
+    
+
+    _xAxisBtnsD3 = _xAxisFormD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm ")
+        .attr("id","plot-data-btns")
+        .attr("data-toggle","buttons");
+
+    _xAxisBtnsD3
+        .append("label")
+        .attr("class","btn btn-sm btn-default plot-data-btns active")
+        .html("<input type='radio' name='xaxis' value='plot'/> Plot");
+    
+    _xAxisBtnsD3
+        .append("label")
+        .attr("class","btn btn-sm btn-default plot-data-btns")
+        .html("<input type='radio' name='xaxis' value='data'/> Data");
+    //--------------------------------------------------------------------------
+
     //........................ Y Axis Buttons ..................................
     _yAxisFormD3 = _footerBtnsD3
         .append("div")
@@ -212,15 +242,90 @@ class D3View{
 
     _yAxisBtnsD3
         .append("label")
-        .attr("class","btn btn-sm btn-default")
+        .attr("class","btn btn-sm btn-default y-axis-btns")
         .html("<input type='radio' name='yaxis' value='linear'/> Linear");
     
     _yAxisBtnsD3
         .append("label")
-        .attr("class","btn btn-sm btn-default active")
+        .attr("class","btn btn-sm btn-default y-axis-btns active")
         .html("<input type='radio' name='yaxis' value='log'/> Log");
     //--------------------------------------------------------------------------
+    */
+
+
+
+
+    // Create container for the buttons
+    _footerBtnsD3 = _plotFooterD3
+        .append("div")
+        .attr("class","btn-group btn-group-justified axes-btns");
+
+    //--------------------------------------------------------------------------
+
+
+    //...................... X Axis Buttons ....................................
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm x-axis-btns btn-left")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default")
+        .html("<input type='radio' name='xaxis' value='linear'/> X: Linear");
+    
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm x-axis-btns btn-right")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default active")
+        .html("<input type='radio' name='xaxis' value='log'/>X: Log");
+    //--------------------------------------------------------------------------
+
+      
+    //...................... Plot/Data Option Buttons ..........................
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm plot-data-btns")
+        .style("padding-left","5px")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default active")
+        .html("<input type='radio' name='plot' value='plot'/> Plot");
+    
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm plot-data-btns")
+        .style("padding-right", "5px")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default")
+        .html("<input type='radio' name='xaxis' value='log'/> Data");
+
+    //--------------------------------------------------------------------------
+
+    //........................ Y Axis Buttons ..................................
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm y-axis-btns")
+        .style("padding-left","5px")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default")
+        .html("<input type='radio' name='yaxis' value='linear'/> Y: Linear");
+    
+    _footerBtnsD3
+        .append("div")
+        .attr("class","btn-group btn-group-sm y-axis-btns")
+        .style("padding-right", "5px")
+        .attr("data-toggle","buttons")
+        .append("label")
+        .attr("class","btn btn-sm btn-default active")
+        .html("<input type='radio' name='yaxis' value='log'/>Y: Log");
+    //--------------------------------------------------------------------------
   
+    
+
+    
     _this.el = el; 
     _this.plotBody   = el.querySelector(".panel-body");
     _this.plotFooter = el.querySelector(".panel-footer");
@@ -240,38 +345,11 @@ class D3View{
     _obj = this;
     _this = _obj.options;
 
-    _this.legendLocation = options.hasOwnProperty("legendLocation")
-        ? options.legendLocation : _this.legendLocation;
+    $.extend(_this,options);
 
-    _this.linewidth = options.hasOwnProperty("linewidth")
-        ? options.linewidth : _this.linewidth;
-
-    _this.marginBottom = options.hasOwnProperty("marginBottom")
-        ? options.marginBottom : _this.marginBottom;
-
-    _this.marginLeft = options.hasOwnProperty("marginLeft")
-        ? options.marginLeft : _this.marginLeft;
-         
-    _this.marginRight = options.hasOwnProperty("marginRight")
-        ? options.marginRight : _this.marginRight;
-
-    _this.marginTop = options.hasOwnProperty("marginTop")
-        ? options.marginTop : _this.marginTop;
-
-    _this.pointRadius = options.hasOwnProperty("pointRadius")
-        ? options.pointRadius : _this.pointRadius;
-
-    _this.title = options.hasOwnProperty("title")
-        ? options.title : _this.title;
-
-    _this.xAxisScale = options.hasOwnProperty("xAxisScale")
-        ? options.xAxisScale : _this.xAxisScale;
-
-    _this.yAxisScale = options.hasOwnProperty("yAxisScale")
-        ? options.yAxisScale : _this.yAxisScale;
-
-    if (_this.title != "") _this.isTitleHidden = false; 
     D3View.updateOptions(_obj); 
+  
+  
   }
   //------------------ End: Method Set Options ---------------------------------
 
@@ -287,12 +365,11 @@ class D3View{
     _this = obj;
     
     d3.select(_this.plotTitle)
-        .classed("hidden",_this.options.isTitleHidden)
         .text(_this.options.title);
       
     d3.select(_this.plotFooter)
-        .select(".x-axis")
-        .selectAll("input").each(function(){
+        .selectAll(".x-axis-btns")
+        .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
           _isActive = _input.attr("value") == _this.options.xAxisScale;
@@ -300,8 +377,8 @@ class D3View{
       });
     
     d3.select(_this.plotFooter)
-        .select(".y-axis")
-        .selectAll("input").each(function(){
+        .selectAll(".y-axis-btns")
+        .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
           _isActive = _input.attr("value") == _this.options.yAxisScale;
