@@ -87,25 +87,21 @@
 class D3View{
 
   //........................... D3View Constructor .............................
-  constructor(el){
+  constructor(containerEl){
 
 
     //.................................. Variables .............................
     let _this,
         // Variables
         _colSize,
+        _containerElD3,
         _elD3,
         _footerBtnsD3,
-        _plotBodyD3,
         _plotFooterD3,
-        _plotPanelD3,
-        _plotTitleD3,
-        _xAxisFormD3,
-        _xAxisBtnsD3,
-        _yAxisFormD3,
-        _yAxisBtnsD3;
+        _plotPanelD3;
 
     _this = this;
+    _this.containerEl;
     _this.el;
     _this.options;
     _this.plotBody;
@@ -127,6 +123,7 @@ class D3View{
       pointRadius: 5,
       pointRadiusSelection: 8,
       pointRadiusTooltip: 10,
+      showLegend: true,
       title: "",
       tooltipOffset: 10,
       tooltipPadding: 10,
@@ -138,128 +135,32 @@ class D3View{
     
      
     //..................... Bootstrap Panel for the Plot .......................
-    _elD3     = d3.select(el);
-    _colSize  = D3View.checkPlots();
+    _containerElD3 = d3.select(containerEl);
+    _colSize = D3View.checkPlots();
     
-    // Create bootstrap panel
-    _plotPanelD3 = d3.select(el)
+    _elD3 = _containerElD3
+        .append("div")
         .attr("class","D3View " + _colSize)
+        
+    _plotPanelD3 = _elD3
         .append("div")
         .attr("class","panel panel-default");
     
-    // Create bootstrap panel header for plot title
-    _plotTitleD3 = _plotPanelD3
+    _plotPanelD3
         .append("div")
         .attr("class","panel-heading");
 
-    // Create bootstrap panel body to hold plot
-    _plotBodyD3 = _plotPanelD3
+    _plotPanelD3
         .append("div")
         .attr("class","panel-body");
     
-    // Create bootstrap footer for X/Y scale buttons 
     _plotFooterD3 = _plotPanelD3
         .append("div")
         .attr("class","panel-footer");
 
-
-
-    /*
-    // Create container for the buttons
-    _footerBtnsD3 = _plotFooterD3
-        .append("div")
-        .attr("class","form-inline axes-btns");
-
-    //--------------------------------------------------------------------------
-
-
-    //...................... X Axis Buttons ....................................
-    _xAxisFormD3 = _footerBtnsD3
-        .append("div")
-        .attr("class","form-group form-group-sm x-axis");
-    
-    _xAxisFormD3
-        .append("label")
-        .attr("for","x-axis-btns")
-        .text("X-axis");
-
-    _xAxisBtnsD3 = _xAxisFormD3
-        .append("div")
-        .attr("class","btn-group btn-group-sm ")
-        .attr("id","x-axis-btns")
-        .attr("data-toggle","buttons");
-
-    _xAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default x-axis-btns")
-        .html("<input type='radio' name='xaxis' value='linear'/> Linear");
-    
-    _xAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default x-axis-btns active")
-        .html("<input type='radio' name='xaxis' value='log'/> Log");
-    //--------------------------------------------------------------------------
-
-      
-    //...................... Plot/Data Option Buttons ..........................
-    _xAxisFormD3 = _footerBtnsD3
-        .append("div")
-        .attr("class","form-group form-group-sm plot-data");
-    
-
-    _xAxisBtnsD3 = _xAxisFormD3
-        .append("div")
-        .attr("class","btn-group btn-group-sm ")
-        .attr("id","plot-data-btns")
-        .attr("data-toggle","buttons");
-
-    _xAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default plot-data-btns active")
-        .html("<input type='radio' name='xaxis' value='plot'/> Plot");
-    
-    _xAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default plot-data-btns")
-        .html("<input type='radio' name='xaxis' value='data'/> Data");
-    //--------------------------------------------------------------------------
-
-    //........................ Y Axis Buttons ..................................
-    _yAxisFormD3 = _footerBtnsD3
-        .append("div")
-        .attr("class","form-group form-group-sm y-axis");
-    
-    _yAxisFormD3
-        .append("label")
-        .attr("for","y-axis-btns")
-        .text("Y-axis");
-
-    _yAxisBtnsD3 = _yAxisFormD3
-        .append("div")
-        .attr("class","btn-group btn-group-sm")
-        .attr("id","y-axis-btns")
-        .attr("data-toggle","buttons");
-
-    _yAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default y-axis-btns")
-        .html("<input type='radio' name='yaxis' value='linear'/> Linear");
-    
-    _yAxisBtnsD3
-        .append("label")
-        .attr("class","btn btn-sm btn-default y-axis-btns active")
-        .html("<input type='radio' name='yaxis' value='log'/> Log");
-    //--------------------------------------------------------------------------
-    */
-
-
-
-
-    // Create container for the buttons
     _footerBtnsD3 = _plotFooterD3
         .append("div")
         .attr("class","btn-group btn-group-justified axes-btns");
-
     //--------------------------------------------------------------------------
 
 
@@ -299,9 +200,9 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
-        .html("<input type='radio' name='xaxis' value='log'/> Data");
-
+        .html("<input type='radio' name='xaxis' value='data'/> Data");
     //--------------------------------------------------------------------------
+
 
     //........................ Y Axis Buttons ..................................
     _footerBtnsD3
@@ -323,15 +224,17 @@ class D3View{
         .html("<input type='radio' name='yaxis' value='log'/>Y: Log");
     //--------------------------------------------------------------------------
   
-    
-
-    
-    _this.el = el; 
-    _this.plotBody   = el.querySelector(".panel-body");
-    _this.plotFooter = el.querySelector(".panel-footer");
-    _this.plotPanel  = el.querySelector(".panel");
-    _this.plotTitle  = el.querySelector(".panel-heading"); 
+   
+    //..................... DOM Elements .......................................
+    _this.el = _elD3.node(); 
+    _this.containerEl = containerEl;
+    _this.plotBody = _this.el.querySelector(".panel-body");
+    _this.plotFooter = _this.el.querySelector(".panel-footer");
+    _this.plotPanel = _this.el.querySelector(".panel");
+    _this.plotTitle = _this.el.querySelector(".panel-heading"); 
+    //--------------------------------------------------------------------------
   
+
   }
   //---------------------- End: D3View Constructor ----------------------------
 

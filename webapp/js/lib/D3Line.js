@@ -27,15 +27,22 @@ class D3Line extends D3View{
     _this.ylabel;
     _this.xscale;
     _this.yscale;
+    _this.observer;
+    _this.observerConfig;
     _this.table;
     
-
+    
+    // create an observer instance
+    _this.observer = new MutationObserver(function(mutations) {
+        D3Line.plotResize(_this);
+    });
+     
+    
     _table = d3.select(_this.plotBody)
         .append("div")
-        .attr("class","table-responsive data-table")
-        .style("display","none")
+        .attr("class","data-table hidden")
         .append("table")
-        .attr("class","table table-bordered")
+        .attr("class","table table-bordered table-condensed")
         .append("tbody")
         .attr("class","data-table-body");
     
@@ -72,6 +79,9 @@ class D3Line extends D3View{
         .attr("class","d3-tooltip"); 
 
 
+    
+    
+    
     _this.svg  = _this.el.querySelector(".D3Line");
     _this.plot = _this.svg.querySelector(".plot");
     _this.allData = _this.svg.querySelector(".all-data");
@@ -167,6 +177,7 @@ class D3Line extends D3View{
         _height,
         _width,
         _linesEnter,
+        _observerConfig,
         _dotsEnter,
         _seriesEnter;
     
@@ -180,6 +191,16 @@ class D3Line extends D3View{
     _this.yBounds;
     _this.labelIds;
 
+  
+    _observerConfig = { 
+        attributes: true, 
+        childList: true, 
+        characterData: true 
+      };
+    
+    _this.observer.observe(_this.el,_observerConfig);
+    
+    
     _this.labelIds = _this.labels.map(function(d,i){
       return d.replace(" ","_"); 
     });
@@ -379,6 +400,53 @@ class D3Line extends D3View{
 
 
     
+     
+     
+    d3.select(_this.plotFooter)
+        .selectAll(".plot-data-btns")
+        .on("click",function(d,i){
+          let selected = d3.select(this)
+              .select("input")
+              .attr("value");
+          
+          d3.select(_this.plotFooter)                                                         
+              .selectAll(".plot-data-btns")                                        
+              .select("label")                                                  
+              .classed("active",false);
+          
+
+          if (selected == "plot"){
+            d3.select(_this.table)
+                .classed("hidden",true);
+            d3.select(_this.svg)
+                .classed("hidden",false);
+            D3Line.plotResize(_this);
+          }else{
+            d3.select(_this.table)
+                .classed("hidden",false);
+            d3.select(_this.svg)
+                .classed("hidden",true);
+            D3Line.dataTable(_this);
+          }
+          
+        });
+    
+  
+    if (_this.options.showLegend) D3Line.setLegend(_this);
+    
+    D3Line.dataTable(_this); 
+  }
+  //---------------- End: Method Plot Data -------------------------------------
+
+  static dataTable(_this){
+    console.log("Ahh"); 
+    let _svgHeight = D3Line.plotHeight(_this,true);
+    let _svgWidth = D3Line.plotWidth(_this,true);
+
+    d3.select(_this.table)
+        .style("height",_svgHeight+"px")
+        .style("width",_svgWidth+"px");
+         
     d3.select(_this.tableBody)
         .selectAll("tr")
         .remove(); 
@@ -407,44 +475,12 @@ class D3Line extends D3View{
       })
      
     });
-     
-     
-    d3.select(_this.plotFooter)
-        .selectAll(".plot-data-btns")
-        .on("click",function(d,i){
-          let selected = d3.select(this)
-              .select("input")
-              .attr("value");
-          
-          d3.select(_this.plotFooter)                                                         
-              .selectAll(".plot-data-btns")                                        
-              .select("label")                                                  
-              .classed("active",false);
-          
-          console.log(selected);
-
-          if (selected == "plot"){
-            d3.select(_this.table)
-                .style("display","none");
-            d3.select(_this.svg)
-                .style("display","initial");
-            D3Line.plotResize(_this);
-          }else{
-            d3.select(_this.table)
-                .style("display","initial");
-            d3.select(_this.svg)
-                .style("display","none");
-          }
-          
-        });
-    
   }
-  //---------------- End: Method Plot Data -------------------------------------
-
-
-
 
   //...................... Plot Resize Function ................................
+  plotUpdate(){
+    D3Line.plotResize(this);
+  }
   static plotResize(obj,do_transition){
     let _this,
         _height,
@@ -462,6 +498,7 @@ class D3Line extends D3View{
     _this = obj;
     _options = _this.options;
 
+    D3Line.dataTable(_this);
 
     _height = D3Line.plotHeight(_this);
     _width = D3Line.plotWidth(_this); 
@@ -529,25 +566,29 @@ class D3Line extends D3View{
       _legend.attr("transform",_legendTranslate);
     }
 
+    if (_this.options.showLegend) D3Line.setLegend(_this);
   }
   //-------------------------------------------------------------------------------
 
 
 
   //................. Set the Legend .......................
-  setLegend(){
-    let _this,
-        _nleg,
+  static setLegend(_this){
+    let _nleg,
         _height,
         _width,
         _legend,
         _translate;
 
-    _this = this;
     _nleg = _this.labels.length-1; 
     _height = D3Line.plotHeight(_this);
     _width = D3Line.plotWidth(_this);
-     
+    
+    d3.select(_this.legend)
+      .selectAll(".legend-entry")
+      .remove();
+      
+       
     _legend = d3.select(_this.legend)
       .selectAll("g")
         .data(_this.labels)

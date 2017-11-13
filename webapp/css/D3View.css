@@ -101,3 +101,7 @@
 
 
 
+.D3View .data-table{
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
