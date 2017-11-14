@@ -4,7 +4,7 @@
 //................................. Load Include Files ....................................... 
 
 //.................................... Load Header and Set Title .............................
-$("#include-header").load("includes/header.html",function(){
+$("#include-header").load("/nshmp-haz-ws/includes/header.html",function(){
   var title_id = document.getElementById("header-title");         // Get the header title dom id
   var webapp = window.location.pathname.split("/").pop();         // Get the current file name
 
@@ -33,11 +33,11 @@ $("#include-header").load("includes/header.html",function(){
 //--------------------------------------------------------------------------------------------
 
 //................................... Load Footer ............................................
-$("#include-footer").load("includes/footer.html");         
+$("#include-footer").load("/nshmp-haz-ws/includes/footer.html");         
 //--------------------------------------------------------------------------------------------
 
 //................................... Load Spinner ...........................................
-$("#include-spinner").load("includes/spinner.html");        
+$("#include-spinner").load("/nshmp-haz-ws/includes/spinner.html");        
 //--------------------------------------------------------------------------------------------
 
 //--------------------------- End: Load Include Files ----------------------------------------

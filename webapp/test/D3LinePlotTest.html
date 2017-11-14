@@ -1,0 +1,216 @@
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ................... Head ................ -->
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"> 
+
+  <!-- Title is defined in common.js -->  
+  
+  <!-- ............. Bootstrap ............ -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <!-- ............. Bootstrap ............ -->
+
+   
+  <!-- ........... CSS Files ....... -->
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3View.css" type="text/css">
+  <!-- ........... CSS Files ....... -->
+ 
+</head>
+<!-- ................... Head ................ -->
+
+
+
+<!-- ................... Body ................ -->
+<body>
+
+
+  <!-- ........... Include Header ................ -->
+  <div id="include-header"></div>
+  <!-- ........... Include Header ................ -->
+  
+  <!-- ............. Include Footer .............. -->
+  <div id="include-footer"></div>  
+  <!-- ............. Include Footer .............. -->
+
+  <!-- .......... Include Spinner ................ -->
+  <div id="include-spinner"></div>
+  <!-- .......... Include Spinner ................ -->
+
+
+  <!-- ................................. Plots ............................................. -->
+  <div id="content" style="margin: 2em 0 3.5em 0">
+  </div> 
+  <!-- .............................. End: Plots ........................................... -->
+
+
+
+  <!-- ................. Import JavaScript .................... -->
+
+  <!-- ............ jQuery ................ -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- ............ jQuery ................ -->
+
+
+  <!-- ............. Bootstrap ............ -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- ............. Bootstrap ............ -->
+
+  <!-- ..... Application Specific JavaScript ......... -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="/nshmp-haz-ws/js/common.js"      type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3View.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws//js/lib/D3LinePlot.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/tooltip.js" type="text/javascript" charset="UTF-8"></script>
+  <!-- ..... Application Specific JavaScript ......... -->
+
+
+  <!-- ............... End: Import JavaScript ................. -->
+
+
+<script>
+
+var data = [
+  [
+    [0.1,0.5],
+    [1,0.2],
+    [2,1.5],
+    [3,2.5],
+    [4,0.8],
+    [5,1.0],
+    [6,0.5],
+    [7,0.2],
+    [8,1.5],
+    [9,2.5],
+    [10,1.8],
+    [11,0.8],
+    [12,1.5],
+    [13,1.5],
+    [14,2.8],
+    [15,1.5],
+    [16,0.5],
+    [17,2.2],
+    [18,1.5],
+    [19,2.5],
+    [20,0.8]
+
+  ],[
+    [0.1,0.5],
+    [1,0.2],
+    [2,1.2],
+    [3,0.8],
+    [4,1.1],
+    [5,1.2],
+    [6,0.5],
+    [7,1.2],
+    [8,1.8],
+    [9,0.9],
+    [10,2.0],
+    [11,1.0],
+    [12,0.9],
+    [13,1.1],
+    [14,0.9],
+    [15,2.1],
+    [16,0.9],
+    [17,2.5],
+    [18,1.9],
+    [19,1.8],
+    [20,0.9]
+  ],[
+    [0.1,0.5],
+    [1,1.2],
+    [2,1.0],
+    [3,0.5],
+    [4,1.8],
+    [5,1.5],
+    [6,0.8],
+    [7,1.2],
+    [8,1.8],
+    [9,0.5],
+    [10,2.8],
+    [11,1.8],
+    [12,0.5],
+    [13,1.2],
+    [14,0.8],
+    [15,2.5],
+    [16,0.2],
+    [17,2.2],
+    [18,1.0],
+    [19,1.5],
+    [20,0.5]
+  ]
+];
+
+var data2 = [
+  [
+    [0.1,0.1],
+    [1,0.5],
+    [2,1.0],
+    [3,1.5],
+    [4,1.0],
+    [5,0.5]
+  ],[
+    [0.1,0.2],
+    [1,0.9],
+    [2,1.2],
+    [3,0.5],
+    [4,0.2],
+    [5,0.8]
+  ]
+];
+
+
+var label  = ["label 1","label 2","label 3"];
+var label2 = ["label 1","label 2"];
+
+let el,
+    plot,
+    plot2,
+    options;
+
+el = document.querySelector("#content");
+plot = new D3Line(el);
+options = {
+  title: "Test Title",
+  xAxisScale: "linear",
+  yAxisScale: "log",
+  tooltipText: ["Label","X value","Y Value"]
+};
+
+plot.setOptions(options);
+
+plot.data = data;
+plot.labels = label; 
+plot.ylabel = "Y-label";
+plot.xlabel = "X-label";
+plot.plotData();
+
+
+$("#update-plot").ready(function(){
+  $("#update-plot").click(function(){
+    plot.data = plot.data == data ? data2 : data;
+    plot.labels = plot.labels == label ? label2 : label;
+    plot.plotData();  
+  })
+});
+
+
+
+
+
+</script>
+
+
+</body>
+<!-- ................... Body ................ -->
+
+
+
+
+</html>
+
