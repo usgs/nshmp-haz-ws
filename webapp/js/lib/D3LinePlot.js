@@ -1,8 +1,10 @@
 'use strict';
 
 
+//import 'Tooltip.js';
 
-class D3Line extends D3View{
+
+class D3LinePlot extends D3View{
 
 
   constructor(el){
@@ -34,7 +36,7 @@ class D3Line extends D3View{
     
     // create an observer instance
     _this.observer = new MutationObserver(function(mutations) {
-        D3Line.plotResize(_this);
+        D3LinePlot.plotResize(_this);
     });
      
     
@@ -49,7 +51,7 @@ class D3Line extends D3View{
 
     _svgD3 = d3.select(_this.plotBody)
         .append("svg")
-        .attr("class","D3Line");
+        .attr("class","D3LinePlot");
         
         
     _plotD3 = _svgD3.append("g")
@@ -82,7 +84,7 @@ class D3Line extends D3View{
     
     
     
-    _this.svg  = _this.el.querySelector(".D3Line");
+    _this.svg  = _this.el.querySelector(".D3LinePlot");
     _this.plot = _this.svg.querySelector(".plot");
     _this.allData = _this.svg.querySelector(".all-data");
     _this.xAxis = _this.svg.querySelector(".x-axis"); 
@@ -219,18 +221,18 @@ class D3Line extends D3View{
   
 
     //........................ Get Values ......................................
-    _this.yExtremes = D3Line.getYextremes(_this);
-    _this.xExtremes = D3Line.getXextremes(_this);
+    _this.yExtremes = D3LinePlot.getYextremes(_this);
+    _this.xExtremes = D3LinePlot.getXextremes(_this);
     
-    _height = D3Line.plotHeight(_this);
-    _width  = D3Line.plotWidth(_this);
+    _height = D3LinePlot.plotHeight(_this);
+    _width  = D3LinePlot.plotWidth(_this);
     
-    _this.xBounds = D3Line.getXscale(_this);
+    _this.xBounds = D3LinePlot.getXscale(_this);
     _this.xBounds.range([0,_width])
         .domain(_this.xExtremes)
         .nice();
 
-    _this.yBounds = D3Line.getYscale(this);
+    _this.yBounds = D3LinePlot.getYscale(this);
     _this.yBounds.range([_height,0])
         .domain(_this.yExtremes)
         .nice();
@@ -239,8 +241,8 @@ class D3Line extends D3View{
 
     //...................... Update SVG Size and Translate ..................... 
     d3.select(_this.svg)
-        .attr("width",D3Line.plotWidth(_this,true))
-        .attr("height",D3Line.plotHeight(_this,true));
+        .attr("width",D3LinePlot.plotWidth(_this,true))
+        .attr("height",D3LinePlot.plotHeight(_this,true));
       
     d3.select(_this.svg)
         .select(".plot")
@@ -335,7 +337,7 @@ class D3Line extends D3View{
 
     // Resize plot on window resize 
     $(window).resize(function(){
-      D3Line.plotResize(_this);
+      D3LinePlot.plotResize(_this);
     });
     
   
@@ -352,7 +354,7 @@ class D3Line extends D3View{
           _this.options.xAxisScale = d3.select(this)
               .select("input")
               .attr("value");
-          D3Line.plotResize(_this,true);
+          D3LinePlot.plotResize(_this,true);
         }); 
     
     // Rescale (log/linear) the Y axis on button click
@@ -369,7 +371,7 @@ class D3Line extends D3View{
               .select("input")
               .attr("value");
           
-          D3Line.plotResize(_this,true);
+          D3LinePlot.plotResize(_this,true);
         }); 
   
   
@@ -379,7 +381,7 @@ class D3Line extends D3View{
         .selectAll(".data")
         .on("click",function(d,i){ 
           var selectedId = d3.select(this).attr("id");
-          D3Line.makeSelection(_this,selectedId);        
+          D3LinePlot.makeSelection(_this,selectedId);        
         });
     //--------------------------------------------------------------------------
 
@@ -420,28 +422,28 @@ class D3Line extends D3View{
                 .classed("hidden",true);
             d3.select(_this.svg)
                 .classed("hidden",false);
-            D3Line.plotResize(_this);
+            D3LinePlot.plotResize(_this);
           }else{
             d3.select(_this.table)
                 .classed("hidden",false);
             d3.select(_this.svg)
                 .classed("hidden",true);
-            D3Line.dataTable(_this);
+            D3LinePlot.dataTable(_this);
           }
           
         });
     
   
-    if (_this.options.showLegend) D3Line.setLegend(_this);
+    if (_this.options.showLegend) D3LinePlot.setLegend(_this);
     
-    D3Line.dataTable(_this); 
+    D3LinePlot.dataTable(_this); 
   }
   //---------------- End: Method Plot Data -------------------------------------
 
   static dataTable(_this){
     console.log("Ahh"); 
-    let _svgHeight = D3Line.plotHeight(_this,true);
-    let _svgWidth = D3Line.plotWidth(_this,true);
+    let _svgHeight = D3LinePlot.plotHeight(_this,true);
+    let _svgWidth = D3LinePlot.plotWidth(_this,true);
 
     d3.select(_this.table)
         .style("height",_svgHeight+"px")
@@ -479,7 +481,7 @@ class D3Line extends D3View{
 
   //...................... Plot Resize Function ................................
   plotUpdate(){
-    D3Line.plotResize(this);
+    D3LinePlot.plotResize(this);
   }
   static plotResize(obj,do_transition){
     let _this,
@@ -498,26 +500,26 @@ class D3Line extends D3View{
     _this = obj;
     _options = _this.options;
 
-    D3Line.dataTable(_this);
+    D3LinePlot.dataTable(_this);
 
-    _height = D3Line.plotHeight(_this);
-    _width = D3Line.plotWidth(_this); 
+    _height = D3LinePlot.plotHeight(_this);
+    _width = D3LinePlot.plotWidth(_this); 
     
-    _svgHeight = D3Line.plotHeight(_this,true);
-    _svgWidth = D3Line.plotWidth(_this,true);
+    _svgHeight = D3LinePlot.plotHeight(_this,true);
+    _svgWidth = D3LinePlot.plotWidth(_this,true);
 
     _svg = d3.select(_this.svg);     
         
     _svg.attr("width", _svgWidth) 
         .attr("height",_svgHeight)
 
-    _this.xBounds = D3Line.getXscale(_this);
+    _this.xBounds = D3LinePlot.getXscale(_this);
     _this.xBounds
         .range([0,_width])
         .domain(_this.xExtremes)
         .nice();
 
-    _this.yBounds = D3Line.getYscale(_this);
+    _this.yBounds = D3LinePlot.getYscale(_this);
     _this.yBounds
         .range([_height,0])
         .domain(_this.yExtremes)
@@ -538,7 +540,7 @@ class D3Line extends D3View{
         .attr("x",0- _height/2)
         .attr("y",0- _options.marginLeft/2-10);
     
-    _legendTranslate = D3Line.legendLocation(_this,_height,_width);
+    _legendTranslate = D3LinePlot.legendLocation(_this,_height,_width);
     _legend = d3.select(_this.legend)
         .selectAll(".legend-entry");
 
@@ -566,7 +568,7 @@ class D3Line extends D3View{
       _legend.attr("transform",_legendTranslate);
     }
 
-    if (_this.options.showLegend) D3Line.setLegend(_this);
+    if (_this.options.showLegend) D3LinePlot.setLegend(_this);
   }
   //-------------------------------------------------------------------------------
 
@@ -581,8 +583,8 @@ class D3Line extends D3View{
         _translate;
 
     _nleg = _this.labels.length-1; 
-    _height = D3Line.plotHeight(_this);
-    _width = D3Line.plotWidth(_this);
+    _height = D3LinePlot.plotHeight(_this);
+    _width = D3LinePlot.plotWidth(_this);
     
     d3.select(_this.legend)
       .selectAll(".legend-entry")
@@ -627,7 +629,7 @@ class D3Line extends D3View{
       .attr("fill",function(d,i){return _this.color[_nleg-i]} );
     
     // Set translation 
-    _translate = D3Line.legendLocation(_this,_height,_width);
+    _translate = D3LinePlot.legendLocation(_this,_height,_width);
     _legend.attr("transform",_translate)  
   
   
@@ -636,7 +638,7 @@ class D3Line extends D3View{
         .selectAll(".legend-entry")
         .on("click",function(d,i){ 
           var selectedId = d3.select(this).attr("id"); 
-          D3Line.makeSelection(_this,selectedId);
+          D3LinePlot.makeSelection(_this,selectedId);
         });
     //--------------------------------------------------------------------------
     
@@ -757,7 +759,7 @@ class D3Line extends D3View{
         .attr("stroke-width");
     
     
-    D3Line.plotSelectionReset(_this);
+    D3LinePlot.plotSelectionReset(_this);
     
     if (linewidthCheck == _this.options.linewidthSelection){
       return;

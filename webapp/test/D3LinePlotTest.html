@@ -66,7 +66,7 @@
   <script src="/nshmp-haz-ws/js/common.js"      type="text/javascript" charset="UTF-8"></script>
   <script src="/nshmp-haz-ws/js/lib/D3View.js"  type="text/javascript" charset="UTF-8"></script>
   <script src="/nshmp-haz-ws//js/lib/D3LinePlot.js"  type="text/javascript" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/tooltip.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
 
@@ -174,7 +174,7 @@ let el,
     options;
 
 el = document.querySelector("#content");
-plot = new D3Line(el);
+plot = new D3LinePlot(el);
 options = {
   title: "Test Title",
   xAxisScale: "linear",
