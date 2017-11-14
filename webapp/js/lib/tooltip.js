@@ -24,7 +24,7 @@ class Tooltip{
     _this.selection;
 
     _this.offset = parseFloat(plotObj.options.tooltipOffset);
-    _mouseCoord = d3.mouse(plotObj.plot);
+    _mouseCoord = d3.mouse(plotObj.plotEl);
     _this.mouseX = _mouseCoord[0];
     _this.mouseY = _mouseCoord[1];
     _this.xVal = d3.select(selection).data()[0][0];                              
@@ -42,7 +42,7 @@ class Tooltip{
         plotObj.options.tooltipText[2] + ": " + _this.yVal
       ];
 
-    d3.select(plotObj.tooltip)
+    d3.select(plotObj.tooltipEl)
         .selectAll("text")                       
         .data(_this.text)                             
         .enter()
@@ -54,21 +54,21 @@ class Tooltip{
         .attr("alignment-baseline","text-before-edge")
         .text(function(d,i){return d});               
 
-    _tooltipGeom   = plotObj.tooltip               
+    _tooltipGeom   = plotObj.tooltipEl               
         .getBoundingClientRect();
 
     _this.tooltipWidth  = parseFloat(_tooltipGeom.width  + 2*_this.padding); 
     _this.tooltipHeight = parseFloat(_tooltipGeom.height + 2*_this.padding); 
 
 
-    _plotGeom = plotObj.svg
+    _plotGeom = plotObj.svgEl
 			.getBoundingClientRect();
 		_this.plotWidth  = _plotGeom.width; 
 		_this.plotHeight = _plotGeom.height;
 
     Tooltip.tooltipLocation(_this);
 
-    d3.select(plotObj.tooltip)
+    d3.select(plotObj.tooltipEl)
         .append("rect")                     
         .attr("class","tooltip-outline")   
         .attr("height",_this.tooltipHeight)    
@@ -77,7 +77,7 @@ class Tooltip{
         .attr("stroke","#999")         
         .attr("fill","white");        
 
-    d3.select(plotObj.tooltip)
+    d3.select(plotObj.tooltipEl)
       .selectAll(".tooltip-text")
       .style("visibility","initial")
       .attr("transform",_this.textTrans)
@@ -88,8 +88,8 @@ class Tooltip{
 
 
 
-  static tooltipLocation(Tooltip){
-    let _this = Tooltip,
+  static tooltipLocation(tooltip){
+    let _this = tooltip,
         _xRect,
         _xText,
         _yText,
@@ -168,7 +168,7 @@ class Tooltip{
       this[obj] = null;
     }
     
-    d3.select(plotObj.tooltip)
+    d3.select(plotObj.tooltipEl)
         .selectAll("*")
         .remove();
 

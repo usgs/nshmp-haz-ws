@@ -2,8 +2,9 @@
 
 
 
+
 /**
-* D3 View for plots
+* D3 view for plots
 *
 * Creates a Bootstrap panel element with a 
 * panel header, body, and footer.
@@ -13,8 +14,12 @@
 * The panel footer contains the X/Y scale buttons
 *
 *
+* @constructor(Element)
+*         selected container element to put all plots
+*
+*
 * @method checkPlots()
-*         static method that is called in the constructor
+*         static method to check if other plots exsists 
 *
 * @method setOption(options) {Object}
 *         method to set the plot options
@@ -23,15 +28,14 @@
 *         static method to update the options 
 *
 *
+* @param containerEl
+*        selected html element to construct all Bootstrap panels 
+*
 * @param el
-*        selected html element to contruct the Bootstap panel
+*        selected html element of the created Bootstap panel
 *
 * @param options {object}
 *        options for plot view
-*
-* @param options.isTitleHidden {Boolean}
-*        default true
-*        when true, plot panel heading is hidden
 *
 * @param options.legendLocation {String}
 *        default "topright"
@@ -94,7 +98,7 @@ class D3View{
     let _this,
         // Variables
         _colSize,
-        _containerElD3,
+        _containerD3,
         _elD3,
         _footerBtnsD3,
         _plotFooterD3,
@@ -103,11 +107,11 @@ class D3View{
     _this = this;
     _this.containerEl;
     _this.el;
-    _this.options;
-    _this.plotBody;
-    _this.plotFooter;
-    _this.plotPanel;
-    _this.plotTitle;
+    _this.options = {};
+    _this.plotBodyEl;
+    _this.plotFooterEl;
+    _this.plotPanelEl;
+    _this.plotTitleEL;
     //--------------------------------------------------------------------------
     
 
@@ -135,10 +139,10 @@ class D3View{
     
      
     //..................... Bootstrap Panel for the Plot .......................
-    _containerElD3 = d3.select(containerEl);
+    _containerD3 = d3.select(containerEl);
     _colSize = D3View.checkPlots();
     
-    _elD3 = _containerElD3
+    _elD3 = _containerD3
         .append("div")
         .attr("class","D3View " + _colSize)
         
@@ -163,7 +167,7 @@ class D3View{
         .attr("class","btn-group btn-group-justified axes-btns");
     //--------------------------------------------------------------------------
 
-
+    
     //...................... X Axis Buttons ....................................
     _footerBtnsD3
         .append("div")
@@ -186,8 +190,7 @@ class D3View{
     //...................... Plot/Data Option Buttons ..........................
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm plot-data-btns")
-        .style("padding-left","5px")
+        .attr("class","btn-group btn-group-sm plot-data-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
@@ -195,20 +198,18 @@ class D3View{
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm plot-data-btns")
-        .style("padding-right", "5px")
+        .attr("class","btn-group btn-group-sm plot-data-btns btn-right")
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
-        .html("<input type='radio' name='xaxis' value='data'/> Data");
+        .html("<input type='radio' name='plot' value='data'/> Data");
     //--------------------------------------------------------------------------
 
 
     //........................ Y Axis Buttons ..................................
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm y-axis-btns")
-        .style("padding-left","5px")
+        .attr("class","btn-group btn-group-sm y-axis-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
@@ -216,8 +217,7 @@ class D3View{
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm y-axis-btns")
-        .style("padding-right", "5px")
+        .attr("class","btn-group btn-group-sm y-axis-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
@@ -228,10 +228,10 @@ class D3View{
     //..................... DOM Elements .......................................
     _this.el = _elD3.node(); 
     _this.containerEl = containerEl;
-    _this.plotBody = _this.el.querySelector(".panel-body");
-    _this.plotFooter = _this.el.querySelector(".panel-footer");
-    _this.plotPanel = _this.el.querySelector(".panel");
-    _this.plotTitle = _this.el.querySelector(".panel-heading"); 
+    _this.plotBodyEl = _this.el.querySelector(".panel-body");
+    _this.plotFooterEl = _this.el.querySelector(".panel-footer");
+    _this.plotPanelEl = _this.el.querySelector(".panel");
+    _this.plotTitleEl = _this.el.querySelector(".panel-heading"); 
     //--------------------------------------------------------------------------
   
 
@@ -239,65 +239,13 @@ class D3View{
   //---------------------- End: D3View Constructor ----------------------------
 
 
-  
-  //................... Method: Set Options ...................................
-  setOptions(options){
-    let _obj,
-        _this; 
-    
-    _obj = this;
-    _this = _obj.options;
 
-    $.extend(_this,options);
-
-    D3View.updateOptions(_obj); 
-  
-  
-  }
-  //------------------ End: Method Set Options ---------------------------------
-
-  
-
-  //................... Method: Update Options .................................
-  static updateOptions(obj){
-    let _btn,
-        _input,
-        _isActive,
-        _this;
-
-    _this = obj;
-    
-    d3.select(_this.plotTitle)
-        .text(_this.options.title);
-      
-    d3.select(_this.plotFooter)
-        .selectAll(".x-axis-btns")
-        .select("input").each(function(){
-          _input = d3.select(this);
-          _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == _this.options.xAxisScale;
-          _btn.classed("active",_isActive)
-      });
-    
-    d3.select(_this.plotFooter)
-        .selectAll(".y-axis-btns")
-        .select("input").each(function(){
-          _input = d3.select(this);
-          _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == _this.options.yAxisScale;
-          _btn.classed("active",_isActive)
-      });
-  }
-  //---------------- End: Method Update Options --------------------------------
-
-
-  
-  //....................... Check How Many Plots Are There .....................
+  //................ Method: Check How Many Plots Are There ....................
   static checkPlots(){
-    let _nplots,
-        _colSize,
+    let _colSize,
         _colSize6,
-        _colSize12;
+        _colSize12,
+        _nplots;
 
     _colSize6  = "col-lg-6";
     _colSize12 = "col-lg-12";
@@ -320,14 +268,64 @@ class D3View{
       
     return _colSize;
   }
-  //----------------- End: Check How May Plots Are There -----------------------
+  //----------------- End Method: Check How May Plots Are There ----------------
 
 
+  
+  //................... Method: Set Options ...................................
+  setOptions(options){
+    let _this,
+        _view; 
+    
+    _view = this;
+    _this = _view.options;
+
+    $.extend(_this,options);
+    D3View.updateOptions(_view); 
+  }
+  //------------------ End Method: Set Options ---------------------------------
+
+  
+
+  //................... Method: Update Options .................................
+  static updateOptions(view){
+    let _this,
+        // variables
+        _btn,
+        _input,
+        _isActive;
+    
+    _this = view;
+   
+    // Update plot title 
+    d3.select(_this.plotTitleEl)
+        .text(_this.options.title);
+      
+    // Update X scale
+    d3.select(_this.plotFooterEl)
+        .selectAll(".x-axis-btns")
+        .select("input").each(function(){
+          _input = d3.select(this);
+          _btn = d3.select(this.parentNode);
+          _isActive = _input.attr("value") == _this.options.xAxisScale;
+          _btn.classed("active",_isActive)
+      });
+    
+    // Update Y scale
+    d3.select(_this.plotFooterEl)
+        .selectAll(".y-axis-btns")
+        .select("input").each(function(){
+          _input = d3.select(this);
+          _btn = d3.select(this.parentNode);
+          _isActive = _input.attr("value") == _this.options.yAxisScale;
+          _btn.classed("active",_isActive)
+      });
+  }
+  //---------------- End Method: Update Options --------------------------------
 
 
+  
 }
 
 
-
-
-
+//----------------------- End Class D3View -------------------------------------
