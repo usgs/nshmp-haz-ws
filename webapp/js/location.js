@@ -448,7 +448,7 @@ function plotMap(){
       "Longitude: " + lon
     ];
 
-    var tooltip = new Tooltip("map",tooltipText);
+    var tooltip = new MapTooltip("map",tooltipText);
     tooltip.setTooltip();
     tooltip.setRadius(this,rScale);
   }

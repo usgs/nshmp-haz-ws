@@ -1,38 +1,131 @@
 'use strict'
 
+
+
+
+/**
+* Tooltip class
+*
+* Creates a tooltip for the plot
+*
+*
+*
+* @constructor
+*       create the tooltip
+*       @argument plotObj {Object}
+*           plot object (D3LineView)
+*       
+*       @argument selectedEl {Element}
+*           DOM selection of the data point to put the tooltip
+*
+*
+*
+* @method decreaseRadius
+*         method to decrease the radius of a circle
+*         @argument plotObj {Object}
+*             the plot object (D3LinePlot)
+*
+* @method destroy
+*         method to remove the tooltip and variables
+*         @argument plotObj {Object}
+*             the plot object (D3LinePlot)
+*
+* @method increaseRadius
+*         method to increase the radius of a circle
+*         @argument plotObj {Object}
+*             the plot object (D3LinePlot)
+*
+* @method tooltipLocation 
+*         Static method to set the location of tooltip so it doesn't 
+*         extend over the panel
+*         @argument tooltip {Object}
+*             Tooltip object
+*
+*
+* 
+* @param mouseX {Number}
+*        the mouse location in X in pixels
+*
+* @param mouseY {number}
+*        the mouse location in Y in pixels
+*
+* @param offset {Number}
+*        tooltip offset from data point
+*        comes from plotObj.options.tooltipOffset
+*
+* @param padding {Number}
+*        tooltip text padding
+*        comes from plotObj.options.tooltipPadding
+*
+* @param selectedEl {Element}
+*        DOM selected element of the data point to put the tooltip
+*
+* @param text {Array<String>}
+*        array of 3 strings for the tooltip:
+*        ["Data Label","X Value Label","Y Value Label"]
+*        comes from plotObj.options.tooltipText
+*
+* @param tooltipHeight {Number}
+*        rectangle height to enclose tooltip
+*
+* @param tooltipWidth {Number}
+*        rectangle width to enclose tooltip
+*
+* @param xVal {Number}
+*        X value of data 
+*
+* @param yVal {Number}
+*        Y value of data
+*
+*/
+
 class Tooltip{
   
-  //............ Contructor ...................
-  constructor(plotObj,selection){
+  //...................... Tooltip Contructor ..................................
+  /**
+  * Create the tooltip
+  *
+  * @argument plotObj {Object}
+  *     plot object (D3LineView)
+  * 
+  * @argument selectedEl {Element}
+  *     DOM selection of the data point to put the tooltip
+  */
+  constructor(plotObj,selectedEl){
     
+    //......................... Variables ......................................
     let _this,
+        // Variables
         _label,
         _mouseCoord,
-        _tooltipGeom,
-        _plotGeom;
-    
+        _plotGeom,
+        _tooltipGeom;
     
     _this = this;
-    _this.offset;
     _this.mouseX;
-    _this.xVal;
-    _this.yVal;
+    _this.mouseY;
+    _this.offset;
     _this.padding;
+    _this.selectedEl;
     _this.text;
     _this.tooltipHeight;
     _this.tooltipWidth;
-    _this.selection;
-
-    _this.offset = parseFloat(plotObj.options.tooltipOffset);
+    _this.xVal;
+    _this.yVal;
+    
     _mouseCoord = d3.mouse(plotObj.plotEl);
     _this.mouseX = _mouseCoord[0];
     _this.mouseY = _mouseCoord[1];
-    _this.xVal = d3.select(selection).data()[0][0];                              
-    _this.yVal = d3.select(selection).data()[0][1];
+    _this.offset = parseFloat(plotObj.options.tooltipOffset);
     _this.padding = parseFloat(plotObj.options.tooltipPadding);
-    _this.selection = selection;
-     
-    let _labelId = d3.select(selection.parentNode).attr("id");
+    _this.selectedEl = selectedEl;
+    _this.xVal = d3.select(selectedEl).data()[0][0];                              
+    _this.yVal = d3.select(selectedEl).data()[0][1];
+    //-------------------------------------------------------------------------
+
+    
+    //........................ Set Tooltip Text ................................
+    let _labelId = d3.select(selectedEl.parentNode).attr("id");
     let _iLabel = plotObj.labelIds.indexOf(_labelId);
     _label = plotObj.labels[_iLabel];
     
@@ -41,7 +134,10 @@ class Tooltip{
         plotObj.options.tooltipText[1] + ": " + _this.xVal,
         plotObj.options.tooltipText[2] + ": " + _this.yVal
       ];
+    //--------------------------------------------------------------------------
 
+    
+    //................... Create Tooltip ....................................... 
     d3.select(plotObj.tooltipEl)
         .selectAll("text")                       
         .data(_this.text)                             
@@ -83,11 +179,99 @@ class Tooltip{
       .attr("transform",_this.textTrans)
       .raise();
 
-    
+    //--------------------------------------------------------------------------
+  
   }
+  //------------------------- End Constructor ----------------------------------
 
 
 
+  //................... Method: Decrease Circle Radius .........................
+  /**
+  * Method to decrease the radius of a circle
+  *
+  * @argument plotObj {Object}
+  *     the plot object (D3LinePlot)
+  *
+  */
+  decreaseRadius(plotObj){
+    let _this = this;
+    let options = plotObj.options;
+    var r = d3.select(_this.selectedEl).attr("r");
+    
+    if (r == options.pointRadiusSelection){
+      d3.select(_this.selectedEl)
+        .attr("r",options.pointRadius);
+    }else if (r == options.pointRadiusTooltip){
+      d3.select(_this.selectedEl)
+        .attr("r",options.pointRadiusSelection);
+    }
+  }
+  //---------------- End Method: Decrease Circle Radius ------------------------
+  
+  
+  
+  //.................... Method: Remove Tooltip ................................
+  /**
+  * Method to remove the tooltip and remove all variables 
+  *
+  * @argument plotObj {Object}
+  *     the plot object (D3LinePlot)
+  *
+  */
+  destroy(plotObj){
+    let _this,
+        _obj;
+    
+    _this = this;
+        
+    for (_obj in _this){
+      _this[_obj] = null;
+    }
+    
+    d3.select(plotObj.tooltipEl)
+        .selectAll("*")
+        .remove();
+  }
+  //--------------------- End Method: Remove Tooltip ---------------------------
+  
+  
+
+  //...................... Method: Increase Circle Radius ......................
+  /**
+  * Method to increase the radius of a circle
+  *
+  * @argument plotObj {Object}
+  *     the plot object (D3LinePlot)
+  *
+  */
+  increaseRadius(plotObj){
+    let _this = this;
+    let options = plotObj.options;
+
+    var r = d3.select(_this.selectedEl).attr("r");
+    
+    if (r == options.pointRadiusSelection){
+      d3.select(_this.selectedEl)
+        .attr("r",options.pointRadiusTooltip);
+    }else if (r == options.pointRadius){
+      d3.select(_this.selectedEl)
+        .attr("r",options.pointRadiusSelection);
+    }
+  }
+  //----------------- End Method: Increase Circle Radius -----------------------
+
+
+
+  //....................... Method: Tooltip Location ...........................
+  /**
+  * Static method to set the location of tooltip so it doesn't 
+  * extend over the panel
+  *
+  * @argument tooltip {Object}
+  *     Tooltip object
+  *
+  */
   static tooltipLocation(tooltip){
     let _this = tooltip,
         _xRect,
@@ -127,51 +311,9 @@ class Tooltip{
     _this.rectTrans = rectTrans;
     _this.textTrans = textTrans;
   }
+  //-------------------- End Method: Tooltip Location --------------------------
 
-
-
-
-  increaseRadius(plotObj){
-    let _this = this;
-    let options = plotObj.options;
-
-    var r = d3.select(_this.selection).attr("r");
-    
-    if (r == options.pointRadiusSelection){
-      d3.select(_this.selection)
-        .attr("r",options.pointRadiusTooltip);
-    }else if (r == options.pointRadius){
-      d3.select(_this.selection)
-        .attr("r",options.pointRadiusSelection);
-    }
-  }
-
-  
-  decreaseRadius(plotObj){
-    let _this = this;
-    let options = plotObj.options;
-    var r = d3.select(_this.selection).attr("r");
-    
-    if (r == options.pointRadiusSelection){
-      d3.select(_this.selection)
-        .attr("r",options.pointRadius);
-    }else if (r == options.pointRadiusTooltip){
-      d3.select(_this.selection)
-        .attr("r",options.pointRadiusSelection);
-    }
-  }
-
-
-
-  destroy(plotObj){
-    for (let obj in this){
-      this[obj] = null;
-    }
-    
-    d3.select(plotObj.tooltipEl)
-        .selectAll("*")
-        .remove();
-
-  }
 
 }
+
+//--------------------- End Tooltip Class --------------------------------------

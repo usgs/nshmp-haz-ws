@@ -1,0 +1,289 @@
+<!doctype html>
+
+
+<html lang="en">
+
+
+
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">        
+  <meta charset="UTF-8">                                                        
+                                                                                
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css"> 
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3View.css" type="text/css"> 
+
+  <style>
+    body{
+      height: 100%;
+      width: 100%;
+      margin: 3em 0px;
+    }
+  </style>
+
+</head>
+
+
+<body>
+
+  <div id="header">JavaScript Class Information </div>
+
+  <!-- ...................... D3 Line Plot Class ........................... -->
+  <div class="class col-sm-8 col-sm-offset-2" >
+    <div class="panel panel-default">
+
+      <div class="panel-heading">
+        <h2 class="panel-title"> Class: D3LinePlot </h2>
+      </div>
+      
+      <div class="panel-body">
+        <h5> CSS Imports: </h5>
+        <ul>
+          <li> /nshmp-haz-ws/css/D3View.css </li>
+          <li> https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css</li>
+        </ul>
+        
+        <br>
+        <h5> JavaScript Imports: </h5>
+        <ul>
+          <li> /nshmp-haz-ws/js/lib/D3View.js </li> 
+          <li> /nshmp-haz-ws/js/lib/D3LinePlot.js </li> 
+          <li> /nshmp-haz-ws/js/lib/Tooltip.js </li> 
+          <li>https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js </li>
+          <li>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js </li>
+          <li>https://d3js.org/d3.v4.min.js </li>
+        </ul>
+         
+        <br> 
+        <h5> Steps: </h5>
+        <ol>
+          <li> Create HTML container element where all plots can be made,
+               specifying the height and width of that container. </li>
+          <pre> &lt;div id="plots" style="height: 100%; width: 100%"&gt; &lt;/div&gt;   </pre>
+
+          <li> Select the container element in JavaScript </li>
+          <pre> let containerElement = document.getElementById("plots"); </pre>
+
+          <li> Instantiate D3LinePlot class with the selected container element </li>
+          <pre> let plot = new D3LinePlot(containerElement); </pre>
+          
+          <li> Create plot options {Object}</li>
+          <pre> let options = {
+    linewidth: 3,                                                             
+    linewidthSelection: 5,                                                    
+    marginBottom: 50,                                                         
+    marginLeft: 60,                                                           
+    marginRight: 20,                                                          
+    marginTop: 20,                                                            
+    pointRadius: 5,                                                           
+    pointRadiusSelection: 8,                                                  
+    pointRadiusTooltip: 10,                                                   
+    showLegend: true,                                                         
+    title: "",                                                                
+    tooltipOffset: 10,                                                        
+    tooltipPadding: 10,                                                       
+    tooltipText: ["","X Value","Y Value"],                                    
+    xAxisScale: "log",                                                        
+    yAxisScale: "log"                                                         
+  };    
+          </pre> 
+          
+          <li> Set the plot options </li>
+          <pre> plot.setOptions(options); </pre>
+          
+          <li> Set the X- and Y-label {String}</li>
+          <pre> plot.xLabel = "X Label"; <br> plot.yLabel = "Y Label"; </pre>
+
+          <li> Set the data {Array&lt;Array&lt;Number&gt;&gt;}</li>
+          <pre> let data = [
+    [
+      [x1,y1],
+      [x2,y2],
+      [x3,y3]
+    ],[
+      [x1,y1],
+      [x2,y2],
+      [x3,y3]
+    ]
+  ];
+
+ plot.data = data;
+        </pre>       
+        
+        <li> Set the data labels {Array&lt;String&gt;} </li>
+        <pre> let labels = ["Data set 1","Data set 2"];
+ plot.labels = labels;
+        </pre>
+
+        <li> Optional: remove values under certain limit {Number}</li>
+        <pre> let limit = 1e-14;
+ plot.removeSmallValues(limit);
+        </pre>
+
+
+        <li> Plot the data </li>
+        <pre> plot.plotData(); </pre>
+        
+        <li> Remove the plot </li>
+        <pre> plot.destroy(); </pre>
+
+        <ol>
+      </div>
+
+      <div class="panel-body">
+        <h5> Example: </h5>
+        <pre class="pre-scrollable">
+  &lt;html&gt;
+
+    &lt;head&gt;
+      &lt;link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"&gt;
+      &lt;link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css"&gt; 
+      &lt;link rel="stylesheet" href="/nshmp-haz-ws/css/D3View.css" type="text/css"&gt; 
+    &lt;/head
+   
+    &lt;body&gt;
+      &lt;div id="example-plot" style="height: 600px; width: 100%"&gt; &lt;/div&gt;   
+   
+      &lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"&gt;&lt;/script&gt;  
+      &lt;script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"&gt;&lt;/script&gt; 
+      &lt;script src="https://d3js.org/d3.v4.min.js"&gt;&lt;/script&gt; 
+      &lt;script src="/nshmp-haz-ws/js/lib/D3View.js"  type="text/javascript" charset="UTF-8"&gt;&lt;/script&gt; 
+      &lt;script src="/nshmp-haz-ws/js/lib/D3LinePlot.js"  type="text/javascript" charset="UTF-8"&gt;&lt;/script&gt; 
+      &lt;script src="/nshmp-haz-ws/js/lib/Tooltip.js" type="text/javascript" charset="UTF-8"&gt;&lt;/script&gt; 
+      
+      &lt;script&gt;
+
+      let containerEl = document.getElementById("example-plot");
+      let plot = new D3LinePlot(containerEl);
+      let options = {
+          title: "Response Spectra",
+          xAxisScale: "linear",
+          yAxisScale: "linear",
+          tooltipText: ["GMM","Period (s)","MGM (g)"]
+        };
+      plot.setOptions(options);
+      plot.xLabel = "Period (s)";
+      plot.yLabel = "Median Ground Motion (g)";
+
+      let data = [
+        [
+          [0.001,1.19],
+          [0.1,2.63],
+          [0.2,1.86],
+          [0.3,1.41],
+          [0.5,0.90],
+          [1.0,0.40],
+          [2.0,0.15]
+        ],[
+          [0.001,0.42], 
+          [0.02,0.45],
+          [0.03,0.61],
+          [0.05,0.68],
+          [0.1,0.84],
+          [0.2,0.81],
+          [0.3,0.64],
+          [0.5,0.40],
+          [1.0,0.16],
+          [2.0,0.05],
+          [3.0,0.02],
+          [5.0,0.009]
+        ]
+      ];
+      plot.data = data;
+
+      let labels = ["Frankel 2011","Pezeshk 2011"];
+      plot.labels = labels;
+
+      plot.plotData();
+      
+      &lt;/script&gt;
+
+    &lt;/body&gt;
+  
+  &lt;/html&gt;
+  
+        </pre>
+        <div id="example-plot" style="height: 600px; width: 100%"> </div> 
+      </div>
+    
+    </div> 
+  </div>
+  <!-- ...................... D3 Line Plot Class ........................... -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+                                                                                
+  <script src="https://d3js.org/d3.v4.min.js"></script>                         
+                                                                                
+  <script src="/nshmp-haz-ws/js/lib/D3View.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3LinePlot.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" type="text/javascript" charset="UTF-8"></script>
+
+
+
+
+<script>
+  let containerEl = document.getElementById("example-plot");
+  let plot = new D3LinePlot(containerEl);
+  let options = {
+      title: "Response Spectra",
+      xAxisScale: "linear",
+      yAxisScale: "linear",
+      tooltipText: ["GMM","Period (s)","MGM (g)"]
+    };
+  plot.setOptions(options);
+  plot.xLabel = "Period (s)";
+  plot.yLabel = "Median Ground Motion (g)";
+
+  let data = [
+    [
+      [0.001,1.19],
+      [0.1,2.63],
+      [0.2,1.86],
+      [0.3,1.41],
+      [0.5,0.90],
+      [1.0,0.40],
+      [2.0,0.15]
+    ],[
+      [0.001,0.42], 
+      [0.02,0.45],
+      [0.03,0.61],
+      [0.05,0.68],
+      [0.1,0.84],
+      [0.2,0.81],
+      [0.3,0.64],
+      [0.5,0.40],
+      [1.0,0.16],
+      [2.0,0.05],
+      [3.0,0.02],
+      [5.0,0.009]
+    ]
+  ];
+  plot.data = data;
+
+  let labels = ["Frankel 2011","Pezeshk 2011"];
+  plot.labels = labels;
+
+  plot.plotData();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+</body>

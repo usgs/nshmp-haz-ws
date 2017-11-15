@@ -14,18 +14,33 @@
 * The panel footer contains the X/Y scale buttons
 *
 *
-* @constructor(Element)
-*         selected container element to put all plots
+*
+* @constructor
+*         creates the html elements for the Bootstrap panel header, body,
+*         and footer.
+*         @argument containerEl {Element}
+*             DOM selected element to put the html elements
+*       
 *
 *
-* @method checkPlots()
-*         static method to check if other plots exsists 
-*
-* @method setOption(options) {Object}
+* @method checkPlots
+*         static method to check if other plots exsists
+*         @argument updateStatus {Boolean}
+*             if true will look and see if there is one plot and make sure
+*             it is col-lg-12.
+*         @return {String}
+*             string that is a Bootstrap column size, col-lg-6 or col-lg-12
+* 
+* @method setOption
 *         method to set the plot options
+*         @argument options {Object}
+*             object of options to set
 *
-* @method updateOptions(obj) {D3View object}
+* @method updateOptions
 *         static method to update the options 
+*         @argument view {Object}
+*             D3View object
+*
 *
 *
 * @param containerEl
@@ -91,6 +106,13 @@
 class D3View{
 
   //........................... D3View Constructor .............................
+  /**
+  * Creates the html elements for the Bootstrap panel header, body,
+  * and footer.
+  *
+  * @argument containerEl {Element}
+  *     DOM selected element to put the html elements
+  */
   constructor(containerEl){
 
 
@@ -102,7 +124,8 @@ class D3View{
         _elD3,
         _footerBtnsD3,
         _plotFooterD3,
-        _plotPanelD3;
+        _plotPanelD3,
+        _observerConfig;
 
     _this = this;
     _this.containerEl;
@@ -112,6 +135,7 @@ class D3View{
     _this.plotFooterEl;
     _this.plotPanelEl;
     _this.plotTitleEL;
+    
     //--------------------------------------------------------------------------
     
 
@@ -217,14 +241,14 @@ class D3View{
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm y-axis-btns btn-left")
+        .attr("class","btn-group btn-group-sm y-axis-btns btn-right")
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
         .html("<input type='radio' name='yaxis' value='log'/>Y: Log");
     //--------------------------------------------------------------------------
   
-   
+  
     //..................... DOM Elements .......................................
     _this.el = _elD3.node(); 
     _this.containerEl = containerEl;
@@ -235,17 +259,42 @@ class D3View{
     //--------------------------------------------------------------------------
   
 
+    //.......................... Mutation Observer ............................. 
+    _observerConfig = {                                                         
+        attributes: false,                                                       
+        childList: true,                                                        
+        characterData: false                                                     
+      };                                                                        
+                                                                                
+    _this.plotObserver = new MutationObserver(function(mutations){              
+      D3View.checkPlots(true);
+    });  
+    
+    _this.plotObserver.observe(containerEl,_observerConfig);                           
+    //--------------------------------------------------------------------------
+  
   }
   //---------------------- End: D3View Constructor ----------------------------
 
 
 
   //................ Method: Check How Many Plots Are There ....................
-  static checkPlots(){
+  /**
+  * static method to check if other plots exsists
+  *
+  * @argument updateStatus {Boolean}
+  *     if true will look and see if there is one plot and make sure
+  *     it is col-lg-12.
+  * @return {String}
+  *     string that is a Bootstrap column size, col-lg-6 or col-lg-12
+  *
+  */
+  static checkPlots(updateStatus){
     let _colSize,
         _colSize6,
         _colSize12,
-        _nplots;
+        _nplots,
+        _plotLimit;
 
     _colSize6  = "col-lg-6";
     _colSize12 = "col-lg-12";
@@ -253,7 +302,7 @@ class D3View{
     // Check if there are other plots
     _nplots = d3.selectAll(".D3View") 
         .size();
-
+    
     // If there are already plots, make them all bootstrap 6 column    
     if (_nplots > 0){
       _colSize = _colSize6;
@@ -265,6 +314,15 @@ class D3View{
     }else{
       _colSize = _colSize12;  
     }
+
+    // Update plot size to large when others are removed
+    if (updateStatus && _nplots == 1){
+      d3.selectAll(".D3View")
+          .each(function(d,i){
+            d3.select(this).classed(_colSize12,true);
+            d3.select(this).classed(_colSize6,false);
+          });
+    } 
       
     return _colSize;
   }
@@ -273,6 +331,13 @@ class D3View{
 
   
   //................... Method: Set Options ...................................
+  /**
+  * method to set the plot options
+  *
+  * @argument options {Object}
+  *     object of options to set
+  *
+  */
   setOptions(options){
     let _this,
         _view; 
@@ -288,6 +353,13 @@ class D3View{
   
 
   //................... Method: Update Options .................................
+  /**
+  * static method to update the options 
+  *
+  * @argument view {Object}
+  *     D3View object
+  *
+  */
   static updateOptions(view){
     let _this,
         // variables
