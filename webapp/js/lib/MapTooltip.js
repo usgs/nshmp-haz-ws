@@ -3,15 +3,15 @@
 class MapTooltip{
   
   //............ Contructor ...................
-  constructor(plotObj,text){
-    let _this = plotObj;
+  constructor(mapId,text){
     this.dy = parseFloat(10);
     this.text = text;
     
-    this.mouseCoord = d3.mouse(d3.select(_this.plot).node());
+    this.mouseCoord = d3.mouse(d3.select("#"+mapId).node());
     this.x = this.mouseCoord[0];
     this.y = this.mouseCoord[1];
  
+    this.mapId = mapId;
   }
   //-------------------------------------------
 
