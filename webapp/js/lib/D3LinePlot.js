@@ -914,6 +914,131 @@ class D3LinePlot extends D3View{
 
 
 
+  //..................... Method: Plot Redraw ..................................
+  /**
+  * Redraw the plot
+  *
+  * If doTransition is true will transition at 0.5 seconds,
+  * good for when changing the X/Y scale back and forth and 
+  * not good when just resizing the plot.
+  *
+  * Updates the following:
+  *   - SVG height and width
+  *   - X bounds
+  *   - Y bounds
+  *   - Y bounds
+  *   - X axis
+  *   - Y axis
+  *   - Lines
+  *   - Circles
+  *   - Legend
+  *   - Data table
+  *
+  * @argument linePlot {Object}
+  *     D3LinePlot object
+  * @argument doTransition {Boolean}
+  *     wheather to transition when redrawing plot
+  *
+  * @param xBounds {D3 scale}
+  *        udpates the xBounds
+  *        uses the d3 scale returned by getXScale method
+  *
+  * @param yBounds {D3 scale}
+  *        udpates the yBounds
+  *        uses the d3 scale returned by getYScale method
+  */
+  static plotRedraw(linePlot,doTransition){
+    let _legendD3,
+        _legendTranslate,
+        _options,
+        _plotHeight,
+        _plotWidth,
+        _svgD3,
+        _svgDotD3,
+        _svgHeight,
+        _svgLineD3,
+        _svgWidth;
+    
+    _options = linePlot.options;
+
+    D3LinePlot.dataTable(linePlot);
+
+    _plotHeight = D3LinePlot.plotHeight(linePlot);
+    _plotWidth = D3LinePlot.plotWidth(linePlot); 
+    
+    _svgHeight = D3LinePlot.plotHeight(linePlot,true);
+    _svgWidth = D3LinePlot.plotWidth(linePlot,true);
+
+    // Update svg height and width
+    _svgD3 = d3.select(linePlot.svgEl);     
+    _svgD3.attr("width", _svgWidth) 
+        .attr("height",_svgHeight)
+
+    // Update X bounds
+    linePlot.xBounds = D3LinePlot.getXScale(linePlot);
+    linePlot.xBounds
+        .range([0,_plotWidth])
+        .domain(D3LinePlot.getXExtremes(linePlot))
+        .nice();
+
+    // Update Y bounds
+    linePlot.yBounds = D3LinePlot.getYScale(linePlot);
+    linePlot.yBounds
+        .range([_plotHeight,0])
+        .domain(D3LinePlot.getYExtremes(linePlot))
+        .nice()
+    
+    // Update X axis
+    _svgD3.select(".x-tick")  
+        .attr("transform","translate(0,"+ _plotHeight +")")
+        .call(d3.axisBottom(linePlot.xBounds));
+    _svgD3.select(".x-label")             
+        .attr("x", _plotWidth/2.0)           
+        .attr("y", _plotHeight+_options.marginBottom/2+10);                 
+
+    // Update Y axis
+    _svgD3.select(".y-tick")                                   
+        .call(d3.axisLeft( linePlot.yBounds));
+    _svgD3.select(".y-label")  
+        .attr("x",0-_plotHeight/2)
+        .attr("y",0-_options.marginLeft/2-10);
+    
+    // Update legend
+    _legendTranslate = D3LinePlot
+        .legendLocation(linePlot,_plotHeight,_plotWidth);
+    _legendD3 = d3.select(linePlot.legendEl)
+        .selectAll(".legend-entry");
+
+    _svgLineD3 = _svgD3.selectAll(".line");
+    _svgDotD3  = _svgD3.selectAll(".dot");
+   
+    
+    // Update lines, circles, and legend
+    if (doTransition){
+      _svgLineD3.transition()
+          .duration(500)
+          .attr("d",linePlot.line);
+      _svgDotD3.transition()
+          .duration(500)
+          .attr("cx",linePlot.line.x())
+          .attr("cy",linePlot.line.y());
+      _legendD3.transition()
+          .duration(500)
+          .attr("transform",_legendTranslate);
+    }else{
+      _svgLineD3.attr("d",linePlot.line);
+      _svgDotD3.attr("cx",linePlot.line.x())  
+          .attr("cy",linePlot.line.y());     
+      _legendD3.attr("transform",_legendTranslate);
+    }
+
+    // Update legend
+    if (linePlot.options.showLegend) D3LinePlot.setLegend(linePlot);
+  }
+  //---------------- End Method: Plot Redraw -----------------------------------
+
+
+
   //................. Method: Highlight a Selected Line ........................
   /**
   * Increases the linewidth and circle radius 
@@ -1025,127 +1150,6 @@ class D3LinePlot extends D3View{
 
 
 
-  //...................... Plot Resize Function ................................
-  /**
-  * Redraw the plot
-  *
-  * If doTransition is true will transition at 0.5 seconds,
-  * good for when changing the X/Y scale back and forth and 
-  * not good when just resizing the plot.
-  *
-  * Updates the following:
-  *   - SVG height and width
-  *   - X bounds
-  *   - Y bounds
-  *   - Y bounds
-  *   - X axis
-  *   - Y axis
-  *   - Lines
-  *   - Circles
-  *   - Legend
-  *   - Data table
-  *
-  * @argument linePlot {Object}
-  *     D3LinePlot object
-  * @argument doTransition {Boolean}
-  *     wheather to transition when redrawing plot
-  *
-  * @param xBounds {D3 scale}
-  *        udpates the xBounds
-  *        uses the d3 scale returned by getXScale method
-  *
-  * @param yBounds {D3 scale}
-  *        udpates the yBounds
-  *        uses the d3 scale returned by getYScale method
-  */
-  static plotRedraw(linePlot,doTransition){
-    let _legendD3,
-        _legendTranslate,
-        _options,
-        _plotHeight,
-        _plotWidth,
-        _svgD3,
-        _svgDotD3,
-        _svgHeight,
-        _svgLineD3,
-        _svgWidth;
-    
-    _options = linePlot.options;
-
-    D3LinePlot.dataTable(linePlot);
-
-    _plotHeight = D3LinePlot.plotHeight(linePlot);
-    _plotWidth = D3LinePlot.plotWidth(linePlot); 
-    
-    _svgHeight = D3LinePlot.plotHeight(linePlot,true);
-    _svgWidth = D3LinePlot.plotWidth(linePlot,true);
-
-    // Update svg height and width
-    _svgD3 = d3.select(linePlot.svgEl);     
-    _svgD3.attr("width", _svgWidth) 
-        .attr("height",_svgHeight)
-
-    // Update X bounds
-    linePlot.xBounds = D3LinePlot.getXScale(linePlot);
-    linePlot.xBounds
-        .range([0,_plotWidth])
-        .domain(linePlot.xExtremes)
-        .nice();
-
-    // Update Y bounds
-    linePlot.yBounds = D3LinePlot.getYScale(linePlot);
-    linePlot.yBounds
-        .range([_plotHeight,0])
-        .domain(linePlot.yExtremes)
-        .nice()
-    
-    // Update X axis
-    _svgD3.select(".x-tick")  
-        .attr("transform","translate(0,"+ _plotHeight +")")
-        .call(d3.axisBottom(linePlot.xBounds));
-    _svgD3.select(".x-label")             
-        .attr("x", _plotWidth/2.0)           
-        .attr("y", _plotHeight+_options.marginBottom/2+10);                 
-
-    // Update Y axis
-    _svgD3.select(".y-tick")                                   
-        .call(d3.axisLeft( linePlot.yBounds));
-    _svgD3.select(".y-label")  
-        .attr("x",0-_plotHeight/2)
-        .attr("y",0-_options.marginLeft/2-10);
-    
-    // Update legend
-    _legendTranslate = D3LinePlot
-        .legendLocation(linePlot,_plotHeight,_plotWidth);
-    _legendD3 = d3.select(linePlot.legendEl)
-        .selectAll(".legend-entry");
-
-    _svgLineD3 = _svgD3.selectAll(".line");
-    _svgDotD3  = _svgD3.selectAll(".dot");
-    
-    // Update lines, circles, and legend
-    if (doTransition){
-      _svgLineD3.transition()
-          .duration(500)
-          .attr("d",linePlot.line);
-      _svgDotD3.transition()
-          .duration(500)
-          .attr("cx",linePlot.line.x())
-          .attr("cy",linePlot.line.y());
-      _legendD3.transition()
-          .duration(500)
-          .attr("transform",_legendTranslate);
-    }else{
-      _svgLineD3.attr("d",linePlot.line);
-      _svgDotD3.attr("cx",linePlot.line.x())  
-          .attr("cy",linePlot.line.y());     
-      _legendD3.attr("transform",_legendTranslate);
-    }
-
-    // Update legend
-    if (linePlot.options.showLegend) D3LinePlot.setLegend(linePlot);
-  }
-  //----------------------------------------------------------------------------
 
 
 

@@ -136,7 +136,7 @@ function dataAndLabels(){
   let nd = Math.floor((Math.random()*3)+1);
   let ndp = Math.floor((Math.random()*20)+10);
   for (let jd=0;jd<nd;jd++){
-    for(let jdp=0;jdp<ndp;jdp++){
+    for(let jdp=1;jdp<=ndp;jdp++){
       tmp.push([jdp,Math.random()* 10]);
     }
     data.push(tmp);
