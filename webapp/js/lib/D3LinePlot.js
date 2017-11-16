@@ -542,20 +542,31 @@ class D3LinePlot extends D3View{
         _legendWidth,
         _legendHeight,
         _options,
-        _translate;
+        _translate,
+        _xTranslate,
+        _yTranslate;
 
     _options = linePlot.options;
     _legendGeom = linePlot.legendEl 
         .getBoundingClientRect();
     _legendWidth  = _legendGeom.width;
     _legendHeight = _legendGeom.height;
-    
-    if (_options.xAxisScale == "linear" || _options.yAxisScale == "linear"){
-      _translate = "translate("+(plotWidth-_legendWidth)+
-          ","+ _legendHeight+")";
-    }else{
-      _translate = "translate(10,"+(plotHeight*(1-0.05))+")";
+  
+    if (_options.legendLocation == "topright"){
+      _xTranslate = (plotWidth-_legendWidth-_options.legendOffset);
+      _yTranslate = _options.legendOffset;
+    }else if(_options.legendLocation == "topleft"){
+      _xTranslate = _options.legendOffset;
+      _yTranslate =_options.legendOffset;
+    }else if(_options.legendLocation == "bottomleft"){
+      _xTranslate = _options.legendOffset;
+      _yTranslate = (plotHeight-_legendHeight-_options.legendOffset);
+    }else if(_options.legendLocation == "bottomright"){
+      _xTranslate = (plotWidth-_legendWidth-_options.legendOffset);
+      _yTranslate = (plotHeight-_legendHeight-_options.legendOffset);
     }
+  
+    _translate = "translate("+_xTranslate+","+_yTranslate+")";
 
     return _translate; 
   } 
@@ -1006,8 +1017,7 @@ class D3LinePlot extends D3View{
     // Update legend
     _legendTranslate = D3LinePlot
         .legendLocation(linePlot,_plotHeight,_plotWidth);
-    _legendD3 = d3.select(linePlot.legendEl)
-        .selectAll(".legend-entry");
+    _legendD3 = d3.select(linePlot.legendEl);
 
     _svgLineD3 = _svgD3.selectAll(".line");
     _svgDotD3  = _svgD3.selectAll(".dot");
@@ -1022,9 +1032,7 @@ class D3LinePlot extends D3View{
           .duration(500)
           .attr("cx",linePlot.line.x())
           .attr("cy",linePlot.line.y());
-      _legendD3.transition()
-          .duration(500)
-          .attr("transform",_legendTranslate);
+          
     }else{
       _svgLineD3.attr("d",linePlot.line);
       _svgDotD3.attr("cx",linePlot.line.x())  
@@ -1032,8 +1040,6 @@ class D3LinePlot extends D3View{
       _legendD3.attr("transform",_legendTranslate);
     }
 
-    // Update legend
-    if (linePlot.options.showLegend) D3LinePlot.setLegend(linePlot);
   }
   //---------------- End Method: Plot Redraw -----------------------------------
 
@@ -1228,13 +1234,20 @@ class D3LinePlot extends D3View{
   *
   */
   static setLegend(linePlot){
-    let _legendD3,
+    let _xDrag,
+        _yDrag,
+        _legendD3,
+        _legendGeom,
+        _legendHeight,
+        _legendWidth,
+        _options,
         _nleg,
         _plotHeight,
         _plotWidth,
         _selectedId,
         _translate;
 
+    _options = linePlot.options;
     _nleg = linePlot.labels.length-1; 
     _plotHeight = D3LinePlot.plotHeight(linePlot);
     _plotWidth = D3LinePlot.plotWidth(linePlot);
@@ -1249,41 +1262,62 @@ class D3LinePlot extends D3View{
         .enter()  
         .append("g") 
         .attr("class","legend-entry")
-        .attr("id",function(d,i){return linePlot.labelIds[_nleg-i]})
-        .style("cursor","pointer");
+        .attr("id",function(d,i){return linePlot.labelIds[i]})
+        .style("cursor","pointer")
+        .attr("transform","translate("+(_options.legendPadding)
+            +","+(16)+")");
     
     // Legend Text
     _legendD3.append("text")
         .attr("class","legend-text")
         .attr("font-size","12px")
         .attr("x",30)
-        .attr("y", function(d,i){return 16*-i})
+        .attr("y", function(d,i){return 16*i})
         .attr("alignment-baseline","central")
-        .text(function(d,i){return linePlot.labels[_nleg-i]});
+        .text(function(d,i){return linePlot.labels[i]});
      
     // Legend Line Indicator
     _legendD3.append("line")
         .attr("class","legend-line")
         .attr("x2",24)
-        .attr("y1", function(d,i){return 16*-i})
-        .attr("y2", function(d,i){return 16*-i})
+        .attr("y1", function(d,i){return 16*i})
+        .attr("y2", function(d,i){return 16*i})
         .attr("stroke-width",3)
-        .attr("stroke",function(d,i){return linePlot.color[_nleg-i]})
+        .attr("stroke",function(d,i){return linePlot.color[i]})
         .attr("fill","none");  
       
     // Legend Circle on the Line
     _legendD3.append("circle") 
         .attr("class","legend-circle")
         .attr("cx",12)
-        .attr("cy",function(d,i){return 16*-i}) 
+        .attr("cy",function(d,i){return 16*i}) 
         .attr("r",5)
-        .attr("fill",function(d,i){return linePlot.color[_nleg-i]} );
+        .attr("fill",function(d,i){return linePlot.color[i]} );
+
+    // Legend geometry 
+    _legendGeom = linePlot.legendEl
+        .getBoundingClientRect(); 
+    _legendWidth = parseFloat(_legendGeom.width 
+        + 2*linePlot.options.legendPadding);
+    _legendHeight = parseFloat(_legendGeom.height 
+        + 2*linePlot.options.legendPadding);
+    
+    // Legend outline
+    d3.select(linePlot.legendEl)
+        .append("rect")
+        .attr("class","legend-outline")
+        .attr("height",_legendHeight)
+        .attr("width",_legendWidth)
+        .attr("stroke","#999")
+        .attr("fill","white")
+        .style("cursor","move");
+
+    _legendD3.raise();
     
     // Set translation 
     _translate = D3LinePlot.legendLocation(linePlot,_plotHeight,_plotWidth);
-    _legendD3.attr("transform",_translate)  
-  
-  
+    d3.select(linePlot.legendEl).attr("transform",_translate)  
+    
     //.............. Highlight Line when Legend Entry Selected .................
     d3.select(linePlot.legendEl)
         .selectAll(".legend-entry")
@@ -1293,6 +1327,23 @@ class D3LinePlot extends D3View{
         });
     //--------------------------------------------------------------------------
     
+   
+    //........................ Drag Legend ..................................... 
+    d3.select(linePlot.legendEl)
+        .call(d3.drag()
+          .on("drag",function(){
+            _plotHeight = D3LinePlot.plotHeight(linePlot);
+            _plotWidth = D3LinePlot.plotWidth(linePlot);
+            _xDrag = d3.event.x;
+            _xDrag = _xDrag < 0 ? 0 : _xDrag > _plotWidth-_legendWidth 
+                ? _plotWidth-_legendWidth : _xDrag; 
+            _yDrag = d3.event.y;
+            _yDrag = _yDrag < 0 ? 0 : _yDrag > _plotHeight - _legendHeight 
+                ? _plotHeight-_legendHeight : _yDrag; 
+            d3.select(this)
+                .attr("transform","translate("+_xDrag+","+_yDrag+")");
+          }));
+    //-------------------------------------------------------------------------- 
   
   } 
   //--------------- End Method: Create Legend ----------------------------------

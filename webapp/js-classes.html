@@ -70,22 +70,25 @@
           
           <li> Create plot options {Object}</li>
           <pre> let options = {
-    linewidth: 3,                                                             
-    linewidthSelection: 5,                                                    
-    marginBottom: 50,                                                         
-    marginLeft: 60,                                                           
-    marginRight: 20,                                                          
-    marginTop: 20,                                                            
-    pointRadius: 5,                                                           
-    pointRadiusSelection: 8,                                                  
-    pointRadiusTooltip: 10,                                                   
-    showLegend: true,                                                         
-    title: "",                                                                
-    tooltipOffset: 10,                                                        
-    tooltipPadding: 10,                                                       
+    legendLocation: "topleft" || "topright" || "bottomleft" || "bottomright",
+    legendOffset: 5,
+    legendPadding: 10,
+    linewidth: 3,        
+    linewidthSelection: 5,
+    marginBottom: 50,    
+    marginLeft: 60,     
+    marginRight: 20,   
+    marginTop: 20,    
+    pointRadius: 5,  
+    pointRadiusSelection: 8, 
+    pointRadiusTooltip: 10, 
+    showLegend: true || false,    
+    title: "",          
+    tooltipOffset: 10, 
+    tooltipPadding: 10,
     tooltipText: ["","X Value","Y Value"],                                    
-    xAxisScale: "log",                                                        
-    yAxisScale: "log"                                                         
+    xAxisScale: "log" || "linear",
+    yAxisScale: "log" || "linear"
   };    
           </pre> 
           

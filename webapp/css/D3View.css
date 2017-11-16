@@ -15,15 +15,14 @@
 }
 
 /* D3 View bootstrap col 6 */
-.D3View.col-lg-6{
+.D3View[class*="col-"][class*="-6"]{
   height: 50%;
 }
 
 /* D3 View bootstrap col 12 */
-.D3View.col-lg-12{
+.D3View[class*="col-"][class*="-12"]{
   height: 100%;
 }
-
 
 /* Plot Panel */
 .D3View>.panel{
@@ -36,7 +35,6 @@
   background-color: #f7f7f7;                                                    
   font-family: 'HelveticaNeue-Light',sans-serif;                                
   font-size: 1.25em;                                                            
-  height: 2.5em;
   margin: 0;
 }                                                                               
                                                                                 
@@ -104,4 +102,7 @@
   overflow-y: scroll;
 }
 
-
+/* Glyphicon */
+.D3View .glyphicon{
+  cursor: pointer;
+}
