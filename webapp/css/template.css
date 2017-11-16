@@ -16,6 +16,7 @@
 /*.................... Main Body ....................*/
 
 html, body{
+  width: 100%;
   height:100%;
   -webkit-font-smoothing: subpixel-antialiased;
 }
@@ -102,6 +103,13 @@ html, body{
   z-index: 101;
   height: 3.5em;
 }
+
+
+#raw-data{
+  float: right;
+}
+
+
 /*-------------- End: Footer ----------------------- */
 /**/
 /*###################################################*/
@@ -139,7 +147,7 @@ html, body{
 
 
 option:disabled{
-    color:red;
+    color:#999;
 }
 
 option {
@@ -192,12 +200,186 @@ label.control-spacer {
   bottom: 0;
   right: 0;
   margin: 2em 0 3.5em 400px;
-  padding: 20px;
   overflow: auto;
 }
 /*-------------- End: Main Content -------------------*/
 /**/
 /*###################################################*/
 
+
+
+
+/*###################################################*/
+/**/
+/*................... Spinner .......................*/
+
+
+/*............. Screen Overlay ......................*/
+#overlay{
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: black;
+  opacity: 0.20;
+  z-index: 1000;
+  display: none;
+}
+/*---------------------------------------------------*/
+
+/*............. Loader Box to Put Spinner ...........*/
+#loader{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  padding: 10px;
+  height: 175px;
+  width: 125px;
+  box-sizing: border-box;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  z-index: 1001;
+  background-color: white;
+  display: none;
+}
+/*---------------------------------------------------*/
+
+/*............. Loader Text Under Spinner ...........*/
+#loader-text{
+  text-align: center;
+  padding-top: 10px;
+}
+/*---------------------------------------------------*/
+
+/*................. Spinner  ........................*/
+#spinner {
+  margin: 20px auto;
+  border: 10px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 10px solid #3498db;
+  width: 50px;
+  height: 50px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+/*---------------------------------------------------*/
+
+/*-------------- End: Spinner -----------------------*/
+/**/
+/*###################################################*/
+
+
+
+
+
+/*###################################################*/
+/**/
+/*................... Axes Buttons ..................*/
+
+.axes-btns{
+  text-align: center;
+}
+
+.axes-btns>.form-group{ 
+  margin: 0 5%;
+  font-size: 12px;
+}
+
+.axes-btns>.form-group>.btn-group>.btn{
+  width: 55px;
+  margin: 5px 0;
+}
+
+/*-------------- End: Axes Buttons ------------------*/
+/**/
+/*###################################################*/
+
+
+
+
+/*#################################################*/
+/**/
+/*.................... Plots ......................*/
+
+
+
+/*............... Plot Panel Container ............*/
+#content>.plot-panel{
+  position: relative;
+  height: 100%;
+  padding:20px;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel ......................*/
+#content>.plot-panel>.panel{
+  position: relative;
+  height: 100%;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Header ...............*/
+#content>.plot-panel>.panel>.panel-heading{
+  background-color: #f7f7f7;
+  font-family: 'HelveticaNeue-Light',sans-serif;
+  font-size: 1.25em;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Content ...............*/
+#content>.plot-panel>.panel>.panel-content{
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Panel Footer ...............*/
+#content>.plot-panel>.panel>.panel-footer{
+  background-color: #f7f7f7;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 5px 0;
+}
+/*-------------------------------------------------*/
+
+
+/*............... Plot Resize ....................*/
+#content>.plot-panel>.panel>.panel-heading>.plot-resize{
+  float: right;
+  font-size: .85em;
+  font-weight: 100;
+  opacity: .7; 
+}
+
+#content>.plot-panel>.panel>.panel-heading>.plot-resize:hover{
+  cursor: pointer;
+}
+/*------------------------------------------------*/
+
+
+
+
+/*------------- End: Plots ------------------------*/
+/**/
+/*#################################################*/
 
 

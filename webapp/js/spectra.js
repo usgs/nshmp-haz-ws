@@ -1,4 +1,8 @@
 
+
+spinner("on");      // Put up a spinner while loading 
+
+
 var rakes = {
   "checkRange": function(mech, value) {
     if (mech == "reverse") return (value > 45.0 && value < 135.0) ? value : 90.0;
@@ -171,6 +175,8 @@ function rake_val() {
 
 /* process usage response */
 function buildInputs(usage) {
+  spinner("off"); // Remove spinner once loaded 
+
   var params = usage.parameters;
 
   /* Alphabetical GMMs. */
@@ -213,3 +219,104 @@ function buildInputs(usage) {
     .forEach(function (key, index) {
       $("input[name='" + key + "']").val(params[key].value); });
 }
+
+
+
+
+//#####################################################################################
+//
+//................................... Plot ............................................
+
+//............................. Footer Buttons .......................................
+$("#footer").ready(function(){
+
+  $("#update-plot").prop("disabled",true);                            // Disable plot button on start up
+  $("#raw-data").prop("disabled",true);                               // Disable raw data button on start up
+
+  $("#update-plot").click(function (){                                // If update button is click, update plot
+    var url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();    // Make URL
+    spinner("on");                                                    // Turn on spinner while getting data
+    updatePlot(url);                                                  // Plot
+  });
+
+  
+  $("#gmms").change(function() {                                      // Check selection of GMMs
+    var disable = $(":selected", this).length == 0;                   // Check to see if there is a selection
+    $("#update-plot").prop("disabled", disable);                      // Update button status
+    $("#raw-data").prop("disabled", disable);                         // Update button status
+  });
+
+});
+//------------------------------------------------------------------------------------
+
+
+
+//................................. Get Data and Plot ................................
+function updatePlot(url) {
+  
+  var plot_id         = document.getElementById("spectra-plot");                    // Get plot dom 
+  var plot_panel_id   = document.getElementById("spectra-plot-panel");              // Get spectra plot panel dom 
+  
+  d3.json(url, function(error, response) {
+    if (error) return console.warn(error);
+    if (response.status == "ERROR") {
+      svg.append("text")
+          .attr("y", margin.top)
+          .attr("x", margin.left)
+          .text(response.message);
+      return;
+    }  
+    spinner("off");   // Remove spinner once loaded
+
+    var dataset = response.means;
+    var series = dataset.data;
+    var xlabel = dataset.xLabel;
+    var ylabel = dataset.yLabel;
+
+    var y_scale = "linear";
+    var x_scale = "linear";
+
+    var series_label_displays = [];
+    var series_label_values   = [];
+    var series_data           = [];
+  
+    series.forEach(function(d, i) {
+      series_label_displays.push(d.label);
+      series_label_values.push(d.id);
+      series_data.push(d3.zip(d.data.xs, d.data.ys));
+    });
+    
+    var tooltip_text = ["GMM", "Period (s)", "MGM (g)"]
+ 
+    var plot_info = {                                     // Plot info object
+      series_data:              series_data,              // Series data to plot
+      series_label_displays:    series_label_displays,    // Series label displays
+      series_label_values:      series_label_values,      // Series label values
+      xlabel:        xlabel,                              // X label
+      ylabel:        ylabel,                              // Y label
+      plot_id:       "spectra-plot",                      // DOM ID for plot
+      x_scale:       x_scale,                             
+      y_scale:       y_scale,
+      tooltip_text:  tooltip_text,
+      xaxis_btn:    "spectra-plot-xaxis",
+      yaxis_btn:    "spectra-plot-yaxis",
+      margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
+      resize:       "spectra-plot-resize"                 // DOM ID for resize element 
+    };
+    
+    plot_curves(plot_info);
+
+    $("#raw-data").click(function(){
+      window.open(url);
+    });
+
+  });
+}
+//------------------------------------------------------------------------------------
+
+
+//---------------------------- End: Plot ----------------------------------------------
+//
+//#####################################################################################
+
+

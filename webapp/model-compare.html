@@ -8,8 +8,8 @@
 <!-- ................... Head ................ -->
 <head>
 
-  <meta name="veiwport" content="width=device-width,initial-scale=1">
-  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">   
 
   <!-- Title is defined in common.js -->
   
@@ -19,8 +19,8 @@
 
    
   <!-- ........... CSS Files ....... -->
-  <link rel="stylesheet" href="css/template.css"       type="text/css">
-  <link rel="stylesheet" href="css/model-explorer.css" type="text/css">
+  <link rel="stylesheet" href="css/template.css"      type="text/css">
+  <link rel="stylesheet" href="css/model-compare.css" type="text/css">
   <!-- ........... CSS Files ....... -->
  
 </head>
@@ -39,9 +39,9 @@
   <!-- ........... Include Header ................ -->
   <div id="include-header"></div>
   <!-- ........... Include Header ................ -->
-
+  
   <!-- ............. Include Footer .............. -->
-  <div id="include-footer"></div>
+  <div id="include-footer"></div>  
   <!-- ............. Include Footer .............. -->
 
   <!-- .......... Include Spinner ................ -->
@@ -60,36 +60,37 @@
     <form id="inputs">
       <div class="form-horizontal">
 
-        <!-- .................. Edition Menu ........................ -->
-        <div class="form-group">
-          <label class="control-spacer control-group" for="edition"> Edition: </label>
-          <select class="form-control" id="edition" autofocus onchange="add_regions()">
-          </select>
-        </div>
-        <!-- ............. End: Edition Menu ........................ -->
 
         <!-- .................. Region Menu ......................... -->
-        <div class="form-group form-group-sm">
+        <div class="form-group">
           <label class="control-spacer control-group" for="region"> Region: </label>
-          <select class="form-control" id="region" onchange="add_options()">
+          <select class="form-control" id="region" autofocus onchange="add_editions()">
           </select>
         </div>
         <!-- .................. End: Region Menu .................... -->
 
+        <!-- .................. Edition Menu ........................ -->
+        <div class="form-group">
+          <label class="control-spacer control-group" for="edition"> Edition: </label>
+          <select class="form-control" id="edition" multiple size=5 onchange="add_options()">
+          </select>
+        </div>
+        <!-- ............. End: Edition Menu ........................ -->
+
         <!-- .................. Enter Latitude ...................... -->
-        <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+        <div class="form-group form-group-sm form-inline" >
           <label class="control-spacer control-group" 
             for="lat"> Latitude: <br> <small id="lat_bounds"></small>
           </label> <br>
           <div class="input-group">
-            <input id="lat" class="form-control" type="text" name="lat"  />
+            <input id="lat" class="form-control" type="text" name="lat" />
             <div class="input-group-addon">&#176;</div>
           </div>
         </div>
         <!-- .................. End: Enter Latitude ................. -->
 
         <!-- .................. Enter Logitude ...................... -->
-        <div class="form-group form-group-sm form-inline" onsubmit="return false;">
+        <div class="form-group form-group-sm form-inline" >
           <label class="control-spacer control-group" 
             for="lon"> Longitude: <br> <small id="lon_bounds"></small> 
           </label> <br>
@@ -129,15 +130,15 @@
   <!-- -->
   <!-- ................................. Plots ............................................. -->
   <div id="content">
-
-
+   
+ 
     <!-- ................. Hazard Curves Plot ........... -->
-    <div class="plot-panel col-lg-6 hidden">
-      <div class="panel panel-default" id="hazard-plot-panel">
+    <div class="plot-panel hidden">
+      <div id="hazard-plot-panel" class="panel panel-default">
         <!-- Plot Title -->
         <div class="panel-heading" id="hazard-plot-title">
-          Hazard Curves
-          <span id="hazard-plot-text"></span>
+          Hazard Curves 
+          <span id="hazard-plot-text"></span>  
           <span class="plot-resize" id="hazard-plot-resize" ></span>
         </div> 
         <!-- Plot Title -->
@@ -150,7 +151,7 @@
         <div class="panel-footer"  id="hazard-axes-btns">
           <div class="form-inline axes-btns">
             <!-- X-axis Button -->
-            <div class="form-group form-group-sm">                                   
+            <div class="form-group form-group-sm"> 
               <label  for="hazard-plot-xaxis" > X-axis </label>
               <div class="btn-group btn-group-sm" id="hazard-plot-xaxis" data-toggle="buttons">
                 <label class="btn btn-sm btn-default">
@@ -183,64 +184,10 @@
     </div>
     <!-- ................. Hazard Curves Plot ........... -->
 
-    <!-- ................. Component Curves Plot ........... -->
-    <div class="plot-panel col-lg-6 hidden">
-      <div class="panel panel-default" id="component-plot-panel">
-        <!-- Plot Title -->
-        <div class="panel-heading" id="component-plot-title">
-          Component Curves
-          <span id="component-plot-text"></span>
-          <span class="plot-resize" id="component-plot-resize" ></span>
-        </div> 
-        <!-- Plot Title -->
-
-        <!-- Plot -->
-        <div class="panel-content" id="component-curves-plot"></div>
-        <!-- Plot -->
-
-        <!-- Plot Buttons -->
-        <div class="panel-footer"  id="component-axes-btns">
-          <div class="form-inline axes-btns">
-            <!-- X-axis Button -->
-            <div class="form-group form-group-sm">                                   
-              <label  for="component-plot-xaxis" > X-axis </label>
-              <div class="btn-group btn-group-sm" id="component-plot-xaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- X-axis Button -->
-
-            <!-- Y-axis Button -->
-            <div class="form-group form-group-sm">
-              <label  for="component-plot-yaxis" > Y-axis </label>
-              <div class="btn-group btn-group-sm" id="component-plot-yaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- Y-axis Button -->
-          </div>
-        </div>
-        <!-- Plot Buttons -->
-      </div>
-    </div>
-    <!-- ................. Component Curves Plot ........... -->
-
-
   </div> 
   <!-- .............................. End: Plots ........................................... -->
   <!-- -->
   <!-- ##################################################################################### -->
-
 
 
   <!-- ######################################################## -->
@@ -256,12 +203,11 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <!-- ............. Bootstrap ............ -->
 
-
   <!-- ..... Application Specific JavaScript ......... -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/common.js"         type="text/javascript" charset="UTF-8"></script>
-  <script src="js/plot.js"           type="text/javascript" charset="UTF-8"></script>
-  <script src="js/model-explorer.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/common.js"        type="text/javascript" charset="UTF-8"></script>
+  <script src="js/plot.js"          type="text/javascript" charset="UTF-8"></script>
+  <script src="js/model-compare.js" type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
 

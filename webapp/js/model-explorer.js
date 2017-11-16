@@ -1,3 +1,12 @@
+//############################################################
+//
+//  Contains all JavaScript for model-explorer.html
+//
+//  Some function are called from the common.js file
+//
+//
+//############################################################
+
 
 
 
@@ -8,6 +17,7 @@
 var edition_id    = document.getElementById("edition");                     // Edition select menu id $("#edition") 
 var region_id     = document.getElementById("region");                      // Region select menu id 
 var imt_id        = document.getElementById("imt");                         // IMT select menu id
+var vs30_id       = document.getElementById("vs30");                        // Vs30 select menu id
 var lat_bounds_id = document.getElementById("lat_bounds");                  // Latitude bounds label id
 var lon_bounds_id = document.getElementById("lon_bounds");                  // Longitude bounds label id
 var lat_id        = document.getElementById("lat");                         // Latitude input id
@@ -21,6 +31,7 @@ var component_panel_id  = document.getElementById("component-plot-panel");  // C
 var component_plot_id   = document.getElementById("component-curves-plot"); // Component plot id
 var component_resize_id = document.getElementById("component-plot-resize"); // Component plot resize glyphicon id
 
+spinner("on");
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -30,106 +41,24 @@ var component_resize_id = document.getElementById("component-plot-resize"); // C
 
 //############################################################################################
 //
-//........................ Read in Parameter Dependency JSON File ............................ 
-
+//........................ Get Parameter Dependencies ........................................ 
 /*
-- On start up the static and dynamic parameter dependicies JSON files get read in.
-- Once the JSON files are read in, the functions add_editions, add_regions, and add_options are called.
-
-- NOTE:  The following variables are global:
-          - edition_values
-          - region_values
-          - imt_values
-          - vs30_values
-          - parameters 
+- The set_parameters function is a callback function for the get_parameters function, in common.js,
+  that will get called once both the static and dynamic parameter dependency JSON files are
+  read in.
+  - The get_parameters function will return an object that contains all editions, regions, imts, 
+  and vs30.
 */
-
-
-var dynamic_url = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard"       // URL to get the JSON parameter dependicy file for dynamic editions
-var static_url  = "https://earthquake.usgs.gov/hazws/staticcurve/1"       // URL to get the JSON parameter dependicy file for static editions
-$.when(                                                                   // Read in the static and dynamic JSON files
-  $.getJSON(dynamic_url,function(dynamic_json_return) {                   // Read in dynamic JSON file 
-    dynamic_parameters    = dynamic_json_return.parameters;               // Global variable: get the parameter key from the dynamic JSON file 
-  }),
-  $.getJSON(static_url,function(static_json_return){                      // Read in the static JSON file
-    static_parameters = static_json_return.parameters;                    // Global variable: get the parameter key from the static JSON file
-  })
-).done(function(){                                                        // Once both the static and dynamic JSON files are read in, perform the following
-  console.log("Dynamic Parameters: ");      console.log(dynamic_parameters);   
-  console.log("\n\n\n");
-  console.log("Static Parameters: ");       console.log(static_parameters);   
-  console.log("\n\n\n");
-  
-  //.................. Combine Static and Dynamic Parameters ...............
-  edition_values = static_parameters.edition.                             // Global variable: Combine the static and dynamic editions
-                        values.concat(dynamic_parameters.edition.values);
-  region_values  = static_parameters.region.                              // Global variable: Combine the static and dynamic regions
-                        values.concat(dynamic_parameters.region.values);
-  imt_values     = static_parameters.imt.values;                          // Global variable: Combine the static and dynamic IMTs
-  vs30_values    = static_parameters.vs30.values;                         // Global variable: Combine the static and dynamic Vs30 values
-
-  //------------------------------------------------------------------------
-
-  //......... Sort Combined Parameters by Display Order Parameter ...........
-  edition_values.sort(sort_displayorder);                                 // Sort the editions by using sort_displayorder function
-  region_values.sort(sort_displayorder);                                  // Sort the regions by using sort_displayorder function       
-  imt_values.sort(sort_displayorder);                                     // Sort the IMTs by using sort_displayorder funtion
-  vs30_values.sort(sort_displayorder);                                    // Sort the Vs30 values by using sort_displayorder function
-  //------------------------------------------------------------------------
-
-  //....... Create a Single Parameter Object for Static and Dynamic .........
-  parameters = {                  // Global variable of parameters
-    type:  "",                    // type will either be static or dynamic based on which is choosen 
-    edition: {                    // Combined static and dynamic editions
-      values: edition_values
-    },
-    region: {                     // Combined static and dynamic editions
-      values: region_values
-    },
-    imt: {                        // Combined static and dynamic IMTs
-      values: imt_values
-    },
-    vs30: {                       // Combined static and dynamic Vs30
-      values: vs30_values
-    }
-  };
-  console.log("Combined Parameters: ");     console.log(parameters);   
-  console.log("\n\n\n");
-  //------------------------------------------------------------------------
-
+function set_parameters(par){
+  spinner("off");
+  parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   //.......................... Run Function ................................
   add_editions();                 // Add editions to menu
-  add_regions();                  // Add regions to menu
-  add_options();                  // Add all other options based on edition and regions selected
   //-----------------------------------------------------------------------
+};
 
-}); 
-
-
-//--------------------------- End: Parameter Dependency --------------------------------------
-//
-//############################################################################################
-
-
-
-
-
-//############################################################################################
-//
-//........................ Read in Parameter Dependency JSON File ............................ 
-
-/*
-- The sort_displayorder function takes a parameter, like edition, and sorts them based
-  on the display order given in the two JSON files
-- This function returns the subtraction of the display order values of two editions to see
-  which one should be displayed first (a negative value return is displayed first)
-*/
-
-function sort_displayorder(a,b){
-  return (a.displayorder - b.displayorder);
-}      
-
-//--------------------------- End: Parameter Dependency --------------------------------------
+get_parameters(set_parameters);     // Call get_parameters from common.js and send in callback to above
+//-------------------------- End: Get Parameter Dependencies ---------------------------------
 //
 //############################################################################################
 
@@ -150,8 +79,7 @@ function sort_displayorder(a,b){
 function add_editions(){
 
   var edition_default = "E2008";                        // On startup the default edition will be E2008
-  var nedition        = edition_values.length;          // Get how many editions there are
-  edition_id.size     = nedition;                       // Set menu size 
+  var edition_values  = parameters.edition.values;      // Get edition values
  
   for (var je in edition_values){                       // Loop through each edition and add that edition as an option in selection menu
     var option    = document.createElement("option");   // Create an option element 
@@ -163,6 +91,8 @@ function add_editions(){
     edition_id.add(option);                             // Add the options to the edition selection menu
   }
   edition_id.value = edition_default;                   // Set the selection menu to the default edition
+  
+  add_regions();                  // Add regions to menu
 }
 
 //----------------------------- End: Add Editions --------------------------------------------
@@ -187,15 +117,12 @@ function add_regions(){
 
   var jedition_select   = edition_id.selectedIndex;                   // Get the selected edition index value 
   var edition_select    = edition_id.options[jedition_select].value;  // Get the selected edition from the edition menu  
+  var edition_values    = parameters.edition.values;                  // Get all editions
   var edition_supports  = edition_values[jedition_select].supports;   // Get the selected edition's support parameters (parameters.edition.values[index].supports in JSON file) 
   var supported_regions = edition_supports.region;                    // Get the supported regions of the choosen edition 
   var parameter_regions = parameters.region.values;                   // Get all the parameter region values (parameters.region.values in JSON file)
   
-  
-  var noptions  = region_id.options.length;           // Get length of options 
-  for (var jr=0;jr<noptions;jr++){                    // Loop through all options and remove 
-    region_id.remove(0);
-  }
+  remove_options("region"); 
   
   lat_id.value = null;                                // Reset the latitude values
   lon_id.value = null;                                // Reset the longitude values
@@ -219,6 +146,7 @@ function add_regions(){
   var region_default = supported_regions[0];          // Get default region value
   region_id.value = region_default;                   // Set value in menu
   
+  check_bounds();                                     // Show the bounds for selected region
   add_options();                                      // Add other options based on selected region
 
 }
@@ -242,135 +170,35 @@ function add_regions(){
 */
 
 function add_options(){
-  remove_options();     // Remove all previous menu item
+  remove_options("imt");      // Remove all previous imt menu items
+  remove_options("vs30");     // Remove all previous vs30 menu items
 
+  //............................... Region Selection ...............................
   var jregion_select    = region_id.selectedIndex;                            // Get the selected region index value 
   var region_select     = region_id.options[jregion_select].value;            // Get the selected region from the region menu
+  var region_values     = parameters.region.values;                           // Get all region values
   var region_supports   = region_values[jregion_select].supports;             // Get the selected region's support parameters (parameters.region.values[index].supports in JSON file) 
-  
-  var parameter_defaults = {                                                  // Variable for parameter defaults to first supported value
-       imt:  region_supports.imt[0],                                          // IMT default
-       vs30: region_supports.vs30[0]                                          // Vs30 default 
-    }
-  var supports = ["imt","vs30"];                                              // The edition support strings
-  
-  for (js in supports){                                                       // Loop through the supported variables (imt and vs30)
-    var dom_id           = document.getElementById(supports[js]);             // Get to dom id of the supported variable for the selection menu
-    var supported_values = region_supports[supports[js]];                   // Set string to get the supported parameters of each variable (example: region_supports.imt) 
-    var parameter_values = parameters[supports[js]].values;                        // Set string to get the parameter values of each supported variable (parameters.imt) 
+  //--------------------------------------------------------------------------------
 
-    
-    for (var jp in parameter_values){                                         // Loop through the edition support values
-      var option    = document.createElement("option");                       // Create an option element 
-      var value     = parameter_values[jp].value;
-      var display   = parameter_values[jp].display;
-      display       = display.replace("&amp;","&");
-      option.id     = value;                                                  // Set an id based on value
-      option.text   = display;                                                // Set display
-      option.value  = value;                                                  // Set the selection options values 
-      dom_id.add(option);                                                     // Add the options to the menus of imt and vs30
-      option_id = document.getElementById(parameter_values[jp].value);        // Get dom id of option
-      option_id.disabled = true;                                              // Set all to disabled at first
-      for (var jsv in supported_values){                                      // Loop through the parameter values for a supported variable (parameters.imt in JSON file)
-        if (supported_values[jsv] == parameter_values[jp].value)              // Find the matching value to set the text from the display key 
-        {option_id.disabled   = false;}
-      }
-    }
-    dom_id.value = supported_values[0];                                       // Set the default value to Please Select ... 
-  } 
-  check_bounds();                                                             // Show the bounds for selected region
+  //............................... Edition Selection ...............................
+  var jedition_select   = edition_id.selectedIndex;                           // Get selected edition index value
+  var edition_select    = edition_id.options[jedition_select].value           // Get selected edition value
+  var edition_values    = parameters.edition.values;                          // Get all edition values
+  var edition_supports  = edition_values[jedition_select].supports;           // Get selected edition supports
+  //--------------------------------------------------------------------------------
+
+  //............................... Set Menu with Options ...........................
+  var options = ["imt","vs30"];                           // Option ids
+  for (var jo in options){                                // Loop through options
+    var support_values = [];                              // Array to hold array of support values
+    support_values.push(edition_supports[options[jo]]);   // Add edition supported values
+    support_values.push(region_supports[options[jo]]);    // Add region supported values
+    common_supports(options[jo],support_values);          // Find common supports and add to menu
+  }
+  //--------------------------------------------------------------------------------
 
 }
-
 //----------------------------- End: Add Options ---------------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Remove Options from Select Menus ...............................
-
-/*
-- The remove_options function will remove the selection options from the imt
-  and the vs30 menus so that they can be repopullated based on what is supported 
-  for the edition that was choosen
-*/
-
-function remove_options(){
-
-  var ids = ["imt","vs30"];                             // Selection menu ids
-  for (ji in ids){                                      // Loop through the menus
-    var dom_id = document.getElementById(ids[ji]);      // Get the dom id from ids
-    var noptions = dom_id.options.length;
-    for (var jo=0;jo<noptions;jo++){                    // Loop through the number of options in each menu
-      dom_id.remove(0);                                 // Remove each menu option
-    }
-  }
-
-}
-//----------------------------- End: Remove Options ------------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Set Latitude and Longitude Bounds ..............................
-
-/*
-- The check_bounds function will look at the supported bounds for the region
-  as stated in the parameter depenency JSON file. 
-- The bounds are then add in the webpage under the text field to enter the values
-*/
-
-function check_bounds(is_submit){
-
-  var jregion_select = region_id.selectedIndex;                     // Get the selected region index value 
-  var region_select  = region_id.options[jregion_select].value;     // Get the selected region from the region menu
-  var region_values  = parameters.region.values[jregion_select];    // Get the region values (parameters.region.values[region_index] in JSON file)
-  var min_lat = region_values.minlatitude;                          // Get the minimum latitude value
-  var max_lat = region_values.maxlatitude;                          // Get the maximum latitude value
-  var min_lon = region_values.minlongitude;                         // Get the minimum longitude value
-  var max_lon = region_values.maxlongitude;                         // Get the maximum longitude value
-   
-  lat_bounds_id.innerHTML = region_select + " bounds: " +
-                              " ["+min_lat+","+max_lat+"]";         // Set the latitude bound text for the webpage (Example: Bounds for WUS [34.5,50.5])
-  lon_bounds_id.innerHTML = region_select + " bounds: " +
-                              " ["+min_lon+","+max_lon+"]";         // Set the longitude bound text for the webpage
-
-  var lat = lat_id.value;                                           // Get latitude value
-  var lon = lon_id.value;                                           // Get longitude value
-
-  var can_submit_lat = false;                                       // Boolean to see if latitude is within bounds
-  var can_submit_lon = false;                                       // Boolean to see if longitude is within bounds
-  if (is_submit){                                                   // Check bounds 
-    if (lat < min_lat || lat > max_lat){                            // Check to see if lat value exists and within bounds
-      lat_bounds_id.style.color = "red";                            // Set text color to red if not in bounds
-      can_submit_lat = false;                                       // Set flag false
-      lat_bounds_id.innerHTML += "<br> Selected latitude is outside allowed bounds";
-    }else{
-      lat_bounds_id.style.color = "black";                          // If within bounds set text to black
-      can_submit_lat = true;                                        // Set flag true
-    }
-    if (lon < min_lon || lon > max_lon){                            // Check to see if lon value exists and within bounds
-      lon_bounds_id.style.color = "red";                            // Set text color to ref if not in bounds
-      can_submit_lon = false;                                       // Set false
-      lon_bounds_id.innerHTML += "<br> Selected longitude is outside allowed bounds";
-    }else{
-      lon_bounds_id.style.color = "black";                          // If within bounds set text to black
-      can_submit_lon = true;                                        // Set true
-    }
-  }
-  
-  return [can_submit_lat,can_submit_lon];
-}
-
-//----------------------------- End: Set Bounds ----------------------------------------------
 //
 //############################################################################################
 
@@ -388,46 +216,60 @@ function check_bounds(is_submit){
   edition choosen
 */
 
-plot_btn_id.onclick = function(){                                             // When button is pressed, perform the following
-  
-  //.............. Get All Selections from the Menus ...................
-  var menu_ids = ["edition","region","lon","lat","imt","vs30"];               // Menu id strings for the selection menus
-  var jed = 0; var jre = 1; var jlon = 2; 
-  var jlat = 3; var jimt = 4; var jvs = 5;                                    // Indices for each corresponing selction string
+$("footer").ready(function(){                                             // Wait for footer to load and add listener
+  raw_btn_id    = document.getElementById("raw-data");                    // Raw Data button id 
+  plot_btn_id   = document.getElementById("update-plot");                 // Update plot button id
+  plot_btn_id.addEventListener("click",get_selections);                   // When button is pressed call get_selection
+});
 
-  var selection_values = [];                                                  // Allocate an array to store the parameters
-  
-  for (var ji in menu_ids){                                                   // Loop through the menu ids
-    var menu_id = menu_ids[ji];                                               // Set a single menu id
-    var dom_id  = document.getElementById(menu_id);                           // Get the dom id of the menu id
-    
-    if (menu_id == "lon" || menu_id == "lat"){                                // If getting latitude or longitude, get the inputted value
-      selection_values[ji] = dom_id.value;                                    // Get selection value
-    }else{                                                                    // Else the value is selected from a menu
-      selection_values[ji] = dom_id.options[dom_id.selectedIndex].value;      // Get selection value
-    }
+//............. Call get_selection on Keyboard Enter on Lat ...........
+lat_id.onkeypress = function(key){                          // Submit URL on enter key
+  var key_code = key.which || key.keyCode;
+  if (key_code == 13){
+    get_selections();
   }
+}
+//---------------------------------------------------------------------
+
+//............. Call get_selection on Keyboard Enter on Lon ...........
+lon_id.onkeypress = function(key){                          // Submit URL on enter key
+  var key_code = key.which || key.keyCode;
+  if (key_code == 13){
+    get_selections();
+  }
+}
+//---------------------------------------------------------------------
+
+
+function get_selections(){                                             // When button is pressed, perform the following
+  
+  
+  var svg = d3.selectAll("svg");
+  svg.select(".all-data")
+    .remove();
+  svg.select(".legend")
+    .remove();
+
+  //.............. Get All Selections from the Menus ...................      
+  var selected_edition  = edition_id.options[edition_id.selectedIndex].value; // Get all selected editions
+  var selected_region   = region_id.options[region_id.selectedIndex].value;   // Get selected region
+  var vs30              = vs30_id.options[vs30_id.selectedIndex].value;       // Get selected vs30
+  var lat = lat_id.value;                                                     // Get inputted lat
+  var lon = lon_id.value;                                                     // Get inputted lon
   //-------------------------------------------------------------------
 
-  var can_submit = check_bounds(true);
-
   //................. Check If Static or Dynamic Edition ..............
+  var can_submit = check_bounds(true);
   if (can_submit[0] && can_submit[1]){
-    var edition_selection = selection_values[jed];                              // Get selected edition 
-    var static_edition_values  = static_parameters.edition.values;              // Get all static edition values
-    var dynamic_edition_values = dynamic_parameters.edition.values;             // Get all dynamic edition values
-    for (var je in dynamic_edition_values){                                     // Loop through all dynamic editions 
-      if (edition_selection == dynamic_edition_values[je].value){               // Check if selected edition is dynamic
-        parameters.type = "dynamic";                                            // If using dynamic set the type 
-        dynamic_call(selection_values);                                         // Use dynamic web services
-      }
-    }
-    for (var je in static_edition_values){                                      // Loop through all static editions
-      if (edition_selection == static_edition_values[je].value){                // Check if selected edition is static
-        parameters.type = "static";                                             // If using static set the type
-        static_call(selection_values);                                          // Use static web services
-      }
-    }
+    spinner("on");
+
+    var edition_info = parameters.edition.values.find(function(d,i){            // Get edition info
+      return selected_edition == d.value;
+    });
+    var data_type = edition_info.data_type;                                     // Get edition data type 
+    parameters.data_type = data_type;                                           // Set edition data type in parameters object
+    var url_info = make_hazard_url(selected_edition,selected_region,lat,lon,vs30,data_type);     // Make URL info to query 
+    get_hazard(url_info);
   }
   //--------------------------------------------------------------------
 
@@ -443,101 +285,6 @@ plot_btn_id.onclick = function(){                                             //
 
 //############################################################################################
 //
-//........................... Call Dynamic Web Services  .....................................
-
-/*
-Format of URL:
-https://earthquake.usgs.gov/nshmp-haz-ws/hazard?edition=value&region=value&longitude=value&latitude=value&imt=value&vs30=value
-
-Where:
-
-- edition [E2008, E2014, E2007]
-- region [COUS, WUS, CEUS, AK]
-- longitude (-360..360) °
-- latitude [-90..90] °
-- imt (intensity measure type) [PGA, SA0P2, SA1P0]
-- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
-*/
-
-function dynamic_call(selection_values){
-
-  //.................... Setup URL .............................
-  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
-  var url_base = "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard";                // Set the URL base
-  var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
-            "?edition="+selection_values[jed]    +                                          // Add edition to URL
-            "&region="+selection_values[jre]     +                                          // Add region to URL
-            "&longitude="+selection_values[jlon] +                                          // Add longitude to URL
-            "&latitude="+selection_values[jlat]  +                                          // Add latitude to URL
-            "&vs30="+selection_values[jvs];                                                 // Add vs30 to URL
-  //-----------------------------------------------------------
-
-  get_hazard(url);                                                                        // Call get_hazard function           
-  
-  //..................... Get Raw Data Button ..................
-  raw_btn_id.onclick = function(){
-    window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
-  };
-  //-----------------------------------------------------------
-
-}
-//---------------------- End: Call Dynamic Web Services --------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//........................... Call Static Web Services  ......................................
-
-/*
-  Format of URL:
-  https://earthquake.usgs.gov/hazws/staticcurve/1/{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
-
-Where:
-
-- edition [E2014R1, E2008R3, E2008R2, E2007R1, E1998R1, E2003R1, E2012R1, E2012R2]
-- region [COUS0P05, WUS0P05, CEUS0P10, AK0P10, HI0P02, PRVI0P01, GNMI0P10, AMSAM0P05]
-- longitude (-360..360) °
-- latitude [-90..90] °
-- imt (intensity measure type) [PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0]
-- vs30 [180, 259, 360, 537, 760, 1150, 2000] m/s
-*/
-
-function static_call(selection_values){
-
-  //.................... Setup URL .............................
-  var jed = 0; var jre = 1; var jlon = 2; var jlat = 3; var jimt = 4; var jvs = 5;          // Indices for each corresponing selction string
-  var url_base = "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/";               // Set the URL base
-  var url = url_base +                                                                      // Construct the URL to call the nshmp-haz code
-            selection_values[jed]  + "/" +                                                  // Add edition to URL
-            selection_values[jre]  + "/" +                                                  // Add region to URL
-            selection_values[jlon] + "/" +                                                  // Add longitude to URL
-            selection_values[jlat] + "/" +                                                  // Add latitude to URL
-            "any"                  + "/" +                                                  // Add IMT to URL (return all IMTs)
-            selection_values[jvs];                                                          // Add vs30 to URL
-  //-----------------------------------------------------------
-
-  get_hazard(url);                                                                        // Call get_hazard function           
-
-  //..................... Get Raw Data Button ..................
-  raw_btn_id.onclick = function(){
-    window.open(url);                                                                       // Call the nshmp-haz code by opening it in a new tab
-  };
-  //-----------------------------------------------------------
-
-}
-//---------------------- End: Call Static Web Services ---------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
 //........................... Call the nshmp-haz Code Given URL ..............................
 
 /*
@@ -547,9 +294,9 @@ function static_call(selection_values){
   the get_selections function.
 */
 
-function get_hazard(url){
+function get_hazard(url_info){
 
-  $.getJSON(url,function(json_return){                    // Get the JSON file that the code generates
+  $.getJSON(url_info.url,function(json_return){           // Get the JSON file that the code generates
     var status = json_return.status;                      // Get the status of the return 
     if (status == "success"){                             // If the code returned a success then get the response from the JSON file
       var response = json_return.response;                // Get the respose from the JSON file
@@ -574,28 +321,14 @@ function get_hazard(url){
 //
 //........................... Plot Setup .....................................................
 
-var plot_size_min = "col-lg-6";
-var plot_size_max = "col-lg-12";
-
 function plot_setup(){
 
-  var type = parameters.type;
+  var type = parameters.data_type;
 
   if (type == "dynamic"){
-    hazard_panel_id.style.display    = "initial";  
-    hazard_panel_id.className        = plot_size_min;  
-    component_panel_id.style.display = "initial";  
-    component_panel_id.className     = plot_size_min;  
-    hazard_plot_id.style.height      = "24vw";
-    component_plot_id.style.height   = "24vw";
-    hazard_resize_id.className       = "glyphicon glyphicon-resize-full";
-    component_resize_id.className    = "glyphicon glyphicon-resize-full";
+    $(".plot-panel").css("height","500px");
   }else if (type == "static"){
-    hazard_panel_id.style.display    = "initial";  
-    component_panel_id.style.display = "none";
-    hazard_panel_id.className        = plot_size_max; 
-    hazard_plot_id.style.height      = "35vw";
-    hazard_resize_id.className       = "glyphicon glyphicon-resize-small";
+    $(".plot-panel").css("height","100%");
   } 
 }
 //---------------------- End: Plot Setup -----------------------------------------------------
@@ -604,45 +337,6 @@ function plot_setup(){
 
 
 
-//############################################################################################
-//
-//........................... Resize Plot ....................................................
-
-function panel_resize(plot_name){
-  var resize_id = document.getElementById(plot_name+"-plot-resize");
-  var panel_id  = document.getElementById(plot_name+"-plot-panel"); 
-  var plot_id   = document.getElementById(plot_name+"-curves-plot"); 
-  if (panel_id.className == plot_size_min){
-    resize_id.className = "glyphicon glyphicon-resize-small";
-    panel_id.className = plot_size_max;
-    plot_id.style.height = "35vw";
-  }
-  else if (panel_id.className == plot_size_max){
-    resize_id.className = "glyphicon glyphicon-resize-full";
-    panel_id.className = plot_size_min; 
-    plot_id.style.height = "24vw";
-  }
-}
-//---------------------- End: Resize Plot  ---------------------------------------------------
-//
-//############################################################################################
-
-
-
-/*
-function plot_collapse(plot_name){
-  var plot_collapse_id = document.getElementById(plot_name+"-plot-collapse");
-  var arrow_up    = "glyphicon glyphicon-chevron-up";
-  var arrow_down  = "glyphicon glyphicon-chevron-down";
-  
-  if (plot_collapse_id.className == arrow_up){
-    plot_collapse_id.className = arrow_down;
-  }
-  else{
-    plot_collapse_id.className = arrow_up;
-  }
-}
-*/
 
 
 
@@ -653,14 +347,16 @@ function plot_collapse(plot_name){
 
 function hazard_plot(response){
 
+  spinner("off");
+
   var plot_id = "hazard-curves-plot";                                     // DOM ID of hazard plot element 
   var selected_imt_display = imt_id.options[imt_id.selectedIndex].text;    // Get the IMT selection
   
   //.................. JSON Variables based on Edition Type ..................
-  if (parameters.type == "dynamic"){        // If using dynamic edition
+  if (parameters.data_type == "dynamic"){        // If using dynamic edition
     var xvalue_variable = "xvalues";
     var yvalue_variable = "yvalues";
-  }else if (parameters.type == "static"){   // If using static edition
+  }else if (parameters.data_type == "static"){   // If using static edition
     var xvalue_variable = "xvals";
     var yvalue_variable = "yvals";
   } 
@@ -678,7 +374,7 @@ function hazard_plot(response){
   var imt_values          = [];
   for (var jr in response){
     var data                = response[jr].data;                                                // Get the data for each response
-    if (parameters.type == "dynamic"){
+    if (parameters.data_type == "dynamic"){
       var jtotal             = data.findIndex(function(d,i){return d.component == "Total"});     // Return the index for the Total component
     }else{
       var jtotal            = 0;
@@ -691,29 +387,32 @@ function hazard_plot(response){
   //--------------------------------------------------------------------------
 
   //.................... Plot Info Object for D3 .............................
+  var tooltip_text = ["IMT", "GM (g)", "AFE"];
   var plot_info = {                       // Plot info object
-    series_data:   total_hazard_data,     // Series data to plot
-    series_labels: total_hazard_labels,   // Series labels
-    series_imt:    imt_values,
-    xvalues:       xvalues,               // X values
+    series_data:            total_hazard_data,     // Series data to plot
+    series_label_displays:  total_hazard_labels,   // Series labels
+    series_label_values:    imt_values,
     xlabel:        xlabel,                // X label
     ylabel:        ylabel,                // Y label
+    xaxis_btn:     "hazard-plot-xaxis",
+    yaxis_btn:     "hazard-plot-yaxis",
+    x_scale:       "log",
+    y_scale:       "log",
+    tooltip_text:  tooltip_text,
     plot_id:       plot_id,               // DOM ID for plot
     margin:       {top:30,right:15,bottom:50,left:70},  // Margin for D3
-    resize:       "hazard"                // DOM ID for resize element 
+    resize:       "hazard-plot-resize"                 // DOM ID for resize element 
   };
-  console.log("Hazard Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
   plot_curves(plot_info);                 // Plot the curves
   //--------------------------------------------------------------------------
 
   //............... Highlight Selected IMT ...................................
   var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value 
-  plot_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
+  make_selection(plot_id,selected_imt_value);                             // Have selected IMT be highlighted on plot
   //--------------------------------------------------------------------------
 
   //........ Call Component Curves when using Dynamic Edition ................
-  if (parameters.type == "dynamic"){                                        // If using dynamic edition
+  if (parameters.data_type == "dynamic"){                                        // If using dynamic edition
     component_curves_plot(response);                                        // Plot component curves      
   }
   //--------------------------------------------------------------------------
@@ -721,9 +420,8 @@ function hazard_plot(response){
   //................ Update Plot Selection on IMT Menu Change ................
   imt_id.onchange = function(){                                             // When the selection menu of IMT changes, update selected IMT on plot and component plot
     var selected_imt_value = imt_id.options[imt_id.selectedIndex].value;    // Get selected IMT value
-    plot_selection_reset(plot_id);                                          // Remove any current IMT selection on plot
-    plot_selection(plot_id,selected_imt_value);                             // Update with new selection
-    if (parameters.type == "dynamic"){                                      // If using dynamic
+    make_selection(plot_id,selected_imt_value);                             // Update with new selection
+    if (parameters.data_type == "dynamic"){                                      // If using dynamic
       component_curves_plot(response);                                      // Plot component curves with new selection
     }
   };      
@@ -733,13 +431,13 @@ function hazard_plot(response){
   d3.select("#"+plot_id + " svg")                               // Get plot svg
     .selectAll(".data")                                         // Select all data, lines and circles 
     .on("click",function(d,i){                                  // If a circle or line is clicked, increase stroke-widtd
+      
       var selected_imt_value = d3.select(this).attr("id");      // Get selected id
       imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
 
-      plot_selection_reset(plot_id);                            // Remove any current IMT selection on plot
-      plot_selection(plot_id,selected_imt_value);               // Update plot with new selection
+      make_selection(plot_id,selected_imt_value);               // Update plot with new selection
 
-      if (parameters.type == "dynamic"){                        // If using dynamic edition
+      if (parameters.data_type == "dynamic"){                        // If using dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
       }
     }); 
@@ -752,38 +450,16 @@ function hazard_plot(response){
     .on("click",function(d,i){                                  // If a legend entry is clicked, highlight corresponding line
       var selected_imt_value = d3.select(this).attr("id");      // Get selected id
       imt_id.value = selected_imt_value;                        // Update IMT menu to have selected IMT value
-                                    
-      plot_selection_reset(plot_id);                            // Remove any current slections from plot     
-      plot_selection(plot_id,selected_imt_value);               // Update with new selection
 
-      if (parameters.type == "dynamic"){                        // If using a dynamic edition
+      make_selection(plot_id,selected_imt_value);               // Update with new selection
+
+      if (parameters.data_type == "dynamic"){                        // If using a dynamic edition
         component_curves_plot(response);                        // Plot component curves with new selection
       }
     });
   //--------------------------------------------------------------------------
       
 
-  //.............. Add Tooltip on Hover over a Point ..........................
-  d3.select("#"+plot_id + " svg")                                       // Get plot svg
-    .select(".all-data")                                                // Select data group
-    .selectAll(".dot")                                                  // Select all circles
-    .on("mouseover",function(d,i){                                      // If a the mouse pointer is over a circle, add tooltip about that circle
-      var xval = d3.select(this).data()[0][0];                          // Get ground motion value
-      var yval = d3.select(this).data()[0][1].toExponential(4);         // Get annual exceedece value
-      var imt_value   = d3.select(this.parentNode).attr("id");          // Get the selected id of the data group
-      var imt_display = imt_id.options[imt_value].text;                 // Get the IMT display from the menu
-      var tooltip_text = [                                              // Set the tooltip text
-        "IMT: "    + imt_display,
-        "GM (g): " + xval,
-        "AFE: "    + yval]
-      var tooltip_width  = 225;                                         // Set the tooltip box height
-      var tooltip_height = 60;                                          // Set the tooltip box width
-      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);      // Make tooltip
-    })
-    .on("mouseout",function(d,i){                                       // When mouse pointer leaves circle, remove tooltip
-      tooltip_mouseout(plot_id,this);
-    });
-  //--------------------------------------------------------------------------
   
 } 
 //---------------------- End: Plot Hazard Curves --------------------------------------------
@@ -803,10 +479,14 @@ function component_curves_plot(response){
   var selected_imt_value   = imt_id.options[imt_id.selectedIndex].value;
   var title_id             = document.getElementById("component-plot-text");
   title_id.innerHTML       = " for " + selected_imt_display;
+
+  //................. Check X and Y Axis Scale ......................
+  var xaxis_btn_id = document.getElementById("component-plot-xaxis");
+  var yaxis_btn_id = document.getElementById("component-plot-yaxis");
+  var x_scale = "log";
+  var y_scale = "log";
+  //-----------------------------------------------------------------
  
-  //.................. Get Axis Information ..................................
-  //--------------------------------------------------------------------------
-    
   //................. Get Component Hazard Data ..............................
   var component_hazard_data   = [];                           // Array for component x,y pair data for D3
   var component_hazard_labels = [];                           // Array for component labels
@@ -817,7 +497,6 @@ function component_curves_plot(response){
   var metadata = response[jimt].metadata;       // Get metadata from a response
   var xlabel  = metadata.xlabel;                // Get X label
   var ylabel  = metadata.ylabel;                // Get Y label
-  var xvalues = metadata.xvalues;               // Get X values, same for each response
   
   var data = response[jimt].data.filter(                      // Get all data except the total component
     function(d,i){return d.component != "Total";}
@@ -830,691 +509,30 @@ function component_curves_plot(response){
   //--------------------------------------------------------------------------
 
   //.................... Plot Info Object for D3 .............................
-  var plot_info = {                           // Plot info object
-    series_data:   component_hazard_data,     // Series data to plot
-    series_labels: component_hazard_labels,   // Series labels
-    series_imt:    component_hazard_labels,
-    xvalues:       xvalues,                   // X values
-    xlabel:        xlabel,                    // X label
-    ylabel:        ylabel,                    // Y label
+  var tooltip_text = ["Component", "GM (g)", "AFE"];
+  var plot_info = {                                     // Plot info object
+    series_data:            component_hazard_data,      // Series data to plot
+    series_label_displays:  component_hazard_labels,    // Series labels
+    series_label_values:    component_hazard_labels,  
+    xlabel:        xlabel,                              // X label
+    ylabel:        ylabel,                              // Y label
+    xaxis_btn:     "component-plot-xaxis",
+    yaxis_btn:     "component-plot-yaxis",
+    x_scale:       x_scale,
+    y_scale:       y_scale,
+    tooltip_text:  tooltip_text,
     plot_id:       plot_id,                   // DOM ID for plot
     margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
-    resize:       "component"                 // DOM ID for resize element 
+    resize:       "component-plot-resize"               // DOM ID for resize element 
   };
-  console.log("Component Plot Information: ");    console.log(plot_info);
-  console.log("\n\n");
   plot_curves(plot_info);                     // Plot the curves
   //--------------------------------------------------------------------------
  
-   
-  //.................. Highlight Line when Selected on Plot ..................
-  d3.select("#"+plot_id + " svg")                             // Get plot svg
-    .selectAll(".data")                                       // Select all data
-    .on("click",function(d,i){                                // If any data is selected, highlight the corresponds line and dots
-      var selected_component = d3.select(this).attr("id");    // Get selected line id
-
-      plot_selection_reset(plot_id);                          // Remove any current selections
-      plot_selection(plot_id,selected_component);             // Update new selection
-    }); 
-  //--------------------------------------------------------------------------
-  
-
-  //.............. Highlight Line when Legend Entry Selected .................
-  d3.select("#"+plot_id + " svg")                             // Get plot svg
-    .select(".legend")                                        // Select legend
-    .selectAll(".legend-entry")                               // Select all legend entrys
-    .on("click",function(d,i){                                // If any legend entry is selected, highlight cooresponding line and dots
-      var selected_component = d3.select(this).attr("id");    // Get selected legend id
-
-      plot_selection_reset(plot_id);                          // Remove any current selections
-      plot_selection(plot_id,selected_component);             // Update new selection
-    });
-  //--------------------------------------------------------------------------
-
-
-  //.............. Add Tooltip on Hover over a Point ..........................
-  d3.select("#"+plot_id + " svg")                                     // Get plot svg
-    .select(".all-data")                                              // Select main data group
-    .selectAll(".dot")                                                // Select all dots
-    .on("mouseover",function(d,i){                                    // If mouse is over a dot, put up a tooltip 
-      var selection_id   = d3.select(this.parentNode).attr("id");     // Get selection id of data group
-      var xval = d3.select(this).data()[0][0];                        // Get the ground motion value
-      var yval = d3.select(this).data()[0][1].toExponential(4);       // Get the exceedence value
-      var tooltip_text = [                                            // Setup the tooltip text
-        selection_id ,                                                // Component type
-        "GM (g): " + xval,                                            // Ground moition value
-        "AFE: "    + yval]                                            // Exceedence value
-      
-      var tooltip_width  = 115;                                       // Set the tooltip box height
-      var tooltip_height = 60;                                        // Set the tooltip box width
-      tooltip_mouseover(plot_id,this,tooltip_height,tooltip_width,tooltip_text);                   // Add tool tip 
-
-    })
-    .on("mouseout",function(d,i){                                     // When mouse pointer leaves dot, remove tooltip
-      tooltip_mouseout(plot_id,this);                                 // Remove tooltip
-    });
-  //--------------------------------------------------------------------------
-
 
 } 
 //---------------------- End: Plot Component Curves ------------------------------------------
 //
 //############################################################################################
-
-
-
-
-
-
-//############################################################################################
-//
-//........................... Highlight a Selected Line ......................................
-
-/*
-- This function will highlight a selected line on a plot
-- This function takes in two arguments:
-    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
-    2. selected_id: the id of the selected line (example: PGA)
-
-*/
-
-function plot_selection(plot_id,selected_id){
-  
-  var svg = d3.select("#"+plot_id + " svg");    // Select the svg of the plot id
-
-  //............ Increase Line Width and Dot size of Selected Plot ..............
-  var selected = svg.select(".all-data")        // Select the all data group
-    .select("#"+selected_id);                   // Select the data group that was selected 
-
-   selected.select(".line")                     // Select the line that was choosen
-    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
-
-    selected.selectAll(".dot")                  // Select all dot along the line
-    .attr("r",circle_size_select);              // Increase the dot size by 2
-
-    selected.raise();                           // Bring the line and dots to the front
-  //-----------------------------------------------------------------------------
-  
-  //............. Increase Line Width and Circle Size on Legend .................
-  var leg = svg.select(".legend")               // Select the legend
-    .select("#"+selected_id);                   // Select the legend group that was selected
-
-  leg.select(".legend-line")                    // Select the line in the legend
-    .attr("stroke-width",linewidth_size_select);// Increase the line width by 2
-
-  leg.select(".legend-circle")                  // Select the dot in the legend
-    .attr("r",circle_size_select);              // Increase the dot size by 2
-  
-  leg.select(".legend-text")                    // Select the legend text
-    .style("font-weight","bold");               // Make text bold
-  //-----------------------------------------------------------------------------
-
-}
-//---------------------- End: Highlight a Selected Line --------------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//....................... Remove Highlight from Selected Line ................................
-/*
-- This function removes the line selection so a new one can be applied
-- This function take in one argument: 
-    1. plot_id: The dom id of the plot (example: hazard-curves-plot)
-*/
-
-function plot_selection_reset(plot_id){
-
-  var svg = d3.select("#"+plot_id+" svg");        // Select the plot svg
-  
-  //............. Resize All Lines and Dots in Plot ...............
-  svg.selectAll(".line")                          // Select all lines
-    .attr("stroke-width",linewidth);              // Make all line have same line width
- 
-  svg.selectAll(".dot")                           // Select all dots
-    .attr("r",circle_size);                       // Make all dots have same line width
-  //---------------------------------------------------------------
-
-  //................ Resize Lines and Dots in the Legend ..........
-  var leg = svg.select(".legend")                 // Select the legend
-    .selectAll(".legend-entry");                  // Select all legend entrys
-  
-    leg.select(".legend-text")                    // Select the legend text
-    .style("font-weight","initial");              // Make font weight default
-
-    leg.select(".legend-line")                    // Select the legend line
-    .attr("stroke-width",linewidth);              // Make all line in legend same line width
-
-    leg.select(".legend-circle")                  // Select the legend circles
-    .attr("r",circle_size);                       // Make all dots the same size 
-  //---------------------------------------------------------------
-}
-//------------------ End: Remove Highlight from Selected Line --------------------------------
-//
-//############################################################################################
-
-
-
-
-//############################################################################################
-//
-//............................ Add Tooltip ...................................................
-/*
-- This function makes a tooltip that displays the selected line, ground moition value,
-  and the excedence value when the mouse is hovering over a dot
-- This function takes in 3 arguments:
-    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
-    2. circle_select: the selected circle (on mouseover this is passes as "this" variable)
-    3. tooltip_height: height of tooltip box
-    4. tooltip_width: width of tooltip box
-    3. tooltip_text: An array of the text to display in the tooltip. Each array entry is a new line in the tooltip 
-
-NOTE: The tooltip text is currently using three lines. If more is desired the height of the tooltip 
-      will need to be adjusted. 
-*/
-
-function tooltip_mouseover(plot_id,circle_select,tooltip_height,tooltip_width,tooltip_text){
-
-  var tooltip = d3.select("#"+plot_id +" svg")            // Select tooltip
-    .select(".d3-tooltip");
-  
-  var svg = d3.select("#"+plot_id + " svg");              // Select plot svg
-  
-  //........ Find Where the Tooltip Should Be Placed Relative to the Circle .................
-  var plot_geom = svg.select(".all-data")                       // Select the bounding box of the data
-    .node()
-    .getBoundingClientRect();
-  var plot_width  = plot_geom.width;                            // Get the width of the actual plot where the data is
-  var plot_height = plot_geom.height;                           // Get the height of the actual plot where the data is
-  
-  var cx = parseFloat(d3.select(circle_select).attr("cx"));     // Get X location of dot
-  var cy = parseFloat(d3.select(circle_select).attr("cy"));     // Get Y location of dot
-
-  var xper = cx/plot_width;               // Get the X location in percentage
-  var yper = cy/plot_height;              // Get the Y location in percentage
-
-  var dy = 12;                            // Set the distance in Y between circle and tooltip
-
-  if (xper < 0.10){                       // If the X location of the dot is < 10%, have box start to the right of the circle
-    var xrect = cx;
-    var xtext = cx+10;
-  }else if (xper > 0.70){                 // If the X location of the dot is > 70%, have box end to the left of the circle
-    var xrect = cx-tooltip_width;
-    var xtext = cx-tooltip_width+10;
-  }else{                                  // Center box location in X
-    var xrect = cx-tooltip_width/2;
-    var xtext = cx-tooltip_width/2+10;
-  }
-
-  if (yper < 0.25){                       // If Y location of the dot is < 25% (from top), place box below circle
-    var yrect = cy+dy;
-    var ytext = cy+dy+tooltip_height/4;
-  }else{                                  // Else put the box above the circle
-    var yrect = cy-tooltip_height-dy;
-    var ytext = cy-dy-(tooltip_height*3/4);
-  }
-  
-  var rect_trans = "translate("+xrect+","+yrect+")";    // The translation for the tooltip box
-  var text_trans = "translate("+xtext+","+ytext+")";    // The translation for the tooltip text
-  //----------------------------------------------------------------------------------------
-
-  //........................... Create the Tooltip Box .....................................
-  tooltip.append("rect")                        // Create a rectangle
-    .attr("class","tooltip-outline")            // Add a class to the rectangle
-    .attr("height",tooltip_height)              // Set height
-    .attr("width",tooltip_width)                // Set width
-    .attr("transform",rect_trans)               // Translate the rectangle to correct position
-    .attr("stroke","#999")                      // Set stroke color
-    .attr("fill","white");                      // Set fill color
-  //----------------------------------------------------------------------------------------
-  
-  //........................... Create the Tooltip Text ....................................
-  tooltip.selectAll("text")                     // Select all text fields in tooltip
-    .data(tooltip_text)                         // Join the text
-    .enter()
-    .append("text")                             // Create a text field for each text in array
-      .attr("class","tooltip-text")             // Add a class to each text
-      .attr("transform",text_trans)             // Translate text to correct location
-      .attr("font-size",11)                     // Set font size
-      .attr("y",function(d,i){return i*16} )    // Set Y location of each text
-      .attr("alignment-baseline","central")     // Set to be aligned center
-      .text(function(d,i){return d});           // Set text
-  //----------------------------------------------------------------------------------------
- 
-  //......................... Increase Size of Circle on Hover ............................. 
-  var rcircle = d3.select(circle_select).attr("r");     // Get circle size of current circle 
-  if (rcircle == circle_size){                          // If circle size is default, increase by 2
-    d3.select(circle_select).attr("r",circle_size_tooltip);
-  }else{                                                // If circle is already selected, increase by 4
-    d3.select(circle_select).attr("r",circle_size_tooltip_select);
-  }
-  //----------------------------------------------------------------------------------------
-
-  tooltip.raise();      // Bring tooltip to the front 
-}
-//------------------------- End: Add Tooltip -------------------------------------------------
-//
-//############################################################################################
-
-
-
-
-
-//############################################################################################
-//
-//............................ Remove Tooltip ................................................
-
-/*
-- This function removes the tooltip once the mouse leaves the circle
-- This function takes in 2 arguments:
-    1. plot_id: the dom id of the plot (example: hazard-curves-plot)
-    2. circle_select: the selected circle (on mouseover this is passes as "this" variable)
-*/
-
-
-function tooltip_mouseout(plot_id,circle_select){
-
-  var tooltip = d3.select("#"+plot_id +" svg")        // Select the tooltip
-    .select(".d3-tooltip");
-
-  tooltip.selectAll("text").remove();                 // Remove all text
-  tooltip.select("rect").remove();                    // Remove the rectangle
-
-  //................. Resize Circle .....................................
-  var rcircle = d3.select(circle_select).attr("r");   // Bring the circle back to original size
-  if (rcircle == circle_size_tooltip_select){         // If line is highlighted, reduce by 2
-    d3.select(circle_select).attr("r",circle_size_select);
-  }else{                                            
-    d3.select(circle_select).attr("r",circle_size);
-  }
-  //---------------------------------------------------------------------
-
-  //................ Increase Circle Back If Line is Selected ...........
-  var current_linewidth = d3.select(circle_select.parentNode)     // Get circle selection parent
-    .select(".line")                                              // Get line
-    .attr("stroke-width");                                        // Get stroke width
-
-  if(current_linewidth == linewidth_size_select){                 // If line is highlighted, make sure dots are as well
-    d3.select(circle_select).attr("r",circle_size_select);
-  }  
-  //---------------------------------------------------------------------
-
-}
-//------------------------- End: Remove Tooltip ----------------------------------------------
-//
-//############################################################################################
-
-
-
-
-
-
-
-//############################################################################################
-//
-//........................... D3 Plot Function ...............................................
-
-/*
-- This function takes in an object with the following keys:
-    * series_data:  "contains arrays of x,y pairs. Must be formatted for d3"
-    * series_label: "array of corresponding labels"
-    * xvalues:      "X values"
-    * xlabel:       "X label"
-    * ylabel:       "Y label"
-    * plot_id:      "DOM id for plot"
-    * resize:       "resize element id"
-    * margin:       {top: ,right: , bottom: , left: }
-
-- An example:
-  var plot_info = {                           // Plot info object
-    series_data:   component_hazard_data,     // Series data to plot
-    series_labels: component_hazard_labels,   // Series labels
-    xvalues:       xvalues,                   // X values
-    xlabel:        xlabel,                    // X label
-    ylabel:        ylabel,                    // Y label
-    plot_id:       plot_id,                   // DOM ID for plot
-    margin:       {top:20,right:50,bottom:50,left:70},  // Margin for D3
-    resize:       "component"                 // DOM ID for resize element 
-  };
-*/
-
-
-var circle_size = 4;                              // Radius of any circles
-var linewidth   = 3;                              // Line width for paths
-var circle_size_select         = circle_size+2;   // Radius when line is selected
-var circle_size_tooltip        = circle_size+2;   // Radius when hovering over a circle
-var circle_size_tooltip_select = circle_size+4    // Radius when hovering and line is selected
-var linewidth_size_select      = linewidth+2;     // Line width when selected
-
-function plot_curves(plot_info){
-
-  //....................... Get Plot Info .........................................
-  var series_data   = plot_info.series_data;        // Get the series data
-  var series_labels = plot_info.series_labels;      // Get the series labels
-  var series_imt    = plot_info.series_imt;         // Get IMT values (not display)
-  var xvalues       = plot_info.xvalues;            // Get the X values
-  var xlabel        = plot_info.xlabel;             // Get the X label
-  var ylabel        = plot_info.ylabel;             // Get the Y label
-  var plot_id       = plot_info.plot_id;            // Get the DOM id of the plot
-  var margin        = plot_info.margin;             // Get the margin values
-  var resize_id     = plot_info.resize;             // Get the resize DOM id
-
-  var plot_div_id   = document.getElementById(plot_id);
-  var resize_div_id = document.getElementById(resize_id+"-plot-resize");
-  //-------------------------------------------------------------------------------
-
-
-  //..................... Get Color Scheme ........................................
-  var ndata = series_data.length;         // Get how many data sets there are
-  if (ndata < 10){                        // If 10 or less data sets
-    var color  = d3.schemeCategory10;     // Get the color scheme with 10 colors
-  }else{                                  // If there are more than 10 data sets
-    var color  = d3.schemeCategory20;     // Get the color scheme with 20 colors
-  } 
-  //-------------------------------------------------------------------------------
-  
-
-  //...................... Replace Y values of 0 with null ........................  
-  series_data.forEach(function(data,idata){         // Loop through the data
-    data.forEach(function(dp,idp){                  // Loop through each data point
-      if (dp[1] == 0){                              // If a Y value is zero, set it to null
-        dp[1] = null;
-      }
-    })
-  });
-  //-------------------------------------------------------------------------------
-
-  
-
-  var y_extremes = get_y_extremes();                //  Get the Y extreme values: min and max
-  var x_extremes = get_x_extremes();                //  Get the X extreme values: min and max
-  
-  var height = plot_height();                       // Get the height of the plot element
-  var width  = plot_width();                        // Get the width of the plot element
-
-  var x_bounds = d3.scaleLog()                      // Set the X axis range and domain in log space                 
-    .range([0,width])                               // Set range to width of plot element to scale data points
-    .domain(x_extremes)                             // Set the min and max X values
-    .nice();
-
-  var y_bounds = d3.scaleLog()                      // Set the Y axis range and domain in log space
-    .range([height,0])                              // Set the range inverted to make SVG Y axis from bottom instead of top 
-    .domain(y_extremes)                             // Set the min and max Y values
-    .nice()
-
-  var line = d3.line()                              // Set the D3 line
-    .defined(function(d,i) {return d[1] != null})   // Plot all but null values
-    .x(function(d,i) {return x_bounds(d[0])})       // Return X data scaled to width of plot 
-    .y(function(d,i) {return y_bounds(d[1])});      // Return Y data scaled to width of plot
-
-  
-  //.......................... Get X Min and Max Values ...........................
-  function get_x_extremes(){                 
-    var x_max = d3.max(xvalues,function(d,i){return d;});   // Get the X max value
-    var x_min = d3.min(xvalues,function(d,i){return d;});   // Get the X min value
-
-    return [x_min,x_max];                                   // Return an array of the min and max values
-  }
-  //-------------------------------------------------------------------------------
-
-  //.......................... Get Y Min and Max Values ...........................
-  function get_y_extremes(){
-    var y_values = [];                  // Array to hold all Y values
-    var counter = -1;                   // Counter
-    series_data.forEach(function(d,i){  // Loop through each data set
-      for(var jd in d){                 // Loop through each data point
-        counter+=1;                     // Increment
-        y_values[counter] = d[jd][1];   // Get Y value data point 
-      }
-    });
-
-    var y_max = d3.max(y_values);       // Get the Y max value
-    var y_min = d3.min(y_values);       // Get the Y min value
-
-    return [y_min,y_max];               // Return an array of the min and max values
-  }
-  //-------------------------------------------------------------------------------
-
-  //......................... Get Plot Height Function ............................
-  function plot_height(){
-    var height = plot_div_id.clientHeight;              // Get the height of the plot element
-    height = height - margin.top  - margin.bottom;      // Subtract the top and bottom margins
-    return height;                                      // Return plottable height
-  }
-  //-------------------------------------------------------------------------------
-  
-  //......................... Get Plot Width Function .............................
-  function plot_width(){
-    var width = plot_div_id.clientWidth;                // Get the width of the plot element
-    width  = width  - margin.left - margin.right;       // Subtract the left and right margins
-    return width;                                       // Return plottable width
-  }
-  //-------------------------------------------------------------------------------
-
-
-  //........................ Plot Resize Function .................................
-  function plot_resize(){
-    
-    var height = plot_height();                             // Get current plot height
-    var width = plot_width();                               // Get current plot width
-    
-    var svg = d3.select("#"+plot_id + " svg")               // Select the plot
-      .attr("width", width  + margin.left + margin.right)   // Update the svg width
-      .attr("height",height + margin.top  + margin.bottom); // Update the svg height
-
-    x_bounds                  // Reset the X range and domain
-      .range([0,width])
-      .domain(x_extremes)
-      .nice();
-
-    y_bounds
-      .range([height,0])      // Reset the Y range and domain
-      .domain(y_extremes)
-      .nice()
-
-    svg.select(".x-tick")                                   // Select the x-tick class
-      .attr("transform","translate(0,"+height+")")          // Update the X tick mark locations
-      .call(d3.axisBottom(x_bounds));                       // Update the X tick makrs with the X bounds
-
-    svg.select(".x-label")                                  // Select the x-label class
-      .attr("x",width/2.0)                                  // Update the X label X location                                
-      .attr("y",height+margin.bottom/2+10);                 // Update the X label Y location
-
-    svg.select(".y-tick")                                   // Select the y-tick class
-      .call(d3.axisLeft(y_bounds));                         // Update the Y tick marks with Y bounds
-    
-    svg.select(".y-label")                                  // Select the y-label class
-      .attr("x",0-height/2)                                 // Update Y label X location
-      .attr("y",0-margin.left/2-10);                        // Update Y label Y location
-
-    svg.selectAll(".line")                                  // Select all line classes
-      .attr("d",line);                                      // Update the paths
-
-    svg.selectAll(".dot")                                   // Select all the dot classes
-      .attr("cx",line.x())                                  // Update the X location of the circles
-      .attr("cy",line.y());                                 // Update the Y location of the circles
-
-    svg.selectAll(".legend-entry")                                  // Select the legend-entry class
-      .attr("transform","translate(10,"+(height*(1-0.08))+")");     // Update the location of the legend
-
-  }
-  //-------------------------------------------------------------------------------
-
-
-  //........................ Plot Function ........................................
-  function plot(){
-
-    d3.selectAll("#"+plot_id+ " svg")           // Remove all svg tags for the plot element
-      .remove();
-
-    //................. Create SVG Tag .......................
-    var svg = d3.select("#"+plot_id)            // Select the plot element
-      .append("svg")                            // Append a svg tag
-        .attr("width",  width + margin.left + margin.right)             // Set the width of the svg tag
-        .attr("height", height+ margin.top  + margin.bottom)            // Set the height of the svg tag
-        .attr("class","d3-plot")                                        // Set class
-      .append("g")                                                      // Append a group
-        .attr("transform","translate("+margin.left+","+margin.top+")")  // Position group by the top and left margins
-
-     svg.append("g")
-      .attr("class","d3-tooltip");
-      
-    //--------------------------------------------------------
-      
-    //.............. Create Group for Each Data Set .......... 
-    var series_enter = svg.append("g")          // Append a new group
-      .attr("class","all-data")                 // Make new group have a class of all-data
-      .selectAll("g")                           // Select all groups to create, inside the all-data class
-        .data(series_data)                      // Join data to groups 
-        .enter()                                // Get each new node 
-      .append("g")                              // Append a group for each data set
-        .attr("class","data")                   // Make new group have class of data
-        .attr("id", function(d,i){return series_imt[i]} )
-        .attr("fill","none")                    // Set group fill of none
-        .style("cursor","pointer");
-    //--------------------------------------------------------
-
-    //............ Plot Data Set as Paths ....................
-    series_enter.append("path")                 // Append a path tag to the data class
-      .attr("class","line")                     // Make new path tag have class of line
-      .attr("d",line)                           // Set the path using the line variable
-      .attr("stroke",function(d,i){return color[i];})   // Set the colors of each line
-      .attr("stroke-width",linewidth);          // Set line width 
-    //--------------------------------------------------------
-
-    
-    //............ Plot Data Set as Circles ..................
-    series_enter.selectAll("circle")                // Select all circles to create inside the data class
-      .data(function(d,i) {return d})               // Join the data to the circles
-      .enter()                                      // Get each new node
-      .filter(function(d,i){return d[1] != null})   // Filter out the Y values of null
-      .append("circle")                             // Append a new circle tag for each data point
-        .attr("class","dot")                        // Make new circle tag have class of dot
-        .attr("fill", function(d,i){                // Set the fill color to match that of the line color
-          return d3.select(this.parentNode.firstChild).style("stroke");   // Get color from correspond line 
-        })
-        .attr("cx",line.x())                        // Set the X locations of the circles
-        .attr("cy",line.y())                        // Set the Y locations of the circles
-        .attr("r", circle_size)                     // Set the radius for each circle
-    //--------------------------------------------------------
-
-    
-    //................. Setup the X Axis .....................
-    var x_axis = svg.append("g")                      // Create a new groupd under main svg group
-      .attr("class","x-axis");                        // Make new group have class of x-axis
-    
-    // X Tick Marks     
-    x_axis.append("g")                                // Append a new group under x-axis class
-      .attr("class","x-tick")                         // Set class to x-tick
-      .attr("transform","translate(0,"+height+")")    // Put X axis on the bottom of the plot
-      .call(d3.axisBottom(x_bounds));                 // Make tick marks
-    
-    // X Label
-    x_axis.append("text")                             // Append a text tag to the x-axis class
-      .attr("class","x-label")                        // Make text tag have class of x-label
-      .attr("text-anchor","middle")                   // Set text to be centered
-      .attr("alignment-baseline","middle")
-      .attr("x",width/2)                              // X location of X label
-      .attr("y", height+margin.bottom/2+10)           // Y location of X label
-      .text(xlabel);                                  // Set the text of the label
-    //--------------------------------------------------------
-
-
-
-    //................. Setup the Y Axis .....................
-    var y_axis = svg.append("g")          // Create a new group under main svg group
-      .attr("class","y-axis");            // Set class of new group to y-axis
-
-    // Y Tick marks
-    y_axis.append("g")                    // Append a new group to y-axis class
-      .attr("class","y-tick")             // Set class to y-tick
-      .call(d3.axisLeft(y_bounds));       // Set tick marks
-
-    // Y Label
-    y_axis.append("text")                 // Append a new text tag to y-axis class
-      .attr("class","y-label")            // Set class to y-label
-      .attr("transform","rotate(-90)")    // Rotate the text
-      .attr("text-anchor","middle")       // Set to center text
-      .attr("x",0-height/2)               // Set X location
-      .attr("y",0-margin.left/2-10)       // Set Y location
-      .text(ylabel);                      // Set the text of the label
-    //--------------------------------------------------------
-
-
-    //................. Set the Legend .......................
-    var nleg = series_labels.length-1;                              // Get how many legend entrys there are minus 1 for indexing
-
-    var legend = svg.append("g")                                    // Append a new group under main svg group     
-      .attr("class","legend")                                       // Set class to legend
-      .selectAll("g")                                               // Select all groups to create under legend class      
-        .data(series_labels)                                        // Join data to legend class
-        .enter()                                                    // Get each new node 
-      .append("g")                                                  // Append a group for each label
-        .attr("class","legend-entry")                               // Set class to legend-entry
-        .attr("id",function(d,i){return series_imt[nleg-i]})        // Set id to imt 
-        .attr("transform","translate(10,"+(height*(1-0.08))+")")    // Position legend to bottom-left
-        .style("cursor","pointer");
-    
-    
-    // Legend Text
-    legend.append("text")                                         // Append a text tag to legend-entry class
-      .attr("class","legend-text")
-      .attr("font-size","1em")
-      .attr("x",30)                                               // Set X location of each legend label
-      .attr("y", function(d,i){return 18*-i})                     // Set Y location of each legend label
-      .attr("alignment-baseline","central")                       // Set alignment
-      .text(function(d,i){return series_labels[nleg-i]});         // Set the text of each label, do nleg-i to put PGA at top of legend
-     
-    // Legend Line Indicator
-    legend.append("line")                                         // Append a svg line tag
-      .attr("class","legend-line")                                // Set class to legend-line
-      .attr("x2",24)                                              // Set width of line 
-      .attr("y1", function(d,i){return 18*-i})                    // Set Y location of starting point
-      .attr("y2", function(d,i){return 18*-i})                    // Set Y location of ending point
-      .attr("stroke-width",linewidth)                             // Set stroke width of line
-      .attr("stroke",function(d,i){return color[nleg-i]})         // Set color of line
-      .attr("fill","none");                                       // Set fill to none
-      
-    // Legend Circle on the Line
-    legend.append("circle")                                       // Append a svg circle tag
-      .attr("class","legend-circle")                              // Set class to legend-circle
-      .attr("cx",12)                                              // Set X location to center of line
-      .attr("cy",function(d,i){return 18*-i})                     // Set Y location
-      .attr("r",circle_size)                                      // Set radius
-      .attr("fill",function(d,i){return color[nleg-i]} );         // Set fill color to match
-    //--------------------------------------------------------
-  
-
-  }
-  plot();                             // Plot the curves
-  //-------------------------------------------------------------------------------
-
-
-
-  //..................... Redraw Plot On Window Resize ............................
-  $(window).resize(function(){
-    plot_resize();
-  });
-  //-------------------------------------------------------------------------------
- 
-  //.................... Redraw Plot when Resize Button is Pressed ................ 
-  resize_div_id.onclick = function(){
-    panel_resize(resize_id);
-    plot_resize(); 
-  }
-  //-------------------------------------------------------------------------------
-
-
-}
-//---------------------- End: D3 Plot Function -----------------------------------------------
-//
-//############################################################################################
-
-
-
 
 
 
