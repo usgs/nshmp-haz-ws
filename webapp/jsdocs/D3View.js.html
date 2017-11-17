@@ -1,4 +1,32 @@
-'use strict';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: D3View.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: D3View.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
 
 
 
@@ -28,19 +56,19 @@
 *     options for plot view
 *
 * @property options.legendLocation {String}
-*     default "topright" <br>
+*     default "topright" &lt;br>
 *     "topright" || "topleft" || "bottomright" || "bottomleft"     
 *           
 * @property options.legendOffset {Integer}
-*     default 5 <br>
+*     default 5 &lt;br>
 *     margin around legend outline
 *
 * @property options.legendPadding
-*     default 10 <br>
+*     default 10 &lt;br>
 *     padding inside legend outline
 *
 * @property options.linewidth {Integer}
-*     default 3 <br>
+*     default 3 &lt;br>
 *     linewidth of plot curves
 *
 * @property options.marginBottom {Integer}
@@ -56,19 +84,19 @@
 *     default 60
 *
 * @property options.pointRadius {Integer}
-*     default 5 <br>
+*     default 5 &lt;br>
 *     radius of points
 *
 * @property options.title {String}
-*     default "" <br>
+*     default "" &lt;br>
 *     plot title
 *
 * @property options.xAxisScale {String}
-*     default "log" <br>
+*     default "log" &lt;br>
 *     X axis scale
 *
 * @property options.yAxisScale {String}
-*     default "log" <br>
+*     default "log" &lt;br>
 *     Y axis scale
 *
 * @property plotPanelEl
@@ -202,7 +230,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
-        .html("<input type='radio' name='xaxis' value='linear'/> X: Linear");
+        .html("&lt;input type='radio' name='xaxis' value='linear'/> X: Linear");
     
     _footerBtnsD3
         .append("div")
@@ -210,7 +238,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
-        .html("<input type='radio' name='xaxis' value='log'/>X: Log");
+        .html("&lt;input type='radio' name='xaxis' value='log'/>X: Log");
     //--------------------------------------------------------------------------
 
       
@@ -221,7 +249,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
-        .html("<input type='radio' name='plot' value='plot'/> Plot");
+        .html("&lt;input type='radio' name='plot' value='plot'/> Plot");
     
     _footerBtnsD3
         .append("div")
@@ -229,7 +257,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
-        .html("<input type='radio' name='plot' value='data'/> Data");
+        .html("&lt;input type='radio' name='plot' value='data'/> Data");
     //--------------------------------------------------------------------------
 
 
@@ -240,7 +268,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default")
-        .html("<input type='radio' name='yaxis' value='linear'/> Y: Linear");
+        .html("&lt;input type='radio' name='yaxis' value='linear'/> Y: Linear");
     
     _footerBtnsD3
         .append("div")
@@ -248,7 +276,7 @@ class D3View{
         .attr("data-toggle","buttons")
         .append("label")
         .attr("class","btn btn-sm btn-default active")
-        .html("<input type='radio' name='yaxis' value='log'/>Y: Log");
+        .html("&lt;input type='radio' name='yaxis' value='log'/>Y: Log");
     //--------------------------------------------------------------------------
   
   
@@ -312,7 +340,7 @@ class D3View{
   * the coorect panel width, either col-6 or col-12
   *
   * @argument updateStatus {Boolean}
-  *     if true will look and see if there is one plot and make sure <br>
+  *     if true will look and see if there is one plot and make sure &lt;br>
   *     it is col-lg-12.
   *
   * @return {String}
@@ -346,7 +374,7 @@ class D3View{
     }
 
     // Update plot size to large when others are removed
-    if (updateStatus && _nplots == 1){
+    if (updateStatus &amp;&amp; _nplots == 1){
       d3.select(linePlot.el)
             .classed(linePlot.colSize12,true)
             .classed(linePlotcolSize6,false);
@@ -435,3 +463,26 @@ class D3View{
 
 
 //----------------------- End Class D3View -------------------------------------
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="D3LinePlot.html">D3LinePlot</a></li><li><a href="D3View.html">D3View</a></li><li><a href="Tooltip.html">Tooltip</a></li></ul><h3>Global</h3><ul><li><a href="global.html#checkPlots">checkPlots</a></li><li><a href="global.html#dataTable">dataTable</a></li><li><a href="global.html#decreaseRadius">decreaseRadius</a></li><li><a href="global.html#destroy">destroy</a></li><li><a href="global.html#getXExtremes">getXExtremes</a></li><li><a href="global.html#getXScale">getXScale</a></li><li><a href="global.html#getYExtremes">getYExtremes</a></li><li><a href="global.html#getYScale">getYScale</a></li><li><a href="global.html#increaseRadius">increaseRadius</a></li><li><a href="global.html#legendLocation">legendLocation</a></li><li><a href="global.html#plotData">plotData</a></li><li><a href="global.html#plotHeight">plotHeight</a></li><li><a href="global.html#plotRedraw">plotRedraw</a></li><li><a href="global.html#plotSelection">plotSelection</a></li><li><a href="global.html#plotSelectionReset">plotSelectionReset</a></li><li><a href="global.html#plotWidth">plotWidth</a></li><li><a href="global.html#removeSmallValues">removeSmallValues</a></li><li><a href="global.html#setLegend">setLegend</a></li><li><a href="global.html#setOptions">setOptions</a></li><li><a href="global.html#tooltipLocation">tooltipLocation</a></li><li><a href="global.html#updateOptions">updateOptions</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Nov 17 2017 09:08:45 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
