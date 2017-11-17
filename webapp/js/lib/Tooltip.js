@@ -4,78 +4,11 @@
 
 
 /**
+* @class Tooltip
+*
 * Tooltip class
 *
 * Creates a tooltip for the plot
-*
-*
-*
-* @constructor
-*       create the tooltip
-*       @argument plotObj {Object}
-*           plot object (D3LineView)
-*       
-*       @argument selectedEl {Element}
-*           DOM selection of the data point to put the tooltip
-*
-*
-*
-* @method decreaseRadius
-*         method to decrease the radius of a circle
-*         @argument plotObj {Object}
-*             the plot object (D3LinePlot)
-*
-* @method destroy
-*         method to remove the tooltip and variables
-*         @argument plotObj {Object}
-*             the plot object (D3LinePlot)
-*
-* @method increaseRadius
-*         method to increase the radius of a circle
-*         @argument plotObj {Object}
-*             the plot object (D3LinePlot)
-*
-* @method tooltipLocation 
-*         Static method to set the location of tooltip so it doesn't 
-*         extend over the panel
-*         @argument tooltip {Object}
-*             Tooltip object
-*
-*
-* 
-* @param mouseX {Number}
-*        the mouse location in X in pixels
-*
-* @param mouseY {number}
-*        the mouse location in Y in pixels
-*
-* @param offset {Number}
-*        tooltip offset from data point
-*        comes from plotObj.options.tooltipOffset
-*
-* @param padding {Number}
-*        tooltip text padding
-*        comes from plotObj.options.tooltipPadding
-*
-* @param selectedEl {Element}
-*        DOM selected element of the data point to put the tooltip
-*
-* @param text {Array<String>}
-*        array of 3 strings for the tooltip:
-*        ["Data Label","X Value Label","Y Value Label"]
-*        comes from plotObj.options.tooltipText
-*
-* @param tooltipHeight {Number}
-*        rectangle height to enclose tooltip
-*
-* @param tooltipWidth {Number}
-*        rectangle width to enclose tooltip
-*
-* @param xVal {Number}
-*        X value of data 
-*
-* @param yVal {Number}
-*        Y value of data
 *
 */
 
@@ -83,13 +16,50 @@ class Tooltip{
   
   //...................... Tooltip Contructor ..................................
   /**
+  * @constructor Tooltip
+  *
   * Create the tooltip
   *
   * @argument plotObj {Object}
-  *     plot object (D3LineView)
+  *     plot object from D3LineView
   * 
   * @argument selectedEl {Element}
   *     DOM selection of the data point to put the tooltip
+  *
+  *
+  * @property mouseX {Number}
+  *     the mouse location in X in pixels
+  *
+  * @property mouseY {number}
+  *     the mouse location in Y in pixels
+  *
+  * @property offset {Number}
+  *     tooltip offset from data point
+  *     comes from plotObj.options.tooltipOffset
+  *
+  * @property padding {Number}
+  *     tooltip text padding
+  *     comes from plotObj.options.tooltipPadding
+  *
+  * @property selectedEl {Element}
+  *     DOM selected element of the data point to put the tooltip
+  *
+  * @property text {Array<String>}
+  *     array of 3 strings for the tooltip:
+  *     ["Data Label","X Value Label","Y Value Label"]
+  *     comes from plotObj.options.tooltipText
+  *
+  * @property tooltipHeight {Number}
+  *     rectangle height to enclose tooltip
+  *
+  * @property tooltipWidth {Number}
+  *     rectangle width to enclose tooltip
+  *
+  * @property xVal {Number}
+  *     X value of data 
+  *
+  * @property yVal {Number}
+  *     Y value of data
   */
   constructor(plotObj,selectedEl){
     
@@ -188,6 +158,8 @@ class Tooltip{
 
   //................... Method: Decrease Circle Radius .........................
   /**
+  * @method decreaseRadius
+  *
   * Method to decrease the radius of a circle
   *
   * @argument plotObj {Object}
@@ -213,6 +185,8 @@ class Tooltip{
   
   //.................... Method: Remove Tooltip ................................
   /**
+  * @method destroy
+  *
   * Method to remove the tooltip and remove all variables 
   *
   * @argument plotObj {Object}
@@ -239,6 +213,8 @@ class Tooltip{
 
   //...................... Method: Increase Circle Radius ......................
   /**
+  * @method increaseRadius
+  *
   * Method to increase the radius of a circle
   *
   * @argument plotObj {Object}

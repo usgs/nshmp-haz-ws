@@ -4,6 +4,8 @@
 
 
 /**
+* @class D3View 
+*
 * D3 view for plots
 *
 * Creates a Bootstrap panel element with a 
@@ -13,105 +15,78 @@
 * The panel body will contain the plot 
 * The panel footer contains the X/Y scale buttons
 *
-*
-*
-* @constructor
-*         creates the html elements for the Bootstrap panel header, body,
-*         and footer.
-*         @argument containerEl {Element}
-*             DOM selected element to put the html elements
-*       
-*
-*
-* @method checkPlots
-*         static method to check if other plots exsists
-*         @argument updateStatus {Boolean}
-*             if true will look and see if there is one plot and make sure
-*             it is col-lg-12.
-*         @return {String}
-*             string that is a Bootstrap column size, col-lg-6 or col-lg-12
-* 
-* @method setOption
-*         method to set the plot options
-*         @argument options {Object}
-*             object of options to set
-*
-* @method updateOptions
-*         static method to update the options 
-*         @argument view {Object}
-*             D3View object
-*
-*
-*
-* @param containerEl
-*        selected html element to construct all Bootstrap panels 
-*
-* @param el
-*        selected html element of the created Bootstap panel
-*
-* @param options {object}
-*        options for plot view
-*
-* @param options.legendLocation {String}
-*        default "topright"
-*                
-* @param options.linewidth {Integer}
-*        default 3
-*        linewidth of plot curves
-*
-* @param options.marginBottom {Integer}
-*        default 50
-*
-* @param options.marginLeft {Integer}
-*        default 20
-*
-* @param options.marginRight {Integer}
-*        default 20
-*
-* @param options.marginTop {Integer}
-*        default 60
-*
-* @param options.pointRadius {Integer}
-*        default 5
-*        radius of points
-*
-* @param options.title {String}
-*        default ""
-*        plot title
-*
-* @param options.xAxisScale {String}
-*        default "log"
-*        X axis scale
-*
-* @param options.yAxisScale {String}
-*        default "log"
-*        Y axis scale
-*
-* @param plotPanel
-*        selected html element of the Bootstrap panel
-*
-* @param plotTitle
-*        selected html element of the Bootstrap panel header for plot title
-*
-* @param plotBody
-*        selected html element of the Bootstrap panel body for plot
-*
-* @param plotFooter
-*        selected html element of the Bootstrap panel footer for axes buttons
-*
+* @author Brandon Clayton
 */
-
-
-
 class D3View{
 
   //........................... D3View Constructor .............................
   /**
+  * @constructor D3View 
+  *
   * Creates the html elements for the Bootstrap panel header, body,
   * and footer.
   *
+  *
   * @argument containerEl {Element}
   *     DOM selected element to put the html elements
+  *
+  *
+  * @property containerEl
+  *     selected html element to construct all Bootstrap panels 
+  *
+  * @property el
+  *     selected html element of the created Bootstap panel
+  *
+  * @property options {object}
+  *     options for plot view
+  *
+  * @property options.legendLocation {String}
+  *     default "topright"
+  *     "topright" || "topleft" || "bottomright" || "bottomleft"     
+  *           
+  * @property options.linewidth {Integer}
+  *     default 3
+  *     linewidth of plot curves
+  *
+  * @property options.marginBottom {Integer}
+  *     default 50
+  *
+  * @property options.marginLeft {Integer}
+  *     default 20
+  *
+  * @property options.marginRight {Integer}
+  *     default 20
+  *
+  * @property options.marginTop {Integer}
+  *     default 60
+  *
+  * @property options.pointRadius {Integer}
+  *     default 5
+  *     radius of points
+  *
+  * @property options.title {String}
+  *     default ""
+  *     plot title
+  *
+  * @property options.xAxisScale {String}
+  *     default "log"
+  *     X axis scale
+  *
+  * @property options.yAxisScale {String}
+  *     default "log"
+  *     Y axis scale
+  *
+  * @property plotPanel
+  *     selected html element of the Bootstrap panel
+  *
+  * @property plotTitle
+  *     selected html element of the Bootstrap panel header for plot title
+  *
+  * @property plotBody
+  *     selected html element of the Bootstrap panel body for plot
+  *
+  * @property plotFooter
+  *     selected html element of the Bootstrap panel footer for axes buttons
   */
   constructor(containerEl){
 
@@ -330,11 +305,15 @@ class D3View{
 
   //................ Method: Check How Many Plots Are There ....................
   /**
-  * static method to check if other plots exsists
+  * @method checkPlots
+  *
+  * static method to check if other plots exists to set
+  * the coorect panel width, either col-6 or col-12
   *
   * @argument updateStatus {Boolean}
   *     if true will look and see if there is one plot and make sure
   *     it is col-lg-12.
+  *
   * @return {String}
   *     string that is a Bootstrap column size, col-lg-6 or col-lg-12
   *
@@ -382,6 +361,8 @@ class D3View{
   
   //................... Method: Set Options ...................................
   /**
+  * @method setOptions
+  *
   * method to set the plot options
   *
   * @argument options {Object}
@@ -404,6 +385,8 @@ class D3View{
 
   //................... Method: Update Options .................................
   /**
+  * @method updateOptions
+  *
   * static method to update the options 
   *
   * @argument view {Object}

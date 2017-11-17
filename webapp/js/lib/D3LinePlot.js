@@ -4,195 +4,14 @@
 
 
 /**
-* D3 line plot extend D3View
+* @class D3LinePlot
+*
+* D3 line plot
+* @extend D3View 
 *
 * Creates the SVG elements inside the D3View panel body
 *
-*
-*
-* @constructor
-*         create the SVG struture for the plot
-*         @argument containerEL {Element}
-*             DOM selection of container element for plots
-*
-*
-*
-* @method dataTable
-*         static method to create table of data
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*
-* @method destroy
-*         method to remove the plot and all variables
-*
-* @method getXExtremes
-*         static method to find the X min and max values
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @return {Array<number>}
-*             [X min,X max]
-*
-* @method getXScale
-*         static method to find the X scale
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @return {D3 scale}
-*             d3 linear or log scale 
-*
-* @method getYExtremes
-*         static method to find the Y min and max values
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @return {Array<number>}
-*             [Y min,Y max]
-*
-* @method getYScale
-*         static method to find the Y scale
-*         @arguments linePlot {Object}
-*             D3LinePlot object
-*         @return {D3 scale}
-*             d3 linear or log scale 
-* 
-* @method legendLocation
-*         static method to get the legend translation
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @argument plotHeight {Number}
-*             plot height in pixels
-*         @argument plotWidth {Number}
-*             plot width in pixels
-*         @return {String}
-*             translation string
-*             "translation(X,Y)"
-*
-* @method plotData
-*         method to plot the data
-*         @param {Array<String>}
-*             array of hex strings representing colors, uses d3 schemes
-*             uses d3.schemeCategory10 or 20 based on data sets
-*
-*         @param {Array<String>}
-*             array of strings based on the labels parameters
-*             labels parameters white spaces are replaced with underscores 
-*                        
-*         @param line {Function}
-*             d3 function for the line 
-*
-*         @param xBounds {D3 scale}
-*             uses the d3 scale returned by getXScale method
-*
-*         @param xExtremes {Array<Number>}
-*             array of X extreme values returned by getXExtremes method
-*
-*         @param yBounds {D3 scale}
-*             uses the d3 scale returned by getYScale method
-*
-*         @param yExtremes {Array<Number>}
-*             array of X extreme values returned by getYExtremes method
-*
-* @method plotHeight
-*         static method to find the Bootstrap panel body height for the plot
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @argument isSvg {Boolean}
-*             whether to calculate for SVG element or plot 
-*         @return {Number}
-*             height in pixels
-*
-* @method plotSelection
-*         static method to highlight a selected line 
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @argument selectedId {String}
-*             string of the ID of the selected data 
-*
-* @method plotSelectionReset
-*         static method to reset all plot selections
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*
-* @method plotRedraw
-*         static method to redraw the plot
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @argument doTransition {Boolean}
-*             wheather to transition when redrawing plot
-*         @param xBounds {D3 scale}
-*                udpates the xBounds
-*                uses the d3 scale returned by getXScale method
-*
-*         @param yBounds {D3 scale}
-*                udpates the yBounds
-*                uses the d3 scale returned by getYScale method
-*
-* @method plotWidth
-*         static method to find the Bootstrap panel body width for the plot
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*         @argument isSvg {Boolean}
-*             whether to calculate for SVG element or plot 
-*         @return {Number}
-*             width in pixels
-*
-* @method removeSmallValues
-*         method to take all values under a specified limit and make them null
-*         to not plot
-*         @argument limit {Number}
-*             any number at or below limit will be null 
-*
-* @method setLegend
-*         static method to create the plot legend
-*         @argument linePlot {Object}
-*             D3LinePlot object
-*
-*          
-*
-* @param allDataEl {Element}
-*        DOM selection of the SVG all-data class
-*
-* @param data {Array<Array<Number>>}
-*        default []
-*        array of array of x,y coordinates:
-*        [ [x1,y1], [x2,y2], ... ]
-*
-* @param labels {Array<String>}
-*        default []
-*        array of strings cooresponding to each data set in data:
-*        ["Line 1","Line 2", ... ]
-*
-* @param legendEl {Element}
-*        DOM selection of the SVG legend class
-*
-* @param observer {Object}
-*        mutation observer to update the plots when a new plot is created
-*
-* @param plotEl {Element}
-*        DOM selection of the SVG plot class 
-*
-* @param svgEl {Element}
-*        DOM selection of the main SVG element, class D3LinePlot
-*
-* @param tableEl {Element}
-*        DOM selection of the data table, class data-table 
-*
-* @param tableBodyEl {Element}
-*        DOM selection of the data table body, class data-table-body
-*
-* @param tooltipEl {Element}
-*        DOM selection of the SVG d3-tooltip class
-*
-* @param xAxisEl {Element}
-*        DOM selection of the SVG x-axis class
-* 
-* @param xLabel {String}
-*        string for x-label
-*
-* @param yAxisEl {Element}
-*        DOM selection of the SVG y-axis class 
-*
-* @param yLabel {String}
-*        string for y-label
-*
+* @author Brandon Clayton
 */
 
 
@@ -202,10 +21,63 @@ class D3LinePlot extends D3View{
 
   //..................... D3LinePlot Constructor ...............................
   /**
-  * Create the SVG struture for the plot
+  * @constructor
+  *
+  * create the SVG struture for the plot
+  * 
   *
   * @argument containerEL {Element}
   *     DOM selection of container element for plots
+  *
+  * @argument containerEL {Element}
+  *     DOM selection of container element for plots
+  *
+  *
+  * @property allDataEl {Element}
+  *        DOM selection of the SVG all-data class
+  *
+  * @property data {Array<Array<Number>>}
+  *        default []
+  *        array of array of x,y coordinates:
+  *        [ [x1,y1], [x2,y2], ... ]
+  *
+  * @property labels {Array<String>}
+  *        default []
+  *        array of strings cooresponding to each data set in data:
+  *        ["Line 1","Line 2", ... ]
+  *
+  * @property legendEl {Element}
+  *        DOM selection of the SVG legend class
+  *
+  * @property observer {Object}
+  *        mutation observer to update the plots when a new plot is created
+  *
+  * @property plotEl {Element}
+  *        DOM selection of the SVG plot class 
+  *
+  * @property svgEl {Element}
+  *        DOM selection of the main SVG element, class D3LinePlot
+  *
+  * @property tableEl {Element}
+  *        DOM selection of the data table, class data-table 
+  *
+  * @property tableBodyEl {Element}
+  *        DOM selection of the data table body, class data-table-body
+  *
+  * @property tooltipEl {Element}
+  *        DOM selection of the SVG d3-tooltip class
+  *
+  * @property xAxisEl {Element}
+  *        DOM selection of the SVG x-axis class
+  * 
+  * @property xLabel {String}
+  *        string for x-label
+  *
+  * @property yAxisEl {Element}
+  *        DOM selection of the SVG y-axis class 
+  *
+  * @property yLabel {String}
+  *        string for y-label
   *
   */
   constructor(containerEl){
@@ -311,9 +183,14 @@ class D3LinePlot extends D3View{
 
   //................... Method: Create Data Table .............................. 
   /**
+  * @method dataTable
+  *
   * Create a table of the data to show
   * in place of the plot when the data 
   * button is pressed
+  *
+  * @argument linePlot {Object}
+  *     D3LinePlot object
   */
   static dataTable(linePlot){
     let _this,
@@ -368,6 +245,8 @@ class D3LinePlot extends D3View{
 
   //...................... Method: Remove Plot and Variables ...................
   /**
+  * @method destroy
+  *
   * Remove the plot from the DOM, 
   * set all variables in the D3LinePlot
   * object to null, and disconnect any
@@ -395,6 +274,8 @@ class D3LinePlot extends D3View{
 
   //................... Method: Get X Extreme Values ...........................
   /**
+  * @method getXExtremes
+  *
   * Find the maximum and minimum
   * X values.
   *
@@ -434,13 +315,16 @@ class D3LinePlot extends D3View{
   
   //...................... Method: Get X Scale .................................
   /**
+  * @method getXScale
+  *
   * Find which X scale to use log/linear
   * based on options.xAxisScale
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
   *
-  * @return {D3 Scale}
+  * @return {Object}
+  *     D3 scale object
   *     d3.scaleLinear or d3.scaleLog for X axis
   */
   static getXScale(linePlot){
@@ -459,6 +343,8 @@ class D3LinePlot extends D3View{
   
   //................... Method: Get Y Extreme Values ...........................
   /**
+  * @method getYExtremes
+  *
   * Find the maximum and minimum
   * Y values.
   *
@@ -498,14 +384,17 @@ class D3LinePlot extends D3View{
   
   //................... Method: Get Y Scale ....................................
   /**
+  * @method getYScale
+  *
   * Find which Y scale to use log/linear
   * based on options.yAxisScale
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
   *
-  * @return {D3 Scale}
-  *         d3.scaleLinear or d3.scaleLog for Y axis
+  * @return {Object}
+  *     D3 scale object
+  *     d3.scaleLinear or d3.scaleLog for Y axis
   */
   static getYScale(linePlot){
     let _options,
@@ -523,6 +412,8 @@ class D3LinePlot extends D3View{
  
   //............... Method: Calculate Legend Location Translate ................
   /**
+  * @method legendLocation
+  *
   * Calculate the translation needed for
   * the legend location
   *
@@ -576,30 +467,34 @@ class D3LinePlot extends D3View{
 
   //...................... Method: Plot Data ...................................
   /**
+  * @method plotData
+  *
   * Plot the data
   *
-  * @param {Array<String>}
-  *        array of hex strings representing colors, uses d3 schemes
-  *        uses d3.schemeCategory10 or 20 based on data sets
+  * @property color {Array<String>}
+  *     array of hex strings representing colors, uses d3 schemes
+  *     uses d3.schemeCategory10 or 20 based on data sets
   *
-  * @param {Array<String>}
-  *        array of strings based on the labels parameters
-  *        labels parameters white spaces are replaced with underscores 
+  * @property labels {Array<String>}
+  *     array of strings based on the labels parameters
+  *     labels parameters white spaces are replaced with underscores 
   *                
-  * @param line {Function}
-  *        d3 function for the line 
+  * @property line {Function}
+  *     d3 function for the line 
   *
-  * @param xBounds {D3 scale}
-  *        uses the d3 scale returned by getXScale method
+  * @property xBounds {Object}
+  *     D3 scale object 
+  *     uses the d3 scale returned by getXScale method
   *
-  * @param xExtremes {Array<Number>}
-  *        array of X extreme values returned by getXExtremes method
+  * @property xExtremes {Array<Number>}
+  *     array of X extreme values returned by getXExtremes method
   *
-  * @param yBounds {D3 scale}
-  *        uses the d3 scale returned by getYScale method
+  * @property yBounds {Object}
+  *     D3 scale object  
+  *     uses the d3 scale returned by getYScale method
   *
-  * @param yExtremes {Array<Number>}
-  *        array of X extreme values returned by getYExtremes method
+  * @property yExtremes {Array<Number>}
+  *     array of X extreme values returned by getYExtremes method
   *
   */
   plotData(){
@@ -879,6 +774,8 @@ class D3LinePlot extends D3View{
  
   //....................... Method: Plot Height ................................
   /**
+  * @method plotHeight
+  *
   * Calculate the plot height based on the Bootstrap panel
   * header, body, and footer.
   *
@@ -888,6 +785,7 @@ class D3LinePlot extends D3View{
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
+  *
   * @argument isSvg {Boolean}
   *     whether to calculate for SVG element or plot 
   *
@@ -927,6 +825,8 @@ class D3LinePlot extends D3View{
 
   //..................... Method: Plot Redraw ..................................
   /**
+  * @method plotRedraw
+  *
   * Redraw the plot
   *
   * If doTransition is true will transition at 0.5 seconds,
@@ -947,16 +847,19 @@ class D3LinePlot extends D3View{
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
+  *
   * @argument doTransition {Boolean}
   *     wheather to transition when redrawing plot
   *
-  * @param xBounds {D3 scale}
-  *        udpates the xBounds
-  *        uses the d3 scale returned by getXScale method
+  * @property xBounds {Object}
+  *     D3 scale object
+  *     udpates the xBounds
+  *     uses the d3 scale returned by getXScale method
   *
-  * @param yBounds {D3 scale}
-  *        udpates the yBounds
-  *        uses the d3 scale returned by getYScale method
+  * @property yBounds {Object}
+  *     D3 scale object
+  *     udpates the yBounds
+  *     uses the d3 scale returned by getYScale method
   */
   static plotRedraw(linePlot,doTransition){
     let _legendD3,
@@ -1047,6 +950,8 @@ class D3LinePlot extends D3View{
 
   //................. Method: Highlight a Selected Line ........................
   /**
+  * @method plotSelection
+  *
   * Increases the linewidth and circle radius 
   * of a selected line or legend element based 
   * on options.linewidthSelection and options.pointRadiusSelection
@@ -1059,6 +964,7 @@ class D3LinePlot extends D3View{
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
+  *
   * @argument selectedId {String}
   *     string of the ID of the selected data 
   */
@@ -1113,6 +1019,8 @@ class D3LinePlot extends D3View{
 
   //........... Method: Remove Highlight from Selected Line ....................
   /**
+  * @method plotSelectionReset
+  *
   * Resets all the lines and circles in the plot
   * to original linewidth and radius based on 
   * options.linewidth and options.pointRadius.
@@ -1161,6 +1069,8 @@ class D3LinePlot extends D3View{
 
   //..................... Method: Plot Width ...................................
   /**
+  * @method plotWidth
+  *
   * Calculate the plot width based on the Bootstrap panel
   * body.
   *
@@ -1170,6 +1080,7 @@ class D3LinePlot extends D3View{
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
+  *
   * @argument isSvg {Boolean}
   *     whether to calculate for SVG element or plot 
   *
@@ -1201,6 +1112,8 @@ class D3LinePlot extends D3View{
 
   //................... Method: Replace Y values with null .....................
   /**
+  * @method removeSmallValues
+  *
   * Set values of the data under a specifed limit 
   * to null so they will not be graphed.
   * 
@@ -1227,6 +1140,8 @@ class D3LinePlot extends D3View{
 
   //................. Method: Create the Legend ................................
   /**
+  * @method setLegend
+  *
   * Create the legend using the labels
   *
   * @argument linePlot {Object}
