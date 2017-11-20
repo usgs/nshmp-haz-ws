@@ -82,6 +82,7 @@ class D3LinePlot extends D3View{
     _this.allDataEl; 
     _this.data;
     _this.labels;
+    _this.ids;
     _this.legendEl;
     _this.observer;
     _this.plotEl;
@@ -503,7 +504,6 @@ class D3LinePlot extends D3View{
     
     _this = this;
     _this.color;
-    _this.labelIds;
     _this.line;
     _this.xBounds;
     _this.xExtremes;
@@ -523,15 +523,14 @@ class D3LinePlot extends D3View{
     //--------------------------------------------------------------------------
 
     
-    // Create label ids based on labels
-    _this.labelIds = _this.labels.map(function(d,i){
-      return d.replace(" ","_"); 
-    });
-    
     // Get color scheme
     _ndata = this.data.length;           
     _this.color = _ndata < 10 ? d3.schemeCategory10 : d3.schemeCategory20;
-     
+    
+    
+    // Make visible
+    d3.select(_this.el)
+        .classed("hidden",false); 
     
     //................. D3 Function: Line Function .............................
     _this.line = d3.line()                            
@@ -584,7 +583,7 @@ class D3LinePlot extends D3View{
         .enter()
         .append("g")
         .attr("class","data")
-        .attr("id",function(d,i){return _this.labelIds[i]})
+        .attr("id",function(d,i){return _this.ids[i]})
         .style("cursor","pointer");
     
     // Plot lines
@@ -1164,7 +1163,7 @@ class D3LinePlot extends D3View{
         .enter()  
         .append("g") 
         .attr("class","legend-entry")
-        .attr("id",function(d,i){return linePlot.labelIds[i]})
+        .attr("id",function(d,i){return linePlot.ids[i]})
         .style("cursor","pointer")
         .attr("transform","translate("+(_options.legendPadding)
             +","+(16)+")");

@@ -157,7 +157,7 @@ class D3View{
     
     _elD3 = _containerD3
         .append("div")
-        .attr("class","D3View " + _this.colSize)
+        .attr("class","D3View hidden " + _this.colSize)
         
     _plotPanelD3 = _elD3
         .append("div")

@@ -105,10 +105,12 @@ $("#add-plot").click(function(){
 
   let data = [];
   let labels = [];
-  
+  let ids = [];
+
   let dataLabels = dataAndLabels();
   data = dataLabels[0];
   labels = dataLabels[1];
+  ids = dataLabels[2];
 
   plot = new D3LinePlot(el);
   plot.setOptions(options);
@@ -117,7 +119,8 @@ $("#add-plot").click(function(){
 
   plot.data = data;
   plot.labels = labels;
-  
+  plot.ids = ids;
+
   plot.plotData();
 
 
@@ -133,6 +136,7 @@ function dataAndLabels(){
   let tmp = [];
   let data = [];
   let labels = [];
+  let ids = [];
 
   let nd = Math.floor((Math.random()*3)+1);
   let ndp = Math.floor((Math.random()*20)+10);
@@ -142,10 +146,11 @@ function dataAndLabels(){
     }
     data.push(tmp);
     labels.push("Label " + (jd+1));
+    ids.push("label"+ (jd+1));
     tmp = [];
   }
 
-  return [data,labels];
+  return [data,labels,ids];
 }
 
 </script>

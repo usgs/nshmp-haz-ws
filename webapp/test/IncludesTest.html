@@ -26,14 +26,40 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
   
   <script src="/nshmp-haz-ws/js/lib/Header.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Footer.js"  type="text/javascript" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Spinner.js"  type="text/javascript" charset="UTF-8"></script>
 
 
 
 <script>
 
-let header;
+let header,
+    footer,
+    footerOptions,
+    spinner,
+    el,
+    title;
 
+el = document.querySelector("body");
+
+spinner = new Spinner();
+footer = new Footer();
 header = new Header();
+title = "Test Title";
+header.setTitle(title);
+
+
+footerOptions = {
+  rawBtnDisable: false,
+  updateBtnDisable: false
+};
+
+footer.setOptions(footerOptions);
+
+
+spinner.on(el);
+
+setTimeout(function(){spinner.off(el)},1500);
 
 </script>
 

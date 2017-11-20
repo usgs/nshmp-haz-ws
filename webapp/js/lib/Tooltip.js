@@ -91,7 +91,7 @@ class Tooltip{
     
     //........................ Set Tooltip Text ................................
     let _labelId = d3.select(selectedEl.parentNode).attr("id");
-    let _iLabel = plotObj.labelIds.indexOf(_labelId);
+    let _iLabel = plotObj.ids.indexOf(_labelId);
     _label = plotObj.labels[_iLabel];
     
     _this.text = [
