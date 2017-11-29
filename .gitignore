@@ -7,5 +7,7 @@ build
 classes
 tmp
 webapp/models
+webapp/jsdocs
+webapp/test
 Scratch*.java
 scratch*.html
