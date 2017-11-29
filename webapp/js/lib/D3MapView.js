@@ -168,8 +168,6 @@ class D3MapView{
     ids = ["region","test-site"];
 
     labels.forEach(function(label,i){
-      console.log(label);
-      console.log(ids[i]);
       formEnterD3 = formD3.append("div")
           .attr("class","col-xs-4")
           .append("div")
@@ -237,6 +235,7 @@ class D3MapView{
     _this.lonBoundsEl = _this.lonFormEl.querySelector("#lon-bounds");
     _this.lonEl = _this.lonFormEl.querySelector("#lon");
     //-------------------------------------------------------------------------- 
+
     
     //....................... Snap to 0.1 degrees Checkbox ..................... 
     horFormD3.append("div")
@@ -281,12 +280,13 @@ class D3MapView{
   *
   */
   static setRegions(mapView){
-    let regionId,
+    let options,
         regionsDisplay,
-        options;
+        regionId;
 
     options = mapView.options;
-    
+
+    //...................... Make Region List ..................................    
     d3.select(mapView.regionListEl)
         .selectAll("label")
         .data(mapView.testSites)
@@ -301,7 +301,10 @@ class D3MapView{
               "value='"+d.properties.regionId+"' />"+
               d.properties.regionDisplay;
         });
+    //--------------------------------------------------------------------------
 
+
+    //.................... Update Site List on Click ...........................
     d3.select(mapView.regionFormEl)
         .selectAll("label")
         .on("click",function(){
@@ -310,6 +313,8 @@ class D3MapView{
               .attr("value");
           D3MapView.setSites(mapView);
         });
+    //--------------------------------------------------------------------------
+
   }
   //----------------------- End Method: setRegions -----------------------------
   
@@ -331,15 +336,15 @@ class D3MapView{
   *
   */
   static setSites(mapView){
-    let siteId,
-        siteDisplay,
-        options;
+    let fc,
+        options,
+        sites;
 
     options = mapView.options;
-    let fc = mapView.testSites.find(function(d,i){
+    fc = mapView.testSites.find(function(d,i){
       return d.properties.regionId == mapView.selectedRegion;
     });
-    let sites = fc.features;
+    sites = fc.features;
 
     d3.select(mapView.siteListEl)
         .selectAll("label")

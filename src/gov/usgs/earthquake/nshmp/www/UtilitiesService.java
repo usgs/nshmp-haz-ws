@@ -30,7 +30,7 @@ public class UtilitiesService extends HttpServlet {
       throws ServletException, IOException {
       
     PrintWriter out = response.getWriter();     
-    String utilUrl  = "util.html";
+    String utilUrl  = "/nshmp-haz-ws/util.html";
     
     String pathInfo  = request.getPathInfo();
     String queryInfo = request.getQueryString();
@@ -41,7 +41,7 @@ public class UtilitiesService extends HttpServlet {
       if (isNullOrEmpty(queryInfo)) queryInfo = "";
       out.println(TestSites.Sites(queryInfo.toUpperCase()));
     }else {
-      response.sendRedirect("../"+utilUrl);
+      response.sendRedirect(utilUrl);
     }
    
   }

@@ -16,7 +16,6 @@ import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
 //----------------------------------------------------------
 
 
