@@ -136,7 +136,16 @@ class D3MapView{
     //............................ Options .....................................
     _this.options = {
       defaultRegion: "CEUS",
-      defaultSite: null
+      defaultSite: null,
+      marginBottom: 20,
+      marginLeft: 20,
+      marginRight: 20,
+      marginTop: 20, 
+      pointRadius: 5,
+      pointRadiusSelection: 8,
+      tooltipOffest: 10,
+      tooltipPadding: 10,
+      tooltipText: ["Site","Latitude","Longitude"]
     };
     _this.selectedRegion = _this.options.defaultRegion;
     //--------------------------------------------------------------------------
@@ -160,6 +169,7 @@ class D3MapView{
 
     _this.containerEL = containerEl;
     _this.el = elD3.node();
+    _this.mapEl = _this.el.querySelector(".map");
     //--------------------------------------------------------------------------
 
 
@@ -256,6 +266,7 @@ class D3MapView{
     jsonPromise.fail(function(){
       console.log("JSON Error");
     });
+    _this.testSitePromise = jsonPromise;
     //--------------------------------------------------------------------------
 
   }
@@ -366,7 +377,6 @@ class D3MapView{
   //-------------------- End Method: setSites ----------------------------------
 
 
+
 }
-
-
 //--------------------- End Class: D3MapView -----------------------------------

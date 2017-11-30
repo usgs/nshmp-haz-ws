@@ -28,6 +28,8 @@
 /* Map: Bootstrap panel body */
 .D3MapView .map{
   height: 55%;
+  padding: 0;
+  background-color: #f5f5f5;
 }
 
 /* Control panel: Bootstrap panel footer */
@@ -39,6 +41,7 @@
   left: 0;
   padding: 0;
   overflow: scroll;
+  background-color: white;
 }
 
 /* All panels */

@@ -209,7 +209,6 @@ function plotMap(){
       .attr("r",siteRadius);
     d3.select(".map-borders")
       .attr("transform",d3.event.transform)
-      .attr("stroke-width",1.5 / d3.event.transform.k+"px");
   }
 
   //................. Plot ..........................
