@@ -1,0 +1,52 @@
+
+<!doctype html>
+
+
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3MapView.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <style>
+    #testsites{
+      height: 100%;
+      width: 600px;
+      margin: auto;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div id="testsites"></div>  
+
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>   
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3MapView.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3MapPlot.js" charset="UTF-8" ></script>
+  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" charset="UTF-8"></script>
+
+  
+  <script>
+    
+    let el = document.querySelector("#testsites");
+    let map = new D3MapPlot(el);  
+
+
+  </script>
+
+
+</body>
+
+</html>
