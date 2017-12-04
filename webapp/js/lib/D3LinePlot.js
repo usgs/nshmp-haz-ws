@@ -590,6 +590,7 @@ class D3LinePlot extends D3View{
     _seriesEnter.append("path")
         .attr("class","line")
         .attr("d",_this.line)
+        .attr("id",function(d,i){return _this.ids[i]})
         .attr("stroke",function(d,i){return _this.color[i]} )
         .attr("stroke-width",_this.options.linewidth)
         .attr("fill","none");
@@ -601,6 +602,9 @@ class D3LinePlot extends D3View{
         .filter(function(d,i){return d[1] != null})
         .append("circle")
         .attr("class","dot")
+        .attr("id",function(d,i){
+          return d3.select(this.parentNode.firstChild).attr("id");
+        })
         .attr("cx",_this.line.x())
         .attr("cy",_this.line.y())
         .attr("r",_this.options.pointRadius)
@@ -1154,7 +1158,7 @@ class D3LinePlot extends D3View{
     _plotWidth = D3LinePlot.plotWidth(linePlot);
     
     d3.select(linePlot.legendEl)
-      .selectAll(".legend-entry")
+      .selectAll("*")
       .remove();
       
     _legendD3 = d3.select(linePlot.legendEl)

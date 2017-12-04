@@ -41,9 +41,6 @@ class Spinner{
   *
   * @description remove the loading spinner overlay 
   *
-  * @argument containerEl {Element}                                               
-  *     optional: html container element where the header will be placed <br>               
-  *     default: body
   */
   off(){
     let _this;
@@ -64,18 +61,21 @@ class Spinner{
   * @description creates a loading spinner overlay 
   *
   *
-  * @argument containerEl {Element}                                               
-  *     html container element where the header will be placed <br>               
-  *     this should generally be the body 
+  * @argument text {String}
+  *     string for the spinner text <br>
+  *     default: Loading ...
   */
-  on(){
+  on(text){
     let _this,
         // Variables
         loaderD3,
-        spinnerD3;
+        spinnerD3,
+        spinnerText;
     
     _this = this;
      
+    spinnerText = text == null ? "Loading ..." : text;
+
     spinnerD3 = d3.select(_this.containerEl)
         .append("div")
         .attr("class","loading-spinner");
@@ -91,7 +91,7 @@ class Spinner{
 
     loaderD3.append("div")
         .attr("id","loader-text")
-        .text("Loading ...");
+        .text(spinnerText);
   }
   //------------------------- End Method: on -----------------------------------
   

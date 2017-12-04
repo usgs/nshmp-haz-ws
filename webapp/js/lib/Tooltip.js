@@ -7,12 +7,25 @@
 * @class Tooltip
 *
 * @classdesc Tooltip class
-* Creates a tooltip for the plot
+* Creates a tooltip for the plot 
 *
 *
 * @argument plotObj {Object}
 *     plot object from D3LineView
 * 
+* @argument plotObj.plotEl {Element}
+* @argument plotObj.options {Object}
+* @argument plotObj.options.tooltipOffset {Integer}
+* @argument plotObj.options.tooltipPadding {Integer}
+* @argument plotObj.labels {Array<String>}
+* @argument plotObj.ids {Array<String>}
+* @argument plotObj.options.tooltipText {Array<Array<String>>}
+* @argument plotObj.tooltipEl {Element}
+* @argument plotObj.svgEl {Element}
+* @argument plotObj.options.pointRadius {Integer}
+* @argument plotObj.options.pointRadiusSelection {Integer}
+* @argument plotObj.options.pointRadiusTooltip {Integer}
+*
 * @argument selectedEl {Element}
 *     DOM selection of the data point to put the tooltip
 *
@@ -79,8 +92,8 @@ class Tooltip{
     _this.yVal;
     
     _mouseCoord = d3.mouse(plotObj.plotEl);
-    _this.mouseX = _mouseCoord[0];
-    _this.mouseY = _mouseCoord[1];
+    _this.mouseX = parseFloat(d3.select(selectedEl).attr("cx")); 
+    _this.mouseY = parseFloat( d3.select(selectedEl).attr("cy"));
     _this.offset = parseFloat(plotObj.options.tooltipOffset);
     _this.padding = parseFloat(plotObj.options.tooltipPadding);
     _this.selectedEl = selectedEl;
@@ -90,7 +103,7 @@ class Tooltip{
 
     
     //........................ Set Tooltip Text ................................
-    let _labelId = d3.select(selectedEl.parentNode).attr("id");
+    let _labelId = d3.select(selectedEl).attr("id");
     let _iLabel = plotObj.ids.indexOf(_labelId);
     _label = plotObj.labels[_iLabel];
     
@@ -144,6 +157,8 @@ class Tooltip{
       .attr("transform",_this.textTrans)
       .raise();
 
+    d3.select(plotObj.tooltipEl)
+        .raise();
     //--------------------------------------------------------------------------
   
   }
@@ -256,35 +271,45 @@ class Tooltip{
         rectTrans,
         textTrans;
 
-		_xPer = _this.mouseX/_this.plotWidth; 
-		_yPer = _this.mouseY/_this.plotHeight; 
+    _xPer = _this.mouseX/_this.plotWidth; 
+    _yPer = _this.mouseY/_this.plotHeight; 
 
-		if (_xPer < 0.30){              
-			_xRect = (_this.mouseX);
-			_xText = (_this.mouseX+_this.padding);
-		}else if (_xPer > 0.70){         
-			_xRect = (_this.mouseX-_this.tooltipWidth);
-			_xText = (_this.mouseX-_this.tooltipWidth+_this.padding);
-		}else{                               
-			_xRect = (_this.mouseX-_this.tooltipWidth/2);
-			_xText = (_this.mouseX-_this.tooltipWidth/2+_this.padding);
-		}
+    if (_xPer < 0.30){              
+      _xRect = (_this.mouseX);
+      _xText = (_this.mouseX+_this.padding);
+    }else if (_xPer > 0.70){         
+      _xRect = (_this.mouseX-_this.tooltipWidth);
+      _xText = (_this.mouseX-_this.tooltipWidth+_this.padding);
+    }else{                               
+      _xRect = (_this.mouseX-_this.tooltipWidth/2);
+      _xText = (_this.mouseX-_this.tooltipWidth/2+_this.padding);
+    }
 
-		if (_yPer < 0.25){                   
-			_yRect = (_this.mouseY+_this.offset);
-			_yText = (_this.mouseY+_this.offset+_this.padding);
-		}else{                             
-			_yRect = (_this.mouseY-_this.tooltipHeight-_this.offset);
-			_yText = (_this.mouseY-_this.offset-_this.tooltipHeight+_this.padding);
-		}
+    if (_yPer < 0.25){                   
+      _yRect = (_this.mouseY+_this.offset);
+      _yText = (_this.mouseY+_this.offset+_this.padding);
+    }else{                             
+      _yRect = (_this.mouseY-_this.tooltipHeight-_this.offset);
+      _yText = (_this.mouseY-_this.offset-_this.tooltipHeight+_this.padding);
+    }
 
-		rectTrans = "translate("+_xRect+","+_yRect+")"; 
-		textTrans = "translate("+_xText+","+_yText+")"; 
+    rectTrans = "translate("+_xRect+","+_yRect+")"; 
+    textTrans = "translate("+_xText+","+_yText+")"; 
   
     _this.rectTrans = rectTrans;
     _this.textTrans = textTrans;
   }
   //-------------------- End Method: Tooltip Location --------------------------
+
+
+
+  pointColor(color){
+    let _this = this;
+
+    d3.select(_this.selectedEl)
+        .attr("fill",color);
+  }
+    
 
 
 }

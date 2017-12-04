@@ -495,8 +495,10 @@
           <pre> let spinner = new Spinner(containerElement); </pre>
 
           
-          <li> Turn on the spinner </li>
-          <pre> spinner.on(); </pre>
+          <li> Turn on the spinner with optional text for spinner. Default: 
+              Loading ...
+          </li>
+          <pre> spinner.on("Calculating ..."); </pre>
 
           <li> Turn off the spinner </li>
           <pre> spinner.off(); </pre>
@@ -529,7 +531,7 @@
       &lt;script&gt;
         let spinnerEl = document.getElementById("example-spinner");
         let spinner = new Header(spinnerEl);
-        spinner.on();
+        spinner.on("Calculating ...");
       &lt;/script&gt;
 
     &lt;/body&gt;
@@ -725,7 +727,7 @@
   //..................... Spinner Example ......................................
   let spinnerEl = document.getElementById("example-spinner");
   let spinner = new Spinner(spinnerEl);
-  spinner.on();
+  spinner.on("Calculating ...");
   //-------------------- End: Spinner Example ----------------------------------
 
 

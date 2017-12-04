@@ -171,8 +171,9 @@ class D3View{
         .attr("class","panel-title")
     
     _plotHeader
-        .append("span")
+        .append("div")
         .attr("class","plot-title")
+        .attr("contenteditable","true");
         
     _plotHeader.append("span")
         .attr("class",function(){

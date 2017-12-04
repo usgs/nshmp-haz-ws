@@ -141,11 +141,15 @@ class D3MapView{
       marginLeft: 20,
       marginRight: 20,
       marginTop: 20, 
+      pointColor: "black",
+      pointColorAddedSite: "blue",
+      pointColorSelection: "red",
       pointRadius: 5,
       pointRadiusSelection: 8,
-      tooltipOffest: 10,
+      pointRadiusTooltip: 10,
+      tooltipOffset: 10,
       tooltipPadding: 10,
-      tooltipText: ["Site","Latitude","Longitude"]
+      tooltipText: ["Site","Longitude","Latitude"]
     };
     _this.selectedRegion = _this.options.defaultRegion;
     //--------------------------------------------------------------------------
@@ -222,13 +226,13 @@ class D3MapView{
         .attr("class","control-group control-spacer")
         .text(function(d,i){return d+":"})
         .append("small")
-        .attr("id",function(d,i){return ids[i]+"-bounds"});
-    
-    formEnterD3.append("br");
+        .attr("id",function(d,i){return ids[i]+"-bounds"})
+        .html("<br> Region bounds");
     
     formInputD3 = formEnterD3.append("div")
         .attr("class","input-group")
         .style("width","100%") 
+
     formInputD3.append("input")
         .attr("class","form-control")
         .attr("id",function(d,i){return ids[i]})
@@ -245,13 +249,23 @@ class D3MapView{
     _this.lonBoundsEl = _this.lonFormEl.querySelector("#lon-bounds");
     _this.lonEl = _this.lonFormEl.querySelector("#lon");
     //-------------------------------------------------------------------------- 
-
+   
+    //........................ Add Site Button ................................. 
+    let addSiteD3 = horFormD3.append("div")
+        .attr("class","form-group form-group-sm")
+        .append("button")
+        .attr("class","btn btn-default")
+        .attr("type","button")
+        .text("Add site");
+    _this.addSiteEl = addSiteD3.node();
+    //--------------------------------------------------------------------------
     
     //....................... Snap to 0.1 degrees Checkbox ..................... 
-    horFormD3.append("div")
-        .attr("class","map-checkbox")
+    let snapToD3 = horFormD3.append("div")
+        .attr("class","form-group form-group-sm")
         .append("label")
         .html("<input type='checkbox' id='snap-grid'> Snap to 0.1°");
+    _this.snapToEl = snapToD3.select("input").node();
     //--------------------------------------------------------------------------
 
 
@@ -345,6 +359,13 @@ class D3MapView{
   * @arguments mapView {Object}
   *     D3MapView object
   *
+  * 
+  * @property mapView.labels {Array<String>}
+  *     array of site names 
+  *
+  * @property mapView.ids {Array<String>}
+  *     array of site id names
+  *
   */
   static setSites(mapView){
     let fc,
@@ -357,6 +378,13 @@ class D3MapView{
     });
     sites = fc.features;
 
+    mapView.labels = [];
+    mapView.ids = [];
+    sites.forEach(function(d,i){
+      mapView.labels[i] = d.properties.location;
+      mapView.ids[i] = d.properties.locationId;
+    });
+
     d3.select(mapView.siteListEl)
         .selectAll("label")
         .remove();
@@ -367,6 +395,7 @@ class D3MapView{
         .enter()
         .append("label")
         .attr("class","btn btn-sm btn-default")
+        .attr("id",function(d,i){return d.properties.locationId;})
         .html(function(d,i){ 
           return "<input name='site' type='radio' " +
               "value='"+d.properties.locationId+"' />"+
