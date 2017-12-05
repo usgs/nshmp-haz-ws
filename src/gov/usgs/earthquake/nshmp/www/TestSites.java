@@ -79,15 +79,19 @@ public class TestSites{
     private String regionId;
     private String regionDisplay;
     
-    private final double uiminlatitude;
-    private final double uimaxlatitude;
-    private final double uiminlongitude;
-    private final double uimaxlongitude;
+    private FeatureCollection<Feature>  regionBounds = new FeatureCollection<>();
+    private transient List<Feature> regionFeatures= new ArrayList<>();
     
     private final double minlatitude;
     private final double maxlatitude;
     private final double minlongitude;
     private final double maxlongitude;
+    
+    private final double uiminlatitude;
+    private final double uimaxlatitude;
+    private final double uiminlongitude;
+    private final double uimaxlongitude;
+    
     
     private transient Region region;  // transient = Don't serialize 
   
@@ -111,7 +115,7 @@ public class TestSites{
         case "facilities":
           this.regionId      = "FACILITIES";
           this.regionDisplay = "US National Labs";
-          this.region        = Region.COUS;
+          this.region        = Region.WUS;
           break;
         case "nehrp":
           this.regionId      = "NEHRP";
@@ -128,15 +132,20 @@ public class TestSites{
           this.regionDisplay = "Not Defined";
           this.region        = Region.COUS;
       }
-      this.uiminlatitude  = this.region.uiminlatitude;
-      this.uimaxlatitude  = this.region.uimaxlatitude;
-      this.uiminlongitude = this.region.uiminlongitude;
-      this.uimaxlongitude = this.region.uimaxlongitude;
       
       this.minlatitude  = this.region.minlatitude;
       this.maxlatitude  = this.region.maxlatitude;
-      this.minlongitude = this.region.minlongitude;
+      this.minlongitude = this.region.minlongitude <= -180 ? -179 : this.region.minlongitude;
       this.maxlongitude = this.region.maxlongitude;
+      
+      this.uiminlatitude  = this.region.uiminlatitude;
+      this.uimaxlatitude  = this.region.uimaxlatitude;
+      this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 : this.region.uiminlongitude;
+      this.uimaxlongitude = this.region.uimaxlongitude;
+      
+      this.regionFeatures.add(GeoJson.test( this.minlongitude, this.minlatitude));
+      this.regionFeatures.add(GeoJson.test( this.maxlongitude, this.maxlatitude));
+      this.regionBounds.features = this.regionFeatures;
     }
   }
   //---------------------------------------------------------------

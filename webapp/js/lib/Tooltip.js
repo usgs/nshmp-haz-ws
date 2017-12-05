@@ -91,7 +91,6 @@ class Tooltip{
     _this.xVal;
     _this.yVal;
     
-    _mouseCoord = d3.mouse(plotObj.plotEl);
     _this.mouseX = parseFloat(d3.select(selectedEl).attr("cx")); 
     _this.mouseY = parseFloat( d3.select(selectedEl).attr("cy"));
     _this.offset = parseFloat(plotObj.options.tooltipOffset);

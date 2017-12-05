@@ -81,7 +81,7 @@
 *     html selection of the btn-group-vertical div 
 *     that holds the list of regions
 *
-* @property selectedRegion {String}
+* @property selectedRegionId {String}
 *     region ID string of the current selected region 
 *
 * @propery siteFormEl {Element}
@@ -127,7 +127,7 @@ class D3MapView{
     _this.options;
     _this.regionFormEl;
     _this.regionListEl;
-    _this.selectedRegion;
+    _this.selectedRegionId;
     _this.siteFormEl;
     _this.siteListEl;
     //--------------------------------------------------------------------------
@@ -151,7 +151,7 @@ class D3MapView{
       tooltipPadding: 10,
       tooltipText: ["Site","Longitude","Latitude"]
     };
-    _this.selectedRegion = _this.options.defaultRegion;
+    _this.selectedRegionId = _this.options.defaultRegion;
     //--------------------------------------------------------------------------
 
     
@@ -333,7 +333,7 @@ class D3MapView{
     d3.select(mapView.regionFormEl)
         .selectAll("label")
         .on("click",function(){
-          mapView.selectedRegion = d3.select(this)
+          mapView.selectedRegionId = d3.select(this)
               .select("input")
               .attr("value");
           D3MapView.setSites(mapView);
@@ -374,7 +374,7 @@ class D3MapView{
 
     options = mapView.options;
     fc = mapView.testSites.find(function(d,i){
-      return d.properties.regionId == mapView.selectedRegion;
+      return d.properties.regionId == mapView.selectedRegionId;
     });
     sites = fc.features;
 
