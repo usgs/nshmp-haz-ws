@@ -593,6 +593,7 @@ class D3LinePlot extends D3View{
         .attr("id",function(d,i){return _this.ids[i]})
         .attr("stroke",function(d,i){return _this.color[i]} )
         .attr("stroke-width",_this.options.linewidth)
+        .style("shape-rendering","geometricPrecision")
         .attr("fill","none");
    
     // Plot cirles
@@ -627,7 +628,8 @@ class D3LinePlot extends D3View{
         .select(".x-label")
         .attr("text-anchor","middle") 
         .attr("alignment-baseline","middle")
-        .style("font-size","12px")
+        .style("font-size","1em")
+        .style("font-weight","500")
         .attr("x", _plotWidth/2) 
         .attr("y", _plotHeight+_this.options.marginBottom/2+10)
         .text(_this.xLabel);
@@ -646,7 +648,8 @@ class D3LinePlot extends D3View{
         .select(".y-label")
         .attr("transform","rotate(-90)")
         .attr("text-anchor","middle")
-        .style("font-size","12px")
+        .style("font-size","1em")
+        .style("font-weight","500")
         .attr("x",0- _plotHeight/2)
         .attr("y",0- _this.options.marginLeft/2-10)
         .text(_this.yLabel);
@@ -1254,6 +1257,185 @@ class D3LinePlot extends D3View{
   //--------------- End Method: Create Legend ----------------------------------
 
 
+
+
+  saveFigure(parText){
+    let _this = this;
+    
+    let win = window.open();
+    let bodyEl = win.document.body;
+
+    let svgHtml = d3.select(plot.svgEl).node().outerHTML;
+                                                                                
+    d3.select(bodyEl)
+          .append("div")
+          .attr("class","svg-normal")
+          .html(svgHtml);
+              
+    let svgD3 = d3.select(bodyEl)
+        .select("svg")
+          .attr("version",1.1)
+          .attr("xmlns","http://www.w3.org/2000/svg")
+          .style("font-family","'Helvetica Neue',Helvetica,Arial,sans-serif");
+    
+    D3LinePlot.saveFigurePlotResize(_this,svgD3.node());
+    
+    let width = 725;
+    d3.select(bodyEl)
+        .select("svg")
+        .select("g")
+        .attr("transform","translate(60,60)")
+        .append("text")
+        .style("font-size","1.2em")
+        .attr("x",width/2)
+        .attr("y",-20)
+        .attr("text-anchor","middle")
+        .text(plot.plotTitleEl.textContent)
+    
+    svgD3.attr("height","8.5in")
+        .attr("width","11in");
+    
+    let textD3 = d3.select(bodyEl)
+        .select("svg")
+        .select("g")
+        .append("g")
+        .attr("class","parameters")
+        .attr("transform","translate(0,500)");
+      
+    textD3.selectAll("text")
+        .data(parText)
+        .enter()
+        .append("text")
+        .text(function(d,i){return d})
+        .attr("y",function(d,i){return 18*i});
+  
+    svgHtml = svgD3.outerHTMl;
+    let svgImgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);                 
+    let svgImg = "<img src='"+svgImgSrc+"'>"; 
+    
+    let canvasD3 = d3.select(bodyEl)
+          .append("div")
+          .attr("class","svg-to-canvas")
+          .append("canvas")
+          .attr("height","8.5in")
+          .attr("width","11in");
+      let canvas = canvasD3.node();
+      let context = canvas.getContext("2d");
+      canvasD3.remove();
+  
+  
+  }
+
+
+
+  static saveFigurePlotResize(linePlot,svgEl){
+    let _legendD3,
+        _legendTranslate,
+        _options,
+        _plotHeight,
+        _plotWidth,
+        _svgD3,
+        _svgDotD3,
+        _svgHeight,
+        _svgLineD3,
+        _svgWidth;
+    
+    _options = linePlot.options;
+
+    
+    _svgHeight = 500; 
+    _svgWidth = 800;
+    
+    _plotHeight =  400;
+    _plotWidth = 725;
+
+    // Update svg height and width
+    _svgD3 = d3.select(svgEl);     
+    _svgD3.attr("width", _svgWidth) 
+        .attr("height",_svgHeight)
+         
+    // Update X bounds
+    linePlot.xBounds = D3LinePlot.getXScale(linePlot);
+    linePlot.xBounds
+        .range([0,_plotWidth])
+        .domain(D3LinePlot.getXExtremes(linePlot))
+        .nice();
+
+    // Update Y bounds
+    linePlot.yBounds = D3LinePlot.getYScale(linePlot);
+    linePlot.yBounds
+        .range([_plotHeight,0])
+        .domain(D3LinePlot.getYExtremes(linePlot))
+        .nice()
+    
+    // Update X axis
+    _svgD3.select(".x-tick")  
+        .attr("transform","translate(0,"+ _plotHeight +")")
+        .call(d3.axisBottom(linePlot.xBounds));
+    _svgD3.select(".x-label")             
+        .attr("x", _plotWidth/2.0)           
+        .attr("y", _plotHeight+_options.marginBottom/2+10);                 
+
+    // Update Y axis
+    _svgD3.select(".y-tick")                                   
+        .call(d3.axisLeft( linePlot.yBounds));
+    _svgD3.select(".y-label")  
+        .attr("x",0-_plotHeight/2)
+        .attr("y",0-_options.marginLeft/2-10);
+    
+    // Update legend
+    _legendTranslate = D3LinePlot
+        .legendLocation(linePlot,_plotHeight,_plotWidth);
+    
+    _legendD3 = d3.select(svgEl)
+        .select(".legend");
+    _legendD3.attr("transform",_legendTranslate);
+
+    
+    // Remove any data
+    d3.select(svgEl)
+        .selectAll(".data")
+        .remove();
+    
+    // Create data groups
+    let seriesEnter = d3.select(svgEl)
+        .select(".all-data")
+        .selectAll("g")
+        .data(linePlot.data)
+        .enter()
+        .append("g")
+        .attr("class","data")
+        .attr("id",function(d,i){return linePlot.ids[i]})
+        .style("cursor","pointer");
+    
+    // Plot lines
+    seriesEnter.append("path")
+        .attr("class","line")
+        .attr("d",linePlot.line)
+        .attr("id",function(d,i){return linePlot.ids[i]})
+        .attr("stroke",function(d,i){return linePlot.color[i]} )
+        .attr("stroke-width",linePlot.options.linewidth)
+        .style("shape-rendering","geometricPrecision")
+        .attr("fill","none");
+    
+    // Plot cirles
+    seriesEnter.selectAll("circle")
+        .data(function(d,i){return d})
+        .enter()
+        .filter(function(d,i){return d[1] != null})
+        .append("circle")
+        .attr("class","dot")
+        .attr("id",function(d,i){
+          return d3.select(this.parentNode.firstChild).attr("id");
+        })
+        .attr("cx",linePlot.line.x())
+        .attr("cy",linePlot.line.y())
+        .attr("r",linePlot.options.pointRadius)
+        .attr("fill",function(d,i){
+          return d3.select(this.parentNode.firstChild).style("stroke");
+        });
+
+  }
 
 }
 
