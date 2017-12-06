@@ -1,0 +1,163 @@
+
+<!doctype html>
+
+
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <meta charset="UTF-8">
+
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3View.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <style>
+    #plot{
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: 2.5em 0 3.5em 0;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div id="plot"></div>  
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>   
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/topojson.v2.min.js"></script>
+  <script src="/nshmp-haz-ws/js/lib/Header.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Footer.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3View.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3LinePlot.js" charset="UTF-8" ></script>
+  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" charset="UTF-8"></script>
+
+  
+  <script>
+    
+    let footer = new Footer();
+    let header = new Header();
+    let title = "Save Plot Test";
+    header.setTitle(title);
+    
+    let el = document.querySelector("#plot");
+    let plot = new D3LinePlot(el);
+    
+    let data = [
+      [
+        [0.1,1.0],
+        [1.0,0.5],
+        [2.0,0.8]
+      ]
+    ];
+
+    plot.data = data;
+    plot.labels = ["Test"];
+    plot.ids = ["test"];
+    plot.xLabel = "X Label";
+    plot.yLabel = "Y Label";
+    plot.setOptions({title: "Test Plot"}); 
+     
+    plot.plotData();
+    console.log(plot);
+    
+    let parText = ["Region: COUS",
+        "Edition: Conterminous US",
+        "Latitude: 30.5",
+        "Longitude: -110.5",
+        "IMT: PGA",
+        "Vs30: 760 m/s"];
+    
+    footer.rawBtnEl.onclick = function(){
+      plot.saveFigure(parText);
+    }
+    
+    /*
+    footer.rawBtnEl.onclick = function(){
+      
+
+      let textD3 = d3.select(bodyEl)
+          .select("svg")
+          .select("g")
+          .append("g")
+          .attr("class","parameters")
+          .attr("transform","translate(0,"+height+")");
+          
+          
+      textD3.selectAll("text")
+          .data(parText)
+          .enter()
+          .append("text")
+          .text(function(d,i){return d})
+          .attr("y",function(d,i){return 18*i});
+      
+      let svgEl = d3.select(bodyEl).select("svg").node();
+      let svgHtml = svgEl.outerHTML;
+
+      let svgHeight = svgEl.getBoundingClientRect().height;
+      let svgWidth = svgEl.getBoundingClientRect().width;
+      console.log(svgHeight);
+      
+      // SVG Image
+      let imgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);
+      let img = "<img src='"+imgSrc+"'>";
+      
+      // Canvas
+      let canvasD3 = d3.select(bodyEl)
+          .append("div")
+          .attr("class","svg-to-canvas")
+          .append("canvas")
+          .attr("height",svgHeight)
+          .attr("width",svgWidth);
+      let canvas = canvasD3.node();
+      let context = canvas.getContext("2d");
+      canvasD3.remove();
+
+      let image = new Image;
+      image.src = imgSrc;
+
+      image.onload = function(){
+        context.fillStyle = "white";
+        context.fillRect(0,0,svgWidth,svgHeight);
+        context.drawImage(image,0,0);
+         
+        let canvasPng = canvas.toDataURL("image/png");
+        let canvasJpeg = canvas.toDataURL("image/jpeg");
+
+        d3.select(bodyEl)
+            .append("p")
+            .append("a")
+            .text("Download PNG")
+            .attr("download","test")
+            .attr("href",canvasPng);
+      
+        d3.select(bodyEl)
+            .append("p")
+            .append("a")
+            .text("Download JPEG")
+            .attr("download","test")
+            .attr("href",canvasJpeg);
+      
+        //win.print();
+      };
+      
+      
+       
+    };
+    */
+  
+  </script>
+
+
+</body>
+
+</html>
