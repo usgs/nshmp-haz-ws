@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
+import gov.usgs.earthquake.nshmp.util.NamedLocation;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.FeatureCollection;
 import gov.usgs.earthquake.nshmp.internal.GeoJson;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
+import gov.usgs.earthquake.nshmp.geo.Location;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -143,8 +145,8 @@ public class TestSites{
       this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 : this.region.uiminlongitude;
       this.uimaxlongitude = this.region.uimaxlongitude;
       
-      this.regionFeatures.add(GeoJson.test( this.minlongitude, this.minlatitude));
-      this.regionFeatures.add(GeoJson.test( this.maxlongitude, this.maxlatitude));
+      this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
+      this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
       this.regionBounds.features = this.regionFeatures;
     }
   }
