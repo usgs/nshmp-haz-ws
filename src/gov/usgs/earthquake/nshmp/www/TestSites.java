@@ -144,11 +144,9 @@ public class TestSites{
       this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 : this.region.uiminlongitude;
       this.uimaxlongitude = this.region.uimaxlongitude;
       
-      //this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
-      //this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
-      //this.regionBounds.features = this.regionFeatures;
-     
-       
+      this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
+      this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
+      this.regionBounds.features = this.regionFeatures;     
     }
   }
   //---------------------------------------------------------------

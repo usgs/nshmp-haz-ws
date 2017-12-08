@@ -131,6 +131,7 @@ class D3View{
       legendLocation: "topright",
       legendOffset: 5,
       legendPadding: 10,
+      legendLineBreak: 20,
       linewidth: 3,
       linewidthSelection: 5,
       marginBottom: 50,
@@ -142,9 +143,9 @@ class D3View{
       pointRadiusTooltip: 10,
       printWidth: 11,
       printHeight: 8.5,
-      printPlotWidth: 8,
-      printPlotHeight: 4,
-      printDpi: 100,
+      printPlotWidth: 6,
+      printPlotHeight: 3,
+      printDpi: 300,
       printMarginTop: 1,
       showLegend: true,
       title: "",
@@ -152,7 +153,9 @@ class D3View{
       tooltipPadding: 10,
       tooltipText: ["","X Value","Y Value"],
       xAxisScale: "log",
-      yAxisScale: "log"
+      yAxisScale: "log",
+      xLabelPadding: 8,
+      yLabelPadding: 10
     };
     //--------------------------------------------------------------------------
     

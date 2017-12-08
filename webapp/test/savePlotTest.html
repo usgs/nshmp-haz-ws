@@ -57,19 +57,28 @@
         [0.1,1.0],
         [1.0,0.5],
         [2.0,0.8]
+      ],
+      [
+        [0.1,0.2],
+        [1.0,1.0],
+        [2.0,0.5]
       ]
     ];
 
     plot.data = data;
-    plot.labels = ["Test"];
-    plot.ids = ["test"];
+    plot.labels = ["Line 1","Line 2"];
+    plot.ids = ["line1","line2"];
     plot.xLabel = "X Label";
     plot.yLabel = "Y Label";
-    plot.setOptions({title: "Test Plot",xAxisScale:"linear",yAxisScale:"linear"}); 
+    plot.setOptions({
+        title: "Test Plot",xAxisScale: "linear",yAxisScale: "linear"
+    }); 
      
     plot.plotData();
     console.log(plot);
-    
+   
+   
+         
     let parText = ["Region: COUS",
         "Edition: Conterminous US",
         "Latitude: 30.5",
@@ -81,6 +90,7 @@
       plot.saveFigure(parText,"png");
     }
     
+  
   </script>
 
 
