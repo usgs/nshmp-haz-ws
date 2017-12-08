@@ -1364,8 +1364,9 @@ class D3LinePlot extends D3View{
 
     let canvas = canvasD3.node();
     let context = canvas.getContext("2d");
-    
-   // svgD3.remove(); 
+
+    canvasD3.remove(); 
+    svgD3.remove(); 
 
     svgImg.onload = function(){
       context.fillStyle = "white";
@@ -1381,6 +1382,7 @@ class D3LinePlot extends D3View{
           a.download = "jpeg-test";
           a.href = imgSrc;
           a.click();
+          win.close()
           break;
         case "png":
           imgSrc = canvas.toDataURL("image/png",1.0);
@@ -1388,6 +1390,7 @@ class D3LinePlot extends D3View{
           a.download = "png-test";
           a.href = imgSrc;
           a.click();
+          win.close()
           break;
         case "pdf":
           win.print();
