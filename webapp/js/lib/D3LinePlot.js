@@ -129,17 +129,19 @@ class D3LinePlot extends D3View{
     _xD3 = _plotD3.append("g")
         .attr("class","x-axis");
     _xD3.append("g")
-        .attr("class","x-tick");
-    _xD3.append("text")
-        .attr("class","x-label");
+        .attr("class","x-tick")
+        .append("text")
+        .attr("class","x-label")
+        .attr("fill","black");
          
     // Y-axis
     _yD3 = _plotD3.append("g")
         .attr("class","y-axis");
     _yD3.append("g")
-        .attr("class","y-tick");
-    _yD3.append("text")
-        .attr("class","y-label");
+        .attr("class","y-tick")
+        .append("text")
+        .attr("class","y-label")
+        .attr("fill","black");
 
     _plotD3.append("g")
         .attr("class","legend"); 
@@ -620,18 +622,23 @@ class D3LinePlot extends D3View{
     d3.select(_this.xAxisEl)
         .select(".x-tick")
         .attr("transform","translate(0,"+_plotHeight+")") 
-        .style("font-size","10px")
+        .style("font-size","0.75em")
         .call(d3.axisBottom(_this.xBounds));
-   
+    
+    _this.xAxisHeight = d3.select(_this.xAxisEl)
+        .selectAll(".tick")
+        .node()
+        .getBoundingClientRect()
+        .height;  
     // X Label
     d3.select(_this.xAxisEl)
         .select(".x-label")
-        .attr("text-anchor","middle") 
-        .attr("alignment-baseline","middle")
-        .style("font-size","1em")
+        .attr("text-anchor","middle")
+        .attr("alignment-baseline","text-before-edge")
+        .style("font-size","1.5em")
         .style("font-weight","500")
         .attr("x", _plotWidth/2) 
-        .attr("y", _plotHeight+_this.options.marginBottom/2+10)
+        .attr("y",_this.xAxisHeight*1.5)
         .text(_this.xLabel);
     //--------------------------------------------------------------------------
 
@@ -640,18 +647,23 @@ class D3LinePlot extends D3View{
     // Y Tick marks
     d3.select(_this.yAxisEl)
         .select(".y-tick")
-        .style("font-size","10px")
+        .style("font-size","0.75em")
         .call(d3.axisLeft(_this.yBounds));
 
     // Y Label
+    _this.yAxisWidth = d3.select(_this.yAxisEl)
+        .selectAll(".tick")
+        .node()
+        .getBoundingClientRect()
+        .width;  
     d3.select(_this.yAxisEl)
         .select(".y-label")
         .attr("transform","rotate(-90)")
         .attr("text-anchor","middle")
-        .style("font-size","1em")
+        .style("font-size","1.5em")
         .style("font-weight","500")
         .attr("x",0- _plotHeight/2)
-        .attr("y",0- _this.options.marginLeft/2-10)
+        .attr("y",0-_this.yAxisWidth*1.5)
         .text(_this.yLabel);
     //--------------------------------------------------------------------------
 
@@ -901,14 +913,14 @@ class D3LinePlot extends D3View{
         .call(d3.axisBottom(linePlot.xBounds));
     _svgD3.select(".x-label")             
         .attr("x", _plotWidth/2.0)           
-        .attr("y", _plotHeight+_options.marginBottom/2+10);                 
+        .attr("y",linePlot.xAxisHeight*1.5);
 
     // Update Y axis
     _svgD3.select(".y-tick")                                   
         .call(d3.axisLeft( linePlot.yBounds));
     _svgD3.select(".y-label")  
         .attr("x",0-_plotHeight/2)
-        .attr("y",0-_options.marginLeft/2-10);
+        .attr("y",0-linePlot.yAxisWidth*1.5);
     
     // Update legend
     _legendTranslate = D3LinePlot
@@ -1178,7 +1190,7 @@ class D3LinePlot extends D3View{
     // Legend Text
     _legendD3.append("text")
         .attr("class","legend-text")
-        .attr("font-size","12px")
+        .attr("font-size","1em")
         .attr("x",30)
         .attr("y", function(d,i){return 16*i})
         .attr("alignment-baseline","central")
@@ -1259,137 +1271,229 @@ class D3LinePlot extends D3View{
 
 
 
-  saveFigure(parText){
+  saveFigure(parText,plotFormat){
     let _this = this;
+    let options = _this.options;
     
+    let plotHeight = options.printPlotHeight*options.printDpi; 
+    let plotWidth = options.printPlotWidth*options.printDpi;
+    
+    let svgHeight = options.printHeight*options.printDpi; 
+    let svgWidth = options.printWidth*options.printDpi;
+    
+    let scale = parseFloat(options.printDpi/100);
+    
+    let marginTop = options.printMarginTop*options.printDpi; 
+    let marginLeft = (svgWidth-plotWidth)/2; 
+
+    
+
     let win = window.open();
     let bodyEl = win.document.body;
-
-    let svgHtml = d3.select(plot.svgEl).node().outerHTML;
+    bodyEl.style.margin = 0;
+    
+    let svgHtml = d3.select(_this.svgEl).node().outerHTML;
                                                                                 
     d3.select(bodyEl)
           .append("div")
           .attr("class","svg-normal")
           .html(svgHtml);
+    
+    let svgElWidth = _this.svgEl
+        .getBoundingClientRect()
+        .width;
+    let widthScale = (plotWidth/svgElWidth);
+    
+    let svgElHeight = _this.svgEl
+        .getBoundingClientRect()
+        .height;
+    let heightScale = (plotHeight/svgElHeight);
               
     let svgD3 = d3.select(bodyEl)
         .select("svg")
-          .attr("version",1.1)
-          .attr("xmlns","http://www.w3.org/2000/svg")
-          .style("font-family","'Helvetica Neue',Helvetica,Arial,sans-serif");
+        .attr("version",1.1)
+        .attr("xmlns","http://www.w3.org/2000/svg")
+        .style("font-family","'Helvetica Neue',Helvetica,Arial,sans-serif")
+        .attr("viewBox","0,0,500,500"); 
+        //.attr("transform","scale("+widthScale+","+heightScale+")");
+
     
+    /*
     D3LinePlot.saveFigurePlotResize(_this,svgD3.node());
-    
-    let width = 725;
     d3.select(bodyEl)
         .select("svg")
         .select("g")
-        .attr("transform","translate(60,60)")
         .append("text")
         .style("font-size","1.2em")
-        .attr("x",width/2)
+        .attr("x",plotWidth/2)
         .attr("y",-20)
         .attr("text-anchor","middle")
         .text(plot.plotTitleEl.textContent)
-    
-    svgD3.attr("height","8.5in")
-        .attr("width","11in");
     
     let textD3 = d3.select(bodyEl)
         .select("svg")
         .select("g")
         .append("g")
         .attr("class","parameters")
-        .attr("transform","translate(0,500)");
-      
+        .attr("transform","translate(0,"+svgHeight+")");
+
     textD3.selectAll("text")
         .data(parText)
         .enter()
         .append("text")
         .text(function(d,i){return d})
-        .attr("y",function(d,i){return 18*i});
-  
-    svgHtml = svgD3.outerHTMl;
+        .attr("y",function(d,i){return 20*i});
+
+
+    svgHtml = svgD3.node().outerHTML;
     let svgImgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);                 
-    let svgImg = "<img src='"+svgImgSrc+"'>"; 
+    let svgImg = new Image();
+    svgImg.src = svgImgSrc; 
     
+     
     let canvasD3 = d3.select(bodyEl)
           .append("div")
           .attr("class","svg-to-canvas")
           .append("canvas")
-          .attr("height","8.5in")
-          .attr("width","11in");
-      let canvas = canvasD3.node();
-      let context = canvas.getContext("2d");
-      canvasD3.remove();
-  
-  
+          .attr("height",svgHeight)
+          .attr("width",svgWidth)
+          .style("height",options.printHeight+"in")
+          .style("width",options.printWidth+"in");
+
+    let canvas = canvasD3.node();
+    let context = canvas.getContext("2d");
+    
+    //svgD3.remove(); 
+
+    svgImg.onload = function(){
+      context.fillStyle = "white";
+      context.fillRect(0,0,svgWidth,svgHeight);
+      context.drawImage(svgImg,0,0);
+      
+      let a = document.createElement("a");
+      let imgSrc;
+      let img;
+      switch (plotFormat.toLowerCase()){
+        case "jpeg":
+          imgSrc = canvas.toDataURL("image/jpeg",1.0);
+          a.download = "jpeg-test";
+          a.href = imgSrc;
+          a.click();
+          break;
+        case "png":
+          imgSrc = canvas.toDataURL("image/png",1.0);
+          img = "<img src='"+imgSrc+"'>";
+          a.download = "png-test";
+          a.href = imgSrc;
+          a.click();
+          break;
+        case "pdf":
+          win.print();
+      }
+    }
+    */
   }
 
 
 
   static saveFigurePlotResize(linePlot,svgEl){
-    let _legendD3,
-        _legendTranslate,
-        _options,
-        _plotHeight,
-        _plotWidth,
-        _svgD3,
-        _svgDotD3,
-        _svgHeight,
-        _svgLineD3,
-        _svgWidth;
+    let legendD3,
+        legendTranslate,
+        options,
+        plotHeight,
+        plotWidth,
+        svgD3,
+        svgDotD3,
+        svgHeight,
+        svgLineD3,
+        svgWidth,
+        scale;
     
-    _options = linePlot.options;
+    options = linePlot.options;
 
-    
-    _svgHeight = 500; 
-    _svgWidth = 800;
-    
-    _plotHeight =  400;
-    _plotWidth = 725;
 
+    plotHeight = options.printPlotHeight*options.printDpi; 
+    plotWidth = options.printPlotWidth*options.printDpi;
+    
+    svgHeight = options.printHeight*options.printDpi; 
+    svgWidth = options.printWidth*options.printDpi;
+    
+    scale = parseFloat(options.printDpi/100);
+    
+    let marginTop = options.printMarginTop*options.printDpi; 
+    let marginLeft = (svgWidth-plotWidth)/2; 
+    
     // Update svg height and width
-    _svgD3 = d3.select(svgEl);     
-    _svgD3.attr("width", _svgWidth) 
-        .attr("height",_svgHeight)
+    svgD3 = d3.select(svgEl);     
+    let font = parseFloat(svgD3.style("font-size"));
+    svgD3.style("font-size",parseFloat(font*scale));
          
     // Update X bounds
     linePlot.xBounds = D3LinePlot.getXScale(linePlot);
     linePlot.xBounds
-        .range([0,_plotWidth])
+        .range([0,plotWidth])
         .domain(D3LinePlot.getXExtremes(linePlot))
         .nice();
 
     // Update Y bounds
     linePlot.yBounds = D3LinePlot.getYScale(linePlot);
     linePlot.yBounds
-        .range([_plotHeight,0])
+        .range([plotHeight,0])
         .domain(D3LinePlot.getYExtremes(linePlot))
         .nice()
     
     // Update X axis
-    _svgD3.select(".x-tick")  
-        .attr("transform","translate(0,"+ _plotHeight +")")
-        .call(d3.axisBottom(linePlot.xBounds));
-    _svgD3.select(".x-label")             
-        .attr("x", _plotWidth/2.0)           
-        .attr("y", _plotHeight+_options.marginBottom/2+10);                 
-
+    svgD3.select(".x-tick")  
+        .attr("transform","translate(0,"+ plotHeight +")")
+        .call(d3.axisBottom(linePlot.xBounds))
+        .attr("stroke-width",scale);
+    let xAxisHeight = svgD3.select(".x-axis")
+        .selectAll(".tick")
+        .node()
+        .getBoundingClientRect()
+        .height;
+    svgD3.select(".x-label")
+        .attr("x", plotWidth/2.0)
+        .attr("y", xAxisHeight*1.5); 
+    svgD3.select(".x-tick")
+        .selectAll(".tick")
+        .selectAll("line")
+        .attr("y2",function(d,i){return d3.select(this).attr("y2")*scale});
+    svgD3.select(".x-tick")
+        .selectAll(".tick")
+        .selectAll("text")
+        .attr("y",function(d,i){return d3.select(this).attr("y")*scale});
+    
+    
     // Update Y axis
-    _svgD3.select(".y-tick")                                   
-        .call(d3.axisLeft( linePlot.yBounds));
-    _svgD3.select(".y-label")  
-        .attr("x",0-_plotHeight/2)
-        .attr("y",0-_options.marginLeft/2-10);
+    svgD3.select(".y-tick")                                   
+        .call(d3.axisLeft( linePlot.yBounds))
+        .attr("stroke-width",scale);
+    let yAxisWidth = svgD3.select(".y-axis")
+        .selectAll(".tick")
+        .node()
+        .getBoundingClientRect()
+        .width;
+    svgD3.select(".y-label")  
+        .attr("x",0-plotHeight/2)
+        .attr("y",0-yAxisWidth*1.5);
+    svgD3.select(".y-tick")
+        .selectAll(".tick")
+        .selectAll("line")
+        .attr("x2",function(d,i){return d3.select(this).attr("x2")*scale});
+    svgD3.select(".y-tick")
+        .selectAll(".tick")
+        .selectAll("text")
+        .attr("x",function(d,i){return d3.select(this).attr("x")*scale});
+    
     
     // Update legend
-    _legendTranslate = D3LinePlot
-        .legendLocation(linePlot,_plotHeight,_plotWidth);
+    legendTranslate = D3LinePlot
+        .legendLocation(linePlot,plotHeight,plotWidth);
     
-    _legendD3 = d3.select(svgEl)
+    legendD3 = d3.select(svgEl)
         .select(".legend");
-    _legendD3.attr("transform",_legendTranslate);
+    legendD3.attr("transform",legendTranslate);
 
     
     // Remove any data
@@ -1414,7 +1518,7 @@ class D3LinePlot extends D3View{
         .attr("d",linePlot.line)
         .attr("id",function(d,i){return linePlot.ids[i]})
         .attr("stroke",function(d,i){return linePlot.color[i]} )
-        .attr("stroke-width",linePlot.options.linewidth)
+        .attr("stroke-width",linePlot.options.linewidth*scale)
         .style("shape-rendering","geometricPrecision")
         .attr("fill","none");
     
@@ -1430,7 +1534,7 @@ class D3LinePlot extends D3View{
         })
         .attr("cx",linePlot.line.x())
         .attr("cy",linePlot.line.y())
-        .attr("r",linePlot.options.pointRadius)
+        .attr("r",linePlot.options.pointRadius*scale)
         .attr("fill",function(d,i){
           return d3.select(this.parentNode.firstChild).style("stroke");
         });

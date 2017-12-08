@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
-import gov.usgs.earthquake.nshmp.util.NamedLocation;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.FeatureCollection;
 import gov.usgs.earthquake.nshmp.internal.GeoJson;
 import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
-import gov.usgs.earthquake.nshmp.geo.Location;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -78,9 +76,10 @@ public class TestSites{
 
   //............. Properties Object for each Feature ................
   static class CollectionProperties{
+    
     private String regionId;
     private String regionDisplay;
-    
+   
     private FeatureCollection<Feature>  regionBounds = new FeatureCollection<>();
     private transient List<Feature> regionFeatures= new ArrayList<>();
     
@@ -93,7 +92,6 @@ public class TestSites{
     private final double uimaxlatitude;
     private final double uiminlongitude;
     private final double uimaxlongitude;
-    
     
     private transient Region region;  // transient = Don't serialize 
   
@@ -135,6 +133,7 @@ public class TestSites{
           this.region        = Region.COUS;
       }
       
+      
       this.minlatitude  = this.region.minlatitude;
       this.maxlatitude  = this.region.maxlatitude;
       this.minlongitude = this.region.minlongitude <= -180 ? -179 : this.region.minlongitude;
@@ -145,9 +144,11 @@ public class TestSites{
       this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 : this.region.uiminlongitude;
       this.uimaxlongitude = this.region.uimaxlongitude;
       
-      this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
-      this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
-      this.regionBounds.features = this.regionFeatures;
+      //this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
+      //this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
+      //this.regionBounds.features = this.regionFeatures;
+     
+       
     }
   }
   //---------------------------------------------------------------

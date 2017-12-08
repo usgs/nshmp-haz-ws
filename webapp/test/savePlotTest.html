@@ -65,7 +65,7 @@
     plot.ids = ["test"];
     plot.xLabel = "X Label";
     plot.yLabel = "Y Label";
-    plot.setOptions({title: "Test Plot"}); 
+    plot.setOptions({title: "Test Plot",xAxisScale:"linear",yAxisScale:"linear"}); 
      
     plot.plotData();
     console.log(plot);
@@ -78,83 +78,9 @@
         "Vs30: 760 m/s"];
     
     footer.rawBtnEl.onclick = function(){
-      plot.saveFigure(parText);
+      plot.saveFigure(parText,"png");
     }
     
-    /*
-    footer.rawBtnEl.onclick = function(){
-      
-
-      let textD3 = d3.select(bodyEl)
-          .select("svg")
-          .select("g")
-          .append("g")
-          .attr("class","parameters")
-          .attr("transform","translate(0,"+height+")");
-          
-          
-      textD3.selectAll("text")
-          .data(parText)
-          .enter()
-          .append("text")
-          .text(function(d,i){return d})
-          .attr("y",function(d,i){return 18*i});
-      
-      let svgEl = d3.select(bodyEl).select("svg").node();
-      let svgHtml = svgEl.outerHTML;
-
-      let svgHeight = svgEl.getBoundingClientRect().height;
-      let svgWidth = svgEl.getBoundingClientRect().width;
-      console.log(svgHeight);
-      
-      // SVG Image
-      let imgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);
-      let img = "<img src='"+imgSrc+"'>";
-      
-      // Canvas
-      let canvasD3 = d3.select(bodyEl)
-          .append("div")
-          .attr("class","svg-to-canvas")
-          .append("canvas")
-          .attr("height",svgHeight)
-          .attr("width",svgWidth);
-      let canvas = canvasD3.node();
-      let context = canvas.getContext("2d");
-      canvasD3.remove();
-
-      let image = new Image;
-      image.src = imgSrc;
-
-      image.onload = function(){
-        context.fillStyle = "white";
-        context.fillRect(0,0,svgWidth,svgHeight);
-        context.drawImage(image,0,0);
-         
-        let canvasPng = canvas.toDataURL("image/png");
-        let canvasJpeg = canvas.toDataURL("image/jpeg");
-
-        d3.select(bodyEl)
-            .append("p")
-            .append("a")
-            .text("Download PNG")
-            .attr("download","test")
-            .attr("href",canvasPng);
-      
-        d3.select(bodyEl)
-            .append("p")
-            .append("a")
-            .text("Download JPEG")
-            .attr("download","test")
-            .attr("href",canvasJpeg);
-      
-        //win.print();
-      };
-      
-      
-       
-    };
-    */
-  
   </script>
 
 
