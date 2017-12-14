@@ -65,32 +65,30 @@
       ]
     ];
 
+    let metadata ={
+      version: "1.1",
+      url: window.location.href,
+      time: new Date()
+    };
+    
     plot.data = data;
-    plot.labels = ["Line 1","Line 2"];
     plot.ids = ["line1","line2"];
+    plot.labels = ["Line 1","Line 2"];
+    plot.metadata = metadata;
+    plot.plotFilename = "testPlot";
     plot.xLabel = "X Label";
     plot.yLabel = "Y Label";
-    plot.setOptions({
-        title: "Test Plot",xAxisScale: "linear",yAxisScale: "linear"
-    }); 
+    let options = {
+        downloadFileName: "testPlot",
+        title: "Test Plot",
+        xAxisScale: "linear",
+        yAxisScale: "linear"
+    };
+    plot.setOptions(options); 
      
     plot.plotData();
     console.log(plot);
    
-   
-         
-    let parText = ["Region: COUS",
-        "Edition: Conterminous US",
-        "Latitude: 30.5",
-        "Longitude: -110.5",
-        "IMT: PGA",
-        "Vs30: 760 m/s"];
-    
-    footer.rawBtnEl.onclick = function(){
-      plot.saveFigure(parText,"png");
-    }
-    
-  
   </script>
 
 

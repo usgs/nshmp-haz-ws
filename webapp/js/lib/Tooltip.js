@@ -130,14 +130,14 @@ class Tooltip{
     _tooltipGeom   = plotObj.tooltipEl               
         .getBoundingClientRect();
 
-    _this.tooltipWidth  = parseFloat(_tooltipGeom.width  + 2*_this.padding); 
-    _this.tooltipHeight = parseFloat(_tooltipGeom.height + 2*_this.padding); 
+    _this.tooltipWidth  = parseFloat(_tooltipGeom.width*plotObj.scale  + 2*_this.padding); 
+    _this.tooltipHeight = parseFloat(_tooltipGeom.height*plotObj.scale + 2*_this.padding); 
 
 
     _plotGeom = plotObj.svgEl
 			.getBoundingClientRect();
-		_this.plotWidth  = _plotGeom.width; 
-		_this.plotHeight = _plotGeom.height;
+		_this.plotWidth  = _plotGeom.width*plotObj.scale; 
+		_this.plotHeight = _plotGeom.height*plotObj.scale;
 
     Tooltip.tooltipLocation(_this);
 

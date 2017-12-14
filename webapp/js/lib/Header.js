@@ -51,6 +51,8 @@ class Header{
     
     // Check for optional argument                                              
     containerEl = containerEl ? containerEl : document.querySelector("body"); 
+    
+    document.title = "NSHMP-HAZ-WS";
     //--------------------------------------------------------------------------
 
     
@@ -196,6 +198,8 @@ class Header{
 
     d3.select(_this.headerTitleEl)
         .text(title);
+
+    document.title = "NSHMP: " + title;
   }
   //-------------------- End Method: setTitle ----------------------------------
 

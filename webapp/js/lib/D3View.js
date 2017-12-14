@@ -119,7 +119,7 @@ class D3View{
     _this.resizeSmall;
    
     _this.colSize6 = "col-md-6";
-    _this.colSize12 = "col-md-12";
+    _this.colSize12 = "col-md-offset-2 col-md-8";
     _this.resizeFull = "resize glyphicon glyphicon-resize-full";
     _this.resizeSmall = "resize glyphicon glyphicon-resize-small";
      
@@ -128,34 +128,43 @@ class D3View{
 
     //............................ Default Options .............................
     _this.options = {
+      buttonFontSize: 12,
+      headerPercent: 0.075,
+      labelFontSize: 16,
       legendLocation: "topright",
       legendOffset: 5,
       legendPadding: 10,
       legendLineBreak: 20,
-      linewidth: 3,
-      linewidthSelection: 5,
+      legendFontSize: 14,
+      linewidth: 2.5,
+      linewidthSelection: 4.5,
       marginBottom: 50,
-      marginLeft: 70,
+      marginLeft: 60,
       marginRight: 20,
       marginTop: 20,
-      pointRadius: 5,
-      pointRadiusSelection: 8,
-      pointRadiusTooltip: 10,
-      printWidth: 11,
+      plotRatio: 16/9,
+      pointRadius: 3.5,
+      pointRadiusSelection: 5.5,
+      pointRadiusTooltip: 8.5,
+      printFooterPadding: 20,
+      printFooterLineBreak: 20,
+      printFooterFontSize: 16,
       printHeight: 8.5,
-      printPlotWidth: 6,
-      printPlotHeight: 3,
-      printDpi: 300,
+      printWidth: 11,
+      printPlotWidth: 10,
+      printDpi: 200,
       printMarginTop: 1,
       showLegend: true,
+      tickFontSize: 10,
       title: "",
+      titleFontSize: 20,
       tooltipOffset: 10,
       tooltipPadding: 10,
       tooltipText: ["","X Value","Y Value"],
       xAxisScale: "log",
       yAxisScale: "log",
       xLabelPadding: 8,
-      yLabelPadding: 10
+      yLabelPadding: 10,
     };
     //--------------------------------------------------------------------------
     
@@ -208,18 +217,18 @@ class D3View{
     //...................... X Axis Buttons ....................................
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm x-axis-btns btn-left")
+        .attr("class","btn-group btn-group-xs x-axis-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default")
+        .attr("class","btn btn-xs btn-default footer-button")
         .html("<input type='radio' name='xaxis' value='linear'/> X: Linear");
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm x-axis-btns btn-right")
+        .attr("class","btn-group btn-group-xs x-axis-btns btn-right")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default active")
+        .attr("class","btn btn-xs btn-default footer-button active")
         .html("<input type='radio' name='xaxis' value='log'/>X: Log");
     //--------------------------------------------------------------------------
 
@@ -227,18 +236,18 @@ class D3View{
     //...................... Plot/Data Option Buttons ..........................
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm plot-data-btns btn-left")
+        .attr("class","btn-group btn-group-xs plot-data-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default active")
+        .attr("class","btn btn-xs btn-default footer-button active")
         .html("<input type='radio' name='plot' value='plot'/> Plot");
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm plot-data-btns btn-right")
+        .attr("class","btn-group btn-group-xs plot-data-btns btn-right")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default")
+        .attr("class","btn btn-xs btn-default footer-button")
         .html("<input type='radio' name='plot' value='data'/> Data");
     //--------------------------------------------------------------------------
 
@@ -246,22 +255,60 @@ class D3View{
     //........................ Y Axis Buttons ..................................
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm y-axis-btns btn-left")
+        .attr("class","btn-group btn-group-xs y-axis-btns btn-left")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default")
+        .attr("class","btn btn-xs btn-default footer-button")
         .html("<input type='radio' name='yaxis' value='linear'/> Y: Linear");
     
     _footerBtnsD3
         .append("div")
-        .attr("class","btn-group btn-group-sm y-axis-btns btn-right")
+        .attr("class","btn-group btn-group-xs y-axis-btns btn-right")
         .attr("data-toggle","buttons")
         .append("label")
-        .attr("class","btn btn-sm btn-default active")
-        .html("<input type='radio' name='yaxis' value='log'/>Y: Log");
+        .attr("class","btn btn-xs btn-default footer-button active")
+        .html("<input type='radio' name='yaxis' value='log'/>Y: Log")
     //--------------------------------------------------------------------------
-  
-  
+ 
+    let saveAsD3 = _footerBtnsD3.append("div")
+        .attr("class","btn-group btn-group-xs btn-download")
+        .style("text-align","center")
+        .attr("title","Save as")
+        .append("div")
+        .attr("class","dropup");
+
+    saveAsD3.append("div")
+        .attr("class","glyphicon glyphicon-save footer-button dropdown-toggle")
+        .attr("id","save-as-menu")
+        .attr("data-toggle","dropdown")
+        .attr("aria-hashpop","true")
+        .attr("aria-expanded","true");
+    
+    let saveMenu = [
+        ["JPEG","jpeg"],
+        ["PDF/Print","pdf"],
+        ["PNG","png"],
+        ["SVG","svg"]
+    ];
+
+    let saveListD3 = saveAsD3.append("ul")
+        .attr("class","dropdown-menu dropdown-menu-right")
+        .attr("aria-labelledby","save-as-menu")
+        .style("min-width","auto");
+    saveListD3.selectAll("li")
+        .data(saveMenu)
+        .enter()
+        .append("li")
+        .append("a")
+        .text(function(d,i){return d[0]})
+        .attr("id",function(d,i){return d[1]})
+        .style("cursor","pointer");
+    saveListD3.append("li")
+        .attr("class","dropdown-header")
+        .text("Save Figure As:")
+        .lower();
+        
+     
     //..................... DOM Elements .......................................
     _this.el = _elD3.node(); 
     _this.containerEl = containerEl;
@@ -269,7 +316,8 @@ class D3View{
     _this.plotFooterEl = _this.el.querySelector(".panel-footer");
     _this.plotPanelEl = _this.el.querySelector(".panel");
     _this.plotResizeEl = _this.el.querySelector(".resize");
-    _this.plotTitleEl = _this.el.querySelector(".plot-title"); 
+    _this.plotTitleEl = _this.el.querySelector(".plot-title");
+    _this.saveAsMenuEl = saveListD3.node(); 
     //--------------------------------------------------------------------------
   
 

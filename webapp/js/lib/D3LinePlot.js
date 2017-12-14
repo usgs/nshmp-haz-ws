@@ -30,9 +30,6 @@
 * @property legendEl {Element}
 *        DOM selection of the SVG legend class 
 *
-* @property observer {Object}
-*        mutation observer to update the plots when a new plot is created
-*
 * @property plotEl {Element}
 *        DOM selection of the SVG plot class 
 *
@@ -84,8 +81,9 @@ class D3LinePlot extends D3View{
     _this.labels;
     _this.ids;
     _this.legendEl;
-    _this.observer;
+    _this.metadata;
     _this.plotEl;
+    _this.plotFileName;
     _this.svgEl; 
     _this.tableEl;
     _this.tableBodyEl;
@@ -95,11 +93,6 @@ class D3LinePlot extends D3View{
     _this.yAxisEl;
     _this.yLabel;
     
-    // create an observer instance to resize
-    // plot when other plots are added to the DOM
-    _this.observer = new MutationObserver(function(mutations) {
-        D3LinePlot.plotRedraw(_this);
-    });
     //--------------------------------------------------------------------------
     
    
@@ -115,9 +108,21 @@ class D3LinePlot extends D3View{
 
 
     //......................... SVG Outline for Plot ...........................
+    _this.plotWidth = 1000;
+    _this.plotHeight = _this.plotWidth/_this.options.plotRatio;
+    let svgHeight = _this.plotHeight+
+        _this.options.marginTop+_this.options.marginBottom;
+    let svgWidth = _this.plotWidth+
+        _this.options.marginLeft+_this.options.marginRight;
+    _this.svgHeight = svgHeight;
+    _this.svgWidth = svgWidth;
     _svgD3 = d3.select(_this.plotBodyEl)
         .append("svg")
-        .attr("class","D3LinePlot");
+        .attr("class","D3LinePlot")
+        .attr("viewBox","0 0 "+svgWidth+" " + svgHeight)                          
+        .attr("version",1.1)                                                      
+        .attr("xmlns","http://www.w3.org/2000/svg")                               
+        .attr("preserveAspectRatio","xMinYMin meet");
         
     _plotD3 = _svgD3.append("g")
         .attr("class","plot");
@@ -246,7 +251,6 @@ class D3LinePlot extends D3View{
         
     _this = this;
 
-    _this.observer.disconnect();
     _this.plotObserver.disconnect();
 
     d3.select(_this.el)
@@ -428,10 +432,11 @@ class D3LinePlot extends D3View{
         _yTranslate;
 
     _options = linePlot.options;
+    let scale = linePlot.scale;
     _legendGeom = linePlot.legendEl 
         .getBoundingClientRect();
-    _legendWidth  = _legendGeom.width;
-    _legendHeight = _legendGeom.height;
+    _legendWidth  = _legendGeom.width*scale;
+    _legendHeight = _legendGeom.height*scale;
   
     if (_options.legendLocation == "topright"){
       _xTranslate = (plotWidth-_legendWidth-_options.legendOffset);
@@ -496,7 +501,6 @@ class D3LinePlot extends D3View{
         _dotsEnter,
         _linesEnter,
         _ndata,
-        _observerConfig,
         _plotHeight,
         _plotWidth,
         _selectedId,
@@ -511,17 +515,6 @@ class D3LinePlot extends D3View{
     _this.xExtremes;
     _this.yBounds;
     _this.yExtremes;
-    //--------------------------------------------------------------------------
-
-    
-    //.......................... Mutation Observer ............................. 
-    _observerConfig = { 
-        attributes: true, 
-        childList: true, 
-        characterData: true 
-      };
-    
-    _this.observer.observe(_this.el,_observerConfig);
     //--------------------------------------------------------------------------
 
     
@@ -548,23 +541,19 @@ class D3LinePlot extends D3View{
     
     _this.xBounds = D3LinePlot.getXScale(_this);
     _this.xExtremes = D3LinePlot.getXExtremes(_this);
-    _this.xBounds.range([0,_plotWidth])
+    _this.xBounds.range([0,_this.plotWidth])
         .domain(_this.xExtremes)
         .nice();
 
     _this.yBounds = D3LinePlot.getYScale(_this);
     _this.yExtremes = D3LinePlot.getYExtremes(_this);
-    _this.yBounds.range([_plotHeight,0])
+    _this.yBounds.range([_this.plotHeight,0])
         .domain(_this.yExtremes)
         .nice();
     //-------------------------------------------------------------------------- 
   
 
     //...................... Update SVG Size and Translate ..................... 
-    d3.select(_this.svgEl)
-        .attr("width",D3LinePlot.plotWidth(_this,true))
-        .attr("height",D3LinePlot.plotHeight(_this,true));
-      
     d3.select(_this.svgEl)
         .select(".plot")
         .attr("transform","translate("+
@@ -614,57 +603,64 @@ class D3LinePlot extends D3View{
         .attr("fill",function(d,i){
           return d3.select(this.parentNode.firstChild).style("stroke");
         });
+    
+    
+    
+    let panelBodyGeom = _this.plotBodyEl.getBoundingClientRect();
+    _this.scale = _this.svgWidth/panelBodyGeom.width;
     //--------------------------------------------------------------------------
     
     
-    //......................... Setup the X Axis ...............................
+    //......................... Set the Tick Marks .............................
     // X Tick Marks     
     d3.select(_this.xAxisEl)
         .select(".x-tick")
-        .attr("transform","translate(0,"+_plotHeight+")") 
-        .style("font-size","0.75em")
+        .attr("transform","translate(0,"+_this.plotHeight+")") 
+        .style("font-size",_this.options.tickFontSize)
         .call(d3.axisBottom(_this.xBounds));
     
+    // Y Tick marks
+    d3.select(_this.yAxisEl)
+        .select(".y-tick")
+        .style("font-size",_this.options.tickFontSize)
+        .call(d3.axisLeft(_this.yBounds));
+    //--------------------------------------------------------------------------
+    
+
+    //............................ Set the Labels .............................. 
+    // X Label
     _this.xAxisHeight = d3.select(_this.xAxisEl)
         .selectAll(".tick")
         .node()
         .getBoundingClientRect()
-        .height;  
-    // X Label
+        .height;
+    _this.xAxisHeight = _this.xAxisHeight*_this.scale;  
     d3.select(_this.xAxisEl)
         .select(".x-label")
         .attr("text-anchor","middle")
         .attr("alignment-baseline","text-before-edge")
-        .style("font-size","1.5em")
+        .style("font-size",_this.options.labelFontSize)
         .style("font-weight","500")
-        .attr("x", _plotWidth/2) 
-        .attr("y",_this.xAxisHeight+_this.options.xLabelPadding)
+        .attr("x", _this.plotWidth/2) 
+        .attr("y",(_this.options.marginBottom-_this.xAxisHeight))
         .text(_this.xLabel);
-    //--------------------------------------------------------------------------
-
-
-    //....................... Setup the Y Axis .................................
-    // Y Tick marks
-    d3.select(_this.yAxisEl)
-        .select(".y-tick")
-        .style("font-size","0.75em")
-        .call(d3.axisLeft(_this.yBounds));
-
+    
     // Y Label
     _this.yAxisWidth = d3.select(_this.yAxisEl)
         .selectAll(".tick")
         .node()
         .getBoundingClientRect()
         .width;  
+    _this.yAxisWidth = _this.yAxisWidth*_this.scale;  
     d3.select(_this.yAxisEl)
         .select(".y-label")
         .attr("transform","rotate(-90)")
         .attr("alignment-baseline","text-after-edge")
         .attr("text-anchor","middle")
-        .style("font-size","1.5em")
+        .style("font-size",_this.options.labelFontSize)
         .style("font-weight","500")
-        .attr("x",0- _plotHeight/2)
-        .attr("y",0-_this.yAxisWidth-_this.options.yLabelPadding)
+        .attr("x",0- _this.plotHeight/2)
+        .attr("y",_this.yAxisWidth-_this.options.marginLeft)
         .text(_this.yLabel);
     //--------------------------------------------------------------------------
 
@@ -673,9 +669,11 @@ class D3LinePlot extends D3View{
     if (_this.options.showLegend) D3LinePlot.setLegend(_this);
 
 
+
     //................... Resize Plot on Window Resize ......................... 
+    D3LinePlot.updatePanel(_this);
     $(window).resize(function(){
-      D3LinePlot.plotRedraw(_this);
+      D3LinePlot.updatePanel(_this);
     });
     //--------------------------------------------------------------------------
     
@@ -684,7 +682,7 @@ class D3LinePlot extends D3View{
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
         .on("click",function(){
-          d3.select(_this.plotFooterEl)                                                         
+          d3.select(_this.plotFooterEl)
               .selectAll(".x-axis-btns")                                        
               .select("label")                                                  
               .classed("active",false);
@@ -702,7 +700,7 @@ class D3LinePlot extends D3View{
     d3.select(_this.plotFooterEl)
         .selectAll(".y-axis-btns")
         .on("click",function(){
-          d3.select(_this.plotFooterEl)                                                         
+          d3.select(_this.plotFooterEl) 
               .selectAll(".y-axis-btns")                                        
               .select("label")                                                  
               .classed("active",false);
@@ -751,7 +749,7 @@ class D3LinePlot extends D3View{
               .select("input")
               .attr("value");
           
-          d3.select(_this.plotFooterEl)                                                         
+          d3.select(_this.plotFooterEl)
               .selectAll(".plot-data-btns")                                        
               .select("label")                                                  
               .classed("active",false);
@@ -761,7 +759,6 @@ class D3LinePlot extends D3View{
                 .classed("hidden",true);
             d3.select(_this.svgEl)
                 .classed("hidden",false);
-            D3LinePlot.plotRedraw(_this);
           }else{
             d3.select(_this.tableEl)
                 .classed("hidden",false);
@@ -772,6 +769,14 @@ class D3LinePlot extends D3View{
         });
     //--------------------------------------------------------------------------
     
+   
+    //.......................... Save Figure ...................................
+    d3.select(_this.saveAsMenuEl)
+        .selectAll("a")
+        .on("click",function(){
+          D3LinePlot.saveFigure(_this,this.id);
+        });
+    //--------------------------------------------------------------------------
     
   }
   //---------------- End Method: Plot Data -------------------------------------
@@ -880,73 +885,43 @@ class D3LinePlot extends D3View{
         _svgWidth;
     
     _options = linePlot.options;
-
     D3LinePlot.dataTable(linePlot);
-
-    _plotHeight = D3LinePlot.plotHeight(linePlot);
-    _plotWidth = D3LinePlot.plotWidth(linePlot); 
-    
-    _svgHeight = D3LinePlot.plotHeight(linePlot,true);
-    _svgWidth = D3LinePlot.plotWidth(linePlot,true);
-
-    // Update svg height and width
-    _svgD3 = d3.select(linePlot.svgEl);     
-    _svgD3.attr("width", _svgWidth) 
-        .attr("height",_svgHeight)
+    _svgD3 = d3.select(linePlot.svgEl);
 
     // Update X bounds
     linePlot.xBounds = D3LinePlot.getXScale(linePlot);
     linePlot.xBounds
-        .range([0,_plotWidth])
+        .range([0,linePlot.plotWidth])
         .domain(D3LinePlot.getXExtremes(linePlot))
         .nice();
 
     // Update Y bounds
     linePlot.yBounds = D3LinePlot.getYScale(linePlot);
     linePlot.yBounds
-        .range([_plotHeight,0])
+        .range([linePlot.plotHeight,0])
         .domain(D3LinePlot.getYExtremes(linePlot))
         .nice()
     
     // Update X axis
     _svgD3.select(".x-tick")  
-        .attr("transform","translate(0,"+ _plotHeight +")")
         .call(d3.axisBottom(linePlot.xBounds));
-    _svgD3.select(".x-label")             
-        .attr("x", _plotWidth/2.0)           
-        .attr("y",linePlot.xAxisHeight+_options.xLabelPadding);
 
     // Update Y axis
     _svgD3.select(".y-tick")                                   
         .call(d3.axisLeft( linePlot.yBounds));
-    _svgD3.select(".y-label")  
-        .attr("x",0-_plotHeight/2)
-        .attr("y",0-linePlot.yAxisWidth-_options.yLabelPadding);
     
-    // Update legend
-    _legendTranslate = D3LinePlot
-        .legendLocation(linePlot,_plotHeight,_plotWidth);
-    _legendD3 = d3.select(linePlot.legendEl);
-    _svgLineD3 = _svgD3.selectAll(".line");
-    _svgDotD3  = _svgD3.selectAll(".dot");
-   
+    // Update lines 
+    _svgD3.selectAll(".line")
+        .transition()
+        .duration(500)
+        .attr("d",linePlot.line);
     
-    // Update lines, circles, and legend
-    if (doTransition){
-      _svgLineD3.transition()
-          .duration(500)
-          .attr("d",linePlot.line);
-      _svgDotD3.transition()
-          .duration(500)
-          .attr("cx",linePlot.line.x())
-          .attr("cy",linePlot.line.y());
-          
-    }else{
-      _svgLineD3.attr("d",linePlot.line);
-      _svgDotD3.attr("cx",linePlot.line.x())  
-          .attr("cy",linePlot.line.y());     
-      _legendD3.attr("transform",_legendTranslate);
-    }
+    // Update circles 
+    _svgD3.selectAll(".dot")
+        .transition()
+        .duration(500)
+        .attr("cx",linePlot.line.x())
+        .attr("cy",linePlot.line.y());
 
   }
   //---------------- End Method: Plot Redraw -----------------------------------
@@ -1169,13 +1144,15 @@ class D3LinePlot extends D3View{
 
     _options = linePlot.options;
     _nleg = linePlot.labels.length-1; 
-    _plotHeight = D3LinePlot.plotHeight(linePlot);
-    _plotWidth = D3LinePlot.plotWidth(linePlot);
+    _plotHeight = linePlot.plotHeight; 
+    _plotWidth = linePlot.plotWidth;
     
     d3.select(linePlot.legendEl)
       .selectAll("*")
       .remove();
       
+    let scale = linePlot.scale;
+
     _legendD3 = d3.select(linePlot.legendEl)
         .selectAll("g")
         .data(linePlot.labels)
@@ -1184,13 +1161,13 @@ class D3LinePlot extends D3View{
         .attr("class","legend-entry")
         .attr("id",function(d,i){return linePlot.ids[i]})
         .style("cursor","pointer")
+        .style("font-size",_options.legendFontSize)
         .attr("transform","translate("+(_options.legendPadding)
             +","+(_options.legendLineBreak)+")");
     
     // Legend Text
     _legendD3.append("text")
         .attr("class","legend-text")
-        .attr("font-size","1em")
         .attr("x",30)
         .attr("y", function(d,i){return _options.legendLineBreak*i})
         .attr("alignment-baseline","central")
@@ -1199,7 +1176,7 @@ class D3LinePlot extends D3View{
     // Legend Line Indicator
     _legendD3.append("line")
         .attr("class","legend-line")
-        .attr("x2",24)
+        .attr("x2",20)
         .attr("y1", function(d,i){return _options.legendLineBreak*i})
         .attr("y2", function(d,i){return _options.legendLineBreak*i})
         .attr("stroke-width",_options.linewidth)
@@ -1209,7 +1186,7 @@ class D3LinePlot extends D3View{
     // Legend Circle on the Line
     _legendD3.append("circle") 
         .attr("class","legend-circle")
-        .attr("cx",12)
+        .attr("cx",10)
         .attr("cy",function(d,i){return _options.legendLineBreak*i}) 
         .attr("r",_options.pointRadius)
         .attr("fill",function(d,i){return linePlot.color[i]} );
@@ -1217,9 +1194,9 @@ class D3LinePlot extends D3View{
     // Legend geometry 
     _legendGeom = linePlot.legendEl
         .getBoundingClientRect(); 
-    _legendWidth = parseFloat(_legendGeom.width 
+    _legendWidth = parseFloat(_legendGeom.width*scale 
         + 2*linePlot.options.legendPadding);
-    _legendHeight = parseFloat(_legendGeom.height 
+    _legendHeight = parseFloat(_legendGeom.height*scale
         + 2*linePlot.options.legendPadding);
     
     // Legend outline
@@ -1235,7 +1212,8 @@ class D3LinePlot extends D3View{
     _legendD3.raise();
     
     // Set translation 
-    _translate = D3LinePlot.legendLocation(linePlot,_plotHeight,_plotWidth);
+    _translate = D3LinePlot.legendLocation(
+        linePlot,linePlot.plotHeight,linePlot.plotWidth);
     d3.select(linePlot.legendEl).attr("transform",_translate)  
     
     //.............. Highlight Line when Legend Entry Selected .................
@@ -1252,8 +1230,8 @@ class D3LinePlot extends D3View{
     d3.select(linePlot.legendEl)
         .call(d3.drag()
           .on("drag",function(){
-            _plotHeight = D3LinePlot.plotHeight(linePlot);
-            _plotWidth = D3LinePlot.plotWidth(linePlot);
+            _plotHeight = linePlot.plotHeight; 
+            _plotWidth = linePlot.plotWidth;
             _xDrag = d3.event.x;
             _xDrag = _xDrag < 0 ? 0 : _xDrag > _plotWidth-_legendWidth 
                 ? _plotWidth-_legendWidth : _xDrag; 
@@ -1270,398 +1248,213 @@ class D3LinePlot extends D3View{
 
 
 
-
-
-
-
-
-
-  saveFigure(parText,plotFormat){
-    let _this = this;
-    let options = _this.options;
+  //........................ Method: saveFigure ................................
+  static saveFigure(linePlot,plotFormat){
     
-    let plotHeight = options.printPlotHeight*options.printDpi; 
-    let plotWidth = options.printPlotWidth*options.printDpi;
-    
-    let svgHeight = options.printHeight*options.printDpi; 
-    let svgWidth = options.printWidth*options.printDpi;
-    
-    // Default css 96dpi
-    let scale = parseFloat(options.printDpi/96);
-    
-    let marginTop = options.printMarginTop*options.printDpi; 
-    let marginLeft = (svgWidth-plotWidth)/2; 
-
-    let win = window.open();
-    let bodyEl = win.document.body;
-    bodyEl.style.margin = 0;
-
-    let svgHtml = d3.select(_this.svgEl).node().outerHTML;
-    
-                                                                                
-    d3.select(bodyEl)
-        .append("div")
-        .attr("class","svg-scaled")
-        .html(svgHtml);
-              
-    let svgD3 = d3.select(bodyEl)
-        .select("svg")
-        .attr("version",1.1)
-        .attr("xmlns","http://www.w3.org/2000/svg")
-        .style("font-family","'Helvetica Neue',Helvetica,Arial,sans-serif");
-
-    svgD3.select("g")
-        .attr("transform","translate("+marginLeft+","+marginTop+")");
-    
-    
-    D3LinePlot.saveFigurePlotResize(_this,svgD3.node());
-    
-    svgD3.attr("height",svgHeight)
-        .attr("width",svgWidth); 
-    
-    d3.select(bodyEl)
-        .select("svg")
-        .select("g")
-        .append("text")
-        .style("font-size","1.2em")
-        .attr("x",plotWidth/2)
-        .attr("y",-20*scale)
-        .attr("text-anchor","middle")
-        .text(plot.plotTitleEl.textContent)
-   
-    let plotBoundingHeight = svgD3.select(".plot")
-        .node()
-        .getBoundingClientRect()
-        .height;
-    let textD3 = d3.select(bodyEl)
-        .select("svg")
-        .append("g")
-        .attr("class","parameters")
-        .attr("transform","translate("+
-            marginLeft+","+(plotBoundingHeight+marginTop)+")");
-
-    textD3.selectAll("text")
-        .data(parText)
-        .enter()
-        .append("text")
-        .text(function(d,i){return d})
-        .attr("y",function(d,i){return 20*i*scale});
-    
-    svgHtml = svgD3.node().outerHTML;
-    let svgImgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);                 
-    let svgImg = new Image();
-    svgImg.src = svgImgSrc; 
-    
-     
-    let canvasD3 = d3.select(bodyEl)
-          .append("div")
-          .attr("class","svg-to-canvas")
-          .append("canvas")
-          .attr("height",svgHeight)
-          .attr("width",svgWidth)
-          .style("height",options.printHeight+"in")
-          .style("width",options.printWidth+"in");
-
-    let canvas = canvasD3.node();
-    let context = canvas.getContext("2d");
-
-    canvasD3.remove(); 
-    svgD3.remove(); 
-
-    svgImg.onload = function(){
-      context.fillStyle = "white";
-      context.fillRect(0,0,svgWidth,svgHeight);
-      context.drawImage(svgImg,0,0);
-      
-      let a = document.createElement("a");
-      let imgSrc;
-      let img;
-      switch (plotFormat.toLowerCase()){
-        case "jpeg":
-          imgSrc = canvas.toDataURL("image/jpeg",1.0);
-          a.download = "jpeg-test";
-          a.href = imgSrc;
-          a.click();
-          win.close()
-          break;
-        case "png":
-          imgSrc = canvas.toDataURL("image/png",1.0);
-          img = "<img src='"+imgSrc+"'>";
-          a.download = "png-test";
-          a.href = imgSrc;
-          a.click();
-          win.close()
-          break;
-        case "pdf":
-          win.print();
-      }
-    }
-   
-  }
-
-
-
-  static saveFigurePlotResize(linePlot,svgEl){
-    let legendD3,
-        legendTranslate,
-        options,
-        plotHeight,
+    //......................... Variables ......................................
+    let options,
+        printDpi,
         plotWidth,
-        svgD3,
-        svgDotD3,
+        plotHeight,
         svgHeight,
-        svgLineD3,
         svgWidth,
-        scale;
+        marginTop,
+        marginLeft,
+        svgHtml,
+        scalePlot,
+        scaleDpi,
+        plotTransform,
+        plotTitle,
+        footerText,
+        nlines,
+        svgD3,
+        svgDivD3,
+        canvasDivD3,
+        canvasD3,
+        canvasEl,
+        canvasContext,
+        svgImg,
+        svgImgSrc,
+        imgSrc,
+        win,
+        bodyEl,
+        aEl,
+        filename;
     
+    aEl = document.createElement("a");
+    filename = linePlot.plotFilename == null ? "figure" : linePlot.plotFilename;
+    aEl.download = filename; 
     options = linePlot.options;
+    printDpi = plotFormat == "pdf" || plotFormat == "svg" 
+        ? 96 : options.printDpi;
+    plotWidth = options.printPlotWidth*printDpi;
+    plotHeight = plotWidth/options.plotRatio;
+    svgHeight = options.printHeight*printDpi; 
+    svgWidth = options.printWidth*printDpi;
+    marginTop = options.printMarginTop*printDpi; 
+    marginLeft = (svgWidth-plotWidth);
+    svgHtml = d3.select(linePlot.svgEl).node().outerHTML;
+    scalePlot = plotWidth/linePlot.svgWidth;
+    scaleDpi = printDpi/96;
+    plotTransform = "translate("+marginLeft+","+marginTop+")"+
+        " scale("+scalePlot+")";
+    plotTitle = linePlot.plotTitleEl.textContent;
+    footerText = [
+      "Created with: nshmp-haz version "+linePlot.metadata.version,
+      linePlot.metadata.url,
+      linePlot.metadata.time
+    ];
+    nlines = footerText.length;
+    //--------------------------------------------------------------------------
 
-
-    plotHeight = options.printPlotHeight*options.printDpi; 
-    plotWidth = options.printPlotWidth*options.printDpi;
-    
-    svgHeight = options.printHeight*options.printDpi; 
-    svgWidth = options.printWidth*options.printDpi;
-    
-    // Default css 96dpi
-    scale = parseFloat(options.printDpi/96);
-    
-    let marginTop = options.printMarginTop*options.printDpi; 
-    let marginLeft = (svgWidth-plotWidth)/2; 
+   
+    //....................... SVG Printer Version .............................. 
+    // Create copy of plot
+    svgDivD3 = d3.select("body")
+        .append("div")
+        .attr("class","print-plot-svg hidden")
+        .html(svgHtml);
     
     // Update svg height and width
-    let font = parseFloat(d3.select(linePlot.svgEl).style("font-size"));
-    svgD3 = d3.select(svgEl);     
-    console.log(font);
-    svgD3.attr("height",plotHeight)
-        .attr("width",plotWidth)
-        .style("font-size",parseFloat(font*scale));
-         
-    // Update X bounds
-    //linePlot.xBounds = D3LinePlot.getXScale(linePlot);
-    linePlot.xBounds
-        .range([0,plotWidth]);
-
-    // Update Y bounds
-    //linePlot.yBounds = D3LinePlot.getYScale(linePlot);
-    linePlot.yBounds
-        .range([plotHeight,0]);
+    svgD3 = svgDivD3.select("svg")
+        .attr("class","plot")
+        .attr("preserveAspectRatio",null)
+        .attr("viewBox",null)
+        .style("font-family","'Helvetica Neue',Helvetica,Arial,sans-serif")
+        .attr("height",svgHeight)
+        .attr("width",svgWidth)
     
-    // Update X axis
-    svgD3.select(".x-tick")  
-        .attr("transform","translate(0,"+ plotHeight +")")
-        .call(d3.axisBottom(linePlot.xBounds))
-        .attr("stroke-width",scale);
-    let xAxisHeight = svgD3.select(".x-axis")
-        .selectAll(".tick")
-        .node()
-        .getBoundingClientRect()
-        .height;
-    svgD3.select(".x-label")
-        .attr("x", plotWidth/2.0)
-        .attr("y", xAxisHeight+options.xLabelPadding*scale); 
-    svgD3.select(".x-tick")
-        .selectAll(".tick")
-        .selectAll("line")
-        .attr("y2",function(d,i){return d3.select(this).attr("y2")*scale});
-    svgD3.select(".x-tick")
-        .selectAll(".tick")
+    // Add plot title 
+    svgD3.select(".plot")
+        .attr("transform",plotTransform)
+        .append("text")
+        .attr("class","plot-title")
+        .attr("x",linePlot.plotWidth/2)
+        .attr("y",-40)
+        .attr("text-anchor","middle")
+        .attr("alignment-baseline","text-after-edge")
+        .style("font-size",options.titleFontSize)
+        .text(plotTitle);
+   
+    // Add print footer
+    svgD3.append("g")
+        .attr("class","print-footer")
+        .style("font-size",options.printFooterFontSize*scaleDpi)
+        .attr("transform","translate("+
+            (options.printFooterPadding*scaleDpi)+","+
+            (svgHeight-options.printFooterPadding*scaleDpi)+")")
         .selectAll("text")
-        .attr("y",function(d,i){return d3.select(this).attr("y")*scale});
-    
-    
-    // Update Y axis
-    svgD3.select(".y-tick")                                   
-        .call(d3.axisLeft( linePlot.yBounds))
-        .attr("stroke-width",scale);
-    let yAxisWidth = svgD3.select(".y-axis")
-        .selectAll(".tick")
-        .node()
-        .getBoundingClientRect()
-        .width;
-    svgD3.select(".y-label")  
-        .attr("x",0-plotHeight/2)
-        .attr("y",0-(yAxisWidth+options.yLabelPadding*scale));
-    svgD3.select(".y-tick")
-        .selectAll(".tick")
-        .selectAll("line")
-        .attr("x2",function(d,i){return d3.select(this).attr("x2")*scale});
-    svgD3.select(".y-tick")
-        .selectAll(".tick")
-        .selectAll("text")
-        .attr("x",function(d,i){return d3.select(this).attr("x")*scale});
-    
-    
-    // Update legend
-    D3LinePlot.setPrintLegend(linePlot,svgEl);
-    
-    // Remove any data
-    d3.select(svgEl)
-        .selectAll(".data")
-        .remove();
-    
-    // Create data groups
-    let seriesEnter = d3.select(svgEl)
-        .select(".all-data")
-        .selectAll("g")
-        .data(linePlot.data)
+        .data(footerText)
         .enter()
-        .append("g")
-        .attr("class","data")
-        .attr("id",function(d,i){return linePlot.ids[i]})
-        .style("cursor","pointer");
-    
-    // Plot lines
-    seriesEnter.append("path")
-        .attr("class","line")
-        .attr("d",linePlot.line)
-        .attr("id",function(d,i){return linePlot.ids[i]})
-        .attr("stroke",function(d,i){return linePlot.color[i]} )
-        .attr("stroke-width",linePlot.options.linewidth*scale)
-        .style("shape-rendering","geometricPrecision")
-        .attr("fill","none");
-    
-    // Plot cirles
-    seriesEnter.selectAll("circle")
-        .data(function(d,i){return d})
-        .enter()
-        .filter(function(d,i){return d[1] != null})
-        .append("circle")
-        .attr("class","dot")
-        .attr("id",function(d,i){
-          return d3.select(this.parentNode.firstChild).attr("id");
-        })
-        .attr("cx",linePlot.line.x())
-        .attr("cy",linePlot.line.y())
-        .attr("r",linePlot.options.pointRadius*scale)
-        .attr("fill",function(d,i){
-          return d3.select(this.parentNode.firstChild).style("stroke");
+        .append("text")
+        .text(function(d,i){return footerText[nlines-i-1]})
+        .attr("y",function(d,i){
+            return -options.printFooterLineBreak*i*scaleDpi
         });
+    //-------------------------------------------------------------------------- 
+   
+    
+    //........................ Canvas Container ................................ 
+    canvasDivD3 = d3.select("body")
+        .append("div")
+        .attr("class","svg-to-canvas hidden");
+    canvasD3 = canvasDivD3.append("canvas")
+        .attr("height",svgHeight)
+        .attr("width",svgWidth)
+        .style("height",options.printHeight+"in")
+        .style("width",options.printWidth+"in");
 
+    canvasEl = canvasD3.node();
+    canvasContext = canvasEl.getContext("2d");
+    //-------------------------------------------------------------------------
+
+    
+    //.......................... Print SVG .....................................
+    // Create an image from SVG 
+    svgHtml = svgD3.node().outerHTML;
+    svgImgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);                 
+    svgImg = new Image();
+    svgImg.src = svgImgSrc; 
+    
+    // Make SVG into desired format
+    svgImg.onload = function(){
+      svgDivD3.remove();
+      canvasDivD3.remove();
+      
+      canvasContext.fillStyle = "white";
+      canvasContext.fillRect(0,0,svgWidth,svgHeight);
+      canvasContext.drawImage(svgImg,0,0);
+      
+      switch (plotFormat){
+        // SVG
+        case "svg":
+          imgSrc = svgImgSrc 
+          aEl.href = imgSrc;
+          aEl.click();
+          break;
+        // JPEG or PNG
+        case "png":
+        case "jpeg":
+          imgSrc = canvasEl.toDataURL("image/"+plotFormat,1.0);
+          aEl.href = imgSrc;
+          aEl.click();
+          break;
+        // PDF
+        case "pdf":
+          win = window.open();
+          bodyEl = win.document.body;
+          bodyEl.style.margin = 0;
+          win.document.head.innerHTML = "<style>@Page{margin:0;}</style>";
+          win.document.title = filename;
+          d3.select(bodyEl)
+              .append("div")
+              .attr("class","svg-img")
+              .html(svgImg.outerHTML);
+          win.print();
+          win.close();
+      }
+    }  
+    //--------------------------------------------------------------------------
+      
   }
+  //--------------------- End Method: saveFigure -------------------------------
 
 
-
-  static setPrintLegend(linePlot,svgEl){
-    let xDrag,
-        yDrag,
-        legendD3,
-        legendGeom,
-        legendHeight,
-        legendWidth,
-        options,
-        nleg,
-        plotHeight,
-        plotWidth,
-        selectedId,
-        translate;
-
-    options = linePlot.options;
-    nleg = linePlot.labels.length-1; 
-    
-    plotHeight = options.printPlotHeight*options.printDpi; 
-    plotWidth = options.printPlotWidth*options.printDpi;
-    
-    let svgHeight = options.printHeight*options.printDpi; 
-    let svgWidth = options.printWidth*options.printDpi;
-    
-    // Default css 96dpi
-    let scale = parseFloat(options.printDpi/96);
-
-    d3.select(svgEl)
-      .select(".legend")
-      .selectAll("*")
-      .remove();
-      
-    legendD3 = d3.select(svgEl)
-        .select(".legend")
-        .selectAll("g")
-        .data(linePlot.labels)
-        .enter()  
-        .append("g") 
-        .attr("class","legend-entry")
-        .attr("id",function(d,i){return linePlot.ids[i]})
-        .attr("transform","translate("+(scale*options.legendPadding)
-            +","+(scale*options.legendLineBreak)+")");
-    
-    // Legend Text
-    legendD3.append("text")
-        .attr("class","legend-text")
-        .attr("font-size","1em")
-        .attr("x",30*scale)
-        .attr("y", function(d,i){return options.legendLineBreak*i*scale})
-        .attr("alignment-baseline","central")
-        .text(function(d,i){return linePlot.labels[i]});
-     
-    // Legend Line Indicator
-    legendD3.append("line")
-        .attr("class","legend-line")
-        .attr("x2",24*scale)
-        .attr("y1", function(d,i){return options.legendLineBreak*i*scale})
-        .attr("y2", function(d,i){return options.legendLineBreak*i*scale})
-        .attr("stroke-width",options.linewidth*scale)
-        .attr("stroke",function(d,i){return linePlot.color[i]})
-        .attr("fill","none");  
-      
-    // Legend Circle on the Line
-    legendD3.append("circle") 
-        .attr("class","legend-circle")
-        .attr("cx",12*scale)
-        .attr("cy",function(d,i){return options.legendLineBreak*i*scale}) 
-        .attr("r",options.pointRadius*scale)
-        .attr("fill",function(d,i){return linePlot.color[i]} );
-
-    // Legend geometry 
-    legendGeom = d3.select(svgEl)
-        .select(".legend")
-        .node()
-        .getBoundingClientRect(); 
-    legendWidth = parseFloat(legendGeom.width
-        + 2*linePlot.options.legendPadding*scale);
-    legendHeight = parseFloat(legendGeom.height
-        + 2*linePlot.options.legendPadding*scale);
-    
-    // Legend outline
-    d3.select(svgEl)
-        .select(".legend")
-        .append("rect")
-        .attr("class","legend-outline")
-        .attr("height",legendHeight)
-        .attr("width",legendWidth)
-        .attr("stroke-width",scale)
-        .attr("stroke","#999")
-        .attr("fill","white");
-
-    legendD3.raise();
-    
-    let t = d3.select(linePlot.legendEl)
-        .attr("transform");
-    console.log(t)
-    t =t.split( /,|\(|\)/ ) ;
-    let orgTranslateX = parseFloat(t[1]);
-    let orgTranslateY = parseFloat(t[2]);
-    let orgPlotHeight = D3LinePlot.plotHeight(linePlot);
-    let orgPlotWidth = D3LinePlot.plotWidth(linePlot);
-
-    let xScale = plotWidth/orgPlotWidth;
-    let yScale = plotHeight/orgPlotHeight;
-    let translateX = orgTranslateX*xScale;
-    let translateY = orgTranslateY*yScale;
-
-    let transform = "translate("+
-        translateX+","+translateY+")";
-    // Set translation 
-    d3.select(svgEl)
-        .select(".legend")
-        .attr("transform",transform);
   
-  } 
-  
+  //..................... Method: updatePanel ..................................
+  static updatePanel(linePlot){
+
+    let panelBodyGeom = linePlot.plotBodyEl.getBoundingClientRect();
+    let panelBodyHeight = panelBodyGeom.height;
+    let headerHeight = panelBodyHeight*linePlot.options.headerPercent;
+    let btnFontSize = linePlot.buttonFontSize/linePlot.scale; 
+
+    /*
+    d3.select(linePlot.plotPanelEl)
+        .select(".panel-heading")
+        .style("height",headerHeight+"px")
+        .style("padding",headerHeight*0.55/2+"px") 
+        .select(".panel-title")
+        .style("font-size",headerHeight*0.45+"px");
+    */
+    d3.select(linePlot.plotPanelEl)
+        .select(".panel-heading")
+        .style("height","2vw")
+        //.style("padding",headerHeight*0.55/2+"px") 
+        .select(".panel-title")
+        .style("font-size","1vw");
+   
+    d3.select(linePlot.plotFooterEl)
+        .style("line-height",1.5/linePlot.scale)
+        .style("font-size",headerHeight*0.35+"px")
+        .selectAll(".footer-button")
+        .style("line-height",1.5/linePlot.scale)
+        .style("font-size",headerHeight*0.35+"px");
+  }
+  //----------------------------------------------------------------------------
+
 
 
 
 }
-
-
-
 //-------------------- End D3LinePlot Class ------------------------------------
