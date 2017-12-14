@@ -322,6 +322,7 @@ plot.setOptions(plotOptions);
 
 function updatePlot(url) {
   let dataSet,
+      metadata,
       series,
       seriesLabels,
       seriesIds,
@@ -351,11 +352,18 @@ function updatePlot(url) {
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
     });
     
+    metadata ={                                                             
+      version: "1.1",                                                           
+      url: window.location.href,                                                
+      time: new Date()                                                          
+    }; 
+
+    plot.data = seriesData;
+    plot.ids = seriesIds;
+    plot.labels = seriesLabels;
+    plot.metadata = metadata;
     plot.xLabel = dataSet.xLabel;
     plot.yLabel = dataSet.yLabel;
-    plot.data = seriesData;
-    plot.labels = seriesLabels;
-    plot.ids = seriesIds;
     
     plot.plotData();
 

@@ -201,6 +201,7 @@ label.control-spacer {
   right: 0;
   margin: 2em 0 3.5em 400px;
   overflow: auto;
+  padding: 20px;
 }
 /*-------------- End: Main Content -------------------*/
 /**/

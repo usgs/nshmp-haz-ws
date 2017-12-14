@@ -119,7 +119,7 @@ class D3View{
     _this.resizeSmall;
    
     _this.colSize6 = "col-md-6";
-    _this.colSize12 = "col-md-offset-2 col-md-8";
+    _this.colSize12 = "col-md-offset-1 col-md-10";
     _this.resizeFull = "resize glyphicon glyphicon-resize-full";
     _this.resizeSmall = "resize glyphicon glyphicon-resize-small";
      
@@ -142,6 +142,8 @@ class D3View{
       marginLeft: 60,
       marginRight: 20,
       marginTop: 20,
+      plotHeight: 504,
+      plotWidth: 896,
       plotRatio: 16/9,
       pointRadius: 3.5,
       pointRadiusSelection: 5.5,
@@ -273,7 +275,6 @@ class D3View{
     let saveAsD3 = _footerBtnsD3.append("div")
         .attr("class","btn-group btn-group-xs btn-download")
         .style("text-align","center")
-        .attr("title","Save as")
         .append("div")
         .attr("class","dropup");
 
@@ -285,10 +286,14 @@ class D3View{
         .attr("aria-expanded","true");
     
     let saveMenu = [
-        ["JPEG","jpeg"],
-        ["PDF/Print","pdf"],
-        ["PNG","png"],
-        ["SVG","svg"]
+        ["Save Figure As:","dropdown-header","plot"],
+        ["JPEG","jpeg","plot"],
+        ["PDF/Print","pdf","plot"],
+        ["PNG","png","plot"],
+        ["SVG","svg","plot"],
+        ["Save Data As:","dropdown-header","data"],
+        ["CSV","csv","data"],
+        ["TSV","tsv","data"]
     ];
 
     let saveListD3 = saveAsD3.append("ul")
@@ -299,14 +304,13 @@ class D3View{
         .data(saveMenu)
         .enter()
         .append("li")
-        .append("a")
-        .text(function(d,i){return d[0]})
-        .attr("id",function(d,i){return d[1]})
+        .html(function(d,i){
+          if (d[1] != "dropdown-header") 
+            return "<a id="+d[1]+" class="+d[2]+">"+d[0]+"</a>";
+          else return d[0];
+        })
+        .attr("class",function(d,i){return d[1]})
         .style("cursor","pointer");
-    saveListD3.append("li")
-        .attr("class","dropdown-header")
-        .text("Save Figure As:")
-        .lower();
         
      
     //..................... DOM Elements .......................................

@@ -14,36 +14,64 @@
 
 
 /* Plot Panel Header */                           
-.D3View>.panel>.panel-heading{                                     
+.D3View .panel .panel-heading{                                     
   background-color: #f7f7f7;                                                    
   font-family: 'HelveticaNeue-Light',sans-serif;                                
   margin: 0;
+  height: 2vw;
+  padding: 0.5vw;
 }                                                                               
 
+.D3View .panel-heading .panel-title{
+  font-size: 1vw;
+}
 
 /* Plot Title */
-.D3View .plot-title{
+.D3View .panel-heading .panel-title .plot-title{
   display: inline-block;
   min-width: 30%;
 }
 
-
-/* Plot Panel Content */                          
-.D3View>.panel>.panel-body{                                        
-  padding: 10px;                                                                   
-} 
-                                                                                
-.D3View .panel-footer{
-  padding: 1%;
+.D3View .panel .panel-body{
+  padding: 0;
 }
 
-/* Footer button left */
-.D3View .btn-left{
-  padding-left: 5px;
+/* Plot Panel Content */                          
+.D3View .panel .panel-body .D3LinePlot{
+  margin-bottom: -5px;
+} 
+              
+.D3View .panel .panel-body .data-table td{
+  font-size: 0.75vw;
+}
+
+.D3View .panel .panel-body .data-table th{
+  font-size: 1vw;
+}
+                                                                                
+.D3View .panel .panel-footer{
+  padding: 0;
+  font-size: 0.75vw;
 }
 
 .D3View .panel-footer .axes-btns{
+  padding: 0.4vw 0;
 }
+
+.D3View .panel-footer .footer-button{
+  font-size: 0.75vw;
+}
+
+.D3View .panel-footer .footer-button input{
+  height: 0;
+}
+
+
+/* Footer button left */
+.D3View .btn-left{
+  padding-left: 0.5vw;
+}
+
 
 .D3View .panel-footer .axes-btns .btn-download{
   width: 0.35%;
@@ -65,7 +93,7 @@
 
 /* Footer button right */
 .D3View .btn-right{
-  padding-right: 5px;
+  padding-right: 0.5vw;
 }
 
 /* Axes button labels */ 

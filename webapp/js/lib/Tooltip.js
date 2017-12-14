@@ -77,7 +77,8 @@ class Tooltip{
         _label,
         _mouseCoord,
         _plotGeom,
-        _tooltipGeom;
+        _tooltipGeom,
+        scale;
     
     _this = this;
     _this.mouseX;
@@ -91,6 +92,7 @@ class Tooltip{
     _this.xVal;
     _this.yVal;
     
+
     _this.mouseX = parseFloat(d3.select(selectedEl).attr("cx")); 
     _this.mouseY = parseFloat( d3.select(selectedEl).attr("cy"));
     _this.offset = parseFloat(plotObj.options.tooltipOffset);
@@ -98,6 +100,7 @@ class Tooltip{
     _this.selectedEl = selectedEl;
     _this.xVal = d3.select(selectedEl).data()[0][0];                              
     _this.yVal = d3.select(selectedEl).data()[0][1];
+    scale = plotObj.scale ? plotObj.scale : 1;
     //-------------------------------------------------------------------------
 
     
@@ -130,14 +133,14 @@ class Tooltip{
     _tooltipGeom   = plotObj.tooltipEl               
         .getBoundingClientRect();
 
-    _this.tooltipWidth  = parseFloat(_tooltipGeom.width*plotObj.scale  + 2*_this.padding); 
-    _this.tooltipHeight = parseFloat(_tooltipGeom.height*plotObj.scale + 2*_this.padding); 
+    _this.tooltipWidth  = parseFloat(_tooltipGeom.width*scale  + 2*_this.padding); 
+    _this.tooltipHeight = parseFloat(_tooltipGeom.height*scale + 2*_this.padding); 
 
 
     _plotGeom = plotObj.svgEl
 			.getBoundingClientRect();
-		_this.plotWidth  = _plotGeom.width*plotObj.scale; 
-		_this.plotHeight = _plotGeom.height*plotObj.scale;
+		_this.plotWidth  = _plotGeom.width*scale; 
+		_this.plotHeight = _plotGeom.height*scale;
 
     Tooltip.tooltipLocation(_this);
 

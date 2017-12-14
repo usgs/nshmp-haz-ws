@@ -34,7 +34,6 @@ class D3MapPlot extends D3MapView{
     _this.plotEl;
     _this.usBorders;
     _this.worldMap;
-
     console.log(_this);
     //--------------------------------------------------------------------------
    

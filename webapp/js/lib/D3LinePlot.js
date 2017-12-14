@@ -93,6 +93,12 @@ class D3LinePlot extends D3View{
     _this.yAxisEl;
     _this.yLabel;
     
+    _this.svgHeight = _this.options.plotHeight;
+    _this.svgWidth = _this.options.plotWidth; 
+    _this.plotHeight = _this.svgHeight-
+        _this.options.marginTop-_this.options.marginBottom;
+    _this.plotWidth = _this.svgWidth-
+        _this.options.marginLeft-_this.options.marginRight;
     //--------------------------------------------------------------------------
     
    
@@ -108,18 +114,10 @@ class D3LinePlot extends D3View{
 
 
     //......................... SVG Outline for Plot ...........................
-    _this.plotWidth = 1000;
-    _this.plotHeight = _this.plotWidth/_this.options.plotRatio;
-    let svgHeight = _this.plotHeight+
-        _this.options.marginTop+_this.options.marginBottom;
-    let svgWidth = _this.plotWidth+
-        _this.options.marginLeft+_this.options.marginRight;
-    _this.svgHeight = svgHeight;
-    _this.svgWidth = svgWidth;
     _svgD3 = d3.select(_this.plotBodyEl)
         .append("svg")
         .attr("class","D3LinePlot")
-        .attr("viewBox","0 0 "+svgWidth+" " + svgHeight)                          
+        .attr("viewBox","0 0 "+_this.svgWidth+" " + _this.svgHeight)                          
         .attr("version",1.1)                                                      
         .attr("xmlns","http://www.w3.org/2000/svg")                               
         .attr("preserveAspectRatio","xMinYMin meet");
@@ -194,14 +192,15 @@ class D3LinePlot extends D3View{
         _tableRowY;
 
     _this = linePlot;
-    _svgHeight = D3LinePlot.plotHeight(_this,true);
-    _svgWidth = D3LinePlot.plotWidth(_this,true);
-
+    
+    let width = _this.plotBodyEl.getBoundingClientRect().width;
+    let height = width/_this.options.plotRatio; 
+    
     // Update table height and width
     d3.select(_this.tableEl)
-        .style("height",_svgHeight+"px")
-        .style("width",_svgWidth+"px");
-         
+        .style("height",height+"px")
+        .style("width",width+"px");
+    
     // Remove table rows
     d3.select(_this.tableBodyEl)
         .selectAll("tr")
@@ -212,15 +211,18 @@ class D3LinePlot extends D3View{
       d3.select(_this.tableBodyEl)
           .append("tr")
           .append("th")
+          .attr("colspan",dataSet.length+1)
           .text(_this.labels[ids]);
 
       _tableRowX = d3.select(_this.tableBodyEl).append("tr");
       _tableRowX.append("td")
-        .text(_this.options.tooltipText[1]);
+          .attr("nowrap","true")
+          .text(_this.options.tooltipText[1]);
       
       _tableRowY = d3.select(_this.tableBodyEl).append("tr");
       _tableRowY.append("td")
-        .text(_this.options.tooltipText[2]);
+          .attr("nowrap","true")
+          .text(_this.options.tooltipText[2]);
       
       dataSet.forEach(function(dataPair,idp){
         _tableRowX.append("td")
@@ -231,6 +233,7 @@ class D3LinePlot extends D3View{
       })
      
     });
+    
   }
   //----------------- End Method: Create Data Table ----------------------------
 
@@ -669,15 +672,6 @@ class D3LinePlot extends D3View{
     if (_this.options.showLegend) D3LinePlot.setLegend(_this);
 
 
-
-    //................... Resize Plot on Window Resize ......................... 
-    D3LinePlot.updatePanel(_this);
-    $(window).resize(function(){
-      D3LinePlot.updatePanel(_this);
-    });
-    //--------------------------------------------------------------------------
-    
-  
     //........... Rescale (log/linear) the X Axis on Button Click ..............
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
@@ -691,7 +685,7 @@ class D3LinePlot extends D3View{
               .select("input")
               .attr("value");
           
-          D3LinePlot.plotRedraw(_this,true);
+          D3LinePlot.plotRedraw(_this);
         }); 
     //--------------------------------------------------------------------------
 
@@ -709,7 +703,7 @@ class D3LinePlot extends D3View{
               .select("input")
               .attr("value");
           
-          D3LinePlot.plotRedraw(_this,true);
+          D3LinePlot.plotRedraw(_this);
         }); 
     //--------------------------------------------------------------------------
   
@@ -774,10 +768,24 @@ class D3LinePlot extends D3View{
     d3.select(_this.saveAsMenuEl)
         .selectAll("a")
         .on("click",function(){
-          D3LinePlot.saveFigure(_this,this.id);
+          if (this.className == "data") D3LinePlot.saveData(_this,this.id);
+          else D3LinePlot.saveFigure(_this,this.id);
         });
     //--------------------------------------------------------------------------
     
+  
+  
+    $(window).resize(function(){
+      let panelBodyGeom = _this.plotBodyEl.getBoundingClientRect();
+      _this.scale = _this.svgWidth/panelBodyGeom.width;
+      let width = _this.plotBodyEl.getBoundingClientRect().width;
+      let height = width/_this.options.plotRatio; 
+      // Update table height and width
+      d3.select(_this.tableEl)
+          .style("height",height+"px")
+          .style("width",width+"px");
+    });
+  
   }
   //---------------- End Method: Plot Data -------------------------------------
 
@@ -859,9 +867,6 @@ class D3LinePlot extends D3View{
   * @argument linePlot {Object}
   *     D3LinePlot object
   *
-  * @argument doTransition {Boolean}
-  *     wheather to transition when redrawing plot
-  *
   * @property xBounds {Object}
   *     D3 scale object <br>
   *     udpates the xBounds <br>
@@ -872,7 +877,7 @@ class D3LinePlot extends D3View{
   *     udpates the yBounds <br>
   *     uses the d3 scale returned by getYScale method
   */
-  static plotRedraw(linePlot,doTransition){
+  static plotRedraw(linePlot){
     let _legendD3,
         _legendTranslate,
         _options,
@@ -1282,7 +1287,8 @@ class D3LinePlot extends D3View{
         filename;
     
     aEl = document.createElement("a");
-    filename = linePlot.plotFilename == null ? "figure" : linePlot.plotFilename;
+    filename = linePlot.plotFilename == null 
+        ? "figure" : linePlot.plotFilename;
     aEl.download = filename; 
     options = linePlot.options;
     printDpi = plotFormat == "pdf" || plotFormat == "svg" 
@@ -1419,41 +1425,34 @@ class D3LinePlot extends D3View{
   }
   //--------------------- End Method: saveFigure -------------------------------
 
-
   
-  //..................... Method: updatePanel ..................................
-  static updatePanel(linePlot){
-
-    let panelBodyGeom = linePlot.plotBodyEl.getBoundingClientRect();
-    let panelBodyHeight = panelBodyGeom.height;
-    let headerHeight = panelBodyHeight*linePlot.options.headerPercent;
-    let btnFontSize = linePlot.buttonFontSize/linePlot.scale; 
-
-    /*
-    d3.select(linePlot.plotPanelEl)
-        .select(".panel-heading")
-        .style("height",headerHeight+"px")
-        .style("padding",headerHeight*0.55/2+"px") 
-        .select(".panel-title")
-        .style("font-size",headerHeight*0.45+"px");
-    */
-    d3.select(linePlot.plotPanelEl)
-        .select(".panel-heading")
-        .style("height","2vw")
-        //.style("padding",headerHeight*0.55/2+"px") 
-        .select(".panel-title")
-        .style("font-size","1vw");
-   
-    d3.select(linePlot.plotFooterEl)
-        .style("line-height",1.5/linePlot.scale)
-        .style("font-size",headerHeight*0.35+"px")
-        .selectAll(".footer-button")
-        .style("line-height",1.5/linePlot.scale)
-        .style("font-size",headerHeight*0.35+"px");
+  
+  //......................... Method: saveData .................................
+  static saveData(linePlot,fileType){
+    let delimiter = fileType == "tsv" ? "\t" : ",";
+    
+    let filename = linePlot.plotFilename == null 
+        ? "data" : linePlot.plotFilename;
+     
+    let rows = linePlot.tableEl.querySelectorAll("tr");
+    let csv = [];
+    rows.forEach(function(row,ir){
+      let csvRow = [];
+      row.querySelectorAll("th,td").forEach(function(dp,idp){
+        csvRow.push(dp.innerText);
+      })
+      csv.push(csvRow.join(delimiter));
+    });
+    csv = new Blob([csv.join("\n")],{type:"text/"+fileType});
+    
+    let aEl = document.createElement("a");
+    aEl.download = filename+"."+fileType;
+    aEl.href = URL.createObjectURL(csv);
+    aEl.click();
+    
   }
-  //----------------------------------------------------------------------------
-
-
+  
+  //--------------------- End Method: saveData ---------------------------------
 
 
 }
