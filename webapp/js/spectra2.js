@@ -214,7 +214,9 @@ function buildInputs(usage) {
   var gmmGroupOptions = $();
   params.group.values.forEach(function (group) {
     var members = group.data;
-    var optGroup = $('<optgroup>').attr('label', group.label);
+    var optGroup = $('<optgroup>')
+        .attr('label', group.label)
+        .attr("id",group.id);
     gmmGroupOptions = gmmGroupOptions.add(optGroup);
     optGroup.append(gmmAlphaOptions
       .filter(function (index, gmmOption) {
@@ -240,8 +242,39 @@ function buildInputs(usage) {
       return true; })
     .forEach(function (key, index) {
       $("input[name='" + key + "']").val(params[key].value); });
+
+  checkQuery();
 }
 
+
+function checkQuery(){
+  
+  let url = window.location.hash.substring(1);
+  if (!url) return;
+  let pars = url.split("&");
+  let key;
+  let value;
+  let gmmGroup = [];
+  pars.forEach(function(par,i){
+    key = par.split("=")[0]; 
+    value  = par.split("=")[1]; 
+    if (key == "gmmGroup"){
+      gmmGroup.push(value);
+    }else if (key == "gmm"){
+      $( "#"+gmmGroup.splice(0,1)+" option[value='"+value+"']")
+          .prop("selected",true);
+    }else{
+      $("input[name='"+key+"']").val(value);
+    }
+  }); 
+  let inputs = $("#inputs").serialize();
+  url = "/nshmp-haz-ws/spectra?"+ inputs;
+  footerOptions.rawBtnDisable = false;
+  footerOptions.updateBtnDisable = false;
+  footer.setOptions(footerOptions);
+  updatePlot(url);
+  
+}
 
 
 
@@ -251,9 +284,16 @@ function buildInputs(usage) {
 
 //....................... Footer Buttons .......................................
 $("#update-plot").click(function (){   
-  let url = "/nshmp-haz-ws/spectra?" + $("#inputs").serialize();
+  let inputs = $("#inputs").serialize();
+  let url = "/nshmp-haz-ws/spectra?" + inputs; 
   spinner.on();
-  updatePlot(url)
+  let gmmGroup = "";
+  $("#gmms :selected").each(function(i){
+    gmmGroup += "gmmGroup="+this.parentNode.id+"&";
+    
+  });
+  window.location.hash = gmmGroup+inputs;
+  updatePlot(url);
 });
 
   
