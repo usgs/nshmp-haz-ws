@@ -89,7 +89,7 @@
 class D3View{
 
   //........................... D3View Constructor .............................
-  constructor(containerEl){
+  constructor(containerEl,options){
 
 
     //.................................. Variables .............................
@@ -118,8 +118,6 @@ class D3View{
     _this.resizeFull;
     _this.resizeSmall;
    
-    _this.colSize6 = "col-md-6";
-    _this.colSize12 = "col-md-offset-1 col-md-10";
     _this.resizeFull = "resize glyphicon glyphicon-resize-full";
     _this.resizeSmall = "resize glyphicon glyphicon-resize-small";
      
@@ -129,7 +127,8 @@ class D3View{
     //............................ Default Options .............................
     _this.options = {
       buttonFontSize: 12,
-      headerPercent: 0.075,
+      colSizeMin: "col-md-6",
+      colSizeMax: "col-md-offset-1 col-md-10",
       labelFontSize: 16,
       legendLocation: "topright",
       legendOffset: 5,
@@ -168,6 +167,7 @@ class D3View{
       xLabelPadding: 8,
       yLabelPadding: 10,
     };
+    $.extend(_this.options,options);
     //--------------------------------------------------------------------------
     
      
@@ -193,11 +193,12 @@ class D3View{
     _plotHeader
         .append("div")
         .attr("class","plot-title")
-        .attr("contenteditable","true");
+        .attr("contenteditable","true")
+        .text(_this.options.title);
         
     _plotHeader.append("span")
         .attr("class",function(){
-          return _this.colSize == _this.colSize6
+          return _this.colSize == _this.options.colSizeMin
             ? _this.resizeFull : _this.resizeSmall; 
         })
         .style("float","right"); 
@@ -343,17 +344,17 @@ class D3View{
     //......................... On Resize ......................................
     d3.select(_this.plotResizeEl)
         .on("click",function(d,i){
-          if(_this.colSize == _this.colSize6){
-            _this.colSize = _this.colSize12;
+          if(_this.colSize == _this.options.colSizeMin){
+            _this.colSize = _this.options.colSizeMax;
             d3.select(_this.el)
-                .classed(_this.colSize6,false)
+                .classed(_this.options.colSizeMin,false)
                 .classed(_this.colSize,true);
             d3.select(_this.plotResizeEl)
                 .attr("class",_this.resizeSmall);
           }else{
-            _this.colSize = _this.colSize6;
+            _this.colSize = _this.options.colSizeMin;
             d3.select(_this.el)
-                .classed(_this.colSize12,false)
+                .classed(_this.options.colSizeMax,false)
                 .classed(_this.colSize,true);
             d3.select(_this.plotResizeEl)
                 .attr("class",_this.resizeFull);
@@ -361,6 +362,9 @@ class D3View{
         });
     //--------------------------------------------------------------------------
      
+  
+    D3View.updateOptions(_this);
+  
   }
   //---------------------- End: D3View Constructor ----------------------------
 
@@ -392,17 +396,17 @@ class D3View{
     
     // If there are already plots, make them all bootstrap 6 column    
     if (_nplots > 0){
-      _colSize = linePlot.colSize6;
+      _colSize = linePlot.options.colSizeMin;
       d3.selectAll(".D3View")
           .each(function(d,i){
-            d3.select(this).classed(linePlot.colSize12,false);
-            d3.select(this).classed(linePlot.colSize6,true);
+            d3.select(this).classed(linePlot.options.colSizeMax,false);
+            d3.select(this).classed(linePlot.options.colSizeMin,true);
             d3.select(this)
                 .select(".resize")
                 .attr("class",linePlot.resizeFull);
           });
     }else{
-      _colSize = linePlot.colSize12;
+      _colSize = linePlot.options.colSizeMax;
       d3.select(linePlot.plotResizeEl)
           .attr("class",linePlot.resizeSmall);  
     }
@@ -410,8 +414,8 @@ class D3View{
     // Update plot size to large when others are removed
     if (updateStatus && _nplots == 1){
       d3.select(linePlot.el)
-            .classed(linePlot.colSize12,true)
-            .classed(linePlotcolSize6,false);
+            .classed(linePlot.options.colSizeMax,true)
+            .classed(linePlot.options.colSizeMin,false);
       d3.select(linePlot.plotResizeEl)
           .attr("class",linePlot.resizeSmall);  
     } 
@@ -422,30 +426,6 @@ class D3View{
 
 
   
-  //................... Method: Set Options ...................................
-  /**
-  * @method setOptions
-  *
-  * @description method to set the plot options
-  *
-  * @argument options {Object}
-  *     object of options to set
-  *
-  */
-  setOptions(options){
-    let _this,
-        _view; 
-    
-    _view = this;
-    _this = _view.options;
-
-    $.extend(_this,options);
-    D3View.updateOptions(_view); 
-  }
-  //------------------ End Method: Set Options ---------------------------------
-
-  
-
   //................... Method: Update Options .................................
   /**
   * @method updateOptions
@@ -465,10 +445,6 @@ class D3View{
     
     _this = view;
    
-    // Update plot title 
-    d3.select(_this.plotTitleEl)
-        .text(_this.options.title);
-      
     // Update X scale
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")

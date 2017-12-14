@@ -20,9 +20,6 @@ spinner.on();
 
 
 
-
-
-
 var rakes = {
   "checkRange": function(mech, value) {
     if (mech == "reverse") 
@@ -243,25 +240,27 @@ function buildInputs(usage) {
     .forEach(function (key, index) {
       $("input[name='" + key + "']").val(params[key].value); });
 
-  checkQuery();
+  checkQuery(gmmAlphaOptions);
 }
 
 
-function checkQuery(){
+function checkQuery(gmmOptions){
   
   let url = window.location.hash.substring(1);
   if (!url) return;
+  $(".gmm-group").removeClass("active");
+  $(".gmm-alpha").addClass("active");
+  $("#gmms").empty().append(gmmOptions);
+  $("input[type*='checkbox']").prop("checked",false);
+  $("#zHyp,#rRup,#rJB").prop("readOnly",false);
   let pars = url.split("&");
   let key;
   let value;
-  let gmmGroup = [];
   pars.forEach(function(par,i){
     key = par.split("=")[0]; 
     value  = par.split("=")[1]; 
-    if (key == "gmmGroup"){
-      gmmGroup.push(value);
-    }else if (key == "gmm"){
-      $( "#"+gmmGroup.splice(0,1)+" option[value='"+value+"']")
+    if (key == "gmm"){
+      $( "#gmms option[value='"+value+"']")
           .prop("selected",true);
     }else{
       $("input[name='"+key+"']").val(value);
@@ -273,7 +272,6 @@ function checkQuery(){
   footerOptions.updateBtnDisable = false;
   footer.setOptions(footerOptions);
   updatePlot(url);
-  
 }
 
 
@@ -287,12 +285,9 @@ $("#update-plot").click(function (){
   let inputs = $("#inputs").serialize();
   let url = "/nshmp-haz-ws/spectra?" + inputs; 
   spinner.on();
-  let gmmGroup = "";
-  $("#gmms :selected").each(function(i){
-    gmmGroup += "gmmGroup="+this.parentNode.id+"&";
-    
-  });
-  window.location.hash = gmmGroup+inputs;
+
+  window.location.hash = inputs;
+  $("#raw-data").off();
   updatePlot(url);
 });
 
@@ -309,16 +304,31 @@ $("#gmms").change(function() {
 
 //........................... Get Data and Plot ................................
 let contentEl = document.querySelector("#content");
-let plot = new D3LinePlot(contentEl);
-let tooltipText = ["GMM", "Period (s)", "MGM (g)"]
-let plotOptions = {
+let meanTooltipText = ["GMM", "Period (s)", "MGM (g)"]
+let meanPlotOptions = {
     legendLocation: "topright",
     title: "Response Spectra",
-    tooltipText: tooltipText,
+    tooltipText: meanTooltipText,
     xAxisScale: "linear",
     yAxisScale: "linear"
 };
-plot.setOptions(plotOptions);
+let meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
+
+
+let sigmaTooltipText = ["GMM", "Period (s)", "SD"]
+let sigmaPlotOptions = {
+    legendFontSize: 8,
+    legendLineBreak: 14,
+    legendLocation: "topright",
+    plotHeight: 224,
+    plotWidth: 896,
+    plotRatio: 4/1,
+    title: "Response Spectra: Sigma",
+    tooltipText: sigmaTooltipText,
+    xAxisScale: "linear",
+    yAxisScale: "linear"
+};
+let sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
 
 function updatePlot(url) {
   let dataSet,
@@ -338,35 +348,74 @@ function updatePlot(url) {
       return;
     }  
     spinner.off();
+   
+    metadata ={
+      version: "1.1",
+      url: window.location.href,
+      time: new Date()
+    }; 
     
-    dataSet = response.means;
-    series = dataSet.data;
+    //........................ Plot Means ...................................... 
+    let mean = response.means;
+    let meanData = mean.data;
 
     seriesLabels = [];
     seriesIds = [];
     seriesData = [];
       
-    series.forEach(function(d, i) {
+    meanData.forEach(function(d, i) {
       seriesLabels.push(d.label);
       seriesIds.push(d.id);
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
     });
     
-    metadata ={                                                             
-      version: "1.1",                                                           
-      url: window.location.href,                                                
-      time: new Date()                                                          
-    }; 
-
-    plot.data = seriesData;
-    plot.ids = seriesIds;
-    plot.labels = seriesLabels;
-    plot.metadata = metadata;
-    plot.xLabel = dataSet.xLabel;
-    plot.yLabel = dataSet.yLabel;
+    meanPlot.data = seriesData;
+    meanPlot.ids = seriesIds;
+    meanPlot.labels = seriesLabels;
+    meanPlot.metadata = metadata;
+    meanPlot.xLabel = mean.xLabel;
+    meanPlot.yLabel = mean.yLabel;
     
-    plot.plotData();
+    meanPlot.plotData();
+    d3.select(meanPlot.el)
+        .classed(meanPlot.options.colSizeMax,true) 
+        .classed(meanPlot.options.colSizeMin,false);
+    d3.select(meanPlot.plotResizeEl)
+        .attr("class",sigmaPlot.resizeSmall); 
+    //--------------------------------------------------------------------------
+    
+    
+    //........................ Plot Sigma ...................................... 
+    let sigma = response.sigmas;
+    let sigmaData = sigma.data;
 
+    seriesLabels = [];
+    seriesIds = [];
+    seriesData = [];
+      
+    sigmaData.forEach(function(d, i) {
+      seriesLabels.push(d.label);
+      seriesIds.push(d.id);
+      seriesData.push(d3.zip(d.data.xs, d.data.ys));
+    });
+    
+    sigmaPlot.data = seriesData;
+    sigmaPlot.ids = seriesIds;
+    sigmaPlot.labels = seriesLabels;
+    sigmaPlot.metadata = metadata;
+    sigmaPlot.xLabel = sigma.xLabel;
+    sigmaPlot.yLabel = sigma.yLabel;
+    
+    sigmaPlot.plotData();
+    d3.select(sigmaPlot.el)
+        .classed(sigmaPlot.options.colSizeMax,true)
+        .classed(sigmaPlot.options.colSizeMin,false);
+    d3.select(sigmaPlot.plotResizeEl)
+        .attr("class",sigmaPlot.resizeSmall); 
+    
+    //--------------------------------------------------------------------------
+    
+    
     $("#raw-data").click(function(){
       window.open(url);
     });

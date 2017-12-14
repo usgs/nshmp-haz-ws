@@ -62,7 +62,7 @@
 class D3LinePlot extends D3View{
 
   //..................... D3LinePlot Constructor ...............................
-  constructor(containerEl){
+  constructor(containerEl,options){
 
 
     //............................ Variables ...................................
@@ -75,7 +75,7 @@ class D3LinePlot extends D3View{
         _xD3,
         _yD3;
          
-    _this = super(containerEl);
+    _this = super(containerEl,options);
     _this.allDataEl; 
     _this.data;
     _this.labels;
@@ -93,12 +93,6 @@ class D3LinePlot extends D3View{
     _this.yAxisEl;
     _this.yLabel;
     
-    _this.svgHeight = _this.options.plotHeight;
-    _this.svgWidth = _this.options.plotWidth; 
-    _this.plotHeight = _this.svgHeight-
-        _this.options.marginTop-_this.options.marginBottom;
-    _this.plotWidth = _this.svgWidth-
-        _this.options.marginLeft-_this.options.marginRight;
     //--------------------------------------------------------------------------
     
    
@@ -114,6 +108,12 @@ class D3LinePlot extends D3View{
 
 
     //......................... SVG Outline for Plot ...........................
+    _this.svgHeight = _this.options.plotHeight;
+    _this.svgWidth = _this.options.plotWidth; 
+    _this.plotHeight = _this.svgHeight-
+        _this.options.marginTop-_this.options.marginBottom;
+    _this.plotWidth = _this.svgWidth-
+        _this.options.marginLeft-_this.options.marginRight;
     _svgD3 = d3.select(_this.plotBodyEl)
         .append("svg")
         .attr("class","D3LinePlot")
@@ -370,7 +370,8 @@ class D3LinePlot extends D3View{
       });
       return _tmp;
     });
-
+    
+    [_yMin,_yMax] = _yMin == _yMax ? [_yMin/1.1,_yMax*1.1] : [_yMin,_yMax];
     return [_yMin,_yMax];   
   }
   //------------------ End Method: Get Y Extreme Values ------------------------
@@ -518,6 +519,7 @@ class D3LinePlot extends D3View{
     _this.xExtremes;
     _this.yBounds;
     _this.yExtremes;
+    
     //--------------------------------------------------------------------------
 
     
@@ -539,9 +541,6 @@ class D3LinePlot extends D3View{
   
 
     //........................ Get Values ......................................
-    _plotHeight = D3LinePlot.plotHeight(_this);
-    _plotWidth = D3LinePlot.plotWidth(_this);
-    
     _this.xBounds = D3LinePlot.getXScale(_this);
     _this.xExtremes = D3LinePlot.getXExtremes(_this);
     _this.xBounds.range([0,_this.plotWidth])
@@ -791,69 +790,13 @@ class D3LinePlot extends D3View{
 
 
  
-  //....................... Method: Plot Height ................................
-  /**
-  * @method plotHeight
-  *
-  * @description Calculate the plot height based on the Bootstrap panel
-  * header, body, and footer.
-  *
-  * If isSvg is true it will calculate the height of the svg element,
-  * else will calculate the height for the plot based
-  * on the options.marginTop and options.marginBottom.
-  *
-  * @argument linePlot {Object}
-  *     D3LinePlot object
-  *
-  * @argument isSvg {Boolean}
-  *     whether to calculate for SVG element or plot 
-  *
-  * @return {Number}
-  *         number in pixels of the height 
-  */
-  static plotHeight(linePlot,isSvg){
-    let _bodyHeight,
-        _footerHeight,
-        _height,
-        _margin,
-        _options,
-        _panelMargin,
-        _titleHeight;
-
-    _options = linePlot.options;
-    
-    _bodyHeight = linePlot.plotBodyEl
-        .getBoundingClientRect()
-        .height;
-    _footerHeight = linePlot.plotFooterEl
-        .getBoundingClientRect()
-        .height;
-    _titleHeight = linePlot.plotTitleEl
-        .getBoundingClientRect()
-        .height;
-    _margin = _options.marginTop + _options.marginBottom;
-    
-    _height = isSvg ? _bodyHeight :
-        _bodyHeight - _margin; 
-    
-    return _height;
-  }
-  //--------------------- End Method: Plot Height ------------------------------
-
-
-
   //..................... Method: Plot Redraw ..................................
   /**
   * @method plotRedraw
   *
   * @description Redraw the plot
   *
-  * If doTransition is true will transition at 0.5 seconds,
-  * good for when changing the X/Y scale back and forth and 
-  * not good when just resizing the plot.
-  * <br>
   * Updates the following:
-  *   - SVG height and width
   *   - X bounds
   *   - Y bounds
   *   - Y bounds
@@ -861,8 +804,6 @@ class D3LinePlot extends D3View{
   *   - Y axis
   *   - Lines
   *   - Circles
-  *   - Legend
-  *   - Data table
   *
   * @argument linePlot {Object}
   *     D3LinePlot object
@@ -1046,52 +987,6 @@ class D3LinePlot extends D3View{
   
   }
   //------------ End Method: Remove Highlight from Selected Line ---------------
-
-
-
-
-
-
-  //..................... Method: Plot Width ...................................
-  /**
-  * @method plotWidth
-  *
-  * @description Calculate the plot width based on the Bootstrap panel
-  * body.
-  *
-  * If isSvg is true it will calculate the width of the svg element,
-  * else will calculate the width for the plot based
-  * on the options.marginLeft and options.marginLeft.
-  *
-  * @argument linePlot {Object}
-  *     D3LinePlot object
-  *
-  * @argument isSvg {Boolean}
-  *     whether to calculate for SVG element or plot 
-  *
-  * @return {Number}
-  *         number in pixels of the width 
-  */
-  static plotWidth(linePlot,isSvg){
-    let _bodyWidth,
-        _margin,
-        _options,
-        _selectedId,
-        _width;
-
-    _options = linePlot.options;
-
-    _bodyWidth = linePlot.plotBodyEl
-        .getBoundingClientRect()
-        .width;
-    _margin = _options.marginLeft + _options.marginRight;
-    
-    _width = isSvg ? _bodyWidth :
-        _bodyWidth - _margin; 
-    
-    return _width;
-  }
-  //------------------- End Method: Plot Width ---------------------------------
 
 
 
@@ -1429,29 +1324,42 @@ class D3LinePlot extends D3View{
   
   //......................... Method: saveData .................................
   static saveData(linePlot,fileType){
-    let delimiter = fileType == "tsv" ? "\t" : ",";
+
+    //............................. Variables ..................................
+    let aEl,
+        delimiter,
+        file,
+        filename,
+        tableRows,
+        tableRowsEl;
     
-    let filename = linePlot.plotFilename == null 
+    delimiter = fileType == "tsv" ? "\t" : ",";
+    file = []; 
+    filename = linePlot.plotFilename == null 
         ? "data" : linePlot.plotFilename;
-     
-    let rows = linePlot.tableEl.querySelectorAll("tr");
-    let csv = [];
-    rows.forEach(function(row,ir){
-      let csvRow = [];
-      row.querySelectorAll("th,td").forEach(function(dp,idp){
-        csvRow.push(dp.innerText);
-      })
-      csv.push(csvRow.join(delimiter));
-    });
-    csv = new Blob([csv.join("\n")],{type:"text/"+fileType});
+    tableRowsEl = linePlot.tableEl.querySelectorAll("tr");
+    //--------------------------------------------------------------------------
     
-    let aEl = document.createElement("a");
+    //......................... Create File ....................................
+    tableRowsEl.forEach(function(row,ir){
+      tableRows = [];
+      row.querySelectorAll("th,td").forEach(function(dp,idp){
+        tableRows.push(dp.innerText);
+      })
+      file.push(tableRows.join(delimiter));
+    });
+    
+    file = new Blob([file.join("\n")],{type:"text/"+fileType});
+    //--------------------------------------------------------------------------
+
+    //...................... Download File .....................................
+    aEl = document.createElement("a");
     aEl.download = filename+"."+fileType;
-    aEl.href = URL.createObjectURL(csv);
+    aEl.href = URL.createObjectURL(file);
     aEl.click();
+    //--------------------------------------------------------------------------
     
   }
-  
   //--------------------- End Method: saveData ---------------------------------
 
 
