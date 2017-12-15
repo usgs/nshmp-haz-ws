@@ -24,6 +24,7 @@
    
   <!-- ........... CSS Files ....... -->
   <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/D3View.css" type="text/css">
   <link rel="stylesheet" href="css/spectra.css"  type="text/css">
   <!-- ........... CSS Files ....... -->
  
@@ -36,48 +37,28 @@
 <body>
 
 
-  <!-- ########################################### -->
+  <!-- ##################################################################### -->
   <!-- -->
-  <!-- ............ Include Files ................ -->
-
-  <!-- ........... Include Header ................ -->
-  <div id="include-header"></div>
-  <!-- ........... Include Header ................ -->
-  
-  <!-- ............. Include Footer .............. -->
-  <div id="include-footer"></div>  
-  <!-- ............. Include Footer .............. -->
-
-  <!-- .......... Include Spinner ................ -->
-  <div id="include-spinner"></div>
-  <!-- .......... Include Spinner ................ -->
-
-  <!-- .......... End: Include Files ............. -->
-  <!-- -->
-  <!-- ########################################### -->
-
-
-  <!-- ##################################################################################### -->
-  <!-- -->
-  <!-- ................................. Control Panel ..................................... -->
+  <!-- ...................... Control Panel ................................ -->
 
   <div id="control">
 
     <!--
-    The reponse spectra control panel contains form elements used as calculation
-    parameters and controls that manipulate those parameters. The controls are
-    typically radio-button style choices, however mixing radio buttons into the
-    parameter form creates problems as we do not want the values of these controls
-    submitted, but without the 'name' field, they do not behave properly. For the
-    time being, such controls are implemented as regular button groups with added
-    toggle (e.g. single-selction) behavior added that is reflected by the 'active'
+    The reponse spectra control panel contains form elements used as 
+    calculation parameters and controls that manipulate those parameters. 
+    The controls are typically radio-button style choices, however mixing 
+    radio buttons into the parameter form creates problems as we do not want 
+    the values of these controls submitted, but without the 'name' field, 
+    they do not behave properly. For the time being, such controls are 
+    implemented as regular button groups with added toggle 
+    (e.g. single-selction) behavior added that is reflected by the 'active'
     CSS class.
     -->
   
     <label for="gmms" class="control-group">Ground Motion Models:</label>
    
     <div id="gmm-sorter" class="btn-group btn-group-xs" data-toggle="buttons">
-      <label class="btn btn-default active"
+      <label class="btn btn-default gmm-group active"
              data-toggle="tooltip"
              data-container="body"
              title="Sort by Group"
@@ -91,7 +72,7 @@
         <span class="glyphicon glyphicon-list"
               aria-hidden="true" />
       </label>
-      <label class="btn btn-default"
+      <label class="btn btn-default gmm-alpha"
              data-toggle="tooltip"
              data-container="body"
              title="Sort Alphabetically"
@@ -108,7 +89,7 @@
     </div>
   
     <form id="inputs">
-      <select class="form-control input-sm" name="gmm" id="gmms" size="16" multiple="true"></select>
+      <select class="form-control input-sm" name="gmm" id="gmms" size="16" multiple="true" autofocus></select>
     
       <div class="form-horizontal">
         
@@ -277,69 +258,11 @@
 
 
 
-  <!-- ##################################################################################### -->
-  <!-- -->
-  <!-- ................................. Plots ............................................. -->
+  <!-- .......................... Plots .................................... -->
   <div id="content">
  
-    <!-- ................. Spectra Plot ................. -->
-    <div class="plot-panel hidden">
-      <div id="spectra-plot-panel" class="panel panel-default">
-        <!-- Plot Title -->
-        <div class="panel-heading" id="spectra-plot-title">
-          Response Spectra
-          <span id="spectra-plot-text"></span>
-          <span class="plot-resize" id="spectra-plot-resize" ></span>
-        </div> 
-        <!-- Plot Title -->
-
-        <!-- Plot -->
-        <div class="panel-content" id="spectra-plot"></div>
-        <!-- Plot -->
-
-        <!-- Plot Buttons -->
-        <div class="panel-footer"  id="spectra-axes-btns">
-          <div class="form-inline axes-btns">
-            <!-- X-axis Button -->
-            <div class="form-group form-group-sm">
-              <label  for="spectra-plot-xaxis" > X-axis </label>
-              <div class="btn-group btn-group-sm" id="spectra-plot-xaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- X-axis Button -->
-
-            <!-- Y-axis Button -->
-            <div class="form-group form-group-sm">
-              <label  for="spectra-plot-yaxis" > Y-axis </label>
-              <div class="btn-group btn-group-sm " id="spectra-plot-yaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- Y-axis Button -->
-          </div>
-        </div>
-        <!-- Plot Buttons -->
-      </div>
-    </div>
-    <!-- ................. Spectra Plot .................. -->
-
-
-
   </div> 
-  <!-- .............................. End: Plots ........................................... -->
-  <!-- -->
-  <!-- ##################################################################################### -->
+  <!-- ..................... End: Plots .................................... -->
 
 
 
@@ -358,12 +281,16 @@
 
   <!-- ..... Application Specific JavaScript ......... -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/common.js"  type="text/javascript" charset="UTF-8"></script>
-  <script src="js/plot.js"    type="text/javascript" charset="UTF-8"></script>
-  <script src="js/spectra2.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/D3View.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/D3LinePlot.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/Tooltip.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/Footer.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/Header.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/lib/Spinner.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="js/Spectra.js" type="text/javascript" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
-
+  <script> let spectra = new Spectra(); </script>
   <!-- ............... End: Import JavaScript ................. -->
   <!-- -->
   <!-- ######################################################## -->
