@@ -13,7 +13,7 @@ class D3MapPlot extends D3MapView{
 
 
   //.......................... D3MapPlot Constructor ...........................
-  constructor(containerEl){
+  constructor(containerEl,options){
     
 
     //.......................... Variables .....................................
@@ -27,7 +27,7 @@ class D3MapPlot extends D3MapView{
         svgD3,
         tooltipD3;
 
-    _this = super(containerEl);
+    _this = super(containerEl,options);
     // Properties of class
     _this.svgEl;
     _this.tooltipEl;

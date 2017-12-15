@@ -68,7 +68,7 @@ class Header{
         ["Model Compare","/nshmp-haz-ws/model-compare.html"],
         ["Model Explorer","/nshmp-haz-ws/model-explorer.html"],
         ["Response Spectra","/nshmp-haz-ws/spectra-plot.html"],
-        ["Test Sites","/nshmp-haz-ws/location.html"]
+        ["Test Sites","/nshmp-haz-ws/test-sites.html"]
     ];
     //--------------------------------------------------------------------------
 

@@ -97,7 +97,7 @@ class D3MapView{
 
 
   //.......................... D3MapView Constructor ...........................
-  constructor(containerEl){
+  constructor(containerEl,options){
 
     //............................ Variables ...................................
     let _this,
@@ -141,6 +141,7 @@ class D3MapView{
       marginLeft: 20,
       marginRight: 20,
       marginTop: 20, 
+      plotWidth: 600,
       pointColor: "black",
       pointColorAddedSite: "blue",
       pointColorSelection: "red",
@@ -151,6 +152,7 @@ class D3MapView{
       tooltipPadding: 10,
       tooltipText: ["Site","Longitude","Latitude"]
     };
+    $.extend(_this.options,options);
     _this.selectedRegionId = _this.options.defaultRegion;
     //--------------------------------------------------------------------------
 
@@ -158,7 +160,8 @@ class D3MapView{
     //........................... Construct Map Outline ........................  
     elD3 = d3.select(containerEl)
         .append("div")
-        .attr("class","D3MapView");
+        .attr("class","D3MapView")
+        .style("width",_this.options.plotWidth+"px")
    
     panelD3 = elD3.append("div")
         .attr("class","panel panel-default");
