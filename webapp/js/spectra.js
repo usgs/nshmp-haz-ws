@@ -1,13 +1,37 @@
 "use strict"
 
 
-
-
+/** 
+* @class Spectra
+*
+* @classdesc spectra-plot.html class
+*
+*
+*/
 class Spectra{
 
-  constructor(){
-    let _this = this;
 
+  //............................ Constructor: Spectra ..........................
+  constructor(){
+    
+
+    //........................... Variables ....................................
+    let _this,
+        // Variables
+        disable,
+        inputs,
+        rCompute,
+        spectraPromise,
+        url;
+
+    _this = this;
+    // Properties of class
+    _this.footer;
+    _this.footerOptions;
+    _this.header;
+    _this.spinner;
+    _this.spectraWs;
+     
     // Create Footer 
     _this.footer = new Footer();
     _this.footerOptions = {
@@ -18,88 +42,64 @@ class Spectra{
 
     // Create header
     _this.header = new Header();
-    _this.header.setTitle("Response Spectra2");
+    _this.header.setTitle("Response Spectra");
 
     // Create spinner
     _this.spinner = new Spinner();
-    //_this.spinner.on();
+    _this.spinner.on();
 
+    // Plot setup
+    Spectra.plotSetup(_this);
+    
+    _this.spectraWs = "/nshmp-haz-ws/spectra";
+    //--------------------------------------------------------------------------
 
-    let contentEl = document.querySelector("#content");
-    let meanTooltipText = ["GMM", "Period (s)", "MGM (g)"]
-    let meanPlotOptions = {
-        legendLocation: "topright",
-        title: "Response Spectra",
-        tooltipText: meanTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
-    };
-    _this.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
-
-
-    let sigmaTooltipText = ["GMM", "Period (s)", "SD"]
-    let sigmaPlotOptions = {
-        legendFontSize: 8,
-        legendLineBreak: 14,
-        legendLocation: "topright",
-        plotHeight: 224,
-        plotWidth: 896,
-        plotRatio: 4/1,
-        title: "Response Spectra: Sigma",
-        tooltipText: sigmaTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
-    };
-    _this.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
-
-    _this.rakes = {
-      "checkRange": function(mech, value) {
-        if (mech == "reverse") 
-          return (value > 45.0 && value < 135.0) ? value : 90.0;
-        if (mech == "normal") 
-          return (value < -45.0 && value > -135.0) ? value : -90.0;
-        return value;
-      }
-    }
-
-    $("#update-plot").click(function (){   
-      let inputs = $("#inputs").serialize();
-      let url = "/nshmp-haz-ws/spectra?" + inputs; 
+    
+    //......................... Update Plot on Click ...........................  
+    $(_this.footer.updateBtnEl).click(function (){   
+      inputs = $("#inputs").serialize();
+      url = _this.spectraWs + "?" + inputs; 
       _this.spinner.on();
-
       window.location.hash = inputs;
-      $("#raw-data").off();
+      $(_this.footer.rawBtnEl).off();
       Spectra.updatePlot(_this,url);
     });
-
+    //--------------------------------------------------------------------------
       
+   
+    //....................... Update Footer Buttons ............................   
     $("#gmms").change(function() { 
-      let disable = $(":selected", this).length == 0;
-      footerOptions.rawBtnDisable = disable;
-      footerOptions.updateBtnDisable = disable;
-      _this.footer.setOptions(footerOptions);
+      disable = $(":selected", this).length == 0;
+      _this.footerOptions.rawBtnDisable = disable;
+      _this.footerOptions.updateBtnDisable = disable;
+      _this.footer.setOptions(_this.footerOptions);
     });
+    //--------------------------------------------------------------------------
   
-  
-    /* Add toggle behavior to non-form buttons. */
+
+    //............. Add toggle behavior to non-form buttons ....................
     Spectra.addToggle("hw-fw", Spectra.updateDistance);
     Spectra.addToggle("fault-style", Spectra.updateRake);
+    //--------------------------------------------------------------------------
 
-    /* Init distance helper. */
+
+    //....................... Event Listeners ..................................
     $("#r-check").change(function(event) {
-      var rCompute = this.checked;
+      rCompute = this.checked;
       $("#rJB").prop("readonly", rCompute);
       $("#rRup").prop("readonly", rCompute);
       $("#hw-fw-hw").prop("disabled", !rCompute);
       $("#hw-fw-fw").prop("disabled", !rCompute);
       Spectra.updateDistance();
     });
+    
     $("#rX, #zTop, #dip, #width").on("input", Spectra.updateDistance);
 
     $("#z-check").change(function(event) {
       $("#zHyp").prop("readonly", this.checked);
       Spectra.updateHypoDepth();
     });
+    
     $("#zTop, #dip, #width").on("input", Spectra.updateHypoDepth);
 
     $("#rake").on("input", Spectra.updateFocalMech);
@@ -109,23 +109,28 @@ class Spectra{
         $("#update-plot").click();
       }
     });
-  
     
     $('[data-toggle="tooltip"]').tooltip(); 
-
-    /* Fetch parameter data. */
-    let parPromise = $.getJSON("/nshmp-haz-ws/spectra");
-    parPromise.done(function(usage){
+    //--------------------------------------------------------------------------
+  
+    
+    //................... Get Spectra Parameters ............................... 
+    spectraPromise = $.getJSON(_this.spectraWs);
+    spectraPromise.done(function(usage){
       Spectra.buildInputs(spectra,usage);
     });
-    parPromise.fail(function(){
+    spectraPromise.fail(function(){
       console.log("JSON Error");
     });
+    //--------------------------------------------------------------------------
   
   
   }
+  //---------------------- End Constructor: Spectra ----------------------------
 
-
+  
+  
+  //...................... Method: addToggle ...................................
   /* Add toggle behavier to all button children of id. */
   static addToggle(id, callback) {
     $("#" + id + " button").click(function(event) {
@@ -135,123 +140,27 @@ class Spectra{
       callback($(this).attr('id'));
     });
   }
-
-  /* Update focal mech selection based on rake. */
-  static updateFocalMech() {
-    var rake = Spectra.rake_val();
-    if (rake > 45.0 && rake < 135.0 && !$("#fault-style-reverse").hasClass("active")) {
-      $("#fault-style-reverse").click();
-      return;
-    }
-    if (rake < -45.0 && rake > -135.0 && !$("#fault-style-normal").hasClass("active")) {
-      $("#fault-style-normal").click();
-      return;
-    }
-    if (!$("#fault-style-strike").hasClass("active")) {
-      $("#fault-style-strike").click();
-    }
-
-  }
-
-  /* Update rake if out of focal mech range */
-  static updateRake(id) {
-    $("#rake").val(checkRakeRange(id, rake_val()));
-  }
-
-  static checkRakeRange(mech, value) {
-    var isReverse = value > 45.0 && value < 135.0;
-    var isNormal = value > 45.0 && value < 135.0;
-    var isStrike = !isReverse && !isNormal;
-    if (mech == "fault-style-reverse") return isReverse ? value : 90.0;
-    if (mech == "fault-style-normal") return isNormal ? value : -90.0;
-    return isStrike ? value : 0.0;
-  }
-
-
-  static updateHypoDepth() {
-    var hypoDepth = Spectra.zTop_val() + 
-        Math.sin(Spectra.dip_val()) * Spectra.width_val() / 2.0;
-    $("#zHyp").val(hypoDepth.toFixed(2));
-  }
-
-  static updateDistance() {
-    if (!$("#r-check").prop("checked")) return;
-    var r = Spectra.calcDistances();
-    $("#rJB").val(r[0].toFixed(2));
-    $("#rRup").val(r[1].toFixed(2));
-  }
-
-  static calcDistances() {
-    var rX = Spectra.rX_val();
-    var zTop = Spectra.zTop_val();
-    var footwall = $("#hw-fw-fw").hasClass("active");
-    var rRup = Math.hypot(rX, zTop);
-
-    if (footwall) {
-      return [rX, rRup, rX];
-    }
-
-    var δ = dip_val();
-    var W = width_val();
-    var sinδ = Math.sin(δ);
-    var cosδ = Math.cos(δ);
-    var Wx = W * cosδ;
-    var Wz = W * sinδ;
-    var rJB = Math.max(0.0, rX - Wx);
-    var h1 = zTop / cosδ;
-    var rCut1 = h1 * sinδ;
-
-    if (rX < rCut1) {
-      return [rJB, rRup, rX];
-    }
-
-    var zBot = zTop + Wz;
-    var h2 = zBot / cosδ;
-    var rCut2 = Wx + h2 * sinδ;
-
-    if (rX >= rCut2) {
-      rRup = Math.hypot(zBot, rJB);
-      return [rJB, rRup, rX];
-    }
-
-    /*  
-     * Linear scaling of distance normal
-     * to top and bottom of fault.
-     */
-    rRup = h1 + (h2 - h1) * ((rX - rCut1) / (rCut2 - rCut1));
-    return [rJB, rRup, rX];
-  }
-
+  //-------------------- End Method: addToggle ---------------------------------
+ 
   
-  static rX_val() {
-    return parseFloat($("#rX").val());
-  }
-
-  static dip_val() {
-    return parseFloat($("#dip").val()) * Math.PI / 180.0;
-  }
-
-  static width_val() {
-    return  parseFloat($("#width").val());
-  }
-
-  static zTop_val() {
-    return parseFloat($("#zTop").val());
-  }
-
-  static rake_val() {
-    return parseFloat($("#rake").val());
-  }
-
-
+  
+  //........................... Method: buildInputs ............................
   /* process usage response */
   static buildInputs(spectra,usage) {
+    
+    let gmmAlphaOptions,
+        gmmGroupOptions,
+        members,
+        optGroup,
+        options,
+        params;
+    
     spectra.spinner.off();
     
-    var params = usage.parameters;
+    params = usage.parameters;
 
     /* Alphabetical GMMs. */
-    var gmmAlphaOptions = $();
+    gmmAlphaOptions = $();
     params.gmm.values.forEach(function (gmm) {
       gmmAlphaOptions = gmmAlphaOptions.add($('<option>')
         .attr('value', gmm.id)
@@ -260,10 +169,10 @@ class Spectra{
     });
 
     /* Grouped GMMs. */
-    var gmmGroupOptions = $();
+    gmmGroupOptions = $();
     params.group.values.forEach(function (group) {
-      var members = group.data;
-      var optGroup = $('<optgroup>')
+      members = group.data;
+      optGroup = $('<optgroup>')
           .attr('label', group.label)
           .attr("id",group.id);
       gmmGroupOptions = gmmGroupOptions.add(optGroup);
@@ -275,7 +184,7 @@ class Spectra{
 
     /* Bind option views to sort buttons */
     $("#gmm-sorter input").change(function() {
-      var options = this.value === "alpha" ? gmmAlphaOptions : gmmGroupOptions;
+      options = this.value === "alpha" ? gmmAlphaOptions : gmmGroupOptions;
       $("#gmms").empty().append(options);
       $("#gmms").scrollTop(0);
     });
@@ -294,20 +203,120 @@ class Spectra{
 
     Spectra.checkQuery(spectra,gmmAlphaOptions);
   }
+  //----------------------- End Method: buildInputs ----------------------------
+  
+  
+  
+  //..................... Method: calcDistances ................................
+  static calcDistances() {
 
-
-  static checkQuery(spectra,gmmOptions){
+    //........................ Variables .......................................
+    let δ,
+        cosδ,
+        footwall,
+        h1, 
+        h2,
+        rCut1,
+        rCut2,
+        rJB,
+        rRup,
+        rX,
+        sinδ, 
+        W,
+        Wx,
+        Wz, 
+        zBot,
+        zTop;
+    //--------------------------------------------------------------------------
     
-    let url = window.location.hash.substring(1);
+
+    rX = Spectra.rX_val();
+    zTop = Spectra.zTop_val();
+    footwall = $("#hw-fw-fw").hasClass("active");
+    rRup = Math.hypot(rX, zTop);
+
+    if (footwall) {
+      return [rX, rRup, rX];
+    }
+
+    δ = Spectra.dip_val();
+    W = Spectra.width_val();
+    sinδ = Math.sin(δ);
+    cosδ = Math.cos(δ);
+    Wx = W * cosδ;
+    Wz = W * sinδ;
+    rJB = Math.max(0.0, rX - Wx);
+    h1 = zTop / cosδ;
+    rCut1 = h1 * sinδ;
+
+    if (rX < rCut1) {
+      return [rJB, rRup, rX];
+    }
+
+    zBot = zTop + Wz;
+    h2 = zBot / cosδ;
+    rCut2 = Wx + h2 * sinδ;
+
+    if (rX >= rCut2) {
+      rRup = Math.hypot(zBot, rJB);
+      return [rJB, rRup, rX];
+    }
+
+    /*  
+     * Linear scaling of distance normal
+     * to top and bottom of fault.
+     */
+    rRup = h1 + (h2 - h1) * ((rX - rCut1) / (rCut2 - rCut1));
+    return [rJB, rRup, rX];
+  }
+  //----------------------- End Method: calcDistance ---------------------------
+  
+  
+  
+  //.................... Method: checkRakeRange ................................
+  static checkRakeRange(mech, value) {
+    let isNormal,
+        isReverse,
+        isStrike;
+    
+    isNormal = value < -45.0 && value > -135.0;
+    isReverse = value > 45.0 && value < 135.0;
+    isStrike = !isReverse && !isNormal;
+    if (mech == "fault-style-reverse") return isReverse ? value : 90.0;
+    if (mech == "fault-style-normal") return isNormal ? value : -90.0;
+    return isStrike ? value : 0.0;
+  }
+  //------------------- End Method: checkRakeRange -----------------------------
+ 
+  
+  
+  //...................... Method: checkQuery ..................................
+  static checkQuery(spectra,gmmOptions){
+    let inputs,
+        key,
+        pars,
+        url,
+        value;
+         
+    url = window.location.hash.substring(1);
     if (!url) return;
+    
+    //................... Update Buttons and Checkboxes ........................
     $(".gmm-group").removeClass("active");
     $(".gmm-alpha").addClass("active");
+    $(".gmm-alpha input").prop("checked",true);
     $("#gmms").empty().append(gmmOptions);
     $("input[type*='checkbox']").prop("checked",false);
     $("#zHyp,#rRup,#rJB").prop("readOnly",false);
-    let pars = url.split("&");
-    let key;
-    let value;
+    $("#hw-fw-hw").prop("disabled", true);
+    $("#hw-fw-fw").prop("disabled", true);
+    //--------------------------------------------------------------------------
+
+    
+    //.................... Set Parameters ......................................
+    pars = url.split("&");
+    key;
+    value;
     pars.forEach(function(par,i){
       key = par.split("=")[0]; 
       value  = par.split("=")[1]; 
@@ -317,29 +326,171 @@ class Spectra{
       }else{
         $("input[name='"+key+"']").val(value);
       }
-    }); 
+    });
     Spectra.updateFocalMech();
-    let inputs = $("#inputs").serialize();
+    $("#gmms")[0].scrollIntoView();
+    $("#fault-style .btn").removeClass("focus");
+    //--------------------------------------------------------------------------
+    
+    
+    //............................ Plot ........................................ 
+    inputs = $("#inputs").serialize();
     url = "/nshmp-haz-ws/spectra?"+ inputs;
     spectra.footerOptions.rawBtnDisable = false;
     spectra.footerOptions.updateBtnDisable = false;
     spectra.footer.setOptions(spectra.footerOptions);
     Spectra.updatePlot(spectra,url);
+    //--------------------------------------------------------------------------
+
+  
   }
+  //----------------------- End Method: checkQuery -----------------------------
+  
+  
+
+  //......................... Method: dip_val .................................. 
+  static dip_val() {
+    return parseFloat($("#dip").val()) * Math.PI / 180.0;
+  }
+  //----------------------- End Method: dip_val --------------------------------
+  
+  
+  
+  //..................... Method: plotSetup ....................................
+  static plotSetup(spectra){
+
+    //.......................... Variables .....................................
+    let contentEl,
+        meanPlotOptions,
+        meanTooltipText,
+        sigmaTooltipText,
+        sigmaPlotOptions;
+
+    // Properties of class
+    spectra.meanPlot;
+    spectra.sigmaPlot;
+
+    contentEl = document.querySelector("#content");
+    //--------------------------------------------------------------------------
 
 
+    //....................... Mean Plot Setup ..................................
+    meanTooltipText = ["GMM", "Period (s)", "MGM (g)"];
+    meanPlotOptions = {
+        legendLocation: "topright",
+        title: "Response Spectra",
+        tooltipText: meanTooltipText,
+        xAxisScale: "linear",
+        yAxisScale: "linear"
+    };
+    spectra.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
+    //--------------------------------------------------------------------------
 
+
+    //..................... Sigma Plot Setup ...................................
+    sigmaTooltipText = ["GMM", "Period (s)", "SD"];
+    sigmaPlotOptions = {
+        legendFontSize: 10,
+        legendLineBreak: 12,
+        legendPadding: 5,
+        legendLocation: "topright",
+        plotHeight: 224,
+        plotWidth: 896,
+        plotRatio: 4/1,
+        title: "Response Spectra: Sigma",
+        tooltipText: sigmaTooltipText,
+        xAxisScale: "linear",
+        yAxisScale: "linear"
+    };
+    spectra.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
+    //--------------------------------------------------------------------------
+
+  
+  }
+  //------------------ End Method: plotSetup -----------------------------------
+ 
+  
+  
+  //......................... Method: rake_val ................................. 
+  static rake_val() {
+    return parseFloat($("#rake").val());
+  }
+  //----------------------- End Method: rake_val -------------------------------
+
+ 
+ 
+  //......................... Method: rX_val ................................... 
+  static rX_val() {
+    return parseFloat($("#rX").val());
+  }
+  //----------------------- End Method: rX_val ---------------------------------
 
   
 
+  //...................... Method: updateDistance ..............................
+  static updateDistance() {
+    if (!$("#r-check").prop("checked")) return;
+    var r = Spectra.calcDistances();
+    $("#rJB").val(r[0].toFixed(2));
+    $("#rRup").val(r[1].toFixed(2));
+  }
+  //--------------------- End Method: updateDistance ---------------------------
+
+
+
+  //..................... Method: updateFocalMech ..............................
+  /* Update focal mech selection based on rake. */
+  static updateFocalMech() {
+    let rake;
+     
+    rake = Spectra.rake_val();
+    if (rake > 45.0 && rake < 135.0 
+          && !$("#fault-style-reverse").hasClass("active")) {
+      $("#fault-style-reverse").click();
+      return;
+    }
+    if (rake < -45.0 && rake > -135.0 
+          && !$("#fault-style-normal").hasClass("active")) {
+      $("#fault-style-normal").click();
+      return;
+    }
+    if (!$("#fault-style-strike").hasClass("active")) {
+      $("#fault-style-strike").click();
+    }
+
+  }
+  //------------------- End Method: updateFocalMech ----------------------------
+
+
+  
+  //...................... Method: updateHypoDepth .............................
+  static updateHypoDepth() {
+    var hypoDepth = Spectra.zTop_val() + 
+        Math.sin(Spectra.dip_val()) * Spectra.width_val() / 2.0;
+    $("#zHyp").val(hypoDepth.toFixed(2));
+  }
+  //--------------------- End Method: updateHypoDepth --------------------------
+
+  
+
+  //....................... Method: updatePlot .................................
   static updatePlot(spectra,url) {
+
+    //........................ Variables .......................................
     let dataSet,
+        mean,
+        meanData,
         metadata,
         series,
-        seriesLabels,
+        seriesData,
         seriesIds,
-        seriesData;
+        seriesLabels,
+        sigma,
+        sigmaData;
+    //--------------------------------------------------------------------------
+
     
+    //............................. Query and Plot .............................
     d3.json(url, function(error, response) {
       if (error) return console.warn(error);
       if (response.status == "ERROR") {
@@ -358,9 +509,9 @@ class Spectra{
         time: new Date()
       }; 
       
-      //........................ Plot Means ...................................... 
-      let mean = response.means;
-      let meanData = mean.data;
+      //........................ Plot Means .................................... 
+      mean = response.means;
+      meanData = mean.data;
 
       seriesLabels = [];
       seriesIds = [];
@@ -385,12 +536,12 @@ class Spectra{
           .classed(spectra.meanPlot.options.colSizeMin,false);
       d3.select(spectra.meanPlot.plotResizeEl)
           .attr("class",spectra.meanPlot.resizeSmall); 
-      //--------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       
       
-      //........................ Plot Sigma ...................................... 
-      let sigma = response.sigmas;
-      let sigmaData = sigma.data;
+      //........................ Plot Sigma .................................... 
+      sigma = response.sigmas;
+      sigmaData = sigma.data;
 
       seriesLabels = [];
       seriesIds = [];
@@ -415,25 +566,49 @@ class Spectra{
           .classed(spectra.sigmaPlot.options.colSizeMin,false);
       d3.select(spectra.sigmaPlot.plotResizeEl)
           .attr("class",spectra.sigmaPlot.resizeSmall); 
+      //------------------------------------------------------------------------
       
-      //--------------------------------------------------------------------------
       
-      
-      $("#raw-data").click(function(){
+      $(spectra.footer.rawBtnEl).click(function(){
         window.open(url);
       });
 
     });
+    //--------------------------------------------------------------------------
+ 
+  
   }
-  //------------------------------------------------------------------------------
+  //------------------------ End Method: updatePlot ----------------------------
 
 
-  //------------------------- End: Plot ------------------------------------------
-  //
-  //##############################################################################
+
+  //......................... Method: width_val ................................ 
+  static width_val() {
+    return  parseFloat($("#width").val());
+  }
+  //---------------------- End Method: width_val -------------------------------
+
+
+
+  //...................... Method: updateRake ..................................
+  /* Update rake if out of focal mech range */
+  static updateRake(id) {
+    $("#rake").val(Spectra.checkRakeRange(id, Spectra.rake_val()));
+  }
+  //---------------------- End Method: updateRake ------------------------------
+
+
+
+  //......................... Method: zTop_val ................................. 
+  static zTop_val() {
+    return parseFloat($("#zTop").val());
+  }
+  //----------------------- End Method: zTop_val -------------------------------
+
+
 
 }
-
+//----------------------- End Class: Spectra -----------------------------------
 
 
 

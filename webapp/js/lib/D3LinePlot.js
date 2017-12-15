@@ -1063,7 +1063,7 @@ class D3LinePlot extends D3View{
         .style("cursor","pointer")
         .style("font-size",_options.legendFontSize)
         .attr("transform","translate("+(_options.legendPadding)
-            +","+(_options.legendLineBreak)+")");
+            +","+(_options.legendFontSize/2+_options.legendPadding)+")");
     
     // Legend Text
     _legendD3.append("text")
