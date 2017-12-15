@@ -344,7 +344,7 @@ class D3View{
     //......................... On Resize ......................................
     d3.select(_this.plotResizeEl)
         .on("click",function(d,i){
-          if(_this.colSize == _this.options.colSizeMin){
+          if( d3.select(_this.el).classed(_this.options.colSizeMin)){
             _this.colSize = _this.options.colSizeMax;
             d3.select(_this.el)
                 .classed(_this.options.colSizeMin,false)

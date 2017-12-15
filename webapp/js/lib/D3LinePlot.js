@@ -520,18 +520,34 @@ class D3LinePlot extends D3View{
     _this.yBounds;
     _this.yExtremes;
     
-    //--------------------------------------------------------------------------
-
-    
     // Get color scheme
     _ndata = this.data.length;           
     _this.color = _ndata < 10 ? d3.schemeCategory10 : d3.schemeCategory20;
+    //--------------------------------------------------------------------------
+
     
-    
-    // Make visible
+    //...................... Make Visible ......................................
     d3.select(_this.el)
-        .classed("hidden",false); 
+        .classed("hidden",false);
+         
+    d3.select(_this.tableEl)
+        .classed("hidden",true);
     
+    d3.select(_this.svgEl)
+        .classed("hidden",false);
+    
+    d3.select(_this.plotFooterEl)
+        .selectAll(".plot-data-btns")                                        
+        .select("label")                                                  
+        .classed("active",function(d,i){
+          if (d3.select(this).select("input").attr("value") == "plot")
+            return true;
+          else
+            return false;  
+        });
+    //--------------------------------------------------------------------------
+
+
     //................. D3 Function: Line Function .............................
     _this.line = d3.line()                            
       .defined(function(d,i) {return d[1] != null})  
@@ -1098,7 +1114,6 @@ class D3LinePlot extends D3View{
         + 2*linePlot.options.legendPadding);
     _legendHeight = parseFloat(_legendGeom.height*scale
         + 2*linePlot.options.legendPadding);
-    
     // Legend outline
     d3.select(linePlot.legendEl)
         .append("rect")
