@@ -378,7 +378,6 @@ class Spectra{
     meanTooltipText = ["GMM", "Period (s)", "MGM (g)"];
     meanPlotOptions = {
         legendLocation: "topright",
-        title: "Response Spectra",
         tooltipText: meanTooltipText,
         xAxisScale: "linear",
         yAxisScale: "linear"
@@ -397,7 +396,6 @@ class Spectra{
         plotHeight: 224,
         plotWidth: 896,
         plotRatio: 4/1,
-        title: "Response Spectra: Sigma",
         tooltipText: sigmaTooltipText,
         xAxisScale: "linear",
         yAxisScale: "linear"
@@ -527,6 +525,7 @@ class Spectra{
       spectra.meanPlot.ids = seriesIds;
       spectra.meanPlot.labels = seriesLabels;
       spectra.meanPlot.metadata = metadata;
+      spectra.meanPlot.title = "Response Spectra: Mean";
       spectra.meanPlot.xLabel = mean.xLabel;
       spectra.meanPlot.yLabel = mean.yLabel;
       
@@ -557,6 +556,7 @@ class Spectra{
       spectra.sigmaPlot.ids = seriesIds;
       spectra.sigmaPlot.labels = seriesLabels;
       spectra.sigmaPlot.metadata = metadata;
+      spectra.sigmaPlot.title = "Response Spectra: Sigma";
       spectra.sigmaPlot.xLabel = sigma.xLabel;
       spectra.sigmaPlot.yLabel = sigma.yLabel;
       

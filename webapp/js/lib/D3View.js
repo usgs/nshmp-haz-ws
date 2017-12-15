@@ -157,7 +157,6 @@ class D3View{
       printMarginTop: 1,
       showLegend: true,
       tickFontSize: 10,
-      title: "",
       titleFontSize: 20,
       tooltipOffset: 10,
       tooltipPadding: 10,
@@ -193,8 +192,7 @@ class D3View{
     _plotHeader
         .append("div")
         .attr("class","plot-title")
-        .attr("contenteditable","true")
-        .text(_this.options.title);
+        .attr("contenteditable","true");
         
     _plotHeader.append("span")
         .attr("class",function(){

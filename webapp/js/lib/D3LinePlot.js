@@ -87,6 +87,7 @@ class D3LinePlot extends D3View{
     _this.svgEl; 
     _this.tableEl;
     _this.tableBodyEl;
+    _this.title;
     _this.tooltipEl;
     _this.xAxisEl;
     _this.xLabel;
@@ -520,6 +521,8 @@ class D3LinePlot extends D3View{
     _this.yBounds;
     _this.yExtremes;
     
+    _this.plotTitleEl.textContent = _this.title;
+    
     // Get color scheme
     _ndata = this.data.length;           
     _this.color = _ndata < 10 ? d3.schemeCategory10 : d3.schemeCategory20;
@@ -656,11 +659,12 @@ class D3LinePlot extends D3View{
     d3.select(_this.xAxisEl)
         .select(".x-label")
         .attr("text-anchor","middle")
-        .attr("alignment-baseline","text-before-edge")
+        .attr("alignment-baseline","middle")
         .style("font-size",_this.options.labelFontSize)
         .style("font-weight","500")
         .attr("x", _this.plotWidth/2) 
-        .attr("y",(_this.options.marginBottom-_this.xAxisHeight))
+        .attr("y",_this.options.marginBottom-
+            (_this.options.marginBottom-_this.xAxisHeight)/2)
         .text(_this.xLabel);
     
     // Y Label
@@ -670,15 +674,17 @@ class D3LinePlot extends D3View{
         .getBoundingClientRect()
         .width;  
     _this.yAxisWidth = _this.yAxisWidth*_this.scale;  
+    
     d3.select(_this.yAxisEl)
         .select(".y-label")
         .attr("transform","rotate(-90)")
-        .attr("alignment-baseline","text-after-edge")
+        .attr("alignment-baseline","middle")
         .attr("text-anchor","middle")
         .style("font-size",_this.options.labelFontSize)
         .style("font-weight","500")
         .attr("x",0- _this.plotHeight/2)
-        .attr("y",_this.yAxisWidth-_this.options.marginLeft)
+        .attr("y",-1*(_this.options.marginLeft-
+            (_this.options.marginLeft-_this.yAxisWidth)/2))
         .text(_this.yLabel);
     //--------------------------------------------------------------------------
 
