@@ -266,6 +266,7 @@ function checkQuery(gmmOptions){
       $("input[name='"+key+"']").val(value);
     }
   }); 
+  updateFocalMech();
   let inputs = $("#inputs").serialize();
   url = "/nshmp-haz-ws/spectra?"+ inputs;
   footerOptions.rawBtnDisable = false;
