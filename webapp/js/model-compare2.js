@@ -8,209 +8,255 @@ class ModelCompare{
 
   
   constructor(){
+
+    //......................... Variables ......................................
     let _this = this; 
-  
+
+    
+   // Create footer
     _this.footer = new Footer();
     _this.footerOptions = {
       rawBtnDisable: true,
       updateBtnDisable: true
     };
     _this.footer.setOptions(_this.footerOptions);
+    
+    // Create header 
     _this.header = new Header();
     _this.header.setTitle("Model Comparison");
+    
+    // Create spinner
     _this.spinner = new Spinner();
     _this.spinner.on();
+    
+    
+    _this.editionEl = document.getElementById("edition");
+    _this.regionEl = document.getElementById("region");
+    _this.imtEl = document.getElementById("imt");
+    _this.vs30El = document.getElementById("vs30");
+    _this.latBoundsEl = document.getElementById("lat_bounds");
+    _this.lonBoundsEl = document.getElementById("lon_bounds");
+    _this.latEl = document.getElementById("lat");
+    _this.lonEl = document.getElementById("lon"); 
+    _this.latFormEl = document.getElementById("lat-form");
+    _this.lonFormEl = document.getElementById("lon-form");
+    //--------------------------------------------------------------------------
+  
+    _this.options = {
+        regionDefault: "COUS",
+        imtDefault: "PGA",
+        vs30Default: 760,
+        staticUrl: "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/",
+        dynamicUrl: "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard"
+    };
 
-
-    _this.edition_id    = document.getElementById("edition");                     
-    _this.region_id     = document.getElementById("region");                      
-    _this.imt_id        = document.getElementById("imt");                         
-    _this.vs30_id       = document.getElementById("vs30");                        
-    _this.lat_bounds_id = document.getElementById("lat_bounds");                  
-    _this.lon_bounds_id = document.getElementById("lon_bounds");                  
-    _this.lat_id        = document.getElementById("lat");                         
-    _this.lon_id        = document.getElementById("lon");                         
-
+    //..................... Plot Setup .........................................
     let el = document.querySelector("#content");
-    let tooltip_text = ["Edition", "GM (g)", "AFE"];
+    let tooltipText = ["Edition", "GM (g)", "AFE"];
     let plotOptions = {
       legendLocation: "bottomleft",
-      tooltipText: tooltip_text
+      tooltipText: tooltipText
     };
     _this.plot = new D3LinePlot(el,plotOptions); 
+    //--------------------------------------------------------------------------
 
-    _this.comparable_region = [
+
+    //........................ Comparable Regions ..............................
+    _this.comparableRegions = [
       {
         display: "Alaska",
         value: "AK",
-        static_value: "AK0P10",
-        dynamic_value: "AK"
+        staticValue: "AK0P10",
+        dynamicValue: "AK"
       },{
         display: "Central & Eastern US",
         value:"CEUS",
-        static_value: "CEUS0P10",
-        dynamic_value: "CEUS"
+        staticValue: "CEUS0P10",
+        dynamicValue: "CEUS"
       },{
         display: "Conterminous US",
         value: "COUS",
-        static_value: "COUS0P05",
-        dynamic_value: "COUS"
+        staticValue: "COUS0P05",
+        dynamicValue: "COUS"
       },{
         display: "Western US",
         value: "WUS",
-        static_value: "WUS0P05",
-        dynamic_value: "WUS"
+        staticValue: "WUS0P05",
+        dynamicValue: "WUS"
       }
     ];
+    //--------------------------------------------------------------------------
+
 
     $(_this.footer.updateBtnEl).click(function(){
-      ModelCompare.get_selections();
+      ModelCompare.getSelections(_this);
     });
 
     //............. Call get_selection on Keyboard Enter on Lat ................
-    _this.lat_id.onkeypress = function(key){ 
-      var key_code = key.which || key.keyCode;
-      if (key_code == 13){
-        ModelCompare.get_selections();
+    _this.latEl.onkeypress = function(key){ 
+      var keyCode = key.which || key.keyCode;
+      if (keyCode == 13){
+        ModelCompare.getSelections(_this);
       }
     }
     //--------------------------------------------------------------------------
+
 
     //............. Call get_selection on Keyboard Enter on Lon ................
-    _this.lon_id.onkeypress = function(key){
-      var key_code = key.which || key.keyCode;
-      if (key_code == 13){
-        ModelCompare.get_selections();
+    _this.lonEl.onkeypress = function(key){
+      var keyCode = key.which || key.keyCode;
+      if (keyCode == 13){
+        ModelCompare.getSelections(_this);
       }
     }
     //--------------------------------------------------------------------------
-
-  function set_parameters(par){
-    _this.spinner.off();
-    _this.parameters = par;
-    ModelCompare.add_regions(_this); 
-  };
-    get_parameters(set_parameters); 
-  }
-
-
-
-
-  //...................... Add Regions to Menu .................................
-  static add_regions(modelCompare){
+  
+  
+    //....................... Get Hazard Parameters ............................
+    Common.getHazardParameters(setParameters); 
+    function setParameters(par){
+      _this.spinner.off();
+      _this.parameters = par;
+      ModelCompare.setRegionMenu(_this); 
+    };
+    //--------------------------------------------------------------------------
+   
+   
+    d3.select(_this.lonEl)
+        .on("change",function(){
+          ModelCompare.checkCoordinates(_this,false,true);
+        });
     
-    for (var jcr in modelCompare.comparable_region){ 
-      var option   = document.createElement("option");
-      var region   = modelCompare.comparable_region[jcr];
-      option.value = region.value;
-      option.id    = region.value;
-      option.text  = region.display
-      modelCompare.region_id.add(option);
-    }
-    
-    modelCompare.region_id.value = "COUS";
-    ModelCompare.add_editions(modelCompare);
+    d3.select(_this.latEl)
+        .on("change",function(){
+          ModelCompare.checkCoordinates(_this,true,false);
+        });
+
+
   }
-  //----------------------------------------------------------------------------
+  //---------------------- End Constructor: ModelComapre -----------------------
 
 
 
-  //........................ Add Editions to Select Menu .......................
-  /*
-  - The add_editions functions adds all supported editions to 
-      the edition selection menu based on the selected region.
-  */
+  //........................... Method: setRegions ............................. 
+  static setRegionMenu(_this){
+    _this.footerOptions = {
+      rawBtnDisable: true,
+      updateBtnDisable: false
+    };
+    _this.footer.setOptions(_this.footerOptions);
+    Common.setSelectMenu(_this.regionEl,_this.comparableRegions);
+    d3.select(_this.regionEl)
+        .on("change",function(){
+          ModelCompare.setEditionMenu(_this);
+        });
+    
+    _this.regionEl.value = _this.options.regionDefault;
+    ModelCompare.setEditionMenu(_this);
+  }
+  //-------------------- End Method: setRegions --------------------------------
 
-  static add_editions(modelCompare){
-    modelCompare.lat_id.value = null;
-    modelCompare.lon_id.value = null;
-    check_bounds();
-    ModelComapre.remove_options("edition");
+
+
+  //......................... Method: setEditionMenu ...........................
+  static setEditionMenu(_this){
+
+    ModelCompare.clearCoordinates(_this);
+    ModelCompare.setBounds(_this);
+    d3.select(_this.editionEl)
+        .selectAll("option")
+        .remove();
 
     //...................... Find Selected Region ..............................
-    var jregion_select      = modelCompare.region_id.selectedIndex;
-    var region_select_value = modelComapre.region_id.options[jregion_select].value;
-    var region_select = modelCompare.comparable_region.find(function(d,i){
-      return d.value == region_select_value;
+    var selectedRegion = _this.comparableRegions.find(function(region,i){
+      return region.value == _this.regionEl.value;
     }); 
     //--------------------------------------------------------------------------
 
     //...................... Add Supported Editions ............................
-    var supported_editions = modelCompare.parameters.edition.values.filter(function(ev,iev){
-      return ev.supports.region.find(function(rv,irv){
-        return rv == region_select.static_value || 
-            rv == region_select.dynamic_value;
-      })
+    var supportedEditions = _this.parameters.edition
+        .values.filter(function(editionValue,iev){
+          return editionValue.supports.region.find(function(regionValue,irv){
+            return regionValue == selectedRegion.staticValue || 
+                regionValue == selectedRegion.dynamicValue;
+          })
     });
 
-    for (var je in supported_editions){ 
-      var option = document.createElement("option");
-      option.value    = supported_editions[je].value;
-      option.id       = supported_editions[je].value;
-      option.text     = supported_editions[je].display;
-      option.selected = true;
-      modelCompare.edition_id.add(option);
-    }
+    Common.setSelectMenu(_this.editionEl,supportedEditions);
+    d3.select(_this.editionEl)  
+        .on("change",function(){
+          ModelCompare.setParameterMenu(_this,"imt");
+          ModelCompare.setParameterMenu(_this,"vs30");
+        })
+        .selectAll("option")
+        .attr("selected",true);
     //--------------------------------------------------------------------------
 
-    ModelCompare.add_options(modelComapre);
+    ModelCompare.setParameterMenu(_this,"imt");
+    ModelCompare.setParameterMenu(_this,"vs30");
 
   }
-  //------------------------ End: Add Editions ---------------------------------
+  //------------------- End Method: setEditionMenu -----------------------------
 
 
+  //....................... Method: setParameterMenu ...........................
+  static setParameterMenu(_this,par){
+    
+    let el = eval("_this."+par+"El");
+    d3.select(el)
+        .selectAll("option")
+        .remove();
 
-
-  //............................ Add Options to Select Menus ...................
-  /*
-  - The add_options functions adds the support parameters 
-      options to the corresponding selections menu, either imt or vs30.
-  - The options that are added to the menus are based 
-      on what all selected editions and regions have in common. 
-  */
-  static add_options(modelComapre){
-
-    ModelCompare.remove_options("imt");
-    ModelCompare.remove_options("vs30");
-
-    var edition_select = modelComapre.edition_id.selectedOptions;
-    var nselect        = modelComapre.edition_select.length;
-    var jregion        = modelComapre.region_id.options.selectedIndex;
-    var region_select  = modelCompare.region_id.options[jregion].value;
-
-    var supports = ["imt","vs30"];
-    var imt_check  = [];
-    var vs30_check = [];
-
-    //........ Get All IMT and Vs30 Values in Selected Region and Editions .....
-    for (var js=0;js<nselect;js++){ 
-      var edition_value = edition_select[js].value;
-      var edition       = modelComapre.parameters.edition.values.find(function(d,i){
-        return d.value == edition_value;
-      });
-      imt_check.push(edition.supports.imt);
-      vs30_check.push(edition.supports.vs30);
-      var data_type   = edition.data_type;
-      var region = modelCompare.comparable_region.find(function(d,i){
-        return d.value == region_select
-      });
-      var region_value    = region[data_type+"_value"];
-      var region_supports = modelCompare.parameters.region.values.find(function(d,i){
-        return d.value == region_value;
-      }).supports;
-      imt_check.push(region_supports.imt);
-      vs30_check.push(region_supports.vs30);
-    }
-    //--------------------------------------------------------------------------
-
-    //........ Add IMT and Vs30 Values to Menu with Supported Selecteable ......
-    common_supports("imt",imt_check);
-    common_supports("vs30",vs30_check);
-    //--------------------------------------------------------------------------
-
-
+    let supportedValues = ModelCompare.supportedValues(_this,par);
+    Common.setSelectMenu(el,_this.parameters[par].values); 
+    
+    d3.select(el)
+        .selectAll("option")
+        .property("disabled",true)
+        .filter(function(d,i){
+          return supportedValues.some(function(sv,isv){
+            return d.value == sv.value;
+          })
+        })
+        .property("disabled",false); 
+     
+    el.value = supportedValues[0].value;
   }
-  //----------------------- End: Add Options -----------------------------------
+  //------------------ End Method: setParameterMenu ----------------------------
+  
+
+
+  //....................... Method: supportedValues ............................
+  static supportedValues(_this,par){
+    
+    let supports = [];
+    let selectedEditions = _this.editionEl.querySelectorAll(":checked");
+    selectedEditions.forEach(function(e,i){
+      let edition = _this.parameters.edition.values.find(function(ev,iev){
+        return ev.value == e.value;
+      })
+      supports.push(edition.supports[par]);
+      let dataType = edition.dataType;
+      let comparableRegion = _this.comparableRegions.find(function(r,ir){
+        return r.value == _this.regionEl.value; 
+      });
+      let region = _this.parameters.region.values.find(function(r,ir){
+        return r.value == comparableRegion[dataType+"Value"];
+      });
+      supports.push(region.supports[par]);
+    });
+    
+    let supportedValues = _this.parameters[par].values.filter(function(p,ip){
+      return supports.every(function(pc,ipc){
+        return pc.includes(p.value);
+      })
+    });
+    
+    return supportedValues;
+  }
+  //----------------------- End Method: supportedValues ------------------------
+
+
 
 
 
@@ -222,49 +268,54 @@ class ModelCompare{
   - The function then calls either the static or 
       dynamic web services based on the edition choosen
   */
-  static get_selections(modelCompare){
-      
-    modelCompare.spinner.on("Calculating ...");
-
-    //.................. Get All Selections from the Menus .....................
-    var selected_editions = modelCompare.edition_id.selectedOptions;
-    var selected_region   = modelCompare.region_id.options[modelCompare.region_id.selectedIndex].value;
-    var vs30              = modelComapre.vs30_id.options[modelCompare.vs30_id.selectedIndex].value;
-    var lat = modelCompare.lat_id.value;
-    var lon = modelCompare.lon_id.value;
-    //--------------------------------------------------------------------------
+  static getSelections(_this){
+    
+    _this.spinner.on("Calculating ...");
+    $(_this.footer.rawBtnEl).off(); 
     
     
+    let selectedEditions = _this.editionEl.querySelectorAll(":checked");
+    let vs30 = _this.vs30El.value;
+    let lat = _this.latEl.value;
+    let lon = _this.lonEl.value;
+     
     //....................... Setup URLs to Submit .............................
-    var can_submit = check_bounds(true);
-    if (can_submit[0] && can_submit[1]){
-      
-      var region_info = modelCompare.comparable_region.find(function(d,i){
-        return d.value == selected_region; 
-      });
-      var url_info = [];
-      var nedition = selected_editions.length;
-      for (var je=0;je<nedition;je++){
-        var edition_info = modelComapre.parameters.edition.values.find(function(d,i){
-          return d.value == selected_editions[je].value;
-        });
-        var data_type     = edition_info.data_type;
-        var edition_value = edition_info.value;
-        var region_value  = region_info[data_type+"_value"];
-        url_info[je] = make_hazard_url(edition_value,region_value,
-            lat,lon,vs30,data_type);
-      }
-      
-      ModelComapre.get_hazard(modelComapre,url_info);
+    var canSubmit = ModelCompare.checkCoordinates(_this,true,true); 
+    
+    if (canSubmit){
+      _this.footerOptions = {
+        rawBtnDisable: false,
+        updateBtnDisable: false
+      };
+      _this.footer.setOptions(_this.footerOptions);
 
-      $(modelComapre.footer.rawBtnEl).click(function(){ 
-        for (var ju in url_info){
-          window.open(url_info[ju].url);
-        }                     
+      var regionInfo = _this.comparableRegions.find(function(d,i){
+        return d.value == _this.regionEl.value; 
+      });
+      var urlInfo = [];
+      selectedEditions.forEach(function(se,ise){
+        var editionInfo = _this.parameters.edition.values.find(function(d,i){
+          return d.value == se.value;
+        });
+        var dataType     = editionInfo.dataType;
+        var editionVal = editionInfo.value;
+        var regionVal  = regionInfo[dataType+"Value"];
+        let url = Common.composeHazardUrl(_this,editionVal,regionVal,
+            lat,lon,vs30,dataType);
+        urlInfo.push(url);
+      });
+      
+
+      ModelCompare.callHazard(_this,urlInfo);
+
+      $(_this.footer.rawBtnEl).click(function(){ 
+        urlInfo.forEach(function(url,iu){
+          window.open(url.url);
+        })
       });
     }
     //--------------------------------------------------------------------------
-
+  
   } 
   //----------------- End: Get Menu Selections/Values --------------------------
 
@@ -279,36 +330,34 @@ class ModelCompare{
       The url is the URL that is created in the get_selections function.
   */
 
-  static get_hazard(modelCompare,url_info){
-    
+  static callHazard(_this,urlInfo){
+     
     //........................... Call Code ....................................
-    var json_return = [];
-    for (var ju in url_info){
-      json_return[ju] = $.getJSON(url_info[ju].url);
+    var promises = [];
+    for (var ju in urlInfo){
+      promises[ju] = $.getJSON(urlInfo[ju].url);
     }
     //--------------------------------------------------------------------------
 
 
     //......................... Get Each JSON Response .........................
-    var response = [];
-    $.when.apply(this,json_return).done(function(d,i){
-      for (var jr in json_return){
-        var response_json = json_return[jr].responseJSON;
-        var url_check = response_json.url;
-        var jurl = url_info.findIndex(function(d,i){
-          return url_check == d.url;
-        });
-        response_json.response.data_type = url_info[jurl].data_type;
-        var stat = response_json.status;
-        if (stat == "success"){
-          response[jr] = response_json.response;
-        }
-      }
-      ModelComapre.hazard_plot(modelComapre,response);
+    $.when.apply($,promises).done(function(){
+      let jsonResponse = [];
+      let responses = Array.from(arguments);
+      _this.spinner.off();
+      responses.forEach(function(jsonReturn,i){
+        jsonReturn[0].response.dataType = urlInfo[i].dataType;
+        jsonResponse.push(jsonReturn[0].response);
+      });
+
+      
+      ModelCompare.plotHazardCurves(_this,jsonResponse);
     
-      ModelCompare.imt_id.onchange = function(){
-        ModelComapre.hazard_plot(modelComapre,response);
+      
+      _this.imtEl.onchange = function(){
+        ModelCompare.plotHazardCurves(_this,jsonResponse);
       };
+      
     });
     //--------------------------------------------------------------------------
    
@@ -320,52 +369,53 @@ class ModelCompare{
 
   //.......................... Plot Hazard Curves ..............................
 
-  static hazard_plot(modelCompare,json_response){
-    modelComapre.spinner.off();
+  static plotHazardCurves(_this,jsonResponse){
+    _this.spinner.off();
     
-    var selected_imt_display = modelCompare.imt_id.options[modelCompare.imt_id.selectedIndex].text;
-    var selected_imt_value   = modelCompare.imt_id.options[modelComapre.imt_id.selectedIndex].value;
-    let title = "Hazard Curves at " + selected_imt_display; 
+    var selectedImtDisplay = _this.imtEl.text; 
+    var selectedImtValue   = _this.imtEl.value; 
+    
+    let title = "Hazard Curves at " + selectedImtDisplay; 
 
-    var series_data           = [];       
-    var series_label_displays = [];       
-    var series_label_values   = [];       
+    var seriesData = [];       
+    var seriesLabels = [];       
+    var seriesLabelIds = [];       
 
     //............... Get Data from Selected IMT Value and Format for D3 .......
-    for (var jr in json_response){        
-      var data_type = json_response[jr].data_type;
-      var response  = json_response[jr].find(function(d,i){
-       return d.metadata.imt.value == selected_imt_value;
+    for (var jr in jsonResponse){        
+      var dataType = jsonResponse[jr].dataType;
+      var response  = jsonResponse[jr].find(function(d,i){
+       return d.metadata.imt.value == selectedImtValue;
       });
       var data = response.data;
       
       //................ JSON Variables based on Edition Type ..................
-      if (data_type == "dynamic"){
-        var xvalue_variable = "xvalues";
-        var yvalue_variable = "yvalues";
-        var jtotal          = data.findIndex(function(d,i){ 
+      if (dataType == "dynamic"){
+        var xValueVariable = "xvalues";
+        var yValueVariable = "yvalues";
+        var jtotal = data.findIndex(function(d,i){ 
           return d.component == "Total"
         });     
-      }else if (data_type == "static"){ 
-        var xvalue_variable = "xvals";
-        var yvalue_variable = "yvals";
+      }else if (dataType == "static"){ 
+        var xValueVariable = "xvals";
+        var yValueVariable = "yvals";
         var jtotal          = 0; 
       } 
       //------------------------------------------------------------------------
     
       //...................... Set Data for D3 .................................
-      var xvalues               = response.metadata[xvalue_variable];
-      series_data[jr]           = d3.zip(xvalues,data[jtotal][yvalue_variable]);
-      series_label_displays[jr] = response.metadata.edition.display; 
-      series_label_values[jr]   = response.metadata.edition.value;
+      var xValues = response.metadata[xValueVariable];
+      seriesData[jr] = d3.zip(xValues,data[jtotal][yValueVariable]);
+      seriesLabels[jr] = response.metadata.edition.display; 
+      seriesLabelIds[jr] = response.metadata.edition.value;
       //------------------------------------------------------------------------
     }
     //--------------------------------------------------------------------------
    
     //.................. Get Axis Information ..................................
-    var metadata = json_response[0][0].metadata;
-    var xlabel   = metadata.xlabel;
-    var ylabel   = metadata.ylabel;
+    var metadata = jsonResponse[0][0].metadata;
+    var xLabel   = metadata.xlabel;
+    var yLabel   = metadata.ylabel;
     metadata = {
         version: "1.1",
         url: window.location.href,
@@ -375,20 +425,128 @@ class ModelCompare{
     
 
     //.................... Plot Info Object for D3 .............................
-    modelCompare.plot.data = series_data;
-    modelCompare.plot.ids = series_label_values;
-    modelCompare.plot.labels = series_label_displays;
-    modelCompare.plot.metadata = metadata;
-    modelCompare.plot.title = title;
-    modelCompare.plot.xLabel = xlabel;
-    modelCompare.plot.yLabel = ylabel;
+    _this.plot.data = seriesData;
+    _this.plot.ids = seriesLabelIds;
+    _this.plot.labels = seriesLabels;
+    _this.plot.metadata = metadata;
+    _this.plot.title = title;
+    _this.plot.xLabel = xLabel;
+    _this.plot.yLabel = yLabel;
    
-    modelCompare.plot.removeSmallValues(1e-14); 
-    modelCompare.plot.plotData();
+    _this.plot.removeSmallValues(1e-14); 
+    _this.plot.plotData();
     //--------------------------------------------------------------------------
 
   }
 
+
+
+  //.................... Method: setBounds .....................................
+  /**
+  * @method setBounds
+  *
+  * @decription Set the latitude and longitude bounds text under
+  *     the latitude and longitude labels given the region selected. <br>
+  *
+  *
+  */
+                                                                                
+  static setBounds(_this){
+    
+    
+    //............................ Variables ...................................
+    let bounds,
+        latMax,
+        latMin,
+        lonMax,
+        lonMin,
+        region;
+                                                                                
+    region = _this.parameters.region.values.find(function(d,i){
+      return d.value == _this.regionEl.value;
+    });
+
+    latMax = region.maxlatitude;
+    latMin = region.minlatitude;
+    lonMax = region.maxlongitude;
+    lonMin = region.minlongitude;
+    //--------------------------------------------------------------------------
+    
+    
+    //...................... Update Bounds .....................................
+    _this.latBoundsEl.innerHTML = "<br>" + _this.regionEl.value +
+        " bounds: " + " ["+latMin+","+latMax+"]";
+    
+    _this.lonBoundsEl.innerHTML = "<br>" + _this.regionEl.value +
+        " bounds: " + " ["+lonMin+","+lonMax+"]";
+    //--------------------------------------------------------------------------
+  
+  }
+  //--------------------- End Method: setBounds --------------------------------
+
+
+
+  //...................... Method: addSiteCheckBounds ..........................
+  static checkCoordinates(_this,checkLat,checkLon){
+    let bounds,
+        latMax,
+        latMin,
+        lonMax,
+        lonMin,
+        region;
+    
+    region = _this.parameters.region.values.find(function(d,i){
+      return d.value == _this.regionEl.value;
+    });
+
+    latMax = region.maxlatitude;
+    latMin = region.minlatitude;
+    lonMax = region.maxlongitude;
+    lonMin = region.minlongitude;
+    
+    let lat = _this.latEl.value;
+    let lon = _this.lonEl.value;
+    
+    let canLatSubmit = lat < latMin || lat > latMax
+        || isNaN(lat) ? false : true;
+    let canLonSubmit = lon < lonMin || lon > lonMax
+        || isNaN(lon) ? false : true;
+    
+    if(checkLat){
+      d3.select(_this.latFormEl)                                                
+          .classed("has-error",!canLatSubmit);                                    
+      d3.select(_this.latFormEl)                                                
+          .classed("has-success",canLatSubmit);                                   
+    }
+    if(checkLon){ 
+      d3.select(_this.lonFormEl)                                                
+          .classed("has-error",!canLonSubmit);                                    
+      d3.select(_this.lonFormEl)                                                
+          .classed("has-success",canLonSubmit);                                   
+    }
+     
+    return canLatSubmit && canLonSubmit ? true : false;           
+  
+  }                                                                             
+  //-------------------- End Method: addSiteCheckBounds ------------------------
+
+
+  //..................... Method: clearCoordinates .............................
+  static clearCoordinates(_this){
+    _this.latEl.value = "";
+    _this.lonEl.value = "";
+    
+    d3.select(_this.latFormEl)
+        .classed("has-error",false);
+    d3.select(_this.latFormEl)
+        .classed("has-success",false);
+    
+    d3.select(_this.lonFormEl)
+        .classed("has-error",false);
+    d3.select(_this.lonFormEl)
+        .classed("has-success",false);
+  }                                                                             
+  //------------------- End Method: clearCoordinates ---------------------------
 
 
 }

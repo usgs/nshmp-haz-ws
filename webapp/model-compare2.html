@@ -41,7 +41,7 @@
         <!-- .................. Region Menu ......................... -->
         <div class="form-group">
           <label class="control-spacer control-group" for="region"> Region: </label>
-          <select class="form-control" id="region" autofocus onchange="add_editions()">
+          <select class="form-control" id="region" name="region" autofocus>
           </select>
         </div>
         <!-- .................. End: Region Menu .................... -->
@@ -49,15 +49,15 @@
         <!-- .................. Edition Menu ........................ -->
         <div class="form-group">
           <label class="control-spacer control-group" for="edition"> Edition: </label>
-          <select class="form-control" id="edition" multiple size=5 onchange="add_options()">
+          <select class="form-control" id="edition" name="edition" multiple size=5>
           </select>
         </div>
         <!-- ............. End: Edition Menu ........................ -->
 
         <!-- .................. Enter Latitude ...................... -->
-        <div class="form-group form-group-sm form-inline" >
+        <div class="form-group form-group-sm form-inline" id="lat-form">
           <label class="control-spacer control-group" 
-            for="lat"> Latitude: <br> <small id="lat_bounds"></small>
+            for="lat"> Latitude: <small id="lat_bounds"></small>
           </label> <br>
           <div class="input-group">
             <input id="lat" class="form-control" type="text" name="lat" />
@@ -67,9 +67,9 @@
         <!-- .................. End: Enter Latitude ................. -->
 
         <!-- .................. Enter Logitude ...................... -->
-        <div class="form-group form-group-sm form-inline" >
+        <div class="form-group form-group-sm form-inline" id="lon-form">
           <label class="control-spacer control-group" 
-            for="lon"> Longitude: <br> <small id="lon_bounds"></small> 
+            for="lon"> Longitude: <small id="lon_bounds"></small> 
           </label> <br>
           <div class="input-group">
             <input id="lon" class="form-control"  type="text" name="lon" />
@@ -81,7 +81,7 @@
         <!-- .................. IMT Menu ............................ -->
         <div class="form-group form-group-sm">
           <label class="control-spacer control-group" for="imt"> Intensity Measure Type: </label>
-          <select class="form-control" id="imt">
+          <select class="form-control" id="imt" name="imt">
           </select>
         </div>
         <!-- .................. End: Imt Menu ....................... -->
@@ -89,7 +89,7 @@
         <!-- .................. Vs30 Menu ........................... -->
         <div class="form-group form-group-sm">
           <label class="control-spacer control-group" for="vs30"> V<sub>s</sub>30: </label>
-          <select class="form-control" id="vs30" >
+          <select class="form-control" id="vs30" name="vs30">
           </select>
         </div>
         <!-- .................. End: Vs30 Menu ...................... -->
@@ -122,6 +122,7 @@
   <script src="js/lib/Footer.js" charset="UTF-8"></script>
   <script src="js/lib/Header.js" charset="UTF-8"></script>
   <script src="js/lib/Spinner.js" charset="UTF-8"></script>
+  <script src="js/lib/Common.js" charset="UTF-8"></script>
   <script src="js/lib/D3View.js" charset="UTF-8"></script>
   <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>
   <script src="js/lib/Tooltip.js" charset="UTF-8"></script>

@@ -59,10 +59,6 @@
 *     default 5 <br>
 *     radius of points
 *
-* @property options.title {String}
-*     default "" <br>
-*     plot title
-*
 * @property options.xAxisScale {String}
 *     default "log" <br>
 *     X axis scale

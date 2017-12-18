@@ -21,7 +21,6 @@ var hazard_resize_id    = document.getElementById("hazard-plot-resize");    // H
 var xaxis_btn_id = document.getElementById("hazard-plot-xaxis");
 var yaxis_btn_id = document.getElementById("hazard-plot-yaxis");
 
-spinner("on");
 //------------------------------- End: Main DOM Ids ------------------------------------------
 //
 //############################################################################################
@@ -39,7 +38,6 @@ spinner("on");
   and vs30.
 */
 function set_parameters(par){            
-  spinner("off");
  
   parameters = par;                         // Global variable: An object of all editions, regions, imts, and vs30
   add_regions();                            // Call add_regions, add regions to select menu
@@ -274,7 +272,6 @@ function get_selections(){
   svg.select(".legend")               // Remove legend
     .remove();
 
-  spinner("on");  
 
   //.............. Get All Selections from the Menus ...................
   var selected_editions = edition_id.selectedOptions;                         // Get all selected editions
@@ -461,7 +458,6 @@ function format_plot_info(json_response,plot_id,x_scale,y_scale){
 
 function hazard_plot(response){
  
-  spinner("off"); 
  
   var plot_id  = "hazard-curves-plot";                                    // DOM ID of hazard plot element 
   var title_id = document.getElementById("hazard-plot-text");             // Get title element
