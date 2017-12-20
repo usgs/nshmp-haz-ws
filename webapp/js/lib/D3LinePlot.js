@@ -254,15 +254,10 @@ class D3LinePlot extends D3View{
         _obj; 
         
     _this = this;
-
     _this.plotObserver.disconnect();
-
     d3.select(_this.el)
         .remove();
-
-    for(_obj in _this){
-      _this[_obj] = null;
-    }
+    _this = null;
   }
   //--------------- End Method: Remove Plot and Variable -----------------------
 
@@ -548,6 +543,8 @@ class D3LinePlot extends D3View{
           else
             return false;  
         });
+    
+    D3LinePlot.checkPlots(_this);
     //--------------------------------------------------------------------------
 
 
@@ -744,6 +741,8 @@ class D3LinePlot extends D3View{
         .selectAll(".data")
         .selectAll(".dot")
         .on("mouseover",function(d,i){
+          let panelBodyGeom = _this.plotBodyEl.getBoundingClientRect();
+          _this.scale = _this.svgWidth/panelBodyGeom.width;
           _tooltip =  new Tooltip(_this,this); 
           _tooltip.increaseRadius(_this);
         })

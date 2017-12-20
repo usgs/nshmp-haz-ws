@@ -17,20 +17,7 @@ class ModelCompare extends Hazard{
     //......................... Variables ......................................
     let _this = super(); 
     
-   // Create footer
-    _this.footer = new Footer();
-    _this.footerOptions = {
-      rawBtnDisable: true,
-      updateBtnDisable: true
-    };
-    _this.footer.setOptions(_this.footerOptions);
-    
-    // Create header 
-    _this.header = new Header();
     _this.header.setTitle("Model Comparison");
-    
-    // Create spinner
-    _this.spinner = new Spinner();
     _this.spinner.on();
     //--------------------------------------------------------------------------
   
@@ -82,90 +69,88 @@ class ModelCompare extends Hazard{
     //--------------------------------------------------------------------------
 
 
-    $(_this.footer.updateBtnEl).click(function(){
-      ModelCompare.getSelections(_this);
-    });
-
-    
-    //............. Call Hazard Code on Enter ..................................
-    _this.controlEl.onkeypress = function(key){
-      var keyCode = key.which || key.keyCode;
-      if (keyCode == 13){
-        ModelCompare.getSelections(_this);
-      }
-    }
-    //--------------------------------------------------------------------------
-  
-    
     //....................... Get Hazard Parameters ............................
-    Hazard.getHazardParameters(setParameters); 
+    ModelCompare.getHazardParameters(setParameters); 
     function setParameters(par){
       _this.spinner.off();
       _this.parameters = par;
-      ModelCompare.setRegionMenu(_this); 
+      ModelCompare.buildInputs(_this); 
     };
     //--------------------------------------------------------------------------
    
-   
-    d3.select(_this.lonEl)
-        .on("change",function(){
-          Hazard.checkCoordinates(_this,false,true);
-        });
-    
-    d3.select(_this.latEl)
-        .on("change",function(){
-          Hazard.checkCoordinates(_this,true,false);
-        });
 
+    $(_this.footer.updateBtnEl).click(function(){
+      Hazard.callHazard(_this,ModelCompare.callHazardCallback);
+    });
+                                                                                
+    //............. Call Hazard Code on Enter ..................................
+    $(_this.controlEl).keypress(function(key){
+      var keyCode = key.which || key.keyCode;
+      if (keyCode == 13){
+        Hazard.callHazard(_this,ModelCompare.callHazardCallback);
+      }
+    });
+    //--------------------------------------------------------------------------
+
+  
     
+  
   }
   //---------------------- End Constructor: ModelComapre -----------------------
 
 
-  //........................... Method: setRegions ............................. 
-  static setRegionMenu(_this){
-    _this.footerOptions = {
-      rawBtnDisable: true,
-      updateBtnDisable: false
-    };
-    _this.footer.setOptions(_this.footerOptions);
-    ModelCompare.setSelectMenu(_this.regionEl,_this.comparableRegions);
-    d3.select(_this.regionEl)
-        .on("change",function(){
-          ModelCompare.setEditionMenu(_this);
-        });
-   
-    _this.regionEl.value = _this.options.regionDefault;
+  //......................... Method: buildInputs ..............................
+  static buildInputs(_this){
+     
+    ModelCompare.checkQuery(_this);
     
-    let url = window.location.hash.substring(1);
-    if (url){
-      let urlInfo = Hazard.checkQuery(_this);
-      ModelCompare.setEditionMenu(_this,true);
-      ModelCompare.callHazard(_this,urlInfo);
-    }else{
-      ModelCompare.setEditionMenu(_this);
-    }
-  }
-  //-------------------- End Method: setRegions --------------------------------
-
-
-
-  //......................... Method: setEditionMenu ...........................
-  static setEditionMenu(_this,isQuery){
-    
-    if (!isQuery) ModelCompare.clearCoordinates(_this);
+    ModelCompare.setParameterMenu(_this,"region",_this.comparableRegions);
     ModelCompare.setBounds(_this);
-    d3.select(_this.editionEl)
+    
+    let supportedEditions = ModelCompare.supportedEditions(_this);
+    ModelCompare.setParameterMenu(_this,"edition",supportedEditions);
+    d3.select(_this.editionEl)  
         .selectAll("option")
-        .remove();
+        .attr("selected",true);
+    
+    let supportedImt = ModelCompare.supportedValues(_this,"imt");
+    let supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
+    ModelCompare.setParameterMenu(_this,"imt",supportedImt);
+    ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
+    
+    $(_this.regionEl).change(function(){
+      ModelCompare.clearCoordinates(_this);
+      ModelCompare.setBounds(_this);
+      supportedEditions = ModelCompare.supportedEditions(_this);
+      ModelCompare.setParameterMenu(_this,"edition",supportedEditions);
+      d3.select(_this.editionEl)  
+          .selectAll("option")
+          .attr("selected",true);
+      
+      supportedImt = ModelCompare.supportedValues(_this,"imt");
+      supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
+      ModelCompare.setParameterMenu(_this,"imt",supportedImt);
+      ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
+    });
+    
+    $(_this.editionEl).change(function(){
+      supportedImt = ModelCompare.supportedValues(_this,"imt");
+      supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
+      ModelCompare.setParameterMenu(_this,"imt",supportedImt);
+      ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
+     });
+    
+    let canSubmit = ModelCompare.checkQuery(_this);
+    if (canSubmit) ModelCompare.callHazard(_this,ModelCompare.callHazardCallback);
+  }                                                                             
+  //------------------- End Method: buildInputs --------------------------------
 
-    //...................... Find Selected Region ..............................
+
+
+  static supportedEditions(_this){
     var selectedRegion = _this.comparableRegions.find(function(region,i){
       return region.value == _this.regionEl.value;
     }); 
-    //--------------------------------------------------------------------------
-
-    //...................... Add Supported Editions ............................
     var supportedEditions = _this.parameters.edition
         .values.filter(function(editionValue,iev){
           return editionValue.supports.region.find(function(regionValue,irv){
@@ -173,27 +158,13 @@ class ModelCompare extends Hazard{
                 regionValue == selectedRegion.dynamicValue;
           })
     });
-
-    ModelCompare.setSelectMenu(_this.editionEl,supportedEditions);
-    d3.select(_this.editionEl)  
-        .on("change",function(){
-          ModelCompare.setParameterMenu(_this,"imt");
-          ModelCompare.setParameterMenu(_this,"vs30");
-        })
-        .selectAll("option")
-        .attr("selected",true);
-    //--------------------------------------------------------------------------
-
-    ModelCompare.setParameterMenu(_this,"imt");
-    ModelCompare.setParameterMenu(_this,"vs30");
+    
+    return supportedEditions;
   }
-  //------------------- End Method: setEditionMenu -----------------------------
 
-
-
-
+  
+  
   //.......................... Plot Hazard Curves ..............................
-  /*
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
     
@@ -265,9 +236,16 @@ class ModelCompare extends Hazard{
 
   }
 
-  */
 
+  static callHazardCallback(_this,hazardReturn){
 
+    ModelCompare.plotHazardCurves(_this,hazardReturn);
+    $(_this.imtEl).off(); 
+    $(_this.imtEl).change(function(){
+      ModelCompare.plotHazardCurves(_this,hazardReturn);
+    });
+  
+  }
 
 
 }

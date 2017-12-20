@@ -31,6 +31,22 @@ class Hazard{
     _this.latFormEl = document.getElementById("lat-form");
     _this.lonFormEl = document.getElementById("lon-form");
 
+
+    $(_this.lonEl).change(function(){
+      Hazard.checkCoordinates(_this,false,true);
+    });
+    
+    $(_this.latEl).change(function(){
+      Hazard.checkCoordinates(_this,true,false);
+    });
+
+    $(_this.controlEl).change(function(){
+      let canSubmit = Hazard.checkCoordinates(_this,false,false);
+      _this.footerOptions = {
+        updateBtnDisable: !canSubmit
+      };
+      _this.footer.setOptions(_this.footerOptions);
+    });
   
   }
 
@@ -145,7 +161,7 @@ class Hazard{
         .append("option")
         .attr("value",function(d,i){return d.value})
         .attr("id",function(d,i){return d.value})
-        .text(function(d,i){return d.display})
+        .text(function(d,i){return d.display.replace("&amp;","&")})
   }                                                                             
   //-------------------- End Method: setSelectMenu -----------------------------
 
@@ -193,12 +209,10 @@ class Hazard{
 
 
   static checkQuery(_this){
-    
     let url = window.location.hash.substring(1);
     
-    if (!url) return null;
+    if (!url) return false;
     
-    _this.spinner.on("Calculating ...");
     let pars = url.split("&");
     let key;
     let value;
@@ -241,7 +255,7 @@ class Hazard{
     d3.select(_this.editionEl)
         .selectAll("option")
         .property("selected",false);
-    
+   
     _this.latEl.value = lat;
     _this.lonEl.value = lon;
     _this.imtEl.value = imt;
@@ -252,19 +266,23 @@ class Hazard{
         return d.staticValue == regions[0] || d.dynamicValue == regions[0];
       });
       _this.regionEl.value = comparableRegion.value;
+      _this.options.regionDefault = comparableRegion.value;
     }else{
       _this.regionEl.value = regions[0];
+      _this.options.regionDefault = regions[0];
+      _this.options.editionDefault = editions[0];
     }
+    
+    _this.options.imtDefault = imt;
+    _this.options.vs30Default = vs30;
+    
     editions.forEach(function(edition,i){
       d3.select(_this.editionEl)
           .select("#"+edition)
           .property("selected",true);
-      let url = Hazard.composeHazardUrl(_this,edition,regions[i],
-          lat,lon,vs30,dataType[i]);
-      urlInfo.push(url);
     });
     
-    return urlInfo; 
+    return true; 
   }
 
 
@@ -273,15 +291,18 @@ class Hazard{
 
 
   //....................... Method: setParameterMenu ...........................
-  static setParameterMenu(_this,par){
+  static setParameterMenu(_this,par,supportedValues){
     let el = eval("_this."+par+"El");
     d3.select(el)
         .selectAll("option")
         .remove();
     
-    let supportedValues = par == "edition" || par == "region" 
-        ? _this.parameters[par].values : Hazard.supportedValues(_this,par); 
-    Hazard.setSelectMenu(el,_this.parameters[par].values);
+    if ((_this.options.type == "explorer" && par == "region") || 
+          (_this.options.type == "compare" && par == "edition" || "region"))
+      Hazard.setSelectMenu(el,supportedValues);
+    else
+      Hazard.setSelectMenu(el,_this.parameters[par].values);
+    
 
     d3.select(el)
         .selectAll("option")
@@ -294,10 +315,10 @@ class Hazard{
         .property("disabled",false);
     
     let defaultVal = _this.options[par+"Default"];
-    let valCheck = supportedValues.find(function(val,i){
+    let isFound = supportedValues.some(function(val,i){
       return val.value == defaultVal; 
-    }).value;
-    defaultVal = defaultVal == valCheck ? defaultVal 
+    });
+    defaultVal = isFound ? defaultVal 
         : supportedValues[0].value;  
     el.value = defaultVal;                                                      
   }
@@ -461,11 +482,6 @@ class Hazard{
     
     _this.spinner.on("Calculating ...");
     
-    _this.footerOptions = {
-      rawBtnDisable: false,
-      updateBtnDisable: false
-    };
-    _this.footer.setOptions(_this.footerOptions);
     
     let type = _this.options.type;
     if (type == "compare"){
@@ -491,7 +507,6 @@ class Hazard{
     });
     
     window.location.hash = windowUrl;
-    Hazard.callHazard(_this,urlInfo);
     
     $(_this.footer.rawBtnEl).click(function(){
       urlInfo.forEach(function(url,iu){
@@ -499,14 +514,23 @@ class Hazard{
       })
     });
     //--------------------------------------------------------------------------
-  
+    
+    return urlInfo; 
   }
   //----------------- End: Get Menu Selections/Values --------------------------
 
 
 
   //...................... Call the nshmp-haz Code Given URL ...................
-  static callHazard(_this,urlInfo){
+  static callHazard(_this,callback){
+
+    let urlInfo = Hazard.getSelections(_this);
+    
+    _this.footerOptions = {
+      rawBtnDisable: false,
+      updateBtnDisable: false
+    };
+    _this.footer.setOptions(_this.footerOptions);
     
     //........................... Call Code ....................................
     var promises = [];
@@ -522,95 +546,19 @@ class Hazard{
       let jsonResponse = [];
       let responses = Array.from(arguments);
       responses = nUrl == 1 ? [responses] : responses;
-      _this.spinner.off();
       responses.forEach(function(jsonReturn,i){
         jsonReturn[0].response.dataType = urlInfo[i].dataType;
         jsonResponse.push(jsonReturn[0].response);
       });
       
-      Hazard.plotHazardCurves(_this,jsonResponse);                      
       
-      if (_this.options.type == "compare"){
-        _this.imtEl.onchange = function(){
-          ModelCompare.plotHazardCurves(_this,jsonResponse);
-        };
-      }
+      callback(_this,jsonResponse); 
     });
     //--------------------------------------------------------------------------
   
   }
   //------------------- End: Call nshmp-haz Code -------------------------------
 
-
-  static plotHazardCurves(_this,jsonResponse){
-    _this.spinner.off();
-    
-    var selectedImtDisplay = _this.imtEl.querySelector(":checked").text;
-    var selectedImtValue   = _this.imtEl.value;
-    let title = "Hazard Curves at " + selectedImtDisplay;
-    let filename = "hazardCurves-"+selectedImtValue;
-    var seriesData = [];
-    var seriesLabels = [];
-    var seriesLabelIds = [];
-    
-    //............... Get Data from Selected IMT Value and Format for D3 .......
-    console.log(jsonResponse[0]);
-    for (var jr in jsonResponse){
-      var dataType = jsonResponse[jr].dataType;
-      var response  = jsonResponse[jr].find(function(d,i){
-       return d.metadata.imt.value == selectedImtValue;
-      });
-      var data = response.data;
-      
-      //................ JSON Variables based on Edition Type ..................
-      if (dataType == "dynamic"){
-        var xValueVariable = "xvalues";
-        var yValueVariable = "yvalues";
-        var jtotal = data.findIndex(function(d,i){
-          return d.component == "Total"
-        });
-      }else if (dataType == "static"){
-        var xValueVariable = "xvals";
-        var yValueVariable = "yvals";
-        var jtotal          = 0;
-      }
-      //------------------------------------------------------------------------
-      
-      //...................... Set Data for D3 .................................
-      var xValues = response.metadata[xValueVariable];
-      seriesData[jr] = d3.zip(xValues,data[jtotal][yValueVariable]);
-      seriesLabels[jr] = response.metadata.edition.display;
-      seriesLabelIds[jr] = response.metadata.edition.value;
-      //------------------------------------------------------------------------
-    }
-    //--------------------------------------------------------------------------
-    
-    //.................. Get Axis Information ..................................
-    var metadata = jsonResponse[0][0].metadata;
-    var xLabel   = metadata.xlabel;
-    var yLabel   = metadata.ylabel;
-    metadata = {
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-    };
-    //--------------------------------------------------------------------------
-    
-    //.................... Plot Info Object for D3 .............................
-    _this.plot.data = seriesData;
-    _this.plot.ids = seriesLabelIds;
-    _this.plot.labels = seriesLabels;
-    _this.plot.metadata = metadata;
-    _this.plot.plotFilename = filename;
-    _this.plot.title = title;
-    _this.plot.xLabel = xLabel;
-    _this.plot.yLabel = yLabel;
-    
-    _this.plot.removeSmallValues(1e-14);
-    _this.plot.plotData();
-    //--------------------------------------------------------------------------
-  
-  }
 
 
 }

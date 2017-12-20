@@ -156,10 +156,10 @@ class Footer{
         .style("position",footer.options.position);
          
     d3.select(footer.rawBtnEl)
-        .classed("disabled",footer.options.rawBtnDisable);   
+        .property("disabled",footer.options.rawBtnDisable);   
   
     d3.select(footer.updateBtnEl)
-        .classed("disabled",footer.options.updateBtnDisable);
+        .property("disabled",footer.options.updateBtnDisable);
   }
   //-------------------- End Method: updateOptions -----------------------------
 

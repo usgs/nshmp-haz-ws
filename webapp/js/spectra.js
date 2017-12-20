@@ -530,11 +530,6 @@ class Spectra{
       spectra.meanPlot.yLabel = mean.yLabel;
       
       spectra.meanPlot.plotData();
-      d3.select(spectra.meanPlot.el)
-          .classed(spectra.meanPlot.options.colSizeMax,true) 
-          .classed(spectra.meanPlot.options.colSizeMin,false);
-      d3.select(spectra.meanPlot.plotResizeEl)
-          .attr("class",spectra.meanPlot.resizeSmall); 
       //------------------------------------------------------------------------
       
       
@@ -561,6 +556,16 @@ class Spectra{
       spectra.sigmaPlot.yLabel = sigma.yLabel;
       
       spectra.sigmaPlot.plotData();
+      //------------------------------------------------------------------------
+      
+      
+      //................. Update Plot Size .....................................
+      d3.select(spectra.meanPlot.el)
+          .classed(spectra.meanPlot.options.colSizeMax,true) 
+          .classed(spectra.meanPlot.options.colSizeMin,false);
+      d3.select(spectra.meanPlot.plotResizeEl)
+          .attr("class",spectra.meanPlot.resizeSmall); 
+      
       d3.select(spectra.sigmaPlot.el)
           .classed(spectra.sigmaPlot.options.colSizeMax,true)
           .classed(spectra.sigmaPlot.options.colSizeMin,false);

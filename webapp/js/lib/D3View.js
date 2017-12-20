@@ -124,11 +124,12 @@ class D3View{
     _this.options = {
       buttonFontSize: 12,
       colSizeMin: "col-md-6",
+      colSizeMinCenter: "col-md-offset-3 col-md-6",
       colSizeMax: "col-md-offset-1 col-md-10",
       labelFontSize: 16,
       legendLocation: "topright",
       legendOffset: 5,
-      legendPadding: 10,
+      legendPadding: 13,
       legendLineBreak: 20,
       legendFontSize: 14,
       linewidth: 2.5,
@@ -168,11 +169,10 @@ class D3View{
      
     //..................... Bootstrap Panel for the Plot .......................
     _containerD3 = d3.select(containerEl);
-    _this.colSize = D3View.checkPlots(_this);
     
     _elD3 = _containerD3
         .append("div")
-        .attr("class","D3View hidden " + _this.colSize)
+        .attr("class","D3View hidden " + _this.options.colSizeMax)
         
     _plotPanelD3 = _elD3
         .append("div")
@@ -321,38 +321,54 @@ class D3View{
   
 
     //.......................... Mutation Observer ............................. 
+    /* 
     _observerConfig = {                                                         
-        attributes: false,                                                       
-        childList: true,                                                        
+        attributes: true,                                                       
+        childList: false,                                                        
         characterData: false                                                     
       };                                                                        
                                                                                 
     _this.plotObserver = new MutationObserver(function(mutations){              
-      D3View.checkPlots(_this,true);
+      console.log("Mutation");
+      console.log(mutations);
+      //D3View.checkPlots(_this,true);
     });  
     
-    _this.plotObserver.observe(containerEl,_observerConfig);                           
+    _this.plotObserver.observe(_this.el,_observerConfig);                           
+    */
     //--------------------------------------------------------------------------
   
   
     //......................... On Resize ......................................
     d3.select(_this.plotResizeEl)
         .on("click",function(d,i){
-          if( d3.select(_this.el).classed(_this.options.colSizeMin)){
-            _this.colSize = _this.options.colSizeMax;
+          let nplots = d3.selectAll(".D3View") 
+              .filter(function(d,i){return !d3.select(this).classed("hidden")}) 
+              .size();
+         
+          let isMax = d3.select(_this.el).classed(_this.options.colSizeMax);
+          
+          d3.select(_this.el)
+              .classed(_this.options.colSizeMax,false)
+              .classed(_this.options.colSizeMin,false)
+              .classed(_this.options.colSizeMinCenter,false)
+          
+          if (isMax){
+            _this.colSize = nplots == 1 ? _this.options.colSizeMinCenter 
+                : _this.options.colSizeMin;
             d3.select(_this.el)
-                .classed(_this.options.colSizeMin,false)
-                .classed(_this.colSize,true);
-            d3.select(_this.plotResizeEl)
-                .attr("class",_this.resizeSmall);
-          }else{
-            _this.colSize = _this.options.colSizeMin;
-            d3.select(_this.el)
-                .classed(_this.options.colSizeMax,false)
+                .classed(_this.options.colSizeMinCenter,false)
                 .classed(_this.colSize,true);
             d3.select(_this.plotResizeEl)
                 .attr("class",_this.resizeFull);
+          }else{
+            _this.colSize = _this.options.colSizeMax;
+            d3.select(_this.el)
+                .classed(_this.colSize,true);
+            d3.select(_this.plotResizeEl)
+                .attr("class",_this.resizeSmall);
           }
+           
         });
     //--------------------------------------------------------------------------
      
@@ -386,37 +402,49 @@ class D3View{
 
     // Check if there are other plots
     _nplots = d3.selectAll(".D3View") 
+        .filter(function(d,i){return !d3.select(this).classed("hidden")}) 
         .size();
-    
+   
     // If there are already plots, make them all bootstrap 6 column    
-    if (_nplots > 0){
+   
+    d3.selectAll(".D3View")
+        .classed(linePlot.options.colSizeMax,false)
+        .classed(linePlot.options.colSizeMin,false)
+        .classed(linePlot.options.colSizeMinCenter,false)
+    
+    
+    if (_nplots > 1){
       _colSize = linePlot.options.colSizeMin;
       d3.selectAll(".D3View")
           .each(function(d,i){
-            d3.select(this).classed(linePlot.options.colSizeMax,false);
             d3.select(this).classed(linePlot.options.colSizeMin,true);
             d3.select(this)
                 .select(".resize")
                 .attr("class",linePlot.resizeFull);
           });
     }else{
-      _colSize = linePlot.options.colSizeMax;
-      d3.select(linePlot.plotResizeEl)
-          .attr("class",linePlot.resizeSmall);  
+      d3.selectAll(".D3View")
+          .each(function(d,i){
+            d3.select(this).classed(linePlot.options.colSizeMax,true);
+            d3.select(this)
+                .select(".resize")
+                .attr("class",linePlot.resizeSmall);
+          });
     }
 
-    // Update plot size to large when others are removed
-    if (updateStatus && _nplots == 1){
-      d3.select(linePlot.el)
-            .classed(linePlot.options.colSizeMax,true)
-            .classed(linePlot.options.colSizeMin,false);
-      d3.select(linePlot.plotResizeEl)
-          .attr("class",linePlot.resizeSmall);  
-    } 
       
-    return _colSize;
   }
   //----------------- End Method: Check How May Plots Are There ----------------
+
+ 
+  
+  //....................... Method: hide ....................................... 
+  hide(toHide){
+    let _this = this;
+    d3.select(_this.el).classed("hidden",toHide);
+    D3View.checkPlots(_this);
+  }
+  //----------------------- End Method: hide -----------------------------------
 
 
   
@@ -438,7 +466,7 @@ class D3View{
         _isActive;
     
     _this = view;
-   
+    
     // Update X scale
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
