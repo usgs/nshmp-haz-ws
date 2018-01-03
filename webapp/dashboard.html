@@ -17,7 +17,8 @@
 
   <!-- CSS Files -->
   <link rel="stylesheet" href="css/template.css" type="text/css">
- 
+  <link rel="stylesheet" href="css/dashboard.css" type="text/css">
+
 </head>
 <!-- ......................... End: Head ................................... -->
 
@@ -26,21 +27,46 @@
 <!-- ........................... Body ...................................... -->
 <body>
 
-
-  <!-- ...................... Control Panel ................................ -->
-  <div id="control">
-    <form id="inputs">
-      <div class="form-horizontal">
+  <div id="dash">
+    
+    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
+        href="/nshmp-haz-ws/model-compare.html">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title"> Model Comparison </h2> 
+        </div>
       </div>
-    </form>
+    </a>
+  
+    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
+        href="/nshmp-haz-ws/model-explorer.html">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title"> Model Explorer </h2> 
+        </div>
+      </div>
+    </a>
+  
+    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
+        href="/nshmp-haz-ws/spectra-plot.html">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title"> Response Spectrum </h2> 
+        </div>
+      </div>
+    </a>
+  
+    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
+        href="/nshmp-haz-ws/test-sites.html">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title"> Test Sites </h2> 
+        </div>
+      </div>
+    </a>
+  
+  
   </div>
-  <!-- .................... End: Control Panel ............................. -->
-
-
-  <!-- .......................... Plots .................................... -->
-  <div id="content">
-  </div> 
-  <!-- ..................... End: Plots .................................... -->
 
 
   <!-- ..................... Import JavaScript ............................. -->
@@ -59,10 +85,13 @@
   <script src="https://d3js.org/d3.v4.min.js"> </script>
   <script src="js/lib/Footer.js" charset="UTF-8"> </script>
   <script src="js/lib/Header.js" charset="UTF-8"> </script>
-  <script src="js/lib/Spinner.js" charset="UTF-8"> </script>
  
   <script> 
-    //let spectra = new Spectra();
+    let footer = new Footer();
+    footer.removeButtons();
+    let header = new Header();
+    header.setTitle("Dashboard");
+
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

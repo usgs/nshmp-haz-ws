@@ -163,6 +163,17 @@ class Footer{
   }
   //-------------------- End Method: updateOptions -----------------------------
 
+
+  removeButtons(){
+    let _this = this;
+
+    d3.select(_this.rawBtnEl)
+        .remove();
+    d3.select(_this.updateBtnEl)
+        .remove();
+  }
+
+
 }
 
 
