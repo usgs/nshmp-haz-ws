@@ -59,8 +59,14 @@
   
   <script> 
     let footer = new Footer();
+    let options = {
+        rawBtnDisable: true,
+        updateBtnDisable: true
+    };
+    footer.setOptions(options);
     let header = new Header();
     header.setTitle("Test Sites");
+    
     let el = document.querySelector("#testsites");
     let map = new D3MapPlot(el);
   </script>

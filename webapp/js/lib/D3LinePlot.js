@@ -1220,11 +1220,23 @@ class D3LinePlot extends D3View{
     plotTransform = "translate("+marginLeft+","+marginTop+")"+
         " scale("+scalePlot+")";
     plotTitle = linePlot.plotTitleEl.textContent;
-    footerText = [
-      "Created with: nshmp-haz version "+linePlot.metadata.version,
-      linePlot.metadata.url,
-      linePlot.metadata.time
-    ];
+    
+    
+    
+    
+    let urlMaxChar = 150;
+    let a = Math.ceil(linePlot.metadata.url.length/urlMaxChar);
+    
+    footerText = [];
+    footerText.push(
+        "Created with: nshmp-haz version "+linePlot.metadata.version);
+    
+    for (let jc = 0; jc<a;jc++){
+      footerTe = linePlot.metadata.url.slice(urlMaxChar*jc,urlMaxChar*(jc+1));
+    }
+      
+    footerText.push(linePlot.metadata.time);
+    
     nlines = footerText.length;
     //--------------------------------------------------------------------------
 
@@ -1257,6 +1269,8 @@ class D3LinePlot extends D3View{
         .style("font-size",options.titleFontSize)
         .text(plotTitle);
    
+    
+
     // Add print footer
     svgD3.append("g")
         .attr("class","print-footer")
