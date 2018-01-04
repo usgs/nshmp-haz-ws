@@ -126,10 +126,12 @@ class D3View{
       colSizeMin: "col-md-6",
       colSizeMinCenter: "col-md-offset-3 col-md-6",
       colSizeMax: "col-md-offset-1 col-md-10",
+      colSizeDefault: "max", 
       labelFontSize: 16,
       legendLocation: "topright",
       legendOffset: 5,
-      legendPadding: 13,
+      legendPaddingX: 20,
+      legendPaddingY: 15,
       legendLineBreak: 20,
       legendFontSize: 14,
       linewidth: 2.5,
@@ -144,9 +146,11 @@ class D3View{
       pointRadius: 3.5,
       pointRadiusSelection: 5.5,
       pointRadiusTooltip: 8.5,
+      printTitle: true,
+      printFooter: true,
       printFooterPadding: 20,
       printFooterLineBreak: 20,
-      printFooterFontSize: 16,
+      printFooterFontSize: 14,
       printHeight: 8.5,
       printWidth: 11,
       printPlotWidth: 10,
@@ -165,14 +169,18 @@ class D3View{
     };
     $.extend(_this.options,options);
     //--------------------------------------------------------------------------
+   
+    if (_this.options.colSizeDefault == "min")
+      _this.colSize = _this.options.colSizeMin;
+    else 
+      _this.colSize = _this.options.colSizeMax; 
     
-     
     //..................... Bootstrap Panel for the Plot .......................
     _containerD3 = d3.select(containerEl);
     
     _elD3 = _containerD3
         .append("div")
-        .attr("class","D3View hidden " + _this.options.colSizeMax)
+        .attr("class","D3View hidden "+_this.colSize)
         
     _plotPanelD3 = _elD3
         .append("div")
@@ -313,6 +321,7 @@ class D3View{
     _this.containerEl = containerEl;
     _this.plotBodyEl = _this.el.querySelector(".panel-body");
     _this.plotFooterEl = _this.el.querySelector(".panel-footer");
+    _this.plotHeaderEl = _this.el.querySelector(".panel-heading");
     _this.plotPanelEl = _this.el.querySelector(".panel");
     _this.plotResizeEl = _this.el.querySelector(".resize");
     _this.plotTitleEl = _this.el.querySelector(".plot-title");
@@ -379,70 +388,37 @@ class D3View{
   //---------------------- End: D3View Constructor ----------------------------
 
 
-
-  //................ Method: Check How Many Plots Are There ....................
-  /**
-  * @method checkPlots
-  *
-  * @description static method to check if other plots exists to set
-  * the coorect panel width, either col-6 or col-12
-  *
-  * @argument updateStatus {Boolean}
-  *     if true will look and see if there is one plot and make sure <br>
-  *     it is col-lg-12.
-  *
-  * @return {String}
-  *     string that is a Bootstrap column size, col-lg-6 or col-lg-12
-  *
-  */
-  static checkPlots(linePlot,updateStatus){
-    let _colSize,
-        _nplots,
-        _plotLimit;
-
-    // Check if there are other plots
-    _nplots = d3.selectAll(".D3View") 
-        .filter(function(d,i){return !d3.select(this).classed("hidden")}) 
-        .size();
-   
-    // If there are already plots, make them all bootstrap 6 column    
-   
-    d3.selectAll(".D3View")
-        .classed(linePlot.options.colSizeMax,false)
-        .classed(linePlot.options.colSizeMin,false)
-        .classed(linePlot.options.colSizeMinCenter,false)
-    
-    
-    if (_nplots > 1){
-      _colSize = linePlot.options.colSizeMin;
-      d3.selectAll(".D3View")
-          .each(function(d,i){
-            d3.select(this).classed(linePlot.options.colSizeMin,true);
-            d3.select(this)
-                .select(".resize")
-                .attr("class",linePlot.resizeFull);
-          });
-    }else{
-      d3.selectAll(".D3View")
-          .each(function(d,i){
-            d3.select(this).classed(linePlot.options.colSizeMax,true);
-            d3.select(this)
-                .select(".resize")
-                .attr("class",linePlot.resizeSmall);
-          });
+  
+  //......................... Method: panelResize ..............................
+  panelResize(colSize){
+    let _this = this;
+    d3.select(_this.el)
+        .classed(_this.options.colSizeMax,false)
+        .classed(_this.options.colSizeMin,false)
+        .classed(_this.options.colSizeMinCenter,false)
+    if (colSize == "min"){
+      d3.select(_this.el)
+          .classed(_this.options.colSizeMin,true);
+      d3.select(_this.plotResizeEl)
+          .classed(_this.resizeSmall,false)
+          .classed(_this.resizeFull,true)
     }
-
-      
+    else{
+      d3.select(_this.el)
+        .classed(_this.options.colSizeMax,true);
+      d3.select(_this.plotResizeEl)
+          .classed(_this.resizeSmall,false)
+          .classed(_this.resizeFull,true)
+    }
   }
-  //----------------- End Method: Check How May Plots Are There ----------------
+  //---------------------- End Method: panelResize -----------------------------
 
- 
+
   
   //....................... Method: hide ....................................... 
   hide(toHide){
     let _this = this;
     d3.select(_this.el).classed("hidden",toHide);
-    D3View.checkPlots(_this);
   }
   //----------------------- End Method: hide -----------------------------------
 

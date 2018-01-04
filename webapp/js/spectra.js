@@ -31,6 +31,8 @@ class Spectra{
     _this.header;
     _this.spinner;
     _this.spectraWs;
+    
+    _this.plotLoaded = false;
      
     // Create Footer 
     _this.footer = new Footer();
@@ -402,7 +404,7 @@ class Spectra{
     };
     spectra.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
     //--------------------------------------------------------------------------
-
+   
   
   }
   //------------------ End Method: plotSetup -----------------------------------
@@ -525,6 +527,7 @@ class Spectra{
       spectra.meanPlot.ids = seriesIds;
       spectra.meanPlot.labels = seriesLabels;
       spectra.meanPlot.metadata = metadata;
+      spectra.meanPlot.plotFilename = "spectraMean";
       spectra.meanPlot.title = "Response Spectra: Mean";
       spectra.meanPlot.xLabel = mean.xLabel;
       spectra.meanPlot.yLabel = mean.yLabel;
@@ -551,26 +554,12 @@ class Spectra{
       spectra.sigmaPlot.ids = seriesIds;
       spectra.sigmaPlot.labels = seriesLabels;
       spectra.sigmaPlot.metadata = metadata;
+      spectra.sigmaPlot.plotFilename = "spectraSigma";
       spectra.sigmaPlot.title = "Response Spectra: Sigma";
       spectra.sigmaPlot.xLabel = sigma.xLabel;
       spectra.sigmaPlot.yLabel = sigma.yLabel;
       
       spectra.sigmaPlot.plotData();
-      //------------------------------------------------------------------------
-      
-      
-      //................. Update Plot Size .....................................
-      d3.select(spectra.meanPlot.el)
-          .classed(spectra.meanPlot.options.colSizeMax,true) 
-          .classed(spectra.meanPlot.options.colSizeMin,false);
-      d3.select(spectra.meanPlot.plotResizeEl)
-          .attr("class",spectra.meanPlot.resizeSmall); 
-      
-      d3.select(spectra.sigmaPlot.el)
-          .classed(spectra.sigmaPlot.options.colSizeMax,true)
-          .classed(spectra.sigmaPlot.options.colSizeMin,false);
-      d3.select(spectra.sigmaPlot.plotResizeEl)
-          .attr("class",spectra.sigmaPlot.resizeSmall); 
       //------------------------------------------------------------------------
       
       

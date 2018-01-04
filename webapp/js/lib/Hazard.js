@@ -525,7 +525,7 @@ class Hazard{
   static callHazard(_this,callback){
 
     let urlInfo = Hazard.getSelections(_this);
-    
+   
     _this.footerOptions = {
       rawBtnDisable: false,
       updateBtnDisable: false

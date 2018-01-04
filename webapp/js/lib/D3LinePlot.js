@@ -544,7 +544,7 @@ class D3LinePlot extends D3View{
             return false;  
         });
     
-    D3LinePlot.checkPlots(_this);
+    //D3LinePlot.checkPlots(_this);
     //--------------------------------------------------------------------------
 
 
@@ -1075,6 +1075,8 @@ class D3LinePlot extends D3View{
     let scale = linePlot.scale;
 
     _legendD3 = d3.select(linePlot.legendEl)
+        .append("g")
+        .attr("class","legend-entries")
         .selectAll("g")
         .data(linePlot.labels)
         .enter()  
@@ -1083,8 +1085,8 @@ class D3LinePlot extends D3View{
         .attr("id",function(d,i){return linePlot.ids[i]})
         .style("cursor","pointer")
         .style("font-size",_options.legendFontSize)
-        .attr("transform","translate("+(_options.legendPadding)
-            +","+(_options.legendFontSize/2+_options.legendPadding)+")");
+        .attr("transform","translate("+(_options.legendPaddingX)
+            +","+(_options.legendFontSize/2+_options.legendPaddingY)+")");
     
     // Legend Text
     _legendD3.append("text")
@@ -1116,26 +1118,59 @@ class D3LinePlot extends D3View{
     _legendGeom = linePlot.legendEl
         .getBoundingClientRect(); 
     _legendWidth = parseFloat(_legendGeom.width*scale 
-        + 2*linePlot.options.legendPadding);
+        + 2*linePlot.options.legendPaddingX);
     _legendHeight = parseFloat(_legendGeom.height*scale
-        + 2*linePlot.options.legendPadding);
+        + 2*linePlot.options.legendPaddingY);
+    
+    
     // Legend outline
+    
     d3.select(linePlot.legendEl)
+        .append("g")
+        .attr("class","outlines")
         .append("rect")
-        .attr("class","legend-outline")
+        .attr("class","outer")
         .attr("height",_legendHeight)
         .attr("width",_legendWidth)
         .attr("stroke","#999")
-        .attr("fill","white")
-        .style("cursor","move");
-
-    _legendD3.raise();
+        .attr("fill","white");
     
+    d3.select(linePlot.legendEl)
+        .select(".outlines")
+        .append("rect")
+        .attr("class","inner")
+        .attr("height",_legendHeight-2*linePlot.options.legendPaddingY)
+        .attr("width",_legendWidth-2*linePlot.options.legendPaddingX)
+        .attr("x",linePlot.options.legendPaddingX)
+        .attr("y",linePlot.options.legendPaddingY)
+        .attr("fill","white")
+
+    d3.select(linePlot.legendEl)
+        .select(".outlines")
+        .append("text")
+        .attr("class","glyphicon drag")
+        .attr("alignment-baseline","text-before-edge")
+        .attr("fill","#999")
+        .style("cursor","move")
+        .text("\ue068")
+
+    d3.select(linePlot.legendEl).raise();
+    d3.select(linePlot.legendEl).select(".legend-entries").raise(); 
+
     // Set translation 
     _translate = D3LinePlot.legendLocation(
         linePlot,linePlot.plotHeight,linePlot.plotWidth);
-    d3.select(linePlot.legendEl).attr("transform",_translate)  
+    d3.select(linePlot.legendEl)
+        .select(".legend-entries")
+        .attr("transform",_translate); 
+    d3.select(linePlot.legendEl)
+        .select(".outlines")
+        .selectAll("*")
+        .attr("transform",_translate); 
     
+    
+    
+
     //.............. Highlight Line when Legend Entry Selected .................
     d3.select(linePlot.legendEl)
         .selectAll(".legend-entry")
@@ -1148,17 +1183,27 @@ class D3LinePlot extends D3View{
    
     //........................ Drag Legend ..................................... 
     d3.select(linePlot.legendEl)
+        .select(".drag")
         .call(d3.drag()
           .on("drag",function(){
             _plotHeight = linePlot.plotHeight; 
             _plotWidth = linePlot.plotWidth;
             _xDrag = d3.event.x;
-            _xDrag = _xDrag < 0 ? 0 : _xDrag > _plotWidth-_legendWidth 
-                ? _plotWidth-_legendWidth : _xDrag; 
+            _xDrag = _xDrag < _options.legendOffset ? _options.legendOffset 
+                : _xDrag > _plotWidth-_legendWidth-_options.legendOffset 
+                ? _plotWidth-_legendWidth-_options.legendOffset : _xDrag; 
             _yDrag = d3.event.y;
-            _yDrag = _yDrag < 0 ? 0 : _yDrag > _plotHeight - _legendHeight 
-                ? _plotHeight-_legendHeight : _yDrag; 
-            d3.select(this)
+            _yDrag = _yDrag < _options.legendOffset ? _options.legendOffset 
+                : _yDrag > _plotHeight - _legendHeight-_options.legendOffset 
+                ? _plotHeight-_legendHeight-_options.legendOffset : _yDrag; 
+            
+            d3.select(linePlot.legendEl)
+                .select(".outlines")
+                .selectAll("*")
+                .attr("transform","translate("+_xDrag+","+_yDrag+")");
+            
+            d3.select(linePlot.legendEl)
+                .select(".legend-entries")
                 .attr("transform","translate("+_xDrag+","+_yDrag+")");
           }));
     //-------------------------------------------------------------------------- 
@@ -1210,34 +1255,19 @@ class D3LinePlot extends D3View{
         ? 96 : options.printDpi;
     plotWidth = options.printPlotWidth*printDpi;
     plotHeight = plotWidth/options.plotRatio;
-    svgHeight = options.printHeight*printDpi; 
-    svgWidth = options.printWidth*printDpi;
     marginTop = options.printMarginTop*printDpi; 
+    svgHeight = options.printFooter ? options.printHeight*printDpi :
+        (plotHeight+marginTop);
+    svgWidth = options.printWidth*printDpi;
     marginLeft = (svgWidth-plotWidth);
     svgHtml = d3.select(linePlot.svgEl).node().outerHTML;
     scalePlot = plotWidth/linePlot.svgWidth;
     scaleDpi = printDpi/96;
     plotTransform = "translate("+marginLeft+","+marginTop+")"+
         " scale("+scalePlot+")";
-    plotTitle = linePlot.plotTitleEl.textContent;
+    plotTitle = options.printTitle ? linePlot.plotTitleEl.textContent : "";
     
     
-    
-    
-    let urlMaxChar = 150;
-    let a = Math.ceil(linePlot.metadata.url.length/urlMaxChar);
-    
-    footerText = [];
-    footerText.push(
-        "Created with: nshmp-haz version "+linePlot.metadata.version);
-    
-    for (let jc = 0; jc<a;jc++){
-      footerTe = linePlot.metadata.url.slice(urlMaxChar*jc,urlMaxChar*(jc+1));
-    }
-      
-    footerText.push(linePlot.metadata.time);
-    
-    nlines = footerText.length;
     //--------------------------------------------------------------------------
 
    
@@ -1268,35 +1298,57 @@ class D3LinePlot extends D3View{
         .attr("alignment-baseline","text-after-edge")
         .style("font-size",options.titleFontSize)
         .text(plotTitle);
-   
-    
+  
+    // Remove legend drag symbol
+    svgD3.select(".drag")
+      .remove(); 
 
     // Add print footer
-    svgD3.append("g")
-        .attr("class","print-footer")
-        .style("font-size",options.printFooterFontSize*scaleDpi)
-        .attr("transform","translate("+
-            (options.printFooterPadding*scaleDpi)+","+
-            (svgHeight-options.printFooterPadding*scaleDpi)+")")
-        .selectAll("text")
-        .data(footerText)
-        .enter()
-        .append("text")
-        .text(function(d,i){return footerText[nlines-i-1]})
-        .attr("y",function(d,i){
-            return -options.printFooterLineBreak*i*scaleDpi
-        });
+    if (options.printFooter){
+      let urlMaxChar = 120;
+      let nbreaks = Math.ceil(linePlot.metadata.url.length/urlMaxChar);
+      
+      footerText = [];
+      //footerText.push(
+      //    "Created with: nshmp-haz version "+linePlot.metadata.version);
+      
+      for (let jc = 0; jc<nbreaks;jc++){
+        footerText.push(
+            linePlot.metadata.url.slice(urlMaxChar*jc,urlMaxChar*(jc+1)));
+      }
+      footerText.push(linePlot.metadata.time);
+      
+      nlines = footerText.length;
+      
+      svgD3.append("g")
+          .attr("class","print-footer")
+          .style("font-size",options.printFooterFontSize*scaleDpi)
+          .attr("transform","translate("+
+              (options.printFooterPadding*scaleDpi)+","+
+              (svgHeight-options.printFooterPadding*scaleDpi)+")")
+          .selectAll("text")
+          .data(footerText)
+          .enter()
+          .append("text")
+          .text(function(d,i){return footerText[nlines-i-1]})
+          .attr("y",function(d,i){
+              return -options.printFooterLineBreak*i*scaleDpi
+          });
+    }
     //-------------------------------------------------------------------------- 
    
     
     //........................ Canvas Container ................................ 
+    let printHeight = options.printFooter ? options.printHeight :
+        (plotHeight/printDpi+options.printMarginTop);
+    
     canvasDivD3 = d3.select("body")
         .append("div")
         .attr("class","svg-to-canvas hidden");
     canvasD3 = canvasDivD3.append("canvas")
         .attr("height",svgHeight)
         .attr("width",svgWidth)
-        .style("height",options.printHeight+"in")
+        .style("height",printHeight+"in")
         .style("width",options.printWidth+"in");
 
     canvasEl = canvasD3.node();

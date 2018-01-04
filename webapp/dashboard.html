@@ -27,47 +27,49 @@
 <!-- ........................... Body ...................................... -->
 <body>
 
-  <div id="dash">
-    
-    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
-        href="/nshmp-haz-ws/model-compare.html">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h2 class="panel-title"> Model Comparison </h2> 
+  <div id="container">
+    <div id="dash">
+     
+      <div class="col-sm-offset-1 col-sm-4 col-sm-offset-1">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <img class="img-responsive" 
+                src="/nshmp-haz-ws/img/modelCompareIcon.svg">
+          </div>
+          <div class="panel-footer">
+            <h2 class="panel-title"> Model Comparison </h2> 
+          </div>
         </div>
       </div>
-    </a>
-  
-    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
-        href="/nshmp-haz-ws/model-explorer.html">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h2 class="panel-title"> Model Explorer </h2> 
+      
+      
+      <div class="col-sm-offset-1 col-sm-4 col-sm-offset-1">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <img class="img-responsive" 
+                src="/nshmp-haz-ws/img/modelExplorerIcon.svg">
+          </div>
+          <div class="panel-footer">
+            <h2 class="panel-title"> Model Explorer </h2> 
+          </div>
         </div>
       </div>
-    </a>
-  
-    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
-        href="/nshmp-haz-ws/spectra-plot.html">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h2 class="panel-title"> Response Spectrum </h2> 
+      
+      
+      <div class="col-sm-offset-1 col-sm-4 col-sm-offset-1">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <img class="img-responsive" 
+                src="/nshmp-haz-ws/img/spectraIcon.svg">
+          </div>
+          <div class="panel-footer">
+            <h2 class="panel-title"> Response Spectra </h2> 
+          </div>
         </div>
       </div>
-    </a>
-  
-    <a class="col-sm-offset-1 col-sm-4 col-sm-offset-1"
-        href="/nshmp-haz-ws/test-sites.html">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h2 class="panel-title"> Test Sites </h2> 
-        </div>
-      </div>
-    </a>
-  
-  
-  </div>
 
+    </div>
+  </div>
 
   <!-- ..................... Import JavaScript ............................. -->
 
@@ -85,7 +87,10 @@
   <script src="https://d3js.org/d3.v4.min.js"> </script>
   <script src="js/lib/Footer.js" charset="UTF-8"> </script>
   <script src="js/lib/Header.js" charset="UTF-8"> </script>
- 
+  <script src="js/lib/D3View.js" charset="UTF-8"></script>                      
+  <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>                  
+  <script src="js/lib/Tooltip.js" charset="UTF-8"></script>                     
+  
   <script> 
     let footer = new Footer();
     footer.removeButtons();

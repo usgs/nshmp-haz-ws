@@ -43,6 +43,7 @@ class ModelExplorer extends Hazard{
     
     tooltipText = ["Component", "GM (g)", "AFE"];
     plotOptions = {
+      colSizeDefault: "min",
       legendLocation: "bottomleft",
       tooltipText: tooltipText
     };
@@ -247,16 +248,18 @@ class ModelExplorer extends Hazard{
         D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
       });
       ModelExplorer.plotComponentCurves(_this,jsonResponse);
-      
+      _this.hazardPlot.panelResize("min");    
     }else if (dataType == "static" && _this.componentPlot != undefined){
       _this.componentPlot.hide(true);
+      _this.hazardPlot.panelResize("max");
     }
     
   }
 
 
   static plotComponentCurves(_this,hazardReturn){
-   
+    
+    _this.componentPlot.panelResize("min");
     let imtSelectedDisplay = _this.imtEl.querySelector(":checked").text; 
     let title = "Component Curves at "+ imtSelectedDisplay
     let filename = "componentCurve-"+_this.imtEl.value;
