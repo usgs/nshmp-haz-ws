@@ -1,4 +1,4 @@
-
+"use strict"
 
 
 class Hazard{
@@ -18,7 +18,11 @@ class Hazard{
     
     // Create spinner                                                           
     _this.spinner = new Spinner();                                              
+
+    // Settings menu
+    _this.settings = new Settings(_this.footer.settingsBtnEl);
     
+     
     _this.controlEl = document.querySelector("#control");
     _this.editionEl = document.getElementById("edition");
     _this.regionEl = document.getElementById("region");
@@ -53,9 +57,9 @@ class Hazard{
 
 
   //.................. Method: getHazardParameters .............................
-  static getHazardParameters(callback){
-    var dynamicUrl = "https://earthquake.usgs.gov/nshmp-haz-ws/hazard";
-    var staticUrl  = "https://earthquake.usgs.gov/hazws/staticcurve/1";
+  static getHazardParameters(_this,callback){
+    var dynamicUrl = _this.settings.serverUrl + "nshmp-haz-ws/hazard";
+    var staticUrl  = _this.settings.serverUrl + "hazws/staticcurve/1";
     
     
     let dynamicPromise = $.getJSON(dynamicUrl);
@@ -180,11 +184,11 @@ class Hazard{
     /{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
   */
   static composeHazardUrl(obj,edition,region,lat,lon,vs30,dataType){
-
+    console.log(obj.settings.serverUrl);
     if (dataType == "static"){  
       var urlInfo =  {
         dataType: "static",
-        url: obj.options.staticUrl +
+        url: obj.settings.serverUrl + obj.options.staticUrl +
         edition + "/" + 
         region  + "/" +
         lon     + "/" +
@@ -195,7 +199,7 @@ class Hazard{
     }else if (dataType == "dynamic"){
       var urlInfo =  {
         dataType: "dynamic", 
-        url: obj.options.dynamicUrl +
+        url: obj.settings.serverUrl + obj.options.dynamicUrl +
         "?edition="   + edition   +
         "&region="    + region    +
         "&longitude=" + lon       +

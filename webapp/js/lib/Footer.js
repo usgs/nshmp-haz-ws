@@ -87,13 +87,21 @@ class Footer{
         .attr("id","update-plot")
         .attr("class","btn btn-primary")
         .text("Update");
+    
     // Append raw data button to footer
-    footerD3.append("span")
-        .append("button")
+    let btnRightD3 = footerD3.append("span")
+        .append("div")
+        .attr("class","btn-float-right")
+    
+    btnRightD3.append("button")
         .attr("id","raw-data")
         .attr("class","btn btn-danger")
         .text("Raw Data");
     
+    btnRightD3.append("span")
+        .attr("class","glyphicon glyphicon-cog settings-btn")
+        .attr("title","Settings");
+
     footerD3.lower();
     //--------------------------------------------------------------------------
 
@@ -102,6 +110,7 @@ class Footer{
     _this.footerEl = footerD3.node();
     _this.rawBtnEl = _this.footerEl.querySelector("#raw-data");
     _this.updateBtnEl = _this.footerEl.querySelector("#update-plot");
+    _this.settingsBtnEl = _this.footerEl.querySelector(".settings-btn");
     //--------------------------------------------------------------------------
     
   }

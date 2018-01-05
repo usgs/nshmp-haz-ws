@@ -50,6 +50,9 @@ class Spectra{
     _this.spinner = new Spinner();
     _this.spinner.on();
 
+    // Settings menu                                                            
+    _this.settings = new Settings(_this.footer.settingsBtnEl);
+    
     // Plot setup
     Spectra.plotSetup(_this);
     
@@ -59,6 +62,7 @@ class Spectra{
     
     //......................... Update Plot on Click ...........................  
     $(_this.footer.updateBtnEl).click(function (){   
+      _this.spectraWs = _this.settings.serverUrl + "nshmp-haz-ws/spectra";
       inputs = $("#inputs").serialize();
       url = _this.spectraWs + "?" + inputs; 
       _this.spinner.on();
@@ -337,7 +341,8 @@ class Spectra{
     
     //............................ Plot ........................................ 
     inputs = $("#inputs").serialize();
-    url = "/nshmp-haz-ws/spectra?"+ inputs;
+    spectra.spectraWs = spectra.settings.serverUrl + "nshmp-haz-ws/spectra?";
+    url = spectra.spectraWs + inputs;
     spectra.footerOptions.rawBtnDisable = false;
     spectra.footerOptions.updateBtnDisable = false;
     spectra.footer.setOptions(spectra.footerOptions);

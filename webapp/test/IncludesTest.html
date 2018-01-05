@@ -18,14 +18,13 @@
   <div id="testsites"></div>  
 
 
-
-
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>   
   <script src="https://d3js.org/d3.v4.min.js"></script>  
   <script src="/nshmp-haz-ws/js/lib/Header.js" charset="UTF-8"></script>
   <script src="/nshmp-haz-ws/js/lib/Footer.js" charset="UTF-8"></script>
   <script src="/nshmp-haz-ws/js/lib/Spinner.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Settings.js" charset="UTF-8"></script>
 
   
   <script>
@@ -40,7 +39,11 @@
     setTimeout(function(){spinner.off()},1000);
     setTimeout(function(){spinner.on("Calculating ...")},2000);
     setTimeout(function(){spinner.off()},3000);
-
+  
+  
+    let settingsBtnEl = footer.settingsBtnEl;
+    let settings = new Settings(settingsBtnEl);
+  
   </script>
 
 

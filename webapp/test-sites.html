@@ -55,6 +55,7 @@
   <script src="js/lib/D3MapView.js" charset="UTF-8"> </script>
   <script src="js/lib/D3MapPlot.js" charset="UTF-8"> </script>
   <script src="js/lib/Tooltip.js" charset="UTF-8"> </script>
+  <script src="js/lib/Settings.js" charset="UTF-8"> </script>
   
   
   <script> 
@@ -66,9 +67,11 @@
     footer.setOptions(options);
     let header = new Header();
     header.setTitle("Test Sites");
-    
+
+    let settings = new Settings(footer.settingsBtnEl);
+     
     let el = document.querySelector("#testsites");
-    let map = new D3MapPlot(el);
+    let map = new D3MapPlot(el,{},settings);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

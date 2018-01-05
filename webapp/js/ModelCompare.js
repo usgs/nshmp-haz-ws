@@ -26,8 +26,8 @@ class ModelCompare extends Hazard{
         regionDefault: "COUS",
         imtDefault: "PGA",
         vs30Default: 760,
-        staticUrl: "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/",
-        dynamicUrl: "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard"
+        staticUrl: "hazws/staticcurve/1/",
+        dynamicUrl: "nshmp-haz-ws/hazard"
     };
 
     //..................... Plot Setup .........................................
@@ -70,7 +70,7 @@ class ModelCompare extends Hazard{
 
 
     //....................... Get Hazard Parameters ............................
-    ModelCompare.getHazardParameters(setParameters); 
+    ModelCompare.getHazardParameters(_this,setParameters); 
     function setParameters(par){
       _this.spinner.off();
       _this.parameters = par;

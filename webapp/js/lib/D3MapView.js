@@ -97,7 +97,7 @@ class D3MapView{
 
 
   //.......................... D3MapView Constructor ...........................
-  constructor(containerEl,options){
+  constructor(containerEl,options,settings){
 
     //............................ Variables ...................................
     let _this,
@@ -130,6 +130,8 @@ class D3MapView{
     _this.selectedRegionId;
     _this.siteFormEl;
     _this.siteListEl;
+
+    _this.settings = settings;
     //--------------------------------------------------------------------------
 
 

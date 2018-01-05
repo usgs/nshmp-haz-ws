@@ -27,8 +27,8 @@ class ModelExplorer extends Hazard{
         regionDefault: "COUS",
         imtDefault: "PGA",
         vs30Default: 760,
-        staticUrl: "https://dev01-earthquake.cr.usgs.gov/hazws/staticcurve/1/",
-        dynamicUrl: "https://dev01-earthquake.cr.usgs.gov/nshmp-haz-ws/hazard"
+        staticUrl: "hazws/staticcurve/1/",
+        dynamicUrl: "nshmp-haz-ws/hazard"
     };
 
     //..................... Plot Setup .........................................
@@ -53,7 +53,7 @@ class ModelExplorer extends Hazard{
 
     
     //....................... Get Hazard Parameters ............................
-    Hazard.getHazardParameters(setParameters); 
+    Hazard.getHazardParameters(_this,setParameters); 
     function setParameters(par){
       _this.spinner.off();
       _this.parameters = par;
