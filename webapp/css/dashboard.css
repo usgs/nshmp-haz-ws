@@ -22,3 +22,12 @@
   background-color: #f7f7f7;                                                    
   font-family: 'HelveticaNeue-Light',sans-serif;                                
 }  
+
+
+.panel-body{
+  padding: 0;
+}
+
+.panel:hover{ 
+  cursor: pointer;
+}

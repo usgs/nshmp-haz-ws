@@ -156,6 +156,7 @@ class D3View{
       printPlotWidth: 10,
       printDpi: 600,
       printMarginTop: 1,
+      printMarginLeft: 0,
       showLegend: true,
       tickFontSize: 10,
       titleFontSize: 20,

@@ -1259,14 +1259,14 @@ class D3LinePlot extends D3View{
     svgHeight = options.printFooter ? options.printHeight*printDpi :
         (plotHeight+marginTop);
     svgWidth = options.printWidth*printDpi;
-    marginLeft = (svgWidth-plotWidth);
+    marginLeft = (svgWidth-plotWidth) + (options.printMarginLeft*printDpi);
     svgHtml = d3.select(linePlot.svgEl).node().outerHTML;
     scalePlot = plotWidth/linePlot.svgWidth;
     scaleDpi = printDpi/96;
     plotTransform = "translate("+marginLeft+","+marginTop+")"+
         " scale("+scalePlot+")";
     plotTitle = options.printTitle ? linePlot.plotTitleEl.textContent : "";
-    
+   
     
     //--------------------------------------------------------------------------
 
@@ -1362,12 +1362,10 @@ class D3LinePlot extends D3View{
     svgImgSrc = "data:image/svg+xml;base64,"+ btoa(svgHtml);                 
     svgImg = new Image();
     svgImg.src = svgImgSrc; 
-    
     // Make SVG into desired format
     svgImg.onload = function(){
       svgDivD3.remove();
       canvasDivD3.remove();
-      
       canvasContext.fillStyle = "white";
       canvasContext.fillRect(0,0,svgWidth,svgHeight);
       canvasContext.drawImage(svgImg,0,0);

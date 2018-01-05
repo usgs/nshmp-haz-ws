@@ -135,7 +135,7 @@ class D3MapView{
 
     //............................ Options .....................................
     _this.options = {
-      defaultRegion: "CEUS",
+      defaultRegion: "COUS",
       defaultSite: null,
       marginBottom: 20,
       marginLeft: 20,

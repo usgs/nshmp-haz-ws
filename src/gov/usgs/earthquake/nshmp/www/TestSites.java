@@ -33,7 +33,8 @@ public class TestSites{
    
     //.............. Get All Test Site Regions ..............
     Map<String,EnumSet<NshmpSite>> nshmpSites = new HashMap<>();    // Create map of region ids and the region from NshmpSite
-    nshmpSites.put("ceus",NshmpSite.ceus());                        
+    nshmpSites.put("ceus",NshmpSite.ceus());  
+    nshmpSites.put("cous", NshmpSite.cous());
     nshmpSites.put("wus", NshmpSite.wus());
     nshmpSites.put("ak", NshmpSite.alaska());
     nshmpSites.put("facilities", NshmpSite.facilities());
@@ -101,6 +102,11 @@ public class TestSites{
           this.regionId      = "CEUS";
           this.regionDisplay = "Central & Eastern US";
           this.region        = Region.CEUS;
+          break;
+        case "cous":
+          this.regionId      = "COUS";
+          this.regionDisplay = "Conterminous US";
+          this.region        = Region.COUS;
           break;
         case "wus":
           this.regionId      = "WUS";

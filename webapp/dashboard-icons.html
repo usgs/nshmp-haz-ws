@@ -18,6 +18,7 @@
   <!-- CSS Files -->
   <link rel="stylesheet" href="css/template.css" type="text/css">
   <link rel="stylesheet" href="css/D3View.css" type="text/css"> 
+  <link rel="stylesheet" href="css/D3MapView.css" type="text/css"> 
 
   <style>
     #dash{                                                                          
@@ -28,6 +29,7 @@
       left:0;                                                                       
       margin: 2em 0 3.5em 0;                                                        
       padding: 20px;                                                                
+      overflow: auto;
     } 
   </style>
 </head>
@@ -55,11 +57,15 @@
 
   <!-- Application Specific JavaScript -->
   <script src="https://d3js.org/d3.v4.min.js"> </script>
+  <script src="https://d3js.org/topojson.v2.min.js"> </script>  
   <script src="js/lib/Footer.js" charset="UTF-8"> </script>
   <script src="js/lib/Header.js" charset="UTF-8"> </script>
+  <script src="js/lib/Spinner.js" charset="UTF-8"> </script>                    
   <script src="js/lib/D3View.js" charset="UTF-8"></script>                      
   <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>                  
-  <script src="js/lib/Tooltip.js" charset="UTF-8"></script>                     
+  <script src="js/lib/D3MapView.js" charset="UTF-8"> </script>                  
+  <script src="js/lib/D3MapPlot.js" charset="UTF-8"> </script>                  
+  <script src="js/lib/Tooltip.js" charset="UTF-8"> </script> 
   
   <script> 
     let footer = new Footer();
@@ -167,7 +173,47 @@
     d3.select(spectra.xAxisEl).remove();
     d3.select(spectra.yAxisEl).remove();
     //--------
+    
      
+    // .... Map
+    plotOptions.printMarginLeft = 1;
+    let a = new D3LinePlot(el,plotOptions);
+    a.data = data;
+    a.labels = label;
+    a.ids = label;
+    a.plotFilename = "testSiteIcon";
+    a.plotData();
+    d3.select(a.el)
+        .classed("hidden",false);
+    d3.select(a.svgEl).remove();
+    d3.select(a.plotBodyEl)
+        .style("height","500px"); 
+    
+    let mapOptions = {
+        pointRadius: 4
+    };
+    let testSite = new D3MapPlot(a.plotBodyEl,mapOptions);
+    d3.select(testSite.el)
+        .select(".control-panel")
+        .remove();
+    
+    d3.select(testSite.el).style("width","100%");
+    d3.select(testSite.mapEl).style("height","100%");
+   
+    d3.select(testSite.svgEl)
+        .attr("viewBox","0 0 500 500")
+        .attr("version",1.1)                                                    
+        .attr("xmlns","http://www.w3.org/2000/svg")                             
+        .attr("preserveAspectRatio","xMinYMin meet")
+        .attr("height",null)
+        .attr("width",null);
+    a.svgEl = testSite.svgEl; 
+    //-----
+         
+    d3.selectAll(".btn-right").remove(); 
+    d3.selectAll(".btn-left").remove(); 
+    d3.selectAll(".data-table").remove();
+  
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 
