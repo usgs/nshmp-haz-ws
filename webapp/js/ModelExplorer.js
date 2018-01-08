@@ -150,6 +150,11 @@ class ModelExplorer extends Hazard{
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
     
+    // Reset listeners
+    $(_this.imtEl).off();
+    $(_this.hazardPlot.legendEl).off();
+    $(_this.hazardPlot.allDataEl).off();
+    
     let title = "Hazard Curves";
     let filename = "hazardCurves";
     var seriesData = [];
@@ -213,6 +218,8 @@ class ModelExplorer extends Hazard{
     _this.hazardPlot.plotData();
     //--------------------------------------------------------------------------
    
+ 
+
   
     // Override onclick in D3LinePlot 
     d3.select(_this.hazardPlot.allDataEl)
@@ -241,13 +248,16 @@ class ModelExplorer extends Hazard{
         });
     
     D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
+    
+    $(_this.imtEl).change(function(){
+      D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
+      if (dataType == "dynamic")
+        ModelExplorer.plotComponentCurves(_this,jsonResponse);
+    });
 
     if (dataType == "dynamic"){ 
-      $(_this.imtEl).change(function(){
-        ModelExplorer.plotComponentCurves(_this,jsonResponse);
-        D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
-      });
       ModelExplorer.plotComponentCurves(_this,jsonResponse);
+      _this.componentPlot.panelResize("min");
       _this.hazardPlot.panelResize("min");    
     }else if (dataType == "static" && _this.componentPlot != undefined){
       _this.componentPlot.hide(true);
@@ -259,7 +269,6 @@ class ModelExplorer extends Hazard{
 
   static plotComponentCurves(_this,hazardReturn){
     
-    _this.componentPlot.panelResize("min");
     let imtSelectedDisplay = _this.imtEl.querySelector(":checked").text; 
     let title = "Component Curves at "+ imtSelectedDisplay
     let filename = "componentCurve-"+_this.imtEl.value;

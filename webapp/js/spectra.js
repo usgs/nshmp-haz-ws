@@ -397,8 +397,9 @@ class Spectra{
     sigmaTooltipText = ["GMM", "Period (s)", "SD"];
     sigmaPlotOptions = {
         legendFontSize: 10,
-        legendLineBreak: 12,
-        legendPadding: 5,
+        legendLineBreak: 14,
+        legendPaddingX: 15,
+        legendPaddingY: 12,
         legendLocation: "topright",
         plotHeight: 224,
         plotWidth: 896,

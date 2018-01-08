@@ -184,7 +184,6 @@ class Hazard{
     /{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
   */
   static composeHazardUrl(obj,edition,region,lat,lon,vs30,dataType){
-    console.log(obj.settings.serverUrl);
     if (dataType == "static"){  
       var urlInfo =  {
         dataType: "static",
@@ -480,9 +479,6 @@ class Hazard{
     let imt = _this.imtEl.value;
     
     //....................... Setup URLs to Submit .............................
-    var canSubmit = Hazard.checkCoordinates(_this,true,true);
-    
-    if (!canSubmit) return;
     
     _this.spinner.on("Calculating ...");
     
@@ -527,9 +523,12 @@ class Hazard{
 
   //...................... Call the nshmp-haz Code Given URL ...................
   static callHazard(_this,callback){
-
+    
+    var canSubmit = Hazard.checkCoordinates(_this,true,true);
+    if (!canSubmit) return;
+    
     let urlInfo = Hazard.getSelections(_this);
-   
+    
     _this.footerOptions = {
       rawBtnDisable: false,
       updateBtnDisable: false
