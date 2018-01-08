@@ -17,8 +17,8 @@
 
    
   <!-- ........... CSS Files ....... -->
-  <link rel="stylesheet" href="css/template.css" type="text/css">
-  <link rel="stylesheet" href="css/util.css"     type="text/css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/util.css"     type="text/css">
   <!-- ........... CSS Files ....... -->
  
 </head>
@@ -30,26 +30,7 @@
 <body>
 
 
-  <!-- ########################################### -->
-  <!-- -->
-  <!-- ............ Include Files ................ -->
 
-  <!-- ........... Include Header ................ -->
-  <div id="include-header"></div>
-  <!-- ........... Include Header ................ -->
-  
-  <!-- ............. Include Footer .............. -->
-  <div id="include-footer"></div>  
-  <!-- ............. Include Footer .............. -->
-
-  <!-- .......... End: Include Files ............. -->
-  <!-- -->
-  <!-- ########################################### -->
-
-
-
-  <!-- ######################################################## -->
-  <!-- -->
   <!-- ................. Main Content ......................... -->
   <div id="content">
     <div class="col-md-8 col-md-offset-2 col-sm-12">
@@ -73,14 +54,9 @@
     </div>
   </div>
   <!-- .............. End: Main Content ....................... -->
-  <!-- -->
-  <!-- ######################################################## -->
 
 
 
-
-  <!-- ######################################################## -->
-  <!-- -->
   <!-- ................. Import JavaScript .................... -->
 
   <!-- ............ jQuery ................ -->
@@ -93,14 +69,16 @@
   <!-- ............. Bootstrap ............ -->
 
   <!-- ..... Application Specific JavaScript ......... -->
-  <script src="js/common.js"  type="text/javascript" charset="UTF-8"></script>
-  <script src="js/util.js"    type="text/javascript" charset="UTF-8"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script> 
+  <script src="/nshmp-haz-ws/js/lib/Header.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Footer.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/Util.js" charset="UTF-8"></script>
   <!-- ..... Application Specific JavaScript ......... -->
 
-
+  <script>
+    let util = new Util();
+  </script>
   <!-- ............... End: Import JavaScript ................. -->
-  <!-- -->
-  <!-- ######################################################## -->
 
 
 
