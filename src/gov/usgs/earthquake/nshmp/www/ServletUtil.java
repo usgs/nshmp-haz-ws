@@ -177,10 +177,9 @@ public class ServletUtil implements ServletContextListener {
       }
 
       return HazardModel.load(path);
-    } catch (URISyntaxException | MalformedURLException e) {
+      
+    } catch (Exception e) {
       throw new RuntimeException(e);
-    } catch (IOException iox) {
-      throw new RuntimeException(iox);
     }
   }
 
