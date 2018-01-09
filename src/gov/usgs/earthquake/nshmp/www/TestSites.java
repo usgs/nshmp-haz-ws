@@ -34,14 +34,12 @@ public class TestSites{
     //.............. Get All Test Site Regions ..............
     Map<String,EnumSet<NshmpSite>> nshmpSites = new HashMap<>();    // Create map of region ids and the region from NshmpSite
     nshmpSites.put("ceus",NshmpSite.ceus());  
+    nshmpSites.put("cous", NshmpSite.cous());
     nshmpSites.put("wus", NshmpSite.wus());
     nshmpSites.put("ak", NshmpSite.alaska());
     nshmpSites.put("facilities", NshmpSite.facilities());
     nshmpSites.put("nehrp", NshmpSite.nehrp());
     nshmpSites.put("nrc", NshmpSite.nrc());
-    EnumSet<NshmpSite> cous = NshmpSite.ceus();
-    cous.addAll(NshmpSite.wus());
-    nshmpSites.put("cous", cous);
     //--------------------------------------------------------
   
     
