@@ -62,7 +62,7 @@ class Spectra{
     
     //......................... Update Plot on Click ...........................  
     $(_this.footer.updateBtnEl).click(function (){   
-      _this.spectraWs = _this.settings.serverUrl + "nshmp-haz-ws/spectra";
+      //_this.spectraWs = _this.settings.serverUrl + "nshmp-haz-ws/spectra";
       inputs = $("#inputs").serialize();
       url = _this.spectraWs + "?" + inputs; 
       _this.spinner.on();
@@ -341,8 +341,8 @@ class Spectra{
     
     //............................ Plot ........................................ 
     inputs = $("#inputs").serialize();
-    spectra.spectraWs = spectra.settings.serverUrl + "nshmp-haz-ws/spectra?";
-    url = spectra.spectraWs + inputs;
+    //spectra.spectraWs = spectra.settings.serverUrl + "nshmp-haz-ws/spectra?";
+    url = spectra.spectraWs + "?" + inputs;
     spectra.footerOptions.rawBtnDisable = false;
     spectra.footerOptions.updateBtnDisable = false;
     spectra.footer.setOptions(spectra.footerOptions);
