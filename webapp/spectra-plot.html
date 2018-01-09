@@ -5,79 +5,48 @@
 
 <html lang="en">
 
-<!-- ................... Head ................ -->
+<!-- ......................... Head ........................................ -->
 <head>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8"> 
 
-  <!-- Title is defined in common.js -->
+  <!-- Bootstrap -->
+  <link rel="stylesheet" 
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
-  <!-- ............. Bootstrap ............ -->
-   <!-- 
-      Do not upgrade to Bootstrap 3.3.7; focus ring shows up on radio
-      button groups and interferes with tooltip visibility.
-    -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <!-- ............. Bootstrap ............ -->
-
-   
-  <!-- ........... CSS Files ....... -->
+  <!-- CSS Files -->
   <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/D3View.css" type="text/css">
   <link rel="stylesheet" href="css/spectra.css"  type="text/css">
-  <!-- ........... CSS Files ....... -->
  
 </head>
-<!-- ................... Head ................ -->
+<!-- ......................... End: Head ................................... -->
 
 
 
-<!-- ................... Body ................ -->
+<!-- ........................... Body ...................................... -->
 <body>
 
 
-  <!-- ########################################### -->
-  <!-- -->
-  <!-- ............ Include Files ................ -->
-
-  <!-- ........... Include Header ................ -->
-  <div id="include-header"></div>
-  <!-- ........... Include Header ................ -->
-  
-  <!-- ............. Include Footer .............. -->
-  <div id="include-footer"></div>  
-  <!-- ............. Include Footer .............. -->
-
-  <!-- .......... Include Spinner ................ -->
-  <div id="include-spinner"></div>
-  <!-- .......... Include Spinner ................ -->
-
-  <!-- .......... End: Include Files ............. -->
-  <!-- -->
-  <!-- ########################################### -->
-
-
-  <!-- ##################################################################################### -->
-  <!-- -->
-  <!-- ................................. Control Panel ..................................... -->
-
+  <!-- ...................... Control Panel ................................ -->
   <div id="control">
-
     <!--
-    The reponse spectra control panel contains form elements used as calculation
-    parameters and controls that manipulate those parameters. The controls are
-    typically radio-button style choices, however mixing radio buttons into the
-    parameter form creates problems as we do not want the values of these controls
-    submitted, but without the 'name' field, they do not behave properly. For the
-    time being, such controls are implemented as regular button groups with added
-    toggle (e.g. single-selction) behavior added that is reflected by the 'active'
+    The reponse spectra control panel contains form elements used as 
+    calculation parameters and controls that manipulate those parameters. 
+    The controls are typically radio-button style choices, however mixing 
+    radio buttons into the parameter form creates problems as we do not want 
+    the values of these controls submitted, but without the 'name' field, 
+    they do not behave properly. For the time being, such controls are 
+    implemented as regular button groups with added toggle 
+    (e.g. single-selction) behavior added that is reflected by the 'active'
     CSS class.
     -->
   
     <label for="gmms" class="control-group">Ground Motion Models:</label>
    
     <div id="gmm-sorter" class="btn-group btn-group-xs" data-toggle="buttons">
-      <label class="btn btn-default active"
+      <label class="btn btn-default gmm-group active"
              data-toggle="tooltip"
              data-container="body"
              title="Sort by Group"
@@ -91,7 +60,7 @@
         <span class="glyphicon glyphicon-list"
               aria-hidden="true" />
       </label>
-      <label class="btn btn-default"
+      <label class="btn btn-default gmm-alpha"
              data-toggle="tooltip"
              data-container="body"
              title="Sort Alphabetically"
@@ -108,19 +77,31 @@
     </div>
   
     <form id="inputs">
-      <select class="form-control input-sm" name="gmm" id="gmms" size="16" multiple="true"></select>
+      <select class="form-control input-sm" 
+          name="gmm" 
+          id="gmms" 
+          size="16" 
+          multiple="true" 
+          autofocus>
+      </select>
     
       <div class="form-horizontal">
         
-        <label class="control-spacer control-group">Event Parameters:</label>
+        <label class="control-spacer control-group">
+            Event Parameters:
+        </label>
         <div class="form-group form-group-sm show-grid">
-          <label class="col-sm-2 control-label" for="Mw">M<sub>W</sub></label>
+          <label class="col-sm-2 control-label" for="Mw">
+              M<sub>W</sub>
+          </label>
           <div class="col-sm-3">
             <input type="text" class="form-control" id="Mw" name="Mw">
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rake">Rake</label>
+          <label class="col-sm-2 control-label" for="rake">
+              Rake
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
               <input type="text" class="form-control" id="rake" name="rake">
@@ -128,18 +109,41 @@
             </div>
           </div>
           <div class="col-sm-6 col-sm-offset-1">
-            <div id="fault-style" class="btn-group btn-group-xs" data-toggle="buttons">
-              <button type="button" id="fault-style-strike" class="btn btn-default active" title="Strike-Slip">Strike-Slip</button>
-              <button type="button" id="fault-style-normal" class="btn btn-default" title="Normal">Normal</button>
-              <button type="button" id="fault-style-reverse" class="btn btn-default" title="Normal">Reverse</button>
+            <div id="fault-style" 
+                class="btn-group btn-group-xs" 
+                data-toggle="buttons">
+              <button type="button" 
+                  id="fault-style-strike" 
+                  class="btn btn-default active" 
+                  title="Strike-Slip">
+                      Strike-Slip
+              </button>
+              <button type="button" 
+                  id="fault-style-normal" 
+                  class="btn btn-default" 
+                  title="Normal">
+                      Normal
+              </button>
+              <button type="button" 
+                  id="fault-style-reverse" 
+                  class="btn btn-default" 
+                  title="Normal">
+                      Reverse
+              </button>
             </div>
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="zHyp">Z<sub>HYP</sub></label>
+          <label class="col-sm-2 control-label" for="zHyp">
+              Z<sub>HYP</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" readonly="true" id="zHyp" name="zHyp">
+              <input type="text" 
+                  class="form-control" 
+                  readonly="true" 
+                  id="zHyp" 
+                  name="zHyp">
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -151,25 +155,38 @@
           </div>
         </div>
     
-        <label class="control-spacer control-group">Source Geometry:</label>
+        <label class="control-spacer control-group">
+            Source Geometry:
+        </label>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="zTop">Z<sub>TOP</sub></label>
+          <label class="col-sm-2 control-label" for="zTop">
+              Z<sub>TOP</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
               <input type="text" class="form-control" id="zTop" name="zTop">
               <span class="input-group-addon">km</span>
             </div>
           </div>
-          <label class="col-sm-1 control-label" for="dip">Dip</label>
+          <label class="col-sm-1 control-label" for="dip">
+              Dip
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="number" class="form-control" id="dip" name="dip" min="0" max="90">
+              <input type="number" 
+                  class="form-control" 
+                  id="dip" 
+                  name="dip" 
+                  min="0" 
+                  max="90">
               <span class="input-group-addon">°</span>
             </div>
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="width">Width</label>
+          <label class="col-sm-2 control-label" for="width">
+              Width
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
               <input type="text" class="form-control" id="width" name="width">
@@ -178,28 +195,44 @@
           </div>
         </div>
     
-        <label class="control-spacer control-group">Path Parameters:</label>
+        <label class="control-spacer control-group">
+            Path Parameters:
+        </label>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rX">R<sub>X</sub></label>
+          <label class="col-sm-2 control-label" for="rX">
+              R<sub>X</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
               <input type="text" class="form-control" id="rX" name="rX">
               <span class="input-group-addon">km</span>
             </div>
           </div>
-          <label class="col-sm-1 control-label disabled" for="rY">R<sub>Y</sub></label>
+          <label class="col-sm-1 control-label disabled" for="rY">
+              R<sub>Y</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" disabled="true" id="rY" name="rY">
+              <input type="text" 
+                  class="form-control" 
+                  disabled="true" 
+                  id="rY" 
+                  name="rY">
               <span class="input-group-addon">km</span>
             </div>
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rRup">R<sub>RUP</sub></label>
+          <label class="col-sm-2 control-label" for="rRup">
+              R<sub>RUP</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" readonly="true" id="rRup" name="rRup">
+              <input type="text" 
+                  class="form-control" 
+                  readonly="true" 
+                  id="rRup" 
+                  name="rRup">
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -212,24 +245,44 @@
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rJB">R<sub>JB</sub></label>
+          <label class="col-sm-2 control-label" for="rJB">
+              R<sub>JB</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" readonly="true" id="rJB" name="rJB">
+              <input type="text" 
+                  class="form-control" 
+                  readonly="true" 
+                  id="rJB" 
+                  name="rJB">
               <span class="input-group-addon">km</span>
             </div>
           </div>
           <div class="col-sm-6 col-sm-offset-1">
             <div id="hw-fw" class="btn-group btn-group-xs">
-              <button type="button" id="hw-fw-hw" class="btn btn-default active" title="Hanging Wall">Hanging</button>
-              <button type="button" id="hw-fw-fw" class="btn btn-default" title="Foot Wall">Foot Wall</button>
+              <button type="button" 
+                  id="hw-fw-hw" 
+                  class="btn btn-default active" 
+                  title="Hanging Wall">
+                      Hanging
+              </button>
+              <button type="button" 
+                  id="hw-fw-fw" 
+                  class="btn btn-default" 
+                  title="Foot Wall">
+                      Foot Wall
+              </button>
             </div>
           </div>
         </div>
     
-        <label class="control-spacer control-group">Site &amp; Basin:</label>
+        <label class="control-spacer control-group">
+            Site &amp; Basin:
+        </label>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="vs30">V<sub>S</sub>30</label>
+          <label class="col-sm-2 control-label" for="vs30">
+              V<sub>S</sub>30
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
               <input type="text" class="form-control" id="vs30" name="vs30">
@@ -237,30 +290,54 @@
             </div>
           </div>
           <div class="col-sm-6 col-sm-offset-1">
-            <div id="vs-infer" class="btn-group btn-group-xs disabled" data-toggle="buttons">
-              <label class="btn btn-default" title="Vs30 Measured" for="vs-measured">
-                Measured
-                <input type="radio" value="measured" id="vs-measured" name="vsInf">
+            <div id="vs-infer" 
+                class="btn-group btn-group-xs disabled" 
+                data-toggle="buttons">
+              <label class="btn btn-default" 
+                  title="Vs30 Measured" 
+                  for="vs-measured">
+                      Measured
+                <input type="radio" 
+                    value="measured" 
+                    id="vs-measured"
+                    name="vsInf">
               </label>
-              <label class="btn btn-default active" title="Vs30 Inferred" for="vs-inferred">
-                Inferred
-                <input type="radio" value="inferred" id="vs-inferred" name="vsInf" checked="true">
+              <label class="btn btn-default active" 
+                  title="Vs30 Inferred" 
+                  for="vs-inferred">
+                      Inferred
+                <input type="radio" 
+                    value="inferred" 
+                    id="vs-inferred" 
+                    name="vsInf" 
+                    checked="true">
               </label>
             </div>
           </div>
         </div>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="z1p0">Z<sub>1.0</sub></label>
+          <label class="col-sm-2 control-label" for="z1p0">
+              Z<sub>1.0</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" placeholder="default" id="z1p0" name="z1p0">
+              <input type="text" class="form-control" 
+                  placeholder="default" 
+                  id="z1p0" 
+                  name="z1p0">
               <span class="input-group-addon">km</span>
             </div>
           </div>
-          <label class="col-sm-1 control-label" for="z2p5">Z<sub>2.5</sub></label>
+          <label class="col-sm-1 control-label" for="z2p5">
+              Z<sub>2.5</sub>
+          </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" placeholder="default" id="z2p5" name="z2p5">
+              <input type="text" 
+                  class="form-control" 
+                  placeholder="default" 
+                  id="z2p5" 
+                  name="z2p5">
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -270,108 +347,49 @@
     </form>
 
   </div>
-  
-  <!-- ............................ End: Control Panel ..................................... -->
-  <!-- -->
-  <!-- ##################################################################################### -->
+  <!-- .................... End: Control Panel ............................. -->
 
 
 
-  <!-- ##################################################################################### -->
-  <!-- -->
-  <!-- ................................. Plots ............................................. -->
+  <!-- .......................... Plots .................................... -->
   <div id="content">
  
-    <!-- ................. Spectra Plot ................. -->
-    <div class="plot-panel hidden">
-      <div id="spectra-plot-panel" class="panel panel-default">
-        <!-- Plot Title -->
-        <div class="panel-heading" id="spectra-plot-title">
-          Response Spectra
-          <span id="spectra-plot-text"></span>
-          <span class="plot-resize" id="spectra-plot-resize" ></span>
-        </div> 
-        <!-- Plot Title -->
-
-        <!-- Plot -->
-        <div class="panel-content" id="spectra-plot"></div>
-        <!-- Plot -->
-
-        <!-- Plot Buttons -->
-        <div class="panel-footer"  id="spectra-axes-btns">
-          <div class="form-inline axes-btns">
-            <!-- X-axis Button -->
-            <div class="form-group form-group-sm">
-              <label  for="spectra-plot-xaxis" > X-axis </label>
-              <div class="btn-group btn-group-sm" id="spectra-plot-xaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="xaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- X-axis Button -->
-
-            <!-- Y-axis Button -->
-            <div class="form-group form-group-sm">
-              <label  for="spectra-plot-yaxis" > Y-axis </label>
-              <div class="btn-group btn-group-sm " id="spectra-plot-yaxis" data-toggle="buttons">
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="linear" >Linear
-                </label>
-                <label class="btn btn-sm btn-default">
-                  <input type="radio" name="yaxis" value="log" >Log
-                </label>
-              </div>
-            </div>
-            <!-- Y-axis Button -->
-          </div>
-        </div>
-        <!-- Plot Buttons -->
-      </div>
-    </div>
-    <!-- ................. Spectra Plot .................. -->
-
-
-
   </div> 
-  <!-- .............................. End: Plots ........................................... -->
-  <!-- -->
-  <!-- ##################################################################################### -->
+  <!-- ..................... End: Plots .................................... -->
 
 
 
-  <!-- ######################################################## -->
-  <!-- -->
-  <!-- ................. Import JavaScript .................... -->
+  <!-- ..................... Import JavaScript ............................. -->
 
-  <!-- ............ jQuery ................ -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <!-- ............ jQuery ................ -->
+  <!-- jQuery -->
+  <script 
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+  </script>
 
+  <!--  Bootstrap -->
+  <script 
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+  </script>
 
-  <!-- ............. Bootstrap ............ -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <!-- ............. Bootstrap ............ -->
-
-  <!-- ..... Application Specific JavaScript ......... -->
+  <!-- Application Specific JavaScript -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/common.js"  type="text/javascript" charset="UTF-8"></script>
-  <script src="js/plot.js"    type="text/javascript" charset="UTF-8"></script>
-  <script src="js/spectra.js" type="text/javascript" charset="UTF-8"></script>
-  <!-- ..... Application Specific JavaScript ......... -->
-
-
-  <!-- ............... End: Import JavaScript ................. -->
-  <!-- -->
-  <!-- ######################################################## -->
+  <script src="js/lib/D3View.js" charset="UTF-8"></script>
+  <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>
+  <script src="js/lib/Tooltip.js" charset="UTF-8"></script>
+  <script src="js/lib/Footer.js" charset="UTF-8"></script>
+  <script src="js/lib/Header.js" charset="UTF-8"></script>
+  <script src="js/lib/Spinner.js" charset="UTF-8"></script>
+  <script src="js/lib/Settings.js" charset="UTF-8"></script>
+  <script src="js/Spectra.js" charset="UTF-8"></script>
+  
+  <script> 
+    let spectra = new Spectra();
+  </script>
+  <!-- ..................... End: Import JavaScript ........................ -->
 
 
 
 </body>
-<!-- ................... Body ................ -->
+<!-- ......................... End: Body ................................... -->
 
 </html>
-

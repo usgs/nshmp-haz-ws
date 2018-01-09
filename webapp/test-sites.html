@@ -17,6 +17,8 @@
 
   <!-- CSS Files -->
   <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/D3MapView.css" type="text/css">
+  <link rel="stylesheet" href="css/test-sites.css" type="text/css">
  
 </head>
 <!-- ......................... End: Head ................................... -->
@@ -26,21 +28,10 @@
 <!-- ........................... Body ...................................... -->
 <body>
 
-
-  <!-- ...................... Control Panel ................................ -->
-  <div id="control">
-    <form id="inputs">
-      <div class="form-horizontal">
-      </div>
-    </form>
-  </div>
-  <!-- .................... End: Control Panel ............................. -->
-
-
-  <!-- .......................... Plots .................................... -->
-  <div id="content">
+  <!-- .......................... Map ...................................... -->
+  <div id="testsites">
   </div> 
-  <!-- ..................... End: Plots .................................... -->
+  <!-- ..................... End: Map ...................................... -->
 
 
   <!-- ..................... Import JavaScript ............................. -->
@@ -57,12 +48,30 @@
 
   <!-- Application Specific JavaScript -->
   <script src="https://d3js.org/d3.v4.min.js"> </script>
+  <script src="https://d3js.org/topojson.v2.min.js"> </script>
   <script src="js/lib/Footer.js" charset="UTF-8"> </script>
   <script src="js/lib/Header.js" charset="UTF-8"> </script>
   <script src="js/lib/Spinner.js" charset="UTF-8"> </script>
- 
+  <script src="js/lib/D3MapView.js" charset="UTF-8"> </script>
+  <script src="js/lib/D3MapPlot.js" charset="UTF-8"> </script>
+  <script src="js/lib/Tooltip.js" charset="UTF-8"> </script>
+  <script src="js/lib/Settings.js" charset="UTF-8"> </script>
+  
+  
   <script> 
-    //let spectra = new Spectra();
+    let footer = new Footer();
+    let options = {
+        rawBtnDisable: true,
+        updateBtnDisable: true
+    };
+    footer.setOptions(options);
+    let header = new Header();
+    header.setTitle("Test Sites");
+
+    let settings = new Settings(footer.settingsBtnEl);
+     
+    let el = document.querySelector("#testsites");
+    let map = new D3MapPlot(el,{},settings);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

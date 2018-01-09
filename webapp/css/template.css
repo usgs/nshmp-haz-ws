@@ -92,7 +92,7 @@ html, body{
 /* .................... Footer ..................... */
 
 #footer{
-	position: fixed;
+	position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
@@ -105,10 +105,15 @@ html, body{
 }
 
 
-#raw-data{
+.btn-float-right{
   float: right;
 }
 
+
+#footer .settings-btn{
+  padding-left: 10px;
+  cursor: pointer;
+}
 
 /*-------------- End: Footer ----------------------- */
 /**/
@@ -201,10 +206,65 @@ label.control-spacer {
   right: 0;
   margin: 2em 0 3.5em 400px;
   overflow: auto;
+  padding: 20px;
 }
 /*-------------- End: Main Content -------------------*/
 /**/
 /*###################################################*/
+
+
+
+/*#########################################################*/
+/**/
+/*................... Setting Menu .......................*/
+
+
+/*............. Screen Overlay ......................*/
+.Settings .settings-overlay{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: black;
+  opacity: 0.20;
+  z-index: 1000;
+}
+/*---------------------------------------------------*/
+
+/*............. Loader Box to Put Spinner ...........*/
+.Settings .settings-panel{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  height: 50%;
+  width: 50%;
+  box-sizing: border-box;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  z-index: 1001;
+  background-color: white;
+}
+/*---------------------------------------------------*/
+
+.Settings .settings-panel .panel-heading{
+  height: 2.5em;
+}
+
+.Settings .settings-panel .panel-footer{
+  height: 3.5em;
+  padding: 8px;
+}
+
+.Settings .settings-panel .panel-body{
+  height: calc(100% - 6em);
+  padding: 15px;
+}
+
+
+/*-------------- End: Setting Menu -----------------------*/
+/**/
+/*########################################################*/
 
 
 
@@ -216,7 +276,7 @@ label.control-spacer {
 
 /*............. Screen Overlay ......................*/
 #overlay{
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
@@ -224,13 +284,12 @@ label.control-spacer {
   background-color: black;
   opacity: 0.20;
   z-index: 1000;
-  display: none;
 }
 /*---------------------------------------------------*/
 
 /*............. Loader Box to Put Spinner ...........*/
 #loader{
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
@@ -241,7 +300,6 @@ label.control-spacer {
   box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
   z-index: 1001;
   background-color: white;
-  display: none;
 }
 /*---------------------------------------------------*/
 
@@ -288,18 +346,16 @@ label.control-spacer {
 /**/
 /*................... Axes Buttons ..................*/
 
-.axes-btns{
-  text-align: center;
-}
 
 .axes-btns>.form-group{ 
-  margin: 0 5%;
+  margin: 0 2%;
   font-size: 12px;
 }
 
 .axes-btns>.form-group>.btn-group>.btn{
   width: 55px;
   margin: 5px 0;
+  text-align: center;
 }
 
 /*-------------- End: Axes Buttons ------------------*/
@@ -346,6 +402,12 @@ label.control-spacer {
   position: relative;
   height: 100%;
   margin: 0 auto;
+}
+#content>.plot-panel>.panel>.panel-body{
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
 }
 /*-------------------------------------------------*/
 

@@ -1,0 +1,225 @@
+
+
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ......................... Head ........................................ -->
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"> 
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" 
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="css/template.css" type="text/css">
+  <link rel="stylesheet" href="css/D3View.css" type="text/css"> 
+  <link rel="stylesheet" href="css/D3MapView.css" type="text/css"> 
+
+  <style>
+    #dash{                                                                          
+      position: fixed;                                                              
+      top: 0;                                                                       
+      right:0;                                                                      
+      bottom:0;                                                                     
+      left:0;                                                                       
+      margin: 2em 0 3.5em 0;                                                        
+      padding: 20px;                                                                
+      overflow: auto;
+    } 
+  </style>
+</head>
+<!-- ......................... End: Head ................................... -->
+
+
+
+<!-- ........................... Body ...................................... -->
+<body>
+
+  <div id="dash"></div>
+
+
+  <!-- ..................... Import JavaScript ............................. -->
+
+  <!-- jQuery -->
+  <script 
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+  </script>
+
+  <!--  Bootstrap -->
+  <script 
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+  </script>
+
+  <!-- Application Specific JavaScript -->
+  <script src="https://d3js.org/d3.v4.min.js"> </script>
+  <script src="https://d3js.org/topojson.v2.min.js"> </script>  
+  <script src="js/lib/Footer.js" charset="UTF-8"> </script>
+  <script src="js/lib/Header.js" charset="UTF-8"> </script>
+  <script src="js/lib/Spinner.js" charset="UTF-8"> </script>                    
+  <script src="js/lib/D3View.js" charset="UTF-8"></script>                      
+  <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>                  
+  <script src="js/lib/D3MapView.js" charset="UTF-8"> </script>                  
+  <script src="js/lib/D3MapPlot.js" charset="UTF-8"> </script>                  
+  <script src="js/lib/Tooltip.js" charset="UTF-8"> </script> 
+  
+  <script> 
+    let footer = new Footer();
+    footer.removeButtons();
+    let header = new Header();
+    header.setTitle("Dashboard Icons");
+
+    let el = document.querySelector("#dash");
+    let plotOptions = {
+        colSizeDefault: "min",
+        showLegend: false,
+        marginLeft: 30,
+        marginBottom: 0,
+        marginTop: 0,
+        xAxisScale: "linear",
+        yAxisScale: "linear",
+        printFooter: false,
+        printTitle: false,
+        printMarginTop: 0
+    };
+   
+    //..... Curve 
+    let fs = 30;
+    var x = d3.range(0,fs).map(function(i){
+      return i/fs;
+    });
+    
+    var curve1 = d3.range(0,fs).map(function(i){
+      return Math.sin(2*Math.PI*60*x[i]*Math.PI/180.0);
+    });
+    
+    var curve2 = d3.range(0,fs).map(function(i){
+      return 1.5*Math.cos(2*Math.PI*60*x[i]*Math.PI/180.0);
+    });
+    //--------
+
+    //.... Model Compare  
+    let modelCompare = new D3LinePlot(el,plotOptions); 
+    
+    modelCompare.title = "Model Comparison";
+     
+    let data = [];
+    data.push(d3.zip(x,curve1)) ;
+    data.push(d3.zip(x,curve2)) ;
+
+    modelCompare.data = data;
+    let label = ["a","b"];
+    modelCompare.labels = label;
+    modelCompare.ids = label;
+    modelCompare.plotFilename = "modelCompareIcon";
+    modelCompare.plotData();
+    
+    d3.select(modelCompare.xAxisEl).remove();
+    d3.select(modelCompare.yAxisEl).remove();
+    //--------
+    
+    //.... Model Explorer 
+    let modelExplorer = new D3LinePlot(el,plotOptions); 
+    
+    modelExplorer.title = "Model Explorer";
+     
+    data = [];
+    data.push(d3.zip(x,curve1)) ;
+    data.push(d3.zip(x,curve2)) ;
+
+    modelExplorer.data = data;
+    modelExplorer.labels = label;
+    modelExplorer.ids = label;
+    modelExplorer.plotFilename = "modelExplorerIcon";
+    modelExplorer.plotData();
+    
+    d3.select(modelExplorer.xAxisEl).remove();
+    d3.select(modelExplorer.yAxisEl).remove();
+    d3.select(modelExplorer.svgEl)
+        .select("#b")
+        .remove()
+    //--------
+    
+    
+    
+    //.... Spectra
+    fs = 100;
+    x = d3.range(0,fs).map(function(i){
+      return i/fs;
+    });
+    
+    curve1 = d3.range(0,fs).map(function(i){
+      return Math.sin(2*Math.PI*200.0*x[i]*Math.PI/180.0)/Math.exp(x[i]*4.0); 
+    });
+   
+     
+    let spectra = new D3LinePlot(el,plotOptions); 
+    
+    spectra.title = "Response Spectra";
+     
+    data = [];
+    data.push(d3.zip(x,curve1)) ;
+
+    spectra.data = data;
+    spectra.labels = label;
+    spectra.ids = label;
+    spectra.plotFilename = "spectraIcon";
+    spectra.plotData();
+    
+    d3.select(spectra.xAxisEl).remove();
+    d3.select(spectra.yAxisEl).remove();
+    //--------
+    
+     
+    // .... Map
+    plotOptions.printMarginLeft = 1;
+    let a = new D3LinePlot(el,plotOptions);
+    a.data = data;
+    a.labels = label;
+    a.ids = label;
+    a.plotFilename = "testSiteIcon";
+    a.plotData();
+    d3.select(a.el)
+        .classed("hidden",false);
+    d3.select(a.svgEl).remove();
+    d3.select(a.plotBodyEl)
+        .style("height","500px"); 
+    
+    let mapOptions = {
+        pointRadius: 4
+    };
+    let testSite = new D3MapPlot(a.plotBodyEl,mapOptions);
+    d3.select(testSite.el)
+        .select(".control-panel")
+        .remove();
+    
+    d3.select(testSite.el).style("width","100%");
+    d3.select(testSite.mapEl).style("height","100%");
+   
+    d3.select(testSite.svgEl)
+        .attr("viewBox","0 0 500 500")
+        .attr("version",1.1)                                                    
+        .attr("xmlns","http://www.w3.org/2000/svg")                             
+        .attr("preserveAspectRatio","xMinYMin meet")
+        .attr("height",null)
+        .attr("width",null);
+    a.svgEl = testSite.svgEl; 
+    //-----
+         
+    d3.selectAll(".btn-right").remove(); 
+    d3.selectAll(".btn-left").remove(); 
+    d3.selectAll(".data-table").remove();
+  
+  </script>
+  <!-- ..................... End: Import JavaScript ........................ -->
+
+
+
+</body>
+<!-- ......................... End: Body ................................... -->
+
+</html>
