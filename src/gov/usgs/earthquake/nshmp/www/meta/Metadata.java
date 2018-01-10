@@ -1,9 +1,15 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
@@ -35,7 +41,8 @@ public final class Metadata {
    * TODO: Ultimately this should come from the intersection of those IMTs
    * supported by a model.
    */
-  public static final Set<Imt> HAZARD_IMTS = Sets.immutableEnumSet(PGA, SA0P2, SA1P0, SA2P0);
+  public static final Set<Imt> HAZARD_IMTS =
+      Sets.immutableEnumSet(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA5P0);
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Default(
       "Compute hazard curve data at a location",
