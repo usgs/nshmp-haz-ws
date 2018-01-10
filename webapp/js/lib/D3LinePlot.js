@@ -865,7 +865,7 @@ class D3LinePlot extends D3View{
         .range([0,linePlot.plotWidth])
         .domain(D3LinePlot.getXExtremes(linePlot))
         .nice();
-
+    
     // Update Y bounds
     linePlot.yBounds = D3LinePlot.getYScale(linePlot);
     linePlot.yBounds
