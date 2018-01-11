@@ -642,6 +642,10 @@ class D3LinePlot extends D3View{
         .select(".y-tick")
         .style("font-size",_this.options.tickFontSize)
         .call(d3.axisLeft(_this.yBounds));
+    
+    // Set tick mark format
+    D3LinePlot.setTicks(_this,"x"); 
+    D3LinePlot.setTicks(_this,"y"); 
     //--------------------------------------------------------------------------
     
 
@@ -861,7 +865,7 @@ class D3LinePlot extends D3View{
         .range([0,linePlot.plotWidth])
         .domain(D3LinePlot.getXExtremes(linePlot))
         .nice();
-
+    
     // Update Y bounds
     linePlot.yBounds = D3LinePlot.getYScale(linePlot);
     linePlot.yBounds
@@ -871,22 +875,27 @@ class D3LinePlot extends D3View{
     
     // Update X axis
     _svgD3.select(".x-tick")  
-        .call(d3.axisBottom(linePlot.xBounds));
-
+        .call(d3.axisBottom(linePlot.xBounds))
+    
+     
     // Update Y axis
     _svgD3.select(".y-tick")                                   
         .call(d3.axisLeft( linePlot.yBounds));
     
+    // Set tick mark format
+    D3LinePlot.setTicks(linePlot,"x"); 
+    D3LinePlot.setTicks(linePlot,"y"); 
+    
     // Update lines 
     _svgD3.selectAll(".line")
         .transition()
-        .duration(500)
+        .duration(linePlot.options.transitionDuration)
         .attr("d",linePlot.line);
     
     // Update circles 
     _svgD3.selectAll(".dot")
         .transition()
-        .duration(500)
+        .duration(linePlot.options.transitionDuration)
         .attr("cx",linePlot.line.x())
         .attr("cy",linePlot.line.y());
 
@@ -1445,6 +1454,27 @@ class D3LinePlot extends D3View{
     
   }
   //--------------------- End Method: saveData ---------------------------------
+
+
+
+
+  //..... Ticks
+  static setTicks(_this,axis){
+    
+    if (_this.options[axis+"AxisScale"] == "log"){
+      d3.select(_this.svgEl)
+          .select("."+axis+"-axis")
+          .selectAll(".tick text")
+          .text(null)
+          .filter(function(d){return Number.isInteger(Math.log10(d))} )
+          .text(10)
+          .append("tspan")
+          .text(function(d) { return Math.round(Math.log10(d)); })
+          .style("baseline-shift","super")
+          .attr("font-size",_this.options.tickExponentFontSize);
+    }
+  }
+
 
 
 }
