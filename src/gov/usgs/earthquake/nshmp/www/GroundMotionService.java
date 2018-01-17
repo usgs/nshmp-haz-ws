@@ -2,7 +2,7 @@ package gov.usgs.earthquake.nshmp.www;
 
 
 
-//.................... Import .....................
+//................................... Import ..............................................
 import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
@@ -76,7 +76,7 @@ import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 import gov.usgs.earthquake.nshmp.www.meta.Util;
-//-------------------------------------------------------
+//----------------------------------- End Import ------------------------------------------
 
 
 
