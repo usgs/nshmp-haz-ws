@@ -1,7 +1,7 @@
 package gov.usgs.earthquake.nshmp.www;
 
 
-//..................... Import .........................
+//....................................... Import ..........................................
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,23 +16,21 @@ import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-//----------------------------------------------------------
+//--------------------------------------- End Import --------------------------------------
 
 
+//................................. Class: TestSites ......................................
 public class TestSites{
   
   
-  //....................... Return Json String of Test Sites ......................................
-  public static String Sites(String queryInfo){
+  //............................. Method: Sites ...........................................
+  public static String sites(String queryInfo){
     
-    //................ Initial Setup ...................
-    Gson gson = new GsonBuilder()             // Create gson object to print in JSON format
+  		Gson gson = new GsonBuilder()
        .setPrettyPrinting()
        .create();   
-    //--------------------------------------------------
    
-    //.............. Get All Test Site Regions ..............
-    Map<String,EnumSet<NshmpSite>> nshmpSites = new HashMap<>();    // Create map of region ids and the region from NshmpSite
+    Map<String,EnumSet<NshmpSite>> nshmpSites = new HashMap<>();
     nshmpSites.put("ceus",NshmpSite.ceus());  
     nshmpSites.put("cous", NshmpSite.cous());
     nshmpSites.put("wus", NshmpSite.wus());
@@ -40,42 +38,41 @@ public class TestSites{
     nshmpSites.put("facilities", NshmpSite.facilities());
     nshmpSites.put("nehrp", NshmpSite.nehrp());
     nshmpSites.put("nrc", NshmpSite.nrc());
-    //--------------------------------------------------------
-  
     
-    //................... Create Object With All Regions and Locations ...................
     
-    List<FeatureCollection<Feature>> regionCollection = new ArrayList<>();    // Array list of FeatureCollection
+    List<FeatureCollection<Feature>> regionCollection = new ArrayList<>();
 
-    for(String key : nshmpSites.keySet()) {                                   // Loop through each region   
-     List<Feature> features = new ArrayList<>();                              // Array list of Feature
-     for (NshmpSite site : nshmpSites.get(key)) {                             // Loop through all sites in a region
-        features.add(GeoJson.createPoint(site, site.id()));                   // Create a feature for each site
+    for(String key : nshmpSites.keySet()) {
+     List<Feature> features = new ArrayList<>();
+     for (NshmpSite site : nshmpSites.get(key)) {
+        features.add(GeoJson.createPoint(site, site.id()));
       }  
-      FeatureCollection<Feature> region = new FeatureCollection<>();          // Create a feature collection for each region
-      CollectionProperties prop = new CollectionProperties(key);              // Create feature collection properties
-      region.properties = prop;               // Set properties for the feature collection
-      region.features = features;             // Set features for the feature collection
-      regionCollection.add(region);           // Add the feature collection of a region to array list of collections
+      FeatureCollection<Feature> region = new FeatureCollection<>();
+      CollectionProperties prop = new CollectionProperties(key);
+      region.properties = prop;
+      region.features = features;
+      regionCollection.add(region);
     }      
-    FeatureCollection<FeatureCollection<Feature>> featureCollection = new FeatureCollection<>();    // Create a feature collection of feature collection
-    featureCollection.features = regionCollection;        // Set the features
-    String jsonString = gson.toJson(featureCollection);   // Create JSON string
+    FeatureCollection<FeatureCollection<Feature>> 
+    			featureCollection = new FeatureCollection<>();
+    featureCollection.features = regionCollection;
+    String jsonString = gson.toJson(featureCollection);
     
-    for (FeatureCollection<Feature> fc: regionCollection ) {          // Loop through each feature collection
-      CollectionProperties cp = (CollectionProperties) fc.properties; // Create collection properties obejct
-      if (cp.regionId.equals(queryInfo)) {                            // Check if region id matches url query
-        jsonString = gson.toJson(fc);                                 // Return feature collection of searched region
+    for (FeatureCollection<Feature> fc: regionCollection ) {
+      CollectionProperties cp = (CollectionProperties) fc.properties;
+      if (cp.regionId.equals(queryInfo)) {
+        jsonString = gson.toJson(fc);
       }
     }
     
     return jsonString;
-    //------------------------------------------------------------------------------------ 
+    
   }
-  //-----------------------------------------------------------------------------------------------
+  //------------------------------- End Method: sites -------------------------------------
 
 
-  //............. Properties Object for each Feature ................
+  
+  //............................ Class: CollectionProperties ..............................
   static class CollectionProperties{
     
     private String regionId;
@@ -142,19 +139,26 @@ public class TestSites{
       
       this.minlatitude  = this.region.minlatitude;
       this.maxlatitude  = this.region.maxlatitude;
-      this.minlongitude = this.region.minlongitude <= -180 ? -179 : this.region.minlongitude;
+      this.minlongitude = this.region.minlongitude <= -180 ? -179 
+      			: this.region.minlongitude;
       this.maxlongitude = this.region.maxlongitude;
       
       this.uiminlatitude  = this.region.uiminlatitude;
       this.uimaxlatitude  = this.region.uimaxlatitude;
-      this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 : this.region.uiminlongitude;
+      this.uiminlongitude = this.region.uiminlongitude <= -180 ? -179 
+      			: this.region.uiminlongitude;
       this.uimaxlongitude = this.region.uimaxlongitude;
       
-      this.regionFeatures.add(GeoJson.regionBounds( this.minlongitude, this.minlatitude));
-      this.regionFeatures.add(GeoJson.regionBounds( this.maxlongitude, this.maxlatitude));
+      this.regionFeatures.add(GeoJson.regionBounds( 
+      			this.minlongitude, this.minlatitude));
+      this.regionFeatures.add(GeoJson.regionBounds( 
+      			this.maxlongitude, this.maxlatitude));
       this.regionBounds.features = this.regionFeatures;     
     }
   }
-  //---------------------------------------------------------------
+  //-------------------------- End Class: CollectionProperties ----------------------------
+  
+  
   
 }
+//---------------------------- End Class: TestSites --------------------------------------
