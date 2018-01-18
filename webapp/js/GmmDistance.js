@@ -101,6 +101,9 @@ class GmmDistance extends Gmm{
     meanTooltipText = ["GMM", "Distance (km)", "MGM (g)"];
     meanPlotOptions = {
         legendLocation: "bottomleft",
+        pointRadius: 2.75,
+        pointRadiusSelection: 3.5,
+        pointRadiusTooltip: 4.5,
         tooltipText: meanTooltipText,
         xAxisScale: "log",
         yAxisScale: "log"
@@ -230,7 +233,7 @@ class GmmDistance extends Gmm{
       */
       //------------------------------------------------------------------------
       
-      
+      $(_this.footer.rawBtnEl).off() 
       $(_this.footer.rawBtnEl).click(function(){
         window.open(url);
       });
