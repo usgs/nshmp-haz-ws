@@ -39,7 +39,6 @@ public class TestSites{
     nshmpSites.put("nehrp", NshmpSite.nehrp());
     nshmpSites.put("nrc", NshmpSite.nrc());
     
-    
     List<FeatureCollection<Feature>> regionCollection = new ArrayList<>();
 
     for(String key : nshmpSites.keySet()) {
