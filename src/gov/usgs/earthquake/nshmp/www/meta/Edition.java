@@ -29,7 +29,7 @@ public enum Edition implements Constrained {
       2008,
       100,
       EnumSet.of(COUS, CEUS, WUS),
-      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0)),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0)),
 
   E2014(
       "Dynamic: Conterminous U.S. 2014",
@@ -51,7 +51,7 @@ public enum Edition implements Constrained {
   /* not serialized */
   private final transient String version;
   private final transient Set<Region> regions;
-  private final transient Set<Imt> imts;
+  final transient Set<Imt> imts;
 
   private final Constraints constraints;
 

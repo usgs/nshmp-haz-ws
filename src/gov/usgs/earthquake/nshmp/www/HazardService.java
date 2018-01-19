@@ -177,12 +177,16 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce query string key-value pairs */
   private RequestData buildRequest(Map<String, String[]> paramMap) {
+    Edition edition = readValue(paramMap, EDITION, Edition.class);
+    Region region = readValue(paramMap, REGION, Region.class);
+
     Set<Imt> imts = paramMap.containsKey(IMT.toString())
-        ? readValues(paramMap, IMT, Imt.class) : Metadata.HAZARD_IMTS;
+        ? readValues(paramMap, IMT, Imt.class)
+        : Metadata.commonImts(edition, region);
 
     return new RequestData(
-        readValue(paramMap, EDITION, Edition.class),
-        readValue(paramMap, REGION, Region.class),
+        edition,
+        region,
         readDoubleValue(paramMap, LONGITUDE),
         readDoubleValue(paramMap, LATITUDE),
         imts,
@@ -192,13 +196,16 @@ public final class HazardService extends HttpServlet {
 
   /* Reduce slash-delimited request */
   private RequestData buildRequest(List<String> params) {
+    Edition edition = readValue(params.get(0), Edition.class);
+    Region region = readValue(params.get(1), Region.class);
 
     Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
-        ? Metadata.HAZARD_IMTS : readValues(params.get(4), Imt.class);
+        ? Metadata.commonImts(edition, region)
+        : readValues(params.get(4), Imt.class);
 
     return new RequestData(
-        readValue(params.get(0), Edition.class),
-        readValue(params.get(1), Region.class),
+        edition,
+        region,
         Double.valueOf(params.get(2)),
         Double.valueOf(params.get(3)),
         imts,

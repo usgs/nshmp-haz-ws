@@ -1,15 +1,5 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
-import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
@@ -38,11 +28,15 @@ public final class Metadata {
   static final String NSHMP_HAZ_WS_URL = "https://github.com/usgs/nshmp-haz-ws";
 
   /*
-   * TODO: Ultimately this should come from the intersection of those IMTs
-   * supported by a model.
+   * The hazard service needs to report the list of all possible IMTs supported
+   * even though what can actually be supported is dependent on Edition and
+   * Region. When the slash delimited service returns 'any', the same logic
+   * applied on the client needs to be applied on the server to determine what
+   * 'any' acutally means. See HazardService.buildRequest() methods. This field
+   * currently set to the IMTs supported by Region.WUS which we know to be the
+   * union of all periods currently supported by the models used.
    */
-  public static final Set<Imt> HAZARD_IMTS =
-      Sets.immutableEnumSet(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA5P0);
+  private static final Set<Imt> HAZARD_IMTS = Region.WUS.imts;
 
   public static final String HAZARD_USAGE = ServletUtil.GSON.toJson(new Default(
       "Compute hazard curve data at a location",
@@ -84,7 +78,7 @@ public final class Metadata {
       this.parameters = parameters;
     }
   }
-  
+
   public static Object serverData(int threads, Timer timer) {
     return new Server(threads, timer);
   }
@@ -274,6 +268,10 @@ public final class Metadata {
     }
   }
 
+  public static Set<Imt> commonImts(Edition edition, Region region) {
+    return Sets.intersection(edition.imts, region.imts);
+  }
+
   public static Region checkRegion(double lon) {
     return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
   }
@@ -281,5 +279,5 @@ public final class Metadata {
   public static void main(String[] args) {
     System.out.println(checkRegion(-122));
   }
-  
+
 }
