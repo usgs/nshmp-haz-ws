@@ -1,0 +1,181 @@
+
+
+<!doctype html>
+
+
+<html lang="en">
+
+<!-- ......................... Head ........................................ -->
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"> 
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" 
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css">
+  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3View2.css" type="text/css">
+ 
+</head>
+<!-- ......................... End: Head ................................... -->
+
+
+
+<!-- ........................... Body ...................................... -->
+<body>
+
+
+
+  <!-- .......................... Plots .................................... -->
+  <div id="content" style="margin-left: 0">
+ 
+  </div> 
+  <!-- ..................... End: Plots .................................... -->
+
+
+
+  <!-- ..................... Import JavaScript ............................. -->
+
+  <!-- jQuery -->
+  <script 
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+  </script>
+
+  <!--  Bootstrap -->
+  <script 
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+  </script>
+
+  <!-- Application Specific JavaScript -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3View2.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/D3LinePlot2.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Footer.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Header.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Spinner.js" charset="UTF-8"></script>
+  <script src="/nshmp-haz-ws/js/lib/Settings.js" charset="UTF-8"></script>
+  
+  <!-- ..................... End: Import JavaScript ........................ -->
+
+
+
+
+  <script>
+   
+    //........................... Includes .....................................
+    let footer = new Footer();
+    let header = new Header();
+    header.setTitle("Plot Example");
+    let menu = [
+        ["Plot Example", "/nshmp-haz-ws/examples/plotExample.html"]
+    ];
+    header.setCustomMenu(menu);
+    let settings = new Settings();
+    let spinner = new Spinner();
+    //--------------------------------------------------------------------------
+    
+
+    //.............................. Plot ......................................
+    let el = document.querySelector("#content");
+    
+    let plotOptionsUpper = {
+        legendLocation: "bottomleft",
+        tooltipText: ["GMM", "Period (s)", "MGM (g)"],
+    };
+    
+    let plotOptionsLower = { 
+        legendFontSize: 10,
+        legendLineBreak: 14,
+        legendPaddingX: 15,
+        legendPaddingY: 12,
+        legendLocation: "topright",
+        plotHeight: 224,
+        plotWidth: 896,
+        plotRatio: 4/1,
+        tooltipText: ["GMM", "Period (s)", "SD"]
+    }; 
+    
+    let options = {
+        xAxisScale: "linear",
+        yAxisScale: "linear",
+        plotLower: true
+    };
+
+    let plot = new D3LinePlot(el, 
+        options, 
+        plotOptionsUpper, 
+        plotOptionsLower);
+     
+    let spectra = "/nshmp-haz-ws/gmm/spectra";
+    let url = spectra + "?gmm=FRANKEL_96&Mw=6.5&rake=0&zHyp=7.5&zTop=0.5&dip=90&width=14&rX=10&rRup=10.3&rJB=10&vs30=760&vsInf=true&z1p0=&z2p5=";
+     
+    spinner.on("Calculating ...");
+    d3.json(url, function(error, json){
+      spinner.off();
+
+      plot.plotFilename = "plotTest";
+      plot.title = "Plot Test";
+      
+      
+      //...... Means: UpperPanel
+      let means = json.means;
+      let meanData = means.data[0];
+      let data = [d3.zip(meanData.data.xs, meanData.data.ys)]; 
+      
+      
+      plot.upperPanel.data = data;
+      plot.upperPanel.dataTableTitle = "Means";
+      plot.upperPanel.ids = [meanData.id];
+      plot.upperPanel.labels = [meanData.label]; 
+      plot.upperPanel.metadata = {
+        version: "1.1",
+        url: url,
+        time: new Date()
+      }; 
+      plot.upperPanel.xLabel = means.xLabel;
+      plot.upperPanel.yLabel = means.yLabel;
+      
+      plot.plotData("upper");
+      //-----------------------------
+      
+      
+      
+      //...... Sigma: LowerPanel
+      let sigmas = json.sigmas;
+      let sigmaData = sigmas.data[0];
+      data = [d3.zip(sigmaData.data.xs, sigmaData.data.ys)]; 
+      
+      plot.lowerPanel.data = data;
+      plot.lowerPanel.dataTableTitle = "Sigmas";
+      plot.lowerPanel.ids = [sigmaData.id];
+      plot.lowerPanel.labels = [sigmaData.label]; 
+      plot.lowerPanel.metadata = {
+        version: "1.1",
+        url: url,
+        time: new Date()
+      }; 
+      plot.lowerPanel.xLabel = sigmas.xLabel;
+      plot.lowerPanel.yLabel = sigmas.yLabel;
+      
+      plot.plotData("lower");
+      //-----------------------------
+
+
+
+
+       
+    });
+
+
+  </script>
+
+
+
+</body>
+<!-- ......................... End: Body ................................... -->
+
+</html>
