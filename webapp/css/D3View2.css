@@ -1,0 +1,133 @@
+/**
+* CSS for D3View class
+*
+*
+*/
+
+
+
+/* D3 View */
+.D3View{
+  position: relative;                                                           
+}
+
+
+/* Plot Panel Header */                           
+.D3View .panel .panel-heading{                                     
+  background-color: #f7f7f7;                                                    
+  font-family: 'HelveticaNeue-Light',sans-serif;                                
+  margin: 0;
+  height: 2vw;
+  padding: 0.5vw;
+}                                                                               
+
+.D3View .panel-heading .panel-title{
+  font-size: 1vw;
+}
+
+/* Plot Title */
+.D3View .panel-heading .panel-title .plot-title{
+  display: inline-block;
+  min-width: 30%;
+}
+
+.D3View .panel .panel-body{
+  padding: 0;
+}
+
+/* Plot Panel Content */                          
+.D3View .panel .panel-lower .D3LinePlot{
+  margin-top: 20px;
+} 
+
+.D3View .panel .panel-lower{
+  border-top: 1px solid #ddd;
+}
+
+              
+.D3View .panel .panel-body .data-table td{
+  font-size: 0.75vw;
+}
+
+.D3View .panel .panel-body .data-table th{
+  font-size: 1vw;
+}
+                                                                                
+.D3View .panel .panel-footer{
+  padding: 0;
+  font-size: 0.75vw;
+}
+
+.D3View .panel-footer .axes-btns{
+  padding: 0.4vw 0;
+}
+
+.D3View .panel-footer .footer-button{
+  font-size: 0.75vw;
+}
+
+.D3View .panel-footer .footer-button input{
+  height: 0;
+}
+
+
+/* Footer button left */
+.D3View .btn-left{
+  padding-left: 0.5vw;
+}
+
+
+.D3View .panel-footer .axes-btns .btn-download{
+  width: 0.35%;
+}
+
+/* Footer button left button */
+.D3View>.panel>.panel-footer>.axes-btns>.btn-left>.btn{
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+
+
+/* Footer button right button */
+.D3View>.panel>.panel-footer>.axes-btns>.btn-right>.btn{
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Footer button right */
+.D3View .btn-right{
+  padding-right: 0.5vw;
+}
+
+/* Axes button labels */ 
+.D3View .axes-btns label{
+  padding-right: 4px;
+}
+
+
+
+/* Axes buttons form group */
+.D3View .axes-btns .form-group{
+  margin: 0;
+  display: inline-block;
+}
+
+
+
+/* Data table */
+.D3View .data-table{
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+
+.D3View .data-table .table{
+  margin-bottom: 30px;
+}
+
+/* Glyphicon */
+.D3View  .glyphicon{
+  cursor: pointer;
+  font-weight: 100;
+  line-height: 100%;
+}
