@@ -8,9 +8,16 @@ import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_360;
 import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_537;
 import static gov.usgs.earthquake.nshmp.calc.Vs30.VS_760;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA4P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -27,7 +34,7 @@ public enum Region implements Constrained {
       new double[] { -200.0, -125.0 },
       new double[] { 48.0, 72.0 },
       new double[] { -200.0, -125.0 },
-      EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0),
       EnumSet.of(VS_760)),
 
   COUS(
@@ -36,7 +43,7 @@ public enum Region implements Constrained {
       new double[] { -125.0, -65.0 },
       new double[] { 24.6, 50.0 },
       new double[] { -125.0, -65.0 },
-      EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0),
       EnumSet.of(VS_760)),
 
   CEUS(
@@ -45,7 +52,7 @@ public enum Region implements Constrained {
       new double[] { -115.0, -65.0 },
       new double[] { 24.6, 50.0 },
       new double[] { -100.0, -65.0 },
-      EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0),
       EnumSet.of(VS_2000, VS_760)),
 
   WUS(
@@ -54,7 +61,7 @@ public enum Region implements Constrained {
       new double[] { -125.0, -100.0 },
       new double[] { 24.6, 50.0 },
       new double[] { -125.0, -115.0 },
-      EnumSet.of(PGA, SA0P2, SA1P0, SA2P0),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0),
       EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180));
 
   private final String label;
