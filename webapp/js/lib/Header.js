@@ -66,6 +66,7 @@ class Header{
     //...................... Set Dropdown Menu Items ...........................
     _this.menuItems = [
         ["Dashboard","/nshmp-haz-ws/dashboard.html"],
+        ["Ground Motion Vs. Distance","/nshmp-haz-ws/gmm-distance.html"],
         ["Model Compare","/nshmp-haz-ws/model-compare.html"],
         ["Model Explorer","/nshmp-haz-ws/model-explorer.html"],
         ["Response Spectra","/nshmp-haz-ws/spectra-plot.html"],

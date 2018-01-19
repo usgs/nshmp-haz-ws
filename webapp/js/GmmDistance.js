@@ -2,65 +2,80 @@
 
 
 /** 
-* @class Spectra
+* @class GmmDistance
 *
-* @classdesc spectra-plot.html class
+* @classdesc gmm-distance.html class
 *
 *
 */
-class Spectra extends Gmm{
+class GmmDistance extends Gmm{
 
 
-  //............................ Constructor: Spectra ..........................
+  //....................... Constructor: GmmDistance ...........................
   constructor(){
     
 
     //........................... Variables ....................................
     let _this,
         // Variables
-        rCompute;
-
-    let webApp = "Spectra";
-    let wsUrl = "/nshmp-haz-ws/gmm/spectra"
+        inputs,
+        url;
+    
+    let wsUrl = "/nshmp-haz-ws/gmm/distance";
+    let webApp = "GmmDistance";
     _this = super(webApp, wsUrl);
-     
-    _this.header.setTitle("Response Spectra");
+    
+    _this.header.setTitle("Ground Motion Vs. Distance");
     _this.spinner.on();
-    Spectra.plotSetup(_this);
+    // Plot setup
+    GmmDistance.plotSetup(_this);
     //--------------------------------------------------------------------------
 
     
-    //............. Add toggle behavior to non-form buttons ....................
-    Spectra.addToggle("hw-fw", Spectra.updateDistance);
-    Spectra.addToggle("fault-style", Spectra.updateRake);
+    //............................ Options .....................................
+    _this.options = {
+        rMaxDefault: 300,
+    };
     //--------------------------------------------------------------------------
 
-
+    
     //....................... Event Listeners ..................................
+    $("#imt").change(function(){
+      _this.spinner.on("Calculating ...");
+      inputs = $("#inputs").serialize();
+      url = _this.wsUrl + "?" + inputs;
+      window.location.hash = inputs;
+      Gmm.updatePlot(_this, url);
+    });
+    
+    
+    /*
     $("#r-check").change(function(event) {
       rCompute = this.checked;
       $("#rJB").prop("readonly", rCompute);
       $("#rRup").prop("readonly", rCompute);
       $("#hw-fw-hw").prop("disabled", !rCompute);
       $("#hw-fw-fw").prop("disabled", !rCompute);
-      Spectra.updateDistance();
+      GmmDistance.updateDistance();
     });
     
-    $("#rX, #zTop, #dip, #width").on("input", Spectra.updateDistance);
+    $("#rX, #zTop, #dip, #width").on("input", GmmDistance.updateDistance);
 
     $("#z-check").change(function(event) {
       $("#zHyp").prop("readonly", this.checked);
-      Spectra.updateHypoDepth();
+      GmmDistance.updateHypoDepth();
     });
     
-    $("#zTop, #dip, #width").on("input", Spectra.updateHypoDepth);
+    $("#zTop, #dip, #width").on("input", GmmDistance.updateHypoDepth);
 
-    $("#rake").on("input", Spectra.updateFocalMech);
+    $("#rake").on("input", GmmDistance.updateFocalMech);
+    */
     //--------------------------------------------------------------------------
- 
+  
+    
   
   }
-  //---------------------- End Constructor: Spectra ----------------------------
+  //---------------------- End Constructor: GmmDistance ------------------------
 
   
   
@@ -83,18 +98,22 @@ class Spectra extends Gmm{
 
 
     //....................... Mean Plot Setup ..................................
-    meanTooltipText = ["GMM", "Period (s)", "MGM (g)"];
+    meanTooltipText = ["GMM", "Distance (km)", "MGM (g)"];
     meanPlotOptions = {
-        legendLocation: "topright",
+        legendLocation: "bottomleft",
+        pointRadius: 2.75,
+        pointRadiusSelection: 3.5,
+        pointRadiusTooltip: 4.5,
         tooltipText: meanTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
+        xAxisScale: "log",
+        yAxisScale: "log"
     };
     _this.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
     //--------------------------------------------------------------------------
 
 
     //..................... Sigma Plot Setup ...................................
+    /*
     sigmaTooltipText = ["GMM", "Period (s)", "SD"];
     sigmaPlotOptions = {
         legendFontSize: 10,
@@ -110,16 +129,17 @@ class Spectra extends Gmm{
         yAxisScale: "linear"
     };
     _this.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
+    */
     //--------------------------------------------------------------------------
    
   
   }
   //------------------ End Method: plotSetup -----------------------------------
  
-
   
+
   //....................... Method: updatePlot .................................
-  static updatePlot(_this, url) {
+  static updatePlot(_this,url) {
 
     //........................ Variables .......................................
     let dataSet,
@@ -167,13 +187,17 @@ class Spectra extends Gmm{
         seriesIds.push(d.id);
         seriesData.push(d3.zip(d.data.xs, d.data.ys));
       });
-      
+     
+      let selectedImtDisplay = $("#imt :selected").text();
+      let selectedImt = $("#imt :selected").val();
+
       _this.meanPlot.data = seriesData;
       _this.meanPlot.ids = seriesIds;
       _this.meanPlot.labels = seriesLabels;
       _this.meanPlot.metadata = metadata;
-      _this.meanPlot.plotFilename = "spectraMean";
-      _this.meanPlot.title = "Response Spectra: Mean";
+      _this.meanPlot.plotFilename = "gmmDistance" + selectedImt;
+      _this.meanPlot.title = "Ground Motion Vs. Distance: " + 
+          selectedImtDisplay;
       _this.meanPlot.xLabel = mean.xLabel;
       _this.meanPlot.yLabel = mean.yLabel;
       
@@ -182,6 +206,7 @@ class Spectra extends Gmm{
       
       
       //........................ Plot Sigma .................................... 
+      /*
       sigma = response.sigmas;
       sigmaData = sigma.data;
 
@@ -205,9 +230,10 @@ class Spectra extends Gmm{
       _this.sigmaPlot.yLabel = sigma.yLabel;
       
       _this.sigmaPlot.plotData();
+      */
       //------------------------------------------------------------------------
       
-      
+      $(_this.footer.rawBtnEl).off() 
       $(_this.footer.rawBtnEl).click(function(){
         window.open(url);
       });
@@ -222,7 +248,7 @@ class Spectra extends Gmm{
 
 
 }
-//----------------------- End Class: Spectra -----------------------------------
+//----------------------- End Class: GmmDistance -------------------------------
 
 
 

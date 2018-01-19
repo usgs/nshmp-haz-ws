@@ -77,7 +77,7 @@ public final class Metadata {
       this.parameters = parameters;
     }
   }
-
+  
   public static Object serverData(int threads, Timer timer) {
     return new Server(threads, timer);
   }
@@ -274,5 +274,5 @@ public final class Metadata {
   public static void main(String[] args) {
     System.out.println(checkRegion(-122));
   }
-
+  
 }

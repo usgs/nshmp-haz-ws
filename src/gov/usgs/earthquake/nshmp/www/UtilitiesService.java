@@ -1,6 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
-//..................... Import .........................
+//.................................. Import ...............................................
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -11,10 +11,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-//----------------------------------------------------------
+//---------------------------------- End Import -------------------------------------------
 
 
 
+//............................ Class: UtilitesService .....................................
 @WebServlet(
     name = "Utilities Service",
     description = "USGS NSHMP Web Service Utilities",
@@ -23,6 +24,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
         "/util/*"})
 public class UtilitiesService extends HttpServlet {
 
+	
+	//.............................. Method: doGet ..........................................
   @Override
   protected void doGet(
       HttpServletRequest request, 
@@ -39,16 +42,17 @@ public class UtilitiesService extends HttpServlet {
       response.sendRedirect(utilUrl);
     }else if (pathInfo.toLowerCase().equals("/testsites")){
       if (isNullOrEmpty(queryInfo)) queryInfo = "";
-      out.println(TestSites.Sites(queryInfo.toUpperCase()));
+      out.println(TestSites.sites(queryInfo.toUpperCase()));
     }else {
       response.sendRedirect(utilUrl);
     }
    
   }
+  //--------------------------- End Method: goGet -----------------------------------------
   
 
 }
-
+//-------------------------- End Class: UtilitiesService ----------------------------------
 
 
 
