@@ -1,5 +1,16 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
+import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA4P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
@@ -8,6 +19,8 @@ import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 import java.util.EnumSet;
 import java.util.Set;
 
+import gov.usgs.earthquake.nshmp.gmm.Imt;
+
 @SuppressWarnings({ "javadoc", "unused" })
 public enum Edition implements Constrained {
 
@@ -15,19 +28,22 @@ public enum Edition implements Constrained {
       "Dynamic: Conterminous U.S. 2008",
       2008,
       100,
-      EnumSet.of(COUS, CEUS, WUS)),
+      EnumSet.of(COUS, CEUS, WUS),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0)),
 
   E2014(
       "Dynamic: Conterminous U.S. 2014",
       2014,
       0,
-      EnumSet.of(COUS, CEUS, WUS)),
+      EnumSet.of(COUS, CEUS, WUS),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
 
   E2007(
       "Dynamic: Alaska 2007",
       2007,
       -100,
-      EnumSet.of(AK));
+      EnumSet.of(AK),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0));
 
   private final String label;
   private final int year;
@@ -35,6 +51,7 @@ public enum Edition implements Constrained {
   /* not serialized */
   private final transient String version;
   private final transient Set<Region> regions;
+  private final transient Set<Imt> imts;
 
   private final Constraints constraints;
 
@@ -44,14 +61,16 @@ public enum Edition implements Constrained {
       String label,
       int year,
       int displayOrder,
-      Set<Region> regions) {
+      Set<Region> regions,
+      Set<Imt> imts) {
 
     this.year = year;
     this.version = Versions.modelVersion(name());
     this.label = label + " (" + version + ")";
     this.displayOrder = displayOrder;
     this.regions = regions;
-    this.constraints = new EditionConstraints(regions);
+    this.imts = imts;
+    this.constraints = new EditionConstraints(regions, imts);
   }
 
   @Override
