@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# nshmp-haz-ws pre-build repository update. Script reads 'update.properties'
+# for git tags and updates repositories accordingly. Script should be run
+# from the root of the nshmp-haz-ws repository. Note that it is possible for
+# this script to revert the nshmp-haz-ws repository to a version that
+# predates this script. Checkout master to revert. Note also that the script
+# leaves all repositories in a 'detached HEAD' state.
+
+VERSIONS_FILE=update.properties
+
+function getProperty {
+   PROP_KEY=$1
+   PROP_VALUE=`cat $VERSIONS_FILE | grep "$PROP_KEY" -m1 | cut -d'=' -f2`
+   echo $PROP_VALUE
+}
+
+function gitPull {
+    cd $1
+    echo $1 $2
+    git checkout master
+    git pull upstream master --tags
+    git checkout tags/$2
+    echo
+}
+
+echo "# Reading tags from $VERSIONS_FILE"
+
+NSHMP_HAZ_VERSION=$(getProperty "nshmp-haz")
+echo "nshmp-haz version:      $NSHMP_HAZ_VERSION"
+
+NSHMP_HAZ_WS_VERSION=$(getProperty "nshmp-haz-ws")
+echo "nshmp-haz-ws version:   $NSHMP_HAZ_WS_VERSION"
+
+NSHM_COUS_2008_VERSION=$(getProperty "nshm-cous-2008")
+echo "nshm-cous-2008 version: $NSHM_COUS_2008_VERSION"
+
+NSHM_COUS_2014_VERSION=$(getProperty "nshm-cous-2014")
+echo "nshm-cous-2014 version: $NSHM_COUS_2014_VERSION"
+
+NSHM_AK_2007_VERSION=$(getProperty "nshm-ak-2007")
+echo "nshm-ak-2007 version:   $NSHM_AK_2007_VERSION"
+
+
+dir=`pwd`
+
+gitPull ../nshmp-haz       $NSHMP_HAZ_VERSION
+gitPull ../nshmp-haz-ws    $NSHMP_HAZ_WS_VERSION
+gitPull ../nshm-cous-2008  $NSHM_COUS_2008_VERSION
+gitPull ../nshm-cous-2014  $NSHM_COUS_2014_VERSION
+gitPull ../nshm-ak-2007    $NSHM_AK_2007_VERSION
+
+cd $dir
