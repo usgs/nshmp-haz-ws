@@ -71,3 +71,8 @@ war {
     props.store(propsFile.newWriter(), null)
   }
 }
+
+task assembleUsgs(type: Sync) {
+    into "${libsDir}/exploded-war"
+    with war
+}
