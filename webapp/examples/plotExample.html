@@ -117,9 +117,7 @@
     d3.json(url, function(error, json){
       spinner.off();
 
-      plot.plotFilename = "plotTest";
       plot.title = "Plot Test";
-      
       
       //...... Means: UpperPanel
       let means = json.means;
@@ -129,6 +127,7 @@
       
       plot.upperPanel.data = data;
       plot.upperPanel.dataTableTitle = "Means";
+      plot.upperPanel.plotFilename = "spectraMean";
       plot.upperPanel.ids = [meanData.id];
       plot.upperPanel.labels = [meanData.label]; 
       plot.upperPanel.metadata = {
@@ -151,6 +150,7 @@
       
       plot.lowerPanel.data = data;
       plot.lowerPanel.dataTableTitle = "Sigmas";
+      plot.lowerPanel.plotFilename = "spectraSigma";
       plot.lowerPanel.ids = [sigmaData.id];
       plot.lowerPanel.labels = [sigmaData.label]; 
       plot.lowerPanel.metadata = {
