@@ -45,10 +45,6 @@ ext {
     return cmd.execute().text.replace('\n', '') ?: 'unknown'
   }
   propsPath = '/classes/java/main/service.properties'
-  /* Model locations may be overridden in ~/.gradle/gradle.properties */
-  model_ak_2007 = findProperty('model_ak_2007') ?: '../nshm-ak-2007'
-  model_cous_2008 = findProperty('model_cous_2008') ?: '../nshm-cous-2008'
-  model_cous_2014 = findProperty('model_cous_2014') ?: '../nshm-cous-2014'
 }
 
 war {
