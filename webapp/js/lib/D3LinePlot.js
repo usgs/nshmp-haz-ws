@@ -408,12 +408,19 @@ class D3LinePlot extends D3View{
       _tableRowY.append("td")
           .attr("nowrap","true")
           .text(panel.options.tooltipText[2]);
-      
+     
+           
       dataSet.forEach(function(dataPair,idp){
+        let xVal = panel.options.tooltipXToExponent ? 
+            dataPair[0].toExponential() : dataPair[0];
+            
+        let yVal = panel.options.tooltipYToExponent ? 
+            dataPair[1].toExponential() : dataPair[1];
+        
         _tableRowX.append("td")
-            .text(dataPair[0]);
+            .text(xVal);
         _tableRowY.append("td")
-            .text(dataPair[1]);
+            .text(yVal);
         
       })
      
