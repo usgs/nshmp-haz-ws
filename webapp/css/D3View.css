@@ -35,10 +35,13 @@
   padding: 0;
 }
 
-/* Plot Panel Content */                          
-.D3View .panel .panel-body .D3LinePlot{
-  margin-bottom: -5px;
-} 
+
+.D3View .panel .panel-lower{
+  border-top: 1px solid #ddd;
+  position: relative;
+  
+}
+
               
 .D3View .panel .panel-body .data-table td{
   font-size: 0.75vw;
@@ -46,8 +49,13 @@
 
 .D3View .panel .panel-body .data-table th{
   font-size: 1vw;
+  font-weight: 450;
 }
                                                                                 
+.D3View .panel .panel-body .data-table .data-table-title{
+  font-size: 1.25vw;
+}
+
 .D3View .panel .panel-footer{
   padding: 0;
   font-size: 0.75vw;
@@ -114,6 +122,10 @@
 .D3View .data-table{
   overflow-x: scroll;
   overflow-y: scroll;
+}
+
+.D3View .data-table .table{
+  margin-bottom: 30px;
 }
 
 /* Glyphicon */
