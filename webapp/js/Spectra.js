@@ -81,16 +81,23 @@ class Spectra extends Gmm{
     contentEl = document.querySelector("#content");
     //--------------------------------------------------------------------------
 
+    
+    //....................... Plot Options .....................................
+    let plotOptions = {
+        plotLowerPanel: true,
+        syncSelections: true,
+        xAxisScale: "linear",
+        yAxisScale: "linear"
+    };
+    //--------------------------------------------------------------------------
+
 
     //....................... Mean Plot Setup ..................................
     meanTooltipText = ["GMM", "Period (s)", "MGM (g)"];
     meanPlotOptions = {
         legendLocation: "topright",
         tooltipText: meanTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
     };
-    _this.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
     //--------------------------------------------------------------------------
 
 
@@ -106,13 +113,15 @@ class Spectra extends Gmm{
         plotWidth: 896,
         plotRatio: 4/1,
         tooltipText: sigmaTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
     };
-    _this.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
     //--------------------------------------------------------------------------
    
   
+  
+    _this.plot = new D3LinePlot(contentEl,
+        plotOptions,
+        meanPlotOptions,
+        sigmaPlotOptions);
   }
   //------------------ End Method: plotSetup -----------------------------------
  
@@ -154,6 +163,8 @@ class Spectra extends Gmm{
         time: new Date()
       }; 
       
+      _this.plot.title = "Response Spectra";
+      
       //........................ Plot Means .................................... 
       mean = response.means;
       meanData = mean.data;
@@ -168,16 +179,16 @@ class Spectra extends Gmm{
         seriesData.push(d3.zip(d.data.xs, d.data.ys));
       });
       
-      _this.meanPlot.data = seriesData;
-      _this.meanPlot.ids = seriesIds;
-      _this.meanPlot.labels = seriesLabels;
-      _this.meanPlot.metadata = metadata;
-      _this.meanPlot.plotFilename = "spectraMean";
-      _this.meanPlot.title = "Response Spectra: Mean";
-      _this.meanPlot.xLabel = mean.xLabel;
-      _this.meanPlot.yLabel = mean.yLabel;
+      _this.plot.upperPanel.data = seriesData;
+      _this.plot.upperPanel.dataTableTitle = "Means";
+      _this.plot.upperPanel.ids = seriesIds;
+      _this.plot.upperPanel.labels = seriesLabels;
+      _this.plot.upperPanel.metadata = metadata;
+      _this.plot.upperPanel.plotFilename = "spectraMean";
+      _this.plot.upperPanel.xLabel = mean.xLabel;
+      _this.plot.upperPanel.yLabel = mean.yLabel;
       
-      _this.meanPlot.plotData();
+      _this.plot.plotData(_this.plot.upperPanel);
       //------------------------------------------------------------------------
       
       
@@ -195,19 +206,21 @@ class Spectra extends Gmm{
         seriesData.push(d3.zip(d.data.xs, d.data.ys));
       });
       
-      _this.sigmaPlot.data = seriesData;
-      _this.sigmaPlot.ids = seriesIds;
-      _this.sigmaPlot.labels = seriesLabels;
-      _this.sigmaPlot.metadata = metadata;
-      _this.sigmaPlot.plotFilename = "spectraSigma";
-      _this.sigmaPlot.title = "Response Spectra: Sigma";
-      _this.sigmaPlot.xLabel = sigma.xLabel;
-      _this.sigmaPlot.yLabel = sigma.yLabel;
+      _this.plot.lowerPanel.data = seriesData;
+      _this.plot.lowerPanel.dataTableTitle = "Sigmas";
+      _this.plot.lowerPanel.ids = seriesIds;
+      _this.plot.lowerPanel.labels = seriesLabels;
+      _this.plot.lowerPanel.metadata = metadata;
+      _this.plot.lowerPanel.plotFilename = "spectraSigma";
+      _this.plot.lowerPanel.xLabel = sigma.xLabel;
+      _this.plot.lowerPanel.yLabel = sigma.yLabel;
       
-      _this.sigmaPlot.plotData();
+      _this.plot.plotData(_this.plot.lowerPanel);
       //------------------------------------------------------------------------
-      
-      
+    
+      _this.plot.syncSelections(_this.plot);
+     
+      $(_this.footer.rawBtnEl).off(); 
       $(_this.footer.rawBtnEl).click(function(){
         window.open(url);
       });
