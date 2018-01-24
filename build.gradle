@@ -45,6 +45,9 @@ ext {
     return cmd.execute().text.replace('\n', '') ?: 'unknown'
   }
   propsPath = '/classes/java/main/service.properties'
+  model_ak_2007 = '../nshm-ak-2007'
+  model_cous_2008 = '../nshm-cous-2008'
+  model_cous_2014 = '../nshm-cous-2014'
 }
 
 war {
