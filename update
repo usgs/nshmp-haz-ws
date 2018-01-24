@@ -9,37 +9,43 @@
 
 VERSIONS_FILE=update.properties
 
+# Find the first match in the props file, cut the version out, and trim
+# the trailing carriage return
 function getProperty {
    PROP_KEY=$1
-   PROP_VALUE=`cat $VERSIONS_FILE | grep "$PROP_KEY" -m1 | cut -d'=' -f2`
+   PROP_VALUE=`cat $VERSIONS_FILE | grep "$PROP_KEY" -m1 | cut -d'=' -f2 | tr -d '\r'`
    echo $PROP_VALUE
 }
 
 function gitPull {
     cd $1
-    echo $1 $2
-    git checkout master
-    git pull upstream master --tags
-    git checkout tags/$2
     echo
+    echo
+    echo "Processing: "$1 $2
+    echo "----> checkout master"
+    git checkout master
+    echo "----> pull upstream master --tags"
+    git pull upstream master --tags
+    echo "----> checkout tags/$2"
+    git checkout $2
 }
 
-echo "# Reading tags from $VERSIONS_FILE"
+echo "Reading tags from $VERSIONS_FILE"
 
 NSHMP_HAZ_VERSION=$(getProperty "nshmp-haz")
-echo "nshmp-haz version:      $NSHMP_HAZ_VERSION"
+echo "  nshmp-haz:      $NSHMP_HAZ_VERSION"
 
 NSHMP_HAZ_WS_VERSION=$(getProperty "nshmp-haz-ws")
-echo "nshmp-haz-ws version:   $NSHMP_HAZ_WS_VERSION"
+echo "  nshmp-haz-ws:   $NSHMP_HAZ_WS_VERSION"
 
 NSHM_COUS_2008_VERSION=$(getProperty "nshm-cous-2008")
-echo "nshm-cous-2008 version: $NSHM_COUS_2008_VERSION"
+echo "  nshm-cous-2008: $NSHM_COUS_2008_VERSION"
 
 NSHM_COUS_2014_VERSION=$(getProperty "nshm-cous-2014")
-echo "nshm-cous-2014 version: $NSHM_COUS_2014_VERSION"
+echo "  nshm-cous-2014: $NSHM_COUS_2014_VERSION"
 
 NSHM_AK_2007_VERSION=$(getProperty "nshm-ak-2007")
-echo "nshm-ak-2007 version:   $NSHM_AK_2007_VERSION"
+echo "  nshm-ak-2007:   $NSHM_AK_2007_VERSION"
 
 
 dir=`pwd`
