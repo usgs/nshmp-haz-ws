@@ -32,13 +32,21 @@ class ModelCompare extends Hazard{
 
     //..................... Plot Setup .........................................
     _this.plotEl = document.querySelector("#content");
-    let tooltipText = ["Edition", "GM (g)", "AFE"];
     let plotOptions = {
       colSizeMin: "col-md-offset-3 col-md-6",
+    };
+
+    let tooltipText = ["Edition", "GM (g)", "AFE"];
+    let hazardCurveOptions = {
       legendLocation: "bottomleft",
       tooltipText: tooltipText
     };
-    _this.plot = new D3LinePlot(_this.plotEl,plotOptions); 
+
+
+    _this.plot = new D3LinePlot(_this.plotEl,
+        plotOptions,
+        hazardCurveOptions,
+        {}); 
     //--------------------------------------------------------------------------
 
 
@@ -221,17 +229,18 @@ class ModelCompare extends Hazard{
     
 
     //.................... Plot Info Object for D3 .............................
-    _this.plot.data = seriesData;
-    _this.plot.ids = seriesLabelIds;
-    _this.plot.labels = seriesLabels;
-    _this.plot.metadata = metadata;
-    _this.plot.plotFilename = filename;
     _this.plot.title = title;
-    _this.plot.xLabel = xLabel;
-    _this.plot.yLabel = yLabel;
+    
+    _this.plot.upperPanel.data = seriesData;
+    _this.plot.upperPanel.ids = seriesLabelIds;
+    _this.plot.upperPanel.labels = seriesLabels;
+    _this.plot.upperPanel.metadata = metadata;
+    _this.plot.upperPanel.plotFilename = filename;
+    _this.plot.upperPanel.xLabel = xLabel;
+    _this.plot.upperPanel.yLabel = yLabel;
    
-    _this.plot.removeSmallValues(1e-14); 
-    _this.plot.plotData();
+    _this.plot.removeSmallValues(_this.plot.upperPanel, 1e-14); 
+    _this.plot.plotData(_this.plot.upperPanel);
     //--------------------------------------------------------------------------
 
   }
