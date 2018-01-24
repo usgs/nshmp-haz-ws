@@ -33,21 +33,33 @@ class ModelExplorer extends Hazard{
 
     //..................... Plot Setup .........................................
     _this.plotEl = document.querySelector("#content");
+    let plotOptions = {};
     let tooltipText = ["IMT", "GM (g)", "AFE"];
-    let plotOptions = {
+    let hazardCurveOptions = {
       legendLocation: "bottomleft",
-      tooltipText: tooltipText
+      tooltipText: tooltipText,
+      tooltipYToExponent: true
     };
-    _this.hazardPlot = new D3LinePlot(_this.plotEl,plotOptions); 
+    _this.hazardPlot = new D3LinePlot(_this.plotEl,
+        plotOptions,
+        hazardCurveOptions,
+        {}); 
     
+    
+    
+    plotOptions = {
+        colSizeDefault: "min"
+    };
     
     tooltipText = ["Component", "GM (g)", "AFE"];
-    plotOptions = {
-      colSizeDefault: "min",
+    let componentCurveOptions = {
       legendLocation: "bottomleft",
       tooltipText: tooltipText
     };
-    _this.componentPlot = new D3LinePlot(_this.plotEl,plotOptions);
+    _this.componentPlot = new D3LinePlot(_this.plotEl,
+        plotOptions,
+        componentCurveOptions,
+        {});
     //--------------------------------------------------------------------------
 
 
@@ -205,52 +217,53 @@ class ModelExplorer extends Hazard{
     //--------------------------------------------------------------------------
     
     //.................... Plot Info Object for D3 .............................
-    _this.hazardPlot.data = seriesData;
-    _this.hazardPlot.ids = seriesLabelIds;
-    _this.hazardPlot.labels = seriesLabels;
-    _this.hazardPlot.metadata = metadata;
-    _this.hazardPlot.plotFilename = filename;
     _this.hazardPlot.title = title;
-    _this.hazardPlot.xLabel = xLabel;
-    _this.hazardPlot.yLabel = yLabel;
     
-    _this.hazardPlot.removeSmallValues(1e-14);
-    _this.hazardPlot.plotData();
+    _this.hazardPlot.upperPanel.data = seriesData;
+    _this.hazardPlot.upperPanel.ids = seriesLabelIds;
+    _this.hazardPlot.upperPanel.labels = seriesLabels;
+    _this.hazardPlot.upperPanel.metadata = metadata;
+    _this.hazardPlot.upperPanel.plotFilename = filename;
+    _this.hazardPlot.upperPanel.xLabel = xLabel;
+    _this.hazardPlot.upperPanel.yLabel = yLabel;
+    
+    _this.hazardPlot.removeSmallValues(_this.hazardPlot.upperPanel, 1e-14);
+    _this.hazardPlot.plotData(_this.hazardPlot.upperPanel);
     //--------------------------------------------------------------------------
    
  
 
   
     // Override onclick in D3LinePlot 
-    d3.select(_this.hazardPlot.allDataEl)
+    d3.select(_this.hazardPlot.upperPanel.allDataEl)
         .selectAll(".data")
         .on("click",function(){
           let selectedImt = this.id
           _this.imtEl.value = selectedImt;
-          D3LinePlot.plotSelection(_this.hazardPlot,selectedImt);
+          D3LinePlot.plotSelection(_this.hazardPlot.upperPanel, selectedImt);
           if (dataType == "dynamic"){
-            ModelExplorer.plotComponentCurves(_this,jsonResponse);
+            ModelExplorer.plotComponentCurves(_this, jsonResponse);
           }
         
         });
    
     
     // Override onclick in D3LinePlot 
-    d3.select(_this.hazardPlot.legendEl)
+    d3.select(_this.hazardPlot.upperPanel.legendEl)
         .selectAll(".legend-entry")
         .on("click",function(){
           let selectedImt = this.id
           _this.imtEl.value = selectedImt;
-          D3LinePlot.plotSelection(_this.hazardPlot,selectedImt);
+          D3LinePlot.plotSelection(_this.hazardPlot.upperPanel, selectedImt);
           if (dataType == "dynamic"){
             ModelExplorer.plotComponentCurves(_this,jsonResponse);
           }
         });
     
-    D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
+    D3LinePlot.plotSelection(_this.hazardPlot.upperPanel, _this.imtEl.value);
     
     $(_this.imtEl).change(function(){
-      D3LinePlot.plotSelection(_this.hazardPlot,_this.imtEl.value);
+      D3LinePlot.plotSelection(_this.hazardPlot.upperPanel, _this.imtEl.value);
       if (dataType == "dynamic")
         ModelExplorer.plotComponentCurves(_this,jsonResponse);
     });
@@ -287,7 +300,7 @@ class ModelExplorer extends Hazard{
     
     let xValues = components.metadata.xvalues;
     data.forEach(function(d,i){
-      seriesData.push(d3.zip(xValues,d.yvalues));
+      seriesData.push(d3.zip(xValues, d.yvalues));
       seriesLabels.push(d.component);
       seriesLabelIds.push(d.component.toLowerCase());
     });
@@ -306,17 +319,19 @@ class ModelExplorer extends Hazard{
     //--------------------------------------------------------------------------
     
     //.................... Plot Info Object for D3 .............................
-    _this.componentPlot.data = seriesData;
-    _this.componentPlot.ids = seriesLabelIds;
-    _this.componentPlot.labels = seriesLabels;
-    _this.componentPlot.metadata = metadata;
-    _this.componentPlot.plotFilename = filename;
     _this.componentPlot.title = title;
-    _this.componentPlot.xLabel = xLabel;
-    _this.componentPlot.yLabel = yLabel;
     
-    _this.componentPlot.removeSmallValues(1e-14);
-    _this.componentPlot.plotData();
+    _this.componentPlot.upperPanel.data = seriesData;
+    _this.componentPlot.upperPanel.ids = seriesLabelIds;
+    _this.componentPlot.upperPanel.labels = seriesLabels;
+    _this.componentPlot.upperPanel.metadata = metadata;
+    _this.componentPlot.upperPanel.plotFilename = filename;
+    _this.componentPlot.upperPanel.xLabel = xLabel;
+    _this.componentPlot.upperPanel.yLabel = yLabel;
+    
+    _this.componentPlot.removeSmallValues(
+        _this.componentPlot.upperPanel, 1e-14);
+    _this.componentPlot.plotData(_this.componentPlot.upperPanel);
     //--------------------------------------------------------------------------
   
   
