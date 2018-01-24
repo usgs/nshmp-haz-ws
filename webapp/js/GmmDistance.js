@@ -97,6 +97,14 @@ class GmmDistance extends Gmm{
     //--------------------------------------------------------------------------
 
 
+    //......................... Plot Options ...................................
+    let plotOptions = {
+        plotLowerPanel: true,
+        printLowerPanel: false,
+        syncAxis: false    
+    };
+    //--------------------------------------------------------------------------
+
     //....................... Mean Plot Setup ..................................
     meanTooltipText = ["GMM", "Distance (km)", "MGM (g)"];
     meanPlotOptions = {
@@ -108,31 +116,74 @@ class GmmDistance extends Gmm{
         xAxisScale: "log",
         yAxisScale: "log"
     };
-    _this.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
     //--------------------------------------------------------------------------
 
 
     //..................... Sigma Plot Setup ...................................
-    /*
-    sigmaTooltipText = ["GMM", "Period (s)", "SD"];
-    sigmaPlotOptions = {
-        legendFontSize: 10,
-        legendLineBreak: 14,
-        legendPaddingX: 15,
-        legendPaddingY: 12,
-        legendLocation: "topright",
-        plotHeight: 224,
-        plotWidth: 896,
-        plotRatio: 4/1,
-        tooltipText: sigmaTooltipText,
+    //faultTooltipText = ["GMM", "Period (s)", "SD"];
+    let faultPlotOptions = {
+        marginTop: 50,
+        marginBottom: 20,
+        linewidth: 4,
+        linewidthSelection: 4,
+        plotHeight: 896*0.65/2,
+        plotWidth: 896*0.65,
+        plotRatio: 2/1,
+        pointRadius: 0,
+        pointRadiusSelection: 0,
+        pointRadiusTooltip: 0,
+        showData: false,
+        showLegend: false,
+        transitionDuration: 0,
         xAxisScale: "linear",
-        yAxisScale: "linear"
+        xAxisLocation: "top",
+        yAxisScale: "linear",
     };
-    _this.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
-    */
     //--------------------------------------------------------------------------
-   
   
+  
+    _this.plot = new D3LinePlot(contentEl,
+        plotOptions,
+        meanPlotOptions,
+        faultPlotOptions); 
+  
+  
+  
+    d3.select(_this.plot.lowerPanel.svgEl)
+        .style("margin-right", "35%");
+        
+  
+    let faultFormD3 =  d3.select(_this.plot.lowerPanel.plotBodyEl)
+        .append("div")
+        .attr("class", "form form-horizontal fault-form");
+        
+    faultFormD3.append("label")
+        .attr("class", "control-spacer control-group")
+        .attr("for", "dip-slider")
+        .text("Dip:");
+
+    let dipSliderD3 = faultFormD3.append("div")
+        .attr("class", "form-group form-group-sm")
+        
+    dipSliderD3.append("div") 
+        .attr("class", "col-md-8")
+        .html("<input class='slider' id='dip-slider' type='range' " + 
+            "name='dip-slider' min='0' max='90' step='5' />");
+        
+    dipSliderD3.append("div")
+        .attr("class", "col-md-4")
+        .append("div")
+        .attr("class", "input-group input-group-sm")
+        .html("<input class='form-control input-sm' " +
+            "id='dip-slider-value' type='text' readonly >"+
+            "<span class='input-group-addon'> ° </span>")
+    
+
+    $('[data-toggle="tooltip"]').tooltip()
+    _this.dipSliderEl = document.querySelector("#dip-slider");
+    _this.dipSliderValueEl = document.querySelector("#dip-slider-value");
+  
+    
   }
   //------------------ End Method: plotSetup -----------------------------------
  
@@ -174,6 +225,12 @@ class GmmDistance extends Gmm{
         time: new Date()
       }; 
       
+      
+      let selectedImtDisplay = $("#imt :selected").text();
+      let selectedImt = $("#imt :selected").val();
+      _this.plot.title = "Ground Motion Vs. Distance: " + 
+          selectedImtDisplay;
+      
       //........................ Plot Means .................................... 
       mean = response.means;
       meanData = mean.data;
@@ -188,51 +245,70 @@ class GmmDistance extends Gmm{
         seriesData.push(d3.zip(d.data.xs, d.data.ys));
       });
      
-      let selectedImtDisplay = $("#imt :selected").text();
-      let selectedImt = $("#imt :selected").val();
 
-      _this.meanPlot.data = seriesData;
-      _this.meanPlot.ids = seriesIds;
-      _this.meanPlot.labels = seriesLabels;
-      _this.meanPlot.metadata = metadata;
-      _this.meanPlot.plotFilename = "gmmDistance" + selectedImt;
-      _this.meanPlot.title = "Ground Motion Vs. Distance: " + 
-          selectedImtDisplay;
-      _this.meanPlot.xLabel = mean.xLabel;
-      _this.meanPlot.yLabel = mean.yLabel;
+      _this.plot.upperPanel.data = seriesData;
+      _this.plot.upperPanel.dataTableTitle = "Median Ground Motion";
+      _this.plot.upperPanel.ids = seriesIds;
+      _this.plot.upperPanel.labels = seriesLabels;
+      _this.plot.upperPanel.metadata = metadata;
+      _this.plot.upperPanel.plotFilename = "gmmDistance" + selectedImt;
+      _this.plot.upperPanel.xLabel = mean.xLabel;
+      _this.plot.upperPanel.yLabel = mean.yLabel;
       
-      _this.meanPlot.plotData();
+      _this.plot.plotData(_this.plot.upperPanel);
       //------------------------------------------------------------------------
       
       
-      //........................ Plot Sigma .................................... 
-      /*
-      sigma = response.sigmas;
-      sigmaData = sigma.data;
-
+      //........................ Plot Fault .................................... 
+      let dip = GmmDistance.dip_val();
+      let width = GmmDistance.width_val();
+      let zTop = GmmDistance.zTop_val();
+      
+      let xMin = 0;
+      let xMax = width * Math.cos(dip);
+      let x = [xMin, Number(xMax.toFixed(4))];
+     
+      let yMin = -zTop;
+      let yMax = - width * Math.sin(dip) - zTop;
+      let y = [yMin, Number(yMax.toFixed(4))];
+      
       seriesLabels = [];
       seriesIds = [];
       seriesData = [];
         
-      sigmaData.forEach(function(d, i) {
-        seriesLabels.push(d.label);
-        seriesIds.push(d.id);
-        seriesData.push(d3.zip(d.data.xs, d.data.ys));
-      });
+      seriesLabels.push("Fault");
+      seriesIds.push("fault");
+      seriesData.push(d3.zip(x, y));
       
-      _this.sigmaPlot.data = seriesData;
-      _this.sigmaPlot.ids = seriesIds;
-      _this.sigmaPlot.labels = seriesLabels;
-      _this.sigmaPlot.metadata = metadata;
-      _this.sigmaPlot.plotFilename = "spectraSigma";
-      _this.sigmaPlot.title = "Response Spectra: Sigma";
-      _this.sigmaPlot.xLabel = sigma.xLabel;
-      _this.sigmaPlot.yLabel = sigma.yLabel;
+      _this.plot.lowerPanel.data = seriesData;
+      _this.plot.lowerPanel.ids = seriesIds;
+      _this.plot.lowerPanel.labels = seriesLabels;
+      _this.plot.lowerPanel.metadata = metadata;
+      _this.plot.lowerPanel.xLabel = "km"; 
+      _this.plot.lowerPanel.yLabel = "km";
       
-      _this.sigmaPlot.plotData();
-      */
+      let xDomain = [-1, width];
+      let yDomain = [-width-zTop, 0];
+      _this.plot.plotData(_this.plot.lowerPanel, xDomain, yDomain);
       //------------------------------------------------------------------------
-      
+     
+      _this.dipSliderEl.value = $("#dip").val();
+      _this.dipSliderValueEl.value = $("#dip").val();
+     
+      _this.dipSliderEl.oninput = function(){
+        $("#dip").val(this.value);
+        _this.dipSliderValueEl.value = this.value;;
+        dip = GmmDistance.dip_val();
+        xMax = width * Math.cos(dip);
+        x = [xMin, Number(xMax.toFixed(4))];
+       
+        yMax = - width * Math.sin(dip) - zTop;
+        y = [yMin, Number(yMax.toFixed(4))];
+        _this.plot.lowerPanel.data = [d3.zip(x, y)];
+        _this.plot.plotData(_this.plot.lowerPanel, xDomain, yDomain);
+      };
+
+
       $(_this.footer.rawBtnEl).off() 
       $(_this.footer.rawBtnEl).click(function(){
         window.open(url);
