@@ -108,31 +108,14 @@ class GmmDistance extends Gmm{
         xAxisScale: "log",
         yAxisScale: "log"
     };
-    _this.meanPlot = new D3LinePlot(contentEl,meanPlotOptions);
     //--------------------------------------------------------------------------
 
-
-    //..................... Sigma Plot Setup ...................................
-    /*
-    sigmaTooltipText = ["GMM", "Period (s)", "SD"];
-    sigmaPlotOptions = {
-        legendFontSize: 10,
-        legendLineBreak: 14,
-        legendPaddingX: 15,
-        legendPaddingY: 12,
-        legendLocation: "topright",
-        plotHeight: 224,
-        plotWidth: 896,
-        plotRatio: 4/1,
-        tooltipText: sigmaTooltipText,
-        xAxisScale: "linear",
-        yAxisScale: "linear"
-    };
-    _this.sigmaPlot = new D3LinePlot(contentEl,sigmaPlotOptions);
-    */
-    //--------------------------------------------------------------------------
-   
   
+    _this.plot = new D3LinePlot(contentEl,
+        {},
+        meanPlotOptions,
+        {}); 
+    
   }
   //------------------ End Method: plotSetup -----------------------------------
  
@@ -174,6 +157,12 @@ class GmmDistance extends Gmm{
         time: new Date()
       }; 
       
+      
+      let selectedImtDisplay = $("#imt :selected").text();
+      let selectedImt = $("#imt :selected").val();
+      _this.plot.title = "Ground Motion Vs. Distance: " + 
+          selectedImtDisplay;
+      
       //........................ Plot Means .................................... 
       mean = response.means;
       meanData = mean.data;
@@ -188,50 +177,19 @@ class GmmDistance extends Gmm{
         seriesData.push(d3.zip(d.data.xs, d.data.ys));
       });
      
-      let selectedImtDisplay = $("#imt :selected").text();
-      let selectedImt = $("#imt :selected").val();
 
-      _this.meanPlot.data = seriesData;
-      _this.meanPlot.ids = seriesIds;
-      _this.meanPlot.labels = seriesLabels;
-      _this.meanPlot.metadata = metadata;
-      _this.meanPlot.plotFilename = "gmmDistance" + selectedImt;
-      _this.meanPlot.title = "Ground Motion Vs. Distance: " + 
-          selectedImtDisplay;
-      _this.meanPlot.xLabel = mean.xLabel;
-      _this.meanPlot.yLabel = mean.yLabel;
+      _this.plot.upperPanel.data = seriesData;
+      _this.plot.upperPanel.dataTableTitle = "Median Ground Motion";
+      _this.plot.upperPanel.ids = seriesIds;
+      _this.plot.upperPanel.labels = seriesLabels;
+      _this.plot.upperPanel.metadata = metadata;
+      _this.plot.upperPanel.plotFilename = "gmmDistance" + selectedImt;
+      _this.plot.upperPanel.xLabel = mean.xLabel;
+      _this.plot.upperPanel.yLabel = mean.yLabel;
       
-      _this.meanPlot.plotData();
+      _this.plot.plotData(_this.plot.upperPanel);
       //------------------------------------------------------------------------
       
-      
-      //........................ Plot Sigma .................................... 
-      /*
-      sigma = response.sigmas;
-      sigmaData = sigma.data;
-
-      seriesLabels = [];
-      seriesIds = [];
-      seriesData = [];
-        
-      sigmaData.forEach(function(d, i) {
-        seriesLabels.push(d.label);
-        seriesIds.push(d.id);
-        seriesData.push(d3.zip(d.data.xs, d.data.ys));
-      });
-      
-      _this.sigmaPlot.data = seriesData;
-      _this.sigmaPlot.ids = seriesIds;
-      _this.sigmaPlot.labels = seriesLabels;
-      _this.sigmaPlot.metadata = metadata;
-      _this.sigmaPlot.plotFilename = "spectraSigma";
-      _this.sigmaPlot.title = "Response Spectra: Sigma";
-      _this.sigmaPlot.xLabel = sigma.xLabel;
-      _this.sigmaPlot.yLabel = sigma.yLabel;
-      
-      _this.sigmaPlot.plotData();
-      */
-      //------------------------------------------------------------------------
       
       $(_this.footer.rawBtnEl).off() 
       $(_this.footer.rawBtnEl).click(function(){

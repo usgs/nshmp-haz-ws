@@ -100,6 +100,11 @@ class Tooltip{
     _this.selectedEl = selectedEl;
     _this.xVal = d3.select(selectedEl).data()[0][0];                              
     _this.yVal = d3.select(selectedEl).data()[0][1];
+    _this.xVal = plotObj.options.tooltipXToExponent ? 
+        _this.xVal.toExponential(4) : _this.xVal;
+    _this.yVal = plotObj.options.tooltipYToExponent ? 
+        _this.yVal.toExponential(4) : _this.yVal;
+
     scale = plotObj.scale ? plotObj.scale : 1;
     //-------------------------------------------------------------------------
 

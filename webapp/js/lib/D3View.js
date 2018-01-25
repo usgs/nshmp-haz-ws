@@ -85,7 +85,10 @@
 class D3View{
 
   //........................... D3View Constructor .............................
-  constructor(containerEl,options){
+  constructor(containerEl, 
+      options, 
+      plotOptionsUpper, 
+      plotOptionsLower){
 
 
     //.................................. Variables .............................
@@ -107,6 +110,10 @@ class D3View{
     _this.containerEl;
     _this.el;
     _this.options = {};
+    _this.lowerPanel = {};
+    _this.upperPanel = {};
+    _this.lowerPanel.options = {};
+    _this.upperPanel.options = {};
     _this.plotBodyEl;
     _this.plotFooterEl;
     _this.plotPanelEl;
@@ -126,7 +133,16 @@ class D3View{
       colSizeMin: "col-md-6",
       colSizeMinCenter: "col-md-offset-3 col-md-6",
       colSizeMax: "col-md-offset-1 col-md-10",
-      colSizeDefault: "max", 
+      colSizeDefault: "max",
+      plotLowerPanel: false,
+      printLowerPanel: true,
+      syncSelections: false,
+      syncAxis : true,
+      xAxisScale: "log",
+      yAxisScale: "log",
+    };
+
+    let plotOptions = {
       labelFontSize: 16,
       legendLocation: "topright",
       legendOffset: 5,
@@ -157,6 +173,7 @@ class D3View{
       printDpi: 600,
       printMarginTop: 1,
       printMarginLeft: 0,
+      showData: true,
       showLegend: true,
       tickFontSize: 12,
       tickExponentFontSize: 10,
@@ -164,13 +181,25 @@ class D3View{
       tooltipOffset: 10,
       tooltipPadding: 10,
       tooltipText: ["Label","X Value","Y Value"],
+      tooltipXToExponent: false,
+      tooltipYToExponent: false,
       transitionDuration: 500,
-      xAxisScale: "log",
-      yAxisScale: "log",
+      xAxisScale: _this.options.xAxisScale,
       xLabelPadding: 8,
+      xAxisLocation: "bottom",
+      yAxisScale: _this.options.yAxisScale,
       yLabelPadding: 10,
+      yAxisLocation: "left"
     };
-    $.extend(_this.options,options);
+    _this.options = $.extend({}, _this.options, options);
+
+    _this.lowerPanel.options = $.extend({}, 
+        plotOptions, plotOptionsLower);
+    
+    _this.upperPanel.options = $.extend({}, 
+        plotOptions, plotOptionsUpper);
+    
+    
     //--------------------------------------------------------------------------
    
     if (_this.options.colSizeDefault == "min")
@@ -208,10 +237,19 @@ class D3View{
         })
         .style("float","right"); 
 
-    _plotPanelD3
+    let panelBodyD3 = _plotPanelD3
         .append("div")
-        .attr("class","panel-body");
+        .attr("class","panel-body panel-outer");
     
+    let panelBodyUpper = panelBodyD3
+        .append("div")
+        .attr("class","panel-body panel-upper");
+    
+    let panelBodyLower = panelBodyD3
+        .append("div")
+        .attr("class","panel-body panel-lower")
+        .classed("hidden", !_this.options.plotLowerPanel);
+
     _plotFooterD3 = _plotPanelD3
         .append("div")
         .attr("class","panel-footer");
@@ -322,7 +360,9 @@ class D3View{
     //..................... DOM Elements .......................................
     _this.el = _elD3.node(); 
     _this.containerEl = containerEl;
-    _this.plotBodyEl = _this.el.querySelector(".panel-body");
+    _this.plotBodyEl = panelBodyD3.node();
+    _this.lowerPanel.plotBodyEl = panelBodyLower.node();
+    _this.upperPanel.plotBodyEl = panelBodyUpper.node();
     _this.plotFooterEl = _this.el.querySelector(".panel-footer");
     _this.plotHeaderEl = _this.el.querySelector(".panel-heading");
     _this.plotPanelEl = _this.el.querySelector(".panel");
@@ -445,14 +485,17 @@ class D3View{
         _isActive;
     
     _this = view;
-    
+   
+    let options = _this.options.syncAxis ? _this.options :
+        _this.upperPanel.options;
+
     // Update X scale
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
         .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == _this.options.xAxisScale;
+          _isActive = _input.attr("value") == options.xAxisScale;
           _btn.classed("active",_isActive)
       });
     
@@ -462,7 +505,7 @@ class D3View{
         .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == _this.options.yAxisScale;
+          _isActive = _input.attr("value") == options.yAxisScale;
           _btn.classed("active",_isActive)
       });
   }
