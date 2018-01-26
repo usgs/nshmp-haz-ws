@@ -86,8 +86,9 @@ class Spectra extends Gmm{
     let plotOptions = {
         plotLowerPanel: true,
         syncSelections: true,
+        syncXAxis: true,
+        syncYAxis: false,
         xAxisScale: "linear",
-        yAxisScale: "linear"
     };
     //--------------------------------------------------------------------------
 
@@ -97,6 +98,7 @@ class Spectra extends Gmm{
     meanPlotOptions = {
         legendLocation: "topright",
         tooltipText: meanTooltipText,
+        yAxisScale: "linear"
     };
     //--------------------------------------------------------------------------
 
@@ -113,6 +115,7 @@ class Spectra extends Gmm{
         plotWidth: 896,
         plotRatio: 4/1,
         tooltipText: sigmaTooltipText,
+        yAxisScale: "linear"
     };
     //--------------------------------------------------------------------------
    
