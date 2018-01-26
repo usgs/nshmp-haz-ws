@@ -204,14 +204,14 @@ class D3LinePlot extends D3View{
               .select("label")                                                  
               .classed("active",false);
           
-          let options = _this.options.syncAxis ? _this.options :
+          let options = _this.options.syncXAxis ? _this.options :
               _this.upperPanel.options;
                
           options.xAxisScale = d3.select(this)
               .select("input")
               .attr("value");
           
-          if (_this.options.plotLowerPanel && _this.options.syncAxis)
+          if (_this.options.plotLowerPanel && _this.options.syncXAxis)
             D3LinePlot.plotRedraw(_this, _this.lowerPanel);
           
           D3LinePlot.plotRedraw(_this, _this.upperPanel);
@@ -228,14 +228,14 @@ class D3LinePlot extends D3View{
               .select("label")                                                  
               .classed("active",false);
           
-          let options = _this.options.syncAxis ? _this.options :
+          let options = _this.options.syncYAxis ? _this.options :
               _this.upperPanel.options;
           
           options.yAxisScale = d3.select(this)
               .select("input")
               .attr("value");
           
-          if (_this.options.plotLowerPanel && _this.options.syncAxis)
+          if (_this.options.plotLowerPanel && _this.options.syncYAxis)
             D3LinePlot.plotRedraw(_this, _this.lowerPanel);
           
           D3LinePlot.plotRedraw(_this, _this.upperPanel);
@@ -513,7 +513,7 @@ class D3LinePlot extends D3View{
     let _xBounds,
         options;
 
-    if (_this.options.syncAxis){
+    if (_this.options.syncXAxis){
       options = _this.options;
     }else{
       options = panel.options;
@@ -588,7 +588,7 @@ class D3LinePlot extends D3View{
     let _yBounds,
         options;
     
-    if (_this.options.syncAxis){
+    if (_this.options.syncYAxis){
       options = _this.options;
     }else{
       options = panel.options;
@@ -1598,8 +1598,8 @@ class D3LinePlot extends D3View{
   //........................ Method: setTicsk ..................................
   static setTicks(_this, panel, axis){
     
-    let options = _this.options.syncAxis ? _this.options :
-        panel.options;
+    let options = _this.options["sync" + axis.toUpperCase() + "Axis"] 
+        ? _this.options : panel.options;
          
     if (options[axis+"AxisScale"] == "log"){
       d3.select(panel.svgEl)
