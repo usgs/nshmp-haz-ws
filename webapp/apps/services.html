@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" type="text/css"/>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" type="text/css"/>
-  <link href="css/header.css" rel="stylesheet" type="text/css">
-  <link href="css/services.css" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link href="../css/template.css" rel="stylesheet" type="text/css">
+  <link href="../css/services.css" rel="stylesheet" type="text/css">
 	<meta charset="UTF-8">
 	<title>NSHMP web services</title>
+
 </head>
 <body>
-	<div id="header">nshmp-haz-ws</div>
 
 <!-- 
   <div id="status" class="alert alert-danger" role="alert">
@@ -147,9 +147,14 @@
     </div>
     <p>Not all parameters are used by every ground motion model (gmm). At least one 'gmm' must be specified. Default values will be used for any parameters not specified. See <a href="/nshmp-haz-ws/gmm/spectra">usage</a> for parameter dependencies.</p>
   </div>
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="../js/lib/Header.js" charset="UTF-8"> </script>
+  
   <script>
+    let header = new Header();
 
 $(function(){
 
