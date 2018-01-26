@@ -71,7 +71,7 @@ class Header{
         ["Model Explorer","/nshmp-haz-ws/apps/model-explorer.html"],
         ["Response Spectra","/nshmp-haz-ws/apps/spectra-plot.html"],
         ["Test Sites","/nshmp-haz-ws/apps/test-sites.html"],
-        ["nshmp-haz-ws services", "/nshmp-haz-ws/apps/services.html"]
+        ["Services", "/nshmp-haz-ws/apps/services.html"]
     ];
     //--------------------------------------------------------------------------
 
