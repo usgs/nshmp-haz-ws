@@ -137,7 +137,8 @@ class D3View{
       plotLowerPanel: false,
       printLowerPanel: true,
       syncSelections: false,
-      syncAxis : true,
+      syncXAxis: true,
+      syncYAxis : true,
       xAxisScale: "log",
       yAxisScale: "log",
     };
@@ -486,26 +487,29 @@ class D3View{
     
     _this = view;
    
-    let options = _this.options.syncAxis ? _this.options :
-        _this.upperPanel.options;
-
     // Update X scale
+    let optionsX = _this.options.syncXAxis ? _this.options :
+        _this.upperPanel.options;
+    
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
         .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == options.xAxisScale;
+          _isActive = _input.attr("value") == optionsX.xAxisScale;
           _btn.classed("active",_isActive)
       });
     
     // Update Y scale
+    let optionsY = _this.options.syncYAxis ? _this.options :
+        _this.upperPanel.options;
+
     d3.select(_this.plotFooterEl)
         .selectAll(".y-axis-btns")
         .select("input").each(function(){
           _input = d3.select(this);
           _btn = d3.select(this.parentNode);
-          _isActive = _input.attr("value") == options.yAxisScale;
+          _isActive = _input.attr("value") == optionsY.yAxisScale;
           _btn.classed("active",_isActive)
       });
   }
