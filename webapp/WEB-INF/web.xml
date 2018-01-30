@@ -3,15 +3,9 @@
 	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	id="WebApp_ID" version="3.0">
+
 	<display-name>nshmp-haz-ws</display-name>
-	<servlet-mapping>
-		<servlet-name>TestServlet</servlet-name>
-		<url-pattern>/TestServlet</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>NshmpTest</servlet-name>
-		<url-pattern>/NshmpTest</url-pattern>
-	</servlet-mapping>
+
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
@@ -27,24 +21,6 @@
 			<param-name>listings</param-name>
 			<param-value>true</param-value>
 		</init-param>
-		<init-param>
-			<param-name>preload</param-name>
-			<param-value>false</param-value>
-		</init-param>
-	</servlet>
-	<servlet>
-		<description>
-		</description>
-		<display-name>TestServlet</display-name>
-		<servlet-name>TestServlet</servlet-name>
-		<servlet-class>gov.usgs.earthquake.nshmp.www.TestServlet</servlet-class>
-	</servlet>
-	<servlet>
-		<description>
-		</description>
-		<display-name>NshmpTest</display-name>
-		<servlet-name>NshmpTest</servlet-name>
-		<servlet-class>gov.usgs.earthquake.nshmp.www.NshmpTest</servlet-class>
 	</servlet>
 
 	<filter>
