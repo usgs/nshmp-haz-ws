@@ -16,9 +16,9 @@
       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
   <!-- CSS Files -->
-  <link rel="stylesheet" href="/nshmp-haz-ws/css/template.css" type="text/css">
-  <link rel="stylesheet" href="/nshmp-haz-ws/css/D3View.css" type="text/css">
-  <link rel="stylesheet" href="/nshmp-haz-ws/css/Gmm.css"  type="text/css">
+  <link rel="stylesheet" href="../css/template.css" type="text/css">
+  <link rel="stylesheet" href="../css/D3View.css" type="text/css">
+  <link rel="stylesheet" href="../css/Gmm.css"  type="text/css">
  
 </head>
 <!-- ......................... End: Head ................................... -->
@@ -86,6 +86,16 @@
       </select>
     
       <div class="form-horizontal">
+       
+       
+       <!-- ..................... IMT Menu ................................. -->
+        <div class="form-group form-group-sm">
+          <label class="control-spacer control-group"
+              for="imt"> Intensity Measure Type: </label>
+          <select class="form-control" id="imt" name="imt">
+          </select>
+        </div>
+        <!-- ................ End: Imt Menu ................................ -->
         
         <label class="control-spacer control-group">
             Event Parameters:
@@ -98,6 +108,7 @@
             <input type="text" class="form-control" id="Mw" name="Mw">
           </div>
         </div>
+        <!--
         <div class="form-group form-group-sm">
           <label class="col-sm-2 control-label" for="rake">
               Rake
@@ -154,7 +165,8 @@
             </label>
           </div>
         </div>
-    
+        -->
+
         <label class="control-spacer control-group">
             Source Geometry:
         </label>
@@ -164,7 +176,8 @@
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="zTop" name="zTop">
+              <input type="text" class="form-control" 
+                  id="zTop" name="zTop" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -178,7 +191,8 @@
                   id="dip" 
                   name="dip" 
                   min="0" 
-                  max="90">
+                  max="90" 
+                  readonly>
               <span class="input-group-addon">°</span>
             </div>
           </div>
@@ -189,7 +203,8 @@
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="width" name="width">
+              <input type="text" class="form-control" 
+                  id="width" name="width" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -198,6 +213,19 @@
         <label class="control-spacer control-group">
             Path Parameters:
         </label>
+        <div class="form-group form-group-sm">
+          <label class="col-sm-2 control-label" for="rMax">
+              R<sub>Max</sub>
+          </label>
+          <div class="col-sm-3">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" 
+                  id="rMax" name="rMax" readonly>
+              <span class="input-group-addon">km</span>
+            </div>
+          </div>
+        </div>
+        <!--
         <div class="form-group form-group-sm">
           <label class="col-sm-2 control-label" for="rX">
               R<sub>X</sub>
@@ -275,7 +303,8 @@
             </div>
           </div>
         </div>
-    
+        -->
+
         <label class="control-spacer control-group">
             Site &amp; Basin:
         </label>
@@ -373,18 +402,18 @@
 
   <!-- Application Specific JavaScript -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="/nshmp-haz-ws/js/lib/D3View.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/D3LinePlot.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Tooltip.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Footer.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Header.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Spinner.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Settings.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/lib/Gmm.js" charset="UTF-8"></script>
-  <script src="/nshmp-haz-ws/js/Spectra.js" charset="UTF-8"></script>
+  <script src="../js/lib/D3View.js" charset="UTF-8"></script>
+  <script src="../js/lib/D3LinePlot.js" charset="UTF-8"></script>
+  <script src="../js/lib/Tooltip.js" charset="UTF-8"></script>
+  <script src="../js/lib/Footer.js" charset="UTF-8"></script>
+  <script src="../js/lib/Header.js" charset="UTF-8"></script>
+  <script src="../js/lib/Spinner.js" charset="UTF-8"></script>
+  <script src="../js/lib/Settings.js" charset="UTF-8"></script>
+  <script src="../js/lib/Gmm.js" charset="UTF-8"></script>
+  <script src="../js/GmmDistance.js" charset="UTF-8"></script>
   
   <script> 
-    let spectra = new Spectra();
+    let gmm = new GmmDistance();
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

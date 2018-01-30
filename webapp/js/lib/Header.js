@@ -65,12 +65,13 @@ class Header{
 
     //...................... Set Dropdown Menu Items ...........................
     _this.menuItems = [
-        ["Dashboard","/nshmp-haz-ws/dashboard.html"],
-        ["Ground Motion Vs. Distance","/nshmp-haz-ws/gmm-distance.html"],
-        ["Model Compare","/nshmp-haz-ws/model-compare.html"],
-        ["Model Explorer","/nshmp-haz-ws/model-explorer.html"],
-        ["Response Spectra","/nshmp-haz-ws/spectra-plot.html"],
-        ["Test Sites","/nshmp-haz-ws/test-sites.html"]
+        ["Dashboard","/nshmp-haz-ws/"],
+        ["Ground Motion Vs. Distance","/nshmp-haz-ws/apps/gmm-distance.html"],
+        ["Model Compare","/nshmp-haz-ws/apps/model-compare.html"],
+        ["Model Explorer","/nshmp-haz-ws/apps/model-explorer.html"],
+        ["Response Spectra","/nshmp-haz-ws/apps/spectra-plot.html"],
+        ["Test Sites","/nshmp-haz-ws/apps/test-sites.html"],
+        ["Services", "/nshmp-haz-ws/apps/services.html"]
     ];
     //--------------------------------------------------------------------------
 
