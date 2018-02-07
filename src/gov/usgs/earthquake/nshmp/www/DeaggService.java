@@ -2,25 +2,13 @@ package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
-import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
-import static gov.usgs.earthquake.nshmp.www.Util.readValue;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -98,7 +86,7 @@ public final class DeaggService extends HttpServlet {
     try {
       if (query != null) {
         /* process query '?' request */
-        requestData = buildRequest(request.getParameterMap());
+        requestData = HazardService.buildRequest(request.getParameterMap());
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
@@ -106,7 +94,7 @@ public final class DeaggService extends HttpServlet {
           response.getWriter().printf(Metadata.DEAGG_USAGE, protocol, host);
           return;
         }
-        requestData = buildRequest(params);
+        requestData = HazardService.buildRequest(params);
       }
 
       /* Submit as task to job executor */
@@ -122,32 +110,6 @@ public final class DeaggService extends HttpServlet {
     }
   }
 
-  /* Reduce query string key-value pairs */
-  private RequestData buildRequest(Map<String, String[]> paramMap) {
-    /* Deagg imts will always be a singleton Set. */
-    return new RequestData(
-        readValue(paramMap, EDITION, Edition.class),
-        readValue(paramMap, REGION, Region.class),
-        readDoubleValue(paramMap, LONGITUDE),
-        readDoubleValue(paramMap, LATITUDE),
-        Sets.immutableEnumSet(readValue(paramMap, IMT, Imt.class)),
-        Vs30.fromValue(readDoubleValue(paramMap, VS30)),
-        Optional.of(readDoubleValue(paramMap, RETURNPERIOD)));
-  }
-
-  /* Reduce slash-delimited request */
-  private RequestData buildRequest(List<String> params) {
-    /* Deagg imts will always be a singleton Set. */
-    return new RequestData(
-        readValue(params.get(0), Edition.class),
-        readValue(params.get(1), Region.class),
-        Double.valueOf(params.get(2)),
-        Double.valueOf(params.get(3)),
-        Sets.immutableEnumSet(readValue(params.get(4), Imt.class)),
-        Vs30.fromValue(Double.valueOf(params.get(5))),
-        Optional.of(Double.valueOf(params.get(6))));
-  }
-
   private static class DeaggTask extends TimedTask<Result> {
 
     DeaggTask(String url, RequestData data, ServletContext context) {
@@ -156,8 +118,13 @@ public final class DeaggService extends HttpServlet {
 
     @Override
     Result calc() throws Exception {
+
       Hazard hazard = HazardService.calcHazard(data, context);
-      Deaggregation deagg = HazardCalcs.deaggregation(hazard, data.returnPeriod.get());
+      Deaggregation deagg = HazardCalcs.deaggregation(
+          hazard,
+          data.returnPeriod.getAsDouble(),
+          data.deaggImt);
+
       return new Result.Builder()
           .requestData(data)
           .url(url)
@@ -187,7 +154,7 @@ public final class DeaggService extends HttpServlet {
       this.longitude = request.longitude;
       this.latitude = request.latitude;
       this.imt = imt;
-      this.returnperiod = request.returnPeriod.get();
+      this.returnperiod = request.returnPeriod.getAsDouble();
       this.vs30 = request.vs30;
       this.εbins = deagg.εBins();
     }

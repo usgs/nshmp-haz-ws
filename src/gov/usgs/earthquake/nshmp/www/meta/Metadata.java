@@ -1,9 +1,5 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
-import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
-import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
-import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
-
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
@@ -270,14 +266,6 @@ public final class Metadata {
 
   public static Set<Imt> commonImts(Edition edition, Region region) {
     return Sets.intersection(edition.imts, region.imts);
-  }
-
-  public static Region checkRegion(double lon) {
-    return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
-  }
-
-  public static void main(String[] args) {
-    System.out.println(checkRegion(-122));
   }
 
 }

@@ -1,5 +1,8 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 import static java.lang.Runtime.getRuntime;
 
 import com.google.common.base.Stopwatch;
@@ -238,6 +241,21 @@ public class ServletUtil implements ServletContextListener {
       timer.start();
       return calc();
     }
+  }
+
+  /*
+   * For sites located west of -115 (in the WUS but not in the CEUS-WUS overlap
+   * zone) and site classes of vs30=760, client requests come in with
+   * region=COUS, thereby limiting the conversion of imt=any to the set of
+   * periods supported by both models. In order for the service to return what
+   * the client suggests should be returned, we need to do an addiitional
+   * longitude check. TODO clean; fix client eq-hazard-tool
+   */
+  static Region checkRegion(Region region, double lon) {
+    if (region == COUS) {
+      return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
+    }
+    return region;
   }
 
 }
