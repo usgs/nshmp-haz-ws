@@ -381,10 +381,12 @@
   <script src="js/lib/Spinner.js" charset="UTF-8"></script>
   <script src="js/lib/Settings.js" charset="UTF-8"></script>
   <script src="js/lib/Gmm.js" charset="UTF-8"></script>
+  <script src="js/lib/Constraints.js" charset="UTF-8"></script>
   <script src="js/Spectra.js" charset="UTF-8"></script>
   
   <script> 
-    let spectra = new Spectra();
+    let contentEl = document.querySelector('#content');
+    let spectra = new Spectra(contentEl);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 
