@@ -1,244 +1,279 @@
-"use strict"
-
+'use strict'
 
 /** 
-* @class Spectra
-*
-* @classdesc spectra-plot.html class
-*
-*
+* @fileoverview Class for spectra-plot.html, response spectra web app.
+* This class plots the results of nshmp-haz-ws/gmm/spectra web service.
+* This class will first call out to nshmp-haz-ws/gmm/spectra web service
+*     to obtain the usage and create the control panel with the following:
+*     - Ground motions models
+*     - Magnitude
+*     - Rake
+*     - zHyp
+*     - Fault mech (strike-slip, normal, reverse)
+*     - zTop
+*     - Dip
+*     - Width
+*     - rX
+*     - rRup
+*     - rJB
+*     - Vs30
+*     - Vs30 measured or inferred
+*     - Z1.0
+*     - Z2.5
+* Once the control panel is set, it can be used to select desired
+*     parameters and plot ground motion vs. period. 
+* Already defined DOM elements:
+*   - #gmms
+*   - .gmm-alpha
+*   - .gmm-group
+*   - #inputs
+*   - #Mw
+*   - #vs30
+*   - #z1p0
+*   - #z2p5
+*                                                                               
+* @class Spectra 
+* @extends Gmm
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Spectra extends Gmm{
+class Spectra extends Gmm {
 
+  /**
+  * @param {HTMLElement} contentEl - Container element to put plots
+  */
+  constructor(contentEl) {
+    let webApp = 'Spectra';
+    let wsUrl = '/nshmp-haz-ws/gmm/spectra'
+    super(webApp, wsUrl);
+    this.header.setTitle('Response Spectra');
+    this.spinner.on();
 
-  //............................ Constructor: Spectra ..........................
-  constructor(){
+    /** @type {HTMLElement} */ 
+    this.contentEl = contentEl;
+    /** @type {HTMLElement} */                                                  
+    this.dipEl = document.querySelector('#dip');                                
+    /** @type {HTMLElement} */ 
+    this.hwFwEl = document.querySelector('#hw-fw');
+    /** @type {HTMLElement} */ 
+    this.hwFwFwEl = document.querySelector('#hw-fw-fw');
+    /** @type {HTMLElement} */ 
+    this.hwFwHwEl = document.querySelector('#hw-fw-hw');
+    /** @type {HTMLElement} */ 
+    this.faultStyleEl = document.querySelector('#fault-style');
+    /** @type {HTMLElement} */ 
+    this.faultStyleNormalEl = document.querySelector('#fault-style-normal');
+    /** @type {HTMLElement} */ 
+    this.faultStyleReverseEl = document.querySelector('#fault-style-reverse');
+    /** @type {HTMLElement} */ 
+    this.faultStyleStrikeEl = document.querySelector('#fault-style-strike');
+    /** @type {HTMLElement} */ 
+    this.rakeEl = document.querySelector('#rake'); 
+    /** @type {HTMLElement} */ 
+    this.rCheckEl = document.querySelector('#r-check');
+    /** @type {HTMLElement} */ 
+    this.rJBEl = document.querySelector('#rJB');
+    /** @type {HTMLElement} */ 
+    this.rRupEl = document.querySelector('#rRup');
+    /** @type {HTMLElement} */ 
+    this.rXEl = document.querySelector('#rX');
+    /** @type {HTMLElement} */                                                  
+    this.widthEl = document.querySelector('#width');                            
+    /** @type {HTMLElement} */ 
+    this.zCheckEl = document.querySelector('#z-check');
+    /** @type {HTMLElement} */ 
+    this.zHypEl = document.querySelector('#zHyp');
+    /** @type {HTMLElement} */                                                  
+    this.zTopEl = document.querySelector('#zTop');
     
-
-    //........................... Variables ....................................
-    let _this,
-        // Variables
-        rCompute;
-
-    let webApp = "Spectra";
-    let wsUrl = "/nshmp-haz-ws/gmm/spectra"
-    _this = super(webApp, wsUrl);
-     
-    _this.header.setTitle("Response Spectra");
-    _this.spinner.on();
-    Spectra.plotSetup(_this);
-    //--------------------------------------------------------------------------
-
+    this.addToggle(this.hwFwEl.id, this.updateDistance);
+    this.addToggle(this.faultStyleEl.id, this.updateRake);
     
-    //............. Add toggle behavior to non-form buttons ....................
-    Spectra.addToggle("hw-fw", Spectra.updateDistance);
-    Spectra.addToggle("fault-style", Spectra.updateRake);
-    //--------------------------------------------------------------------------
-
-
-    //....................... Event Listeners ..................................
-    $("#r-check").change(function(event) {
-      rCompute = this.checked;
-      $("#rJB").prop("readonly", rCompute);
-      $("#rRup").prop("readonly", rCompute);
-      $("#hw-fw-hw").prop("disabled", !rCompute);
-      $("#hw-fw-fw").prop("disabled", !rCompute);
-      Spectra.updateDistance();
+    $(this.rCheckEl).change((event) => {
+      let rCompute = event.target.checked;
+      $(this.rJBEL).prop('readonly', rCompute);
+      $(this.rRupEl).prop('readonly', rCompute);
+      $(this.hwFwHwEl).prop('disabled', !rCompute);
+      $(this.hwFwFwEl).prop('disabled', !rCompute);
+      this.updateDistance();
     });
     
-    $("#rX, #zTop, #dip, #width").on("input", Spectra.updateDistance);
+    $(this.rakeEl).on('input', () => { this.updateFocalMech(); });
 
-    $("#z-check").change(function(event) {
-      $("#zHyp").prop("readonly", this.checked);
-      Spectra.updateHypoDepth();
+    $(this.rXEl).on('input', () => { this.updateDistance(); });
+    
+    $(this.dipEl).on('input', () => {
+      this.updateDistance();
+      this.updateHypoDepth();
     });
     
-    $("#zTop, #dip, #width").on("input", Spectra.updateHypoDepth);
-
-    $("#rake").on("input", Spectra.updateFocalMech);
-    //--------------------------------------------------------------------------
+    $(this.widthEl).on('input', () => {
+      this.updateDistance();
+      this.updateHypoDepth();
+    });
+    
+    $(this.zCheckEl).change((event) => {
+      $(this.zHyp).prop('readonly', event.target.checked);
+      this.updateHypoDepth();
+    });
+    
+    $(this.zTopEl).on('input', () => {
+      this.updateDistance();
+      this.updateHypoDepth();
+    });
+    
+    /** @type {D3LinePlot} */
+    this.plot = this.plotSetup();
+  	
+    this.getUsage();
+	}
  
-  
-  }
-  //---------------------- End Constructor: Spectra ----------------------------
-
-  
-  
-  //..................... Method: plotSetup ....................................
-  static plotSetup(_this){
-
-    //.......................... Variables .....................................
-    let contentEl,
-        meanPlotOptions,
-        meanTooltipText,
-        sigmaTooltipText,
-        sigmaPlotOptions;
-
-    // Properties of class
-    _this.meanPlot;
-    _this.sigmaPlot;
-
-    contentEl = document.querySelector("#content");
-    //--------------------------------------------------------------------------
-
+  /**
+  * @method plotGmm
+  *
+  * Plot ground motions Vs. period in the upper plot panel
+  * @param {Object} response - JSON return from gmm/spectra web service
+  */
+  plotGmm(response) {
+    let metadata = {
+      url: window.location.href,
+      time: new Date()
+    }; 
+    let mean = response.means;
+    let meanData = mean.data;
+    let seriesLabels = [];
+    let seriesIds = [];
+    let seriesData = [];
+      
+    meanData.forEach((d, i) => {
+      seriesLabels.push(d.label);
+      seriesIds.push(d.id);
+      seriesData.push(d3.zip(d.data.xs, d.data.ys));
+    });
     
-    //....................... Plot Options .....................................
+    this.plot.upperPanel.data = seriesData;
+    this.plot.upperPanel.dataTableTitle = 'Means';
+    this.plot.upperPanel.ids = seriesIds;
+    this.plot.upperPanel.labels = seriesLabels;
+    this.plot.upperPanel.metadata = metadata;
+    this.plot.upperPanel.plotFilename = 'spectraMean';
+    this.plot.upperPanel.xLabel = mean.xLabel;
+    this.plot.upperPanel.yLabel = mean.yLabel;
+    
+    this.plot.plotData(this.plot.upperPanel);
+  }
+
+  /**
+  * @method plotSetup
+  *
+  * Set the plot options for the ground motion Vs. period and
+  *   the accompanying sigma plot.
+  * @return {D3LinePlot} New instance of D3LinePlot
+  */
+  plotSetup() {
     let plotOptions = {
-        plotLowerPanel: true,
-        syncSelections: true,
-        syncXAxis: true,
-        syncYAxis: false,
-        xAxisScale: "linear",
+      plotLowerPanel: true,
+      syncSelections: true,
+      syncXAxis: true,
+      syncYAxis: false,
+      xAxisScale: 'linear',
     };
-    //--------------------------------------------------------------------------
 
-
-    //....................... Mean Plot Setup ..................................
-    meanTooltipText = ["GMM", "Period (s)", "MGM (g)"];
-    meanPlotOptions = {
-        legendLocation: "topright",
-        tooltipText: meanTooltipText,
-        yAxisScale: "linear"
+    let meanTooltipText = ['GMM', 'Period (s)', 'MGM (g)'];
+    let meanPlotOptions = {
+      legendLocation: 'topright',
+      tooltipText: meanTooltipText,
+      yAxisScale: 'linear',
     };
-    //--------------------------------------------------------------------------
-
-
-    //..................... Sigma Plot Setup ...................................
-    sigmaTooltipText = ["GMM", "Period (s)", "SD"];
-    sigmaPlotOptions = {
-        legendFontSize: 10,
-        legendLineBreak: 14,
-        legendPaddingX: 15,
-        legendPaddingY: 12,
-        legendLocation: "topright",
-        plotHeight: 224,
-        plotWidth: 896,
-        plotRatio: 4/1,
-        tooltipText: sigmaTooltipText,
-        yAxisScale: "linear"
+    
+    let sigmaTooltipText = ['GMM', 'Period (s)', 'SD'];
+    let sigmaPlotOptions = {
+      legendFontSize: 10,
+      legendLineBreak: 14,
+      legendPaddingX: 15,
+      legendPaddingY: 12,
+      legendLocation: 'topright',
+      plotHeight: 224,
+      plotWidth: 896,
+      plotRatio: 4/1,
+      tooltipText: sigmaTooltipText,
+      yAxisScale: 'linear',
     };
-    //--------------------------------------------------------------------------
-   
-  
-  
-    _this.plot = new D3LinePlot(contentEl,
+    
+    return new D3LinePlot(
+        this.contentEl,
         plotOptions,
         meanPlotOptions,
         sigmaPlotOptions);
   }
-  //------------------ End Method: plotSetup -----------------------------------
- 
 
-  
-  //....................... Method: updatePlot .................................
-  static updatePlot(_this, url) {
+  /**
+  * @method plotSigma
+  *
+  * Plot sigma of ground motions in the lower plot panel
+  * @param {Object} response - JSON return from gmm/spectra web service
+  */
+  plotSigma(response) {
+    let metadata = {
+      url: window.location.href,
+      time: new Date()
+    }; 
+    let sigma = response.sigmas;
+    let sigmaData = sigma.data;
 
-    //........................ Variables .......................................
-    let dataSet,
-        mean,
-        meanData,
-        metadata,
-        series,
-        seriesData,
-        seriesIds,
-        seriesLabels,
-        sigma,
-        sigmaData;
-    //--------------------------------------------------------------------------
-
+    let seriesLabels = [];
+    let seriesIds = [];
+    let seriesData = [];
+      
+    sigmaData.forEach((d, i) => {
+      seriesLabels.push(d.label);
+      seriesIds.push(d.id);
+      seriesData.push(d3.zip(d.data.xs, d.data.ys));
+    });
     
-    //............................. Query and Plot .............................
-    d3.json(url, function(error, response) {
+    this.plot.lowerPanel.data = seriesData;
+    this.plot.lowerPanel.dataTableTitle = 'Sigmas';
+    this.plot.lowerPanel.ids = seriesIds;
+    this.plot.lowerPanel.labels = seriesLabels;
+    this.plot.lowerPanel.metadata = metadata;
+    this.plot.lowerPanel.plotFilename = 'spectraSigma';
+    this.plot.lowerPanel.xLabel = sigma.xLabel;
+    this.plot.lowerPanel.yLabel = sigma.yLabel;
+    
+    this.plot.plotData(this.plot.lowerPanel);
+  }
+  
+  /**
+  * @method updatePlot
+  *
+  * Call the ground motion web service and plot the results
+  */ 
+  updatePlot() {
+    let url = this.serializeGmmUrl(); 
+    d3.json(url, (error, response) => {
       if (error) return console.warn(error);
-      if (response.status == "ERROR") {
-        svg.append("text")
-            .attr("y", margin.top)
-            .attr("x", margin.left)
+      if (response.status == 'ERROR') {
+        d3.select(this.plot.upperPanel.svgEl)
+            .append('text')
+            .attr('y', margin.top)
+            .attr('x', margin.left)
             .text(response.message);
         return;
       }  
       
-      _this.spinner.off();
+      this.spinner.off();
+      this.plot.title = 'Response Spectra';
+      // Plot means
+      this.plotGmm(response);
+      // Plot sigmas
+      this.plotSigma(response); 
+      // Sync selections
+      this.plot.syncSelections(this.plot);
      
-      metadata ={
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-      }; 
-      
-      _this.plot.title = "Response Spectra";
-      
-      //........................ Plot Means .................................... 
-      mean = response.means;
-      meanData = mean.data;
-
-      seriesLabels = [];
-      seriesIds = [];
-      seriesData = [];
-        
-      meanData.forEach(function(d, i) {
-        seriesLabels.push(d.label);
-        seriesIds.push(d.id);
-        seriesData.push(d3.zip(d.data.xs, d.data.ys));
-      });
-      
-      _this.plot.upperPanel.data = seriesData;
-      _this.plot.upperPanel.dataTableTitle = "Means";
-      _this.plot.upperPanel.ids = seriesIds;
-      _this.plot.upperPanel.labels = seriesLabels;
-      _this.plot.upperPanel.metadata = metadata;
-      _this.plot.upperPanel.plotFilename = "spectraMean";
-      _this.plot.upperPanel.xLabel = mean.xLabel;
-      _this.plot.upperPanel.yLabel = mean.yLabel;
-      
-      _this.plot.plotData(_this.plot.upperPanel);
-      //------------------------------------------------------------------------
-      
-      
-      //........................ Plot Sigma .................................... 
-      sigma = response.sigmas;
-      sigmaData = sigma.data;
-
-      seriesLabels = [];
-      seriesIds = [];
-      seriesData = [];
-        
-      sigmaData.forEach(function(d, i) {
-        seriesLabels.push(d.label);
-        seriesIds.push(d.id);
-        seriesData.push(d3.zip(d.data.xs, d.data.ys));
-      });
-      
-      _this.plot.lowerPanel.data = seriesData;
-      _this.plot.lowerPanel.dataTableTitle = "Sigmas";
-      _this.plot.lowerPanel.ids = seriesIds;
-      _this.plot.lowerPanel.labels = seriesLabels;
-      _this.plot.lowerPanel.metadata = metadata;
-      _this.plot.lowerPanel.plotFilename = "spectraSigma";
-      _this.plot.lowerPanel.xLabel = sigma.xLabel;
-      _this.plot.lowerPanel.yLabel = sigma.yLabel;
-      
-      _this.plot.plotData(_this.plot.lowerPanel);
-      //------------------------------------------------------------------------
-    
-      _this.plot.syncSelections(_this.plot);
-     
-      $(_this.footer.rawBtnEl).off(); 
-      $(_this.footer.rawBtnEl).click(function(){
+      $(this.footer.rawBtnEl).off(); 
+      $(this.footer.rawBtnEl).click((event) =>{
         window.open(url);
       });
-
     });
-    //--------------------------------------------------------------------------
- 
-  
   }
-  //------------------------ End Method: updatePlot ----------------------------
-
-
 
 }
-//----------------------- End Class: Spectra -----------------------------------
-
-
-

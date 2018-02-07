@@ -1,8 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
 
-
-//................................... Import ..............................................
 import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
@@ -75,11 +73,8 @@ import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 import gov.usgs.earthquake.nshmp.www.meta.Util;
-//----------------------------------- End Import ------------------------------------------
 
 
-
-//............................ Class: GroundMotionService .................................
 @WebServlet(
   name = "Ground Motion Vs. Distance",
   description = "USGS NSHMP Ground Motion Vs. Distance Calculator",
@@ -89,22 +84,13 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
 public class GroundMotionService extends HttpServlet {
   private static final long serialVersionUID = 1L;
   
-  private static final String DISTANCE = "/distance";
-  private static final String SPECTRA = "/spectra";
-  
-  private static final String DISTANCE_DESCRIPTION = 
-  			"Compute ground motion Vs. distance";
-  private static final String SPECTRA_DESCRIPTION = 
-  			"Compute deterministic response spectra";
- 
   private static final String GMM_KEY = "gmm";
+  private static final String RMIN_KEY = "rMin";
   private static final String RMAX_KEY = "rMax";
   private static final String IMT_KEY = "imt"; 
-  
   private static final int ROUND = 5;
 
   
-  //................................. Method: doGet .......................................
   @Override
   protected void doGet(
       HttpServletRequest request, 
@@ -117,6 +103,16 @@ public class GroundMotionService extends HttpServlet {
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
     
+    Services service = null;
+    if (pathInfo.matches(Services.DISTANCE.pathInfo)) {
+  			service = Services.DISTANCE;
+    }else if (pathInfo.matches(Services.HW_FW.pathInfo)) {
+  			service = Services.HW_FW;
+    }else if (pathInfo.matches(Services.SPECTRA.pathInfo)){
+  			service = Services.SPECTRA;
+    }
+
+    
     Gson gson = new GsonBuilder() 
         .setPrettyPrinting()
         .serializeNulls()
@@ -126,7 +122,7 @@ public class GroundMotionService extends HttpServlet {
             new Metadata.Parameters.Serializer())
         .registerTypeAdapter(
             GmmInput.class,
-            new InputSerializer(pathInfo))
+            new InputSerializer(service))
         .registerTypeAdapter(
         			Imt.class, 
         			new Util.EnumSerializer<Imt>())
@@ -145,7 +141,7 @@ public class GroundMotionService extends HttpServlet {
     }
     
     /* At a minimum, Gmms must be defined. */
-    final String USAGE_STR = gson.toJson(new Metadata(pathInfo));
+    final String USAGE_STR = gson.toJson(new Metadata(service));
     String gmmParam = request.getParameter(GMM_KEY);
     if (gmmParam == null) {
       writer.printf(USAGE_STR, protocol, host);
@@ -160,10 +156,12 @@ public class GroundMotionService extends HttpServlet {
     ResponseData svcResponse = null;
     try {
       Map<String, String[]> params = request.getParameterMap();
-      if (pathInfo.matches(DISTANCE)) {
-      		svcResponse = processRequestDistance(params);
-      }else if (pathInfo.matches(SPECTRA)){
-      		svcResponse = processRequestSpectra(params);
+      if (service.equals(Services.DISTANCE)) {
+      		svcResponse = processRequestDistance(service, params);
+      }else if (service.equals(Services.HW_FW)) {
+      		svcResponse = processRequestDistance(service, params);
+      }else if (service.equals(Services.SPECTRA)){
+      		svcResponse = processRequestSpectra(service, params);
       }
       svcResponse.url = url;
 			String jsonString = gson.toJson(svcResponse);
@@ -174,31 +172,38 @@ public class GroundMotionService extends HttpServlet {
       e.printStackTrace();
     }
   }
-  //------------------------------- End Method: doGet -------------------------------------
   
-  
-  
-  //............................. Class: RequestData ......................................
   static class RequestData{
     Set<Gmm> gmms;
     GmmInput input;
+    
+    RequestData(Map<String, String[]> params){
+    		this.gmms = buildGmmSet(params);
+    		this.input = buildInput(params);
+    }
   }
-  //------------------------------ End Class: RequestData ---------------------------------
   
-  
-  
-  //............................. Class: RequestDataDistance ..............................
   static class RequestDataDistance extends RequestData{
   		String imt;
+  		double minDistance;
   		double maxDistance;
+  		
+  		
+  		RequestDataDistance(
+  				Map<String, String[]> params, 
+  				String imt, 
+  				double rMin, 	
+  				double rMax){
+  			
+  			super(params);
+  			this.imt = imt;
+  			this.minDistance = rMin;
+  			this.maxDistance = rMax;
+  		}
   }
-  //------------------------------ End Class: RequestDataDistance -------------------------
   
-  
-  
-  //............................. Class: ResponseData .....................................
   static class ResponseData{
-    String name; 
+  		String name; 
     String status = Status.SUCCESS.toString();
     String date = ServletUtil.formatDate(new Date());
     String url;
@@ -206,117 +211,77 @@ public class GroundMotionService extends HttpServlet {
     RequestData request;
     XY_DataGroup means;
     XY_DataGroup sigmas;  
+    
+    ResponseData(Services service, RequestData request){
+    		this.name = service.resultName;
+    	  	this.request = request;
+    		this.server =
+          gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
+      
+    		this.means = XY_DataGroup.create(
+          service.groupNameMean,
+          service.xLabel,
+          service.yLabelMedian);
+
+    		this.sigmas = XY_DataGroup.create(
+          service.groupNameSigma,
+          service.xLabel,
+          service.yLabelSigma);
+    }
+    
+    void setXY(
+    			Map<Gmm, List<Double>> x, 
+    			Map<Gmm, List<Double>> means, 
+    			Map<Gmm, List<Double>> sigmas) {
+    	
+    		for(Gmm gmm : means.keySet()) {
+        XySequence xyMeans = XySequence.create(
+            x.get(gmm), 
+            Data.round(ROUND, Data.exp(new ArrayList<>(means.get(gmm)))));
+        this.means.add(gmm.name(), gmm.toString(), xyMeans);
+        
+        XySequence xySigmas = XySequence.create(
+            x.get(gmm), 
+            Data.round(ROUND, new ArrayList<>(sigmas.get(gmm))));
+        this.sigmas.add(gmm.name(), gmm.toString(), xySigmas);          
+      }
+    }
+    
   }
-  //----------------------------- End Class: ResponseData ---------------------------------
   
- 
-  
-  //......................... Method: proccessRequestDistance .............................
-  static ResponseData processRequestDistance(Map<String, String[]> params) {
+  static ResponseData processRequestDistance(
+  			Services service, Map<String, String[]> params) {
   	
-    final String NAME = "Ground Motion Vs. Distance";
-    final String RESULT_NAME = NAME + " Results";
-    final String GROUP_NAME_MEAN = "Means";
-    final String GROUP_NAME_SIGMA = "Sigmas";
-    final String X_LABEL = "Distance (km)";
-    final String Y_LABEL_MEDIAN = "Median ground motion (g)";
-    final String Y_LABEL_SIGMA = "Standard deviation";
-    
+    boolean isLogSpace = service.equals(Services.DISTANCE) ? true : false;
     Imt imt = readValue(params, IMT, Imt.class);
-    double rMax = Double.valueOf(params.get("rMax")[0]);
+    double rMin = Double.valueOf(params.get(RMIN_KEY)[0]);
+    double rMax = Double.valueOf(params.get(RMAX_KEY)[0]);
     
-    RequestDataDistance request = new RequestDataDistance();
-    request.gmms = buildGmmSet(params);
-    request.input = buildInput(params);
-    request.imt = imt.toString();
-    request.maxDistance = rMax;
+    RequestDataDistance request = new RequestDataDistance(
+    			params, imt.toString(), rMin, rMax);
     
     DistanceResult result = GroundMotions.distanceGroundMotions(
-        request.gmms, request.input, imt, rMax);
+        request.gmms, request.input, imt, rMin, rMax, isLogSpace);
     
-    ResponseData response = new ResponseData();
-    response.name = RESULT_NAME;
-    response.request = request;
-    response.server =
-        gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
-    
-    response.means = XY_DataGroup.create(GROUP_NAME_MEAN, X_LABEL, Y_LABEL_MEDIAN);
-    response.sigmas = XY_DataGroup.create(GROUP_NAME_SIGMA, X_LABEL , Y_LABEL_SIGMA);
-    
-    for(Gmm gmm : result.means.keySet()) {
-      XySequence xyMeans = XySequence.create(
-          result.distance.get(gmm), 
-          Data.round(ROUND, Data.exp(new ArrayList<>(result.means.get(gmm)))));
-      response.means.add(gmm.name(), gmm.toString(), xyMeans);
-      
-      XySequence xySigmas = XySequence.create(
-          result.distance.get(gmm), 
-          Data.round(ROUND, new ArrayList<>(result.sigmas.get(gmm))));
-      response.sigmas.add(gmm.name(), gmm.toString(), xySigmas);          
-    }
+    ResponseData response = new ResponseData(service, request);
+    response.setXY(result.distance, result.means, result.sigmas);
     
     return response;
   }
-  //----------------------- End Method: processRequestDistance ----------------------------
   
-  
-  
-  //...................... Method: processRequestSpectra ..................................
-  private static ResponseData processRequestSpectra(Map<String, String[]> params) {
+  private static ResponseData processRequestSpectra(
+  			Services service, Map<String, String[]> params) {
   	
-  		final String NAME = "Deterministic Response Spectra";
-    final String RESULT_NAME = NAME + " Results";
-    final String GROUP_NAME_MEAN = "Means";
-    final String GROUP_NAME_SIGMA = "Sigmas";
-    final String X_LABEL = "Periods (s)";
-    final String Y_LABEL_MEDIAN = "Median ground motion (g)";
-    final String Y_LABEL_SIGMA = "Standard deviation";
-    
-    RequestData request = new RequestData();
-    request.gmms = buildGmmSet(params);
-    request.input = buildInput(params);
-
+    RequestData request = new RequestData(params);
     MultiResult result = spectra(request.gmms, request.input, false);
 
     // set up response
-    ResponseData response = new ResponseData();
-    response.name = RESULT_NAME;
-    response.request = request;
-    response.server =
-        gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
-
-    response.means = XY_DataGroup.create(
-        GROUP_NAME_MEAN,
-        X_LABEL,
-        Y_LABEL_MEDIAN);
-
-    response.sigmas = XY_DataGroup.create(
-        GROUP_NAME_SIGMA,
-        X_LABEL,
-        Y_LABEL_SIGMA);
-
-    // populate response
-    for (Gmm gmm : result.means.keySet()) {
-
-      // result contains immutable lists so copy in order to modify
-      XySequence xyMeans = XySequence.create(
-          result.periods.get(gmm),
-          Data.round(ROUND, Data.exp(new ArrayList<>(result.means.get(gmm)))));
-      response.means.add(gmm.name(), gmm.toString(), xyMeans);
-
-      XySequence xySigmas = XySequence.create(
-          result.periods.get(gmm),
-          Data.round(ROUND, new ArrayList<>(result.sigmas.get(gmm))));
-      response.sigmas.add(gmm.name(), gmm.toString(), xySigmas);
-    }
+    ResponseData response = new ResponseData(service, request);
+    response.setXY(result.periods, result.means, result.sigmas);
 
     return response;
   }
-  //------------------------- End Method: processRequestSpectra ---------------------------
-
-  
-  
-  //......................... Method: buildGmmSet .........................................
+ 
   static Set<Gmm> buildGmmSet(Map<String, String[]> params) {
     checkArgument(params.containsKey(Metadata.GMM_KEY),
         "Missing ground motion model key: " +
@@ -327,18 +292,15 @@ public class GroundMotionService extends HttpServlet {
             .transform(Enums.stringConverter(Gmm.class)),
         Gmm.class);
   }
-  //---------------------- End Method: buildGmmSet ----------------------------------------
-  
-  
-  
-  //............................ Method: buildInput .......................................
+ 
   static GmmInput buildInput(Map<String, String[]> params) {
     
     Builder builder = GmmInput.builder().withDefaults();
     for (Entry<String, String[]> entry : params.entrySet()) {
       if (entry.getKey().equals(GMM_KEY)  
           || entry.getKey().equals(IMT_KEY)
-          || entry.getKey().equals(RMAX_KEY))  continue;
+          || entry.getKey().equals(RMAX_KEY)
+          || entry.getKey().equals(RMIN_KEY))  continue;
       Field id = Field.fromString(entry.getKey());
       String value = entry.getValue()[0];
       if (value.equals("")) {
@@ -348,17 +310,13 @@ public class GroundMotionService extends HttpServlet {
     }
     return builder.build();
   }
-  //------------------------- End Method: buildInput --------------------------------------
   
-  
-  
-  //............................. Class: InputSerializer ..................................
   static final class InputSerializer implements JsonSerializer<GmmInput> {
   		
-  		String pathInfo;
+  		Services service;
   		
-  		InputSerializer(String pathInfo){
-  			this.pathInfo = pathInfo;
+  		InputSerializer(Services service){
+  			this.service = service;
   		}
   		
     @Override
@@ -366,11 +324,13 @@ public class GroundMotionService extends HttpServlet {
     			GmmInput input, 
     			Type type, 
     			JsonSerializationContext context) {
+    		
+    		boolean printDistance = !service.equals(Services.SPECTRA) ? true : false;
     		JsonObject root = new JsonObject();
       root.addProperty(MW.toString(), input.Mw);
-      root.addProperty(RJB.toString(), pathInfo.matches(DISTANCE) ? null : input.rJB);
-      root.addProperty(RRUP.toString(), pathInfo.matches(DISTANCE) ? null : input.rRup);
-      root.addProperty(RX.toString(), pathInfo.matches(DISTANCE) ? null : input.rX);
+      root.addProperty(RJB.toString(), printDistance ? input.rJB : null);
+      root.addProperty(RRUP.toString(),  printDistance ? input.rRup : null);
+      root.addProperty(RX.toString(), printDistance ? input.rX : null);
       root.addProperty(DIP.toString(), input.dip); 
       root.addProperty(WIDTH.toString(), input.width);
       root.addProperty(ZTOP.toString(), input.zTop);
@@ -384,28 +344,18 @@ public class GroundMotionService extends HttpServlet {
       return root;
     }
   }
-  //------------------------- End Class: InputSerializer ----------------------------------
   
-  
-  
-  //.............................. Class: Metadata ........................................
   static final class Metadata {
 
     final String status = Status.USAGE.toString();
     String description; 
     String syntax; 
-    
-    static String pathInfo;
+    static Services service;
 
-    Metadata(String pathInfo){
-    		this.pathInfo = pathInfo;
-    		this.syntax = "http://%s/nshmp-haz-ws" + pathInfo+ "?";
-    		if (pathInfo.matches(DISTANCE)) {
-    			this.description = DISTANCE_DESCRIPTION;
-    		} else if (pathInfo.matches(SPECTRA)) {
-    			this.description = SPECTRA_DESCRIPTION;
-    		}
-    		
+    Metadata(Services service){
+    		this.service = service;
+    		this.syntax = "%s://%s/nshmp-haz-ws/gmm" + service.pathInfo + "?";
+    		this.description = service.description;    		
     }
    
     
@@ -426,7 +376,7 @@ public class GroundMotionService extends HttpServlet {
         			JsonSerializationContext context) {
           JsonObject root = new JsonObject();
           
-          if (pathInfo.matches(DISTANCE)) { 
+          if (!service.equals(Services.SPECTRA)) { 
           		Set<Imt> imtSet = EnumSet.complementOf(EnumSet.range(PGV, AI));
           		final EnumParameter<Imt> imts;
               imts = new EnumParameter<>(
@@ -609,11 +559,65 @@ public class GroundMotionService extends HttpServlet {
       }
     }
   }
-  //----------------------------- End Class: Metadata -------------------------------------
   
-
-  
-  
-  
+  enum Services{
+  	
+  		DISTANCE(
+  				"Ground Motion Vs. Distance",
+  				"Compute ground motion Vs. distance",
+  				"/distance",
+  				"Means",
+  				"Sigmas",
+  				"Distance (km)",
+  				"Median ground motion (g)",
+  				"Standard deviation"),
+  		
+  		HW_FW(
+  				"Hanging Wall Effect",
+  				"Compute hanging wall effect on ground motion Vs. distance",
+  				"/hw-fw",
+  				"Means",
+  				"Sigmas",
+  				"Distance (km)",
+  				"Median ground motion (g)",
+  				"Standard deviation"),
+  		
+  		SPECTRA(
+  				"Deterministic Response Spectra",
+  				"Compute deterministic response spectra",
+  				"/spectra",
+  				"Means",
+  				"Sigmas",
+  				"Period (s)",
+  				"Median ground motion (g)",
+  				"Standard deviation");
+  		
+  		final String name;
+  		final String description;
+  		final String pathInfo;
+  		final String resultName;
+  		final String groupNameMean;
+  		final String groupNameSigma;
+  		final String xLabel;
+  		final String yLabelMedian; 
+  		final String yLabelSigma; 
+  		
+  		private Services(
+  				String name, String description, 
+  				String pathInfo, String groupNameMean,
+  				String groupNameSigma, String xLabel, 
+  				String yLabelMedian, String yLabelSigma) {
+  			this.name = name;
+  			this.description = description;
+  			this.resultName = name + " Results";
+  			this.pathInfo = pathInfo;
+  			this.groupNameMean = groupNameMean;
+  			this.groupNameSigma = groupNameSigma;
+  			this.xLabel = xLabel;
+  			this.yLabelMedian = yLabelMedian;
+  			this.yLabelSigma = yLabelSigma;
+  		}
+  	
+  }
+    
 }
-//---------------------------- End Class: GroundMotionService -----------------------------

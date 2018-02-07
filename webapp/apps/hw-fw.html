@@ -31,18 +31,7 @@
 
   <!-- ...................... Control Panel ................................ -->
   <div id="control">
-    <!--
-    The reponse spectra control panel contains form elements used as 
-    calculation parameters and controls that manipulate those parameters. 
-    The controls are typically radio-button style choices, however mixing 
-    radio buttons into the parameter form creates problems as we do not want 
-    the values of these controls submitted, but without the 'name' field, 
-    they do not behave properly. For the time being, such controls are 
-    implemented as regular button groups with added toggle 
-    (e.g. single-selction) behavior added that is reflected by the 'active'
-    CSS class.
-    -->
-  
+    
     <label for="gmms" class="control-group">Ground Motion Models:</label>
    
     <div id="gmm-sorter" class="btn-group btn-group-xs" data-toggle="buttons">
@@ -86,6 +75,16 @@
       </select>
     
       <div class="form-horizontal">
+       
+       
+       <!-- ..................... IMT Menu ................................. -->
+        <div class="form-group form-group-sm">
+          <label class="control-spacer control-group"
+              for="imt"> Intensity Measure Type: </label>
+          <select class="form-control" id="imt" name="imt">
+          </select>
+        </div>
+        <!-- ................ End: Imt Menu ................................ -->
         
         <label class="control-spacer control-group">
             Event Parameters:
@@ -98,63 +97,8 @@
             <input type="text" class="form-control" id="Mw" name="Mw">
           </div>
         </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rake">
-              Rake
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="rake" name="rake">
-              <span class="input-group-addon">°</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <div id="fault-style" 
-                class="btn-group btn-group-xs" 
-                data-toggle="buttons">
-              <button type="button" 
-                  id="fault-style-strike" 
-                  class="btn btn-default active" 
-                  title="Strike-Slip">
-                      Strike-Slip
-              </button>
-              <button type="button" 
-                  id="fault-style-normal" 
-                  class="btn btn-default" 
-                  title="Normal">
-                      Normal
-              </button>
-              <button type="button" 
-                  id="fault-style-reverse" 
-                  class="btn btn-default" 
-                  title="Normal">
-                      Reverse
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="zHyp">
-              Z<sub>HYP</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="zHyp" 
-                  name="zHyp">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <label for="z-check" class="control-label secondary-input">
-              <input id="z-check" type="checkbox" checked="true">
-              Centered down-dip
-            </label>
-          </div>
-        </div>
-    
+
+        <!--
         <label class="control-spacer control-group">
             Source Geometry:
         </label>
@@ -164,7 +108,8 @@
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="zTop" name="zTop">
+              <input type="text" class="form-control" 
+                  id="zTop" name="zTop" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -178,7 +123,8 @@
                   id="dip" 
                   name="dip" 
                   min="0" 
-                  max="90">
+                  max="90" 
+                  readonly>
               <span class="input-group-addon">°</span>
             </div>
           </div>
@@ -189,7 +135,8 @@
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="width" name="width">
+              <input type="text" class="form-control" 
+                  id="width" name="width" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
@@ -199,83 +146,29 @@
             Path Parameters:
         </label>
         <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rX">
-              R<sub>X</sub>
+          <label class="col-sm-2 control-label" for="rMin">
+              R<sub>Min</sub>
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="rX" name="rX">
+              <input type="text" class="form-control" 
+                  id="rMin" name="rMin" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
-          <label class="col-sm-1 control-label disabled" for="rY">
-              R<sub>Y</sub>
+          <label class="col-sm-1 control-label" for="rMax">
+              R<sub>Max</sub>
           </label>
           <div class="col-sm-3">
             <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  disabled="true" 
-                  id="rY" 
-                  name="rY">
+              <input type="text" class="form-control" 
+                  id="rMax" name="rMax" readonly>
               <span class="input-group-addon">km</span>
             </div>
           </div>
         </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rRup">
-              R<sub>RUP</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="rRup" 
-                  name="rRup">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-1"></div>
-          <div class="col-sm-6">
-            <label for="r-check" class="control-label secondary-input">
-              <input id="r-check" type="checkbox" checked="true">
-              Derive R<sub>JB</sub> and R<sub>RUP</sub>
-            </label>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rJB">
-              R<sub>JB</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="rJB" 
-                  name="rJB">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <div id="hw-fw" class="btn-group btn-group-xs">
-              <button type="button" 
-                  id="hw-fw-hw" 
-                  class="btn btn-default active" 
-                  title="Hanging Wall">
-                      Hanging
-              </button>
-              <button type="button" 
-                  id="hw-fw-fw" 
-                  class="btn btn-default" 
-                  title="Foot Wall">
-                      Foot Wall
-              </button>
-            </div>
-          </div>
-        </div>
-    
+        -->
+
         <label class="control-spacer control-group">
             Site &amp; Basin:
         </label>
@@ -382,11 +275,11 @@
   <script src="js/lib/Settings.js" charset="UTF-8"></script>
   <script src="js/lib/Gmm.js" charset="UTF-8"></script>
   <script src="js/lib/Constraints.js" charset="UTF-8"></script>
-  <script src="js/Spectra.js" charset="UTF-8"></script>
+  <script src="js/HwFw.js" charset="UTF-8"></script>
   
   <script> 
-    let contentEl = document.querySelector('#content');
-    let spectra = new Spectra(contentEl);
+    let contentEl = document.querySelector("#content");
+    let hwFw = new HwFw(contentEl);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

@@ -1,212 +1,193 @@
-"use strict"
-
+'use strict'
 
 /** 
-* @class GmmDistance
+* @fileoverview Class for gmm-distance..html, ground motion Vs. distance web app.
+* This class plots the results of nshmp-haz-ws/gmm/distance web service.
+* This class will first call out to nshmp-haz-ws/gmm/distance web service
+*     to obtain the usage and create the control panel with the following:
+*     - Ground motions models
+*     - Intensity measure type
+*     - Magnitude
+*     - zTop 
+*     - Dip 
+*     - Width 
+*     - Vs30
+*     - Vs30 measured or inferred
+*     - Z1.0
+*     - Z2.5 
+* Once the control panel is set, it can be used to select desired
+*     parameters and plot ground motion vs. distance.
+* Already defined DOM elements:
+*     - #gmms
+*     - .gmm-alpha
+*     - .gmm-group
+*     - #gmm-sorter
+*     - #inputs
+*     - #Mw
+*     - #vs30
+*     - #z1p0
+*     - #z2p5
 *
-* @classdesc gmm-distance.html class
-*
-*
+* @class GmmDistance 
+* @extends Gmm
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-class GmmDistance extends Gmm{
-
-
-  //....................... Constructor: GmmDistance ...........................
-  constructor(){
-    
-
-    //........................... Variables ....................................
-    let _this,
-        // Variables
-        inputs,
-        url;
-    
-    let wsUrl = "/nshmp-haz-ws/gmm/distance";
-    let webApp = "GmmDistance";
-    _this = super(webApp, wsUrl);
-    
-    _this.header.setTitle("Ground Motion Vs. Distance");
-    _this.spinner.on();
-    // Plot setup
-    GmmDistance.plotSetup(_this);
-    //--------------------------------------------------------------------------
-
-    
-    //............................ Options .....................................
-    _this.options = {
-        rMaxDefault: 300,
-    };
-    //--------------------------------------------------------------------------
-
-    
-    //....................... Event Listeners ..................................
-    $("#imt").change(function(){
-      _this.spinner.on("Calculating ...");
-      inputs = $("#inputs").serialize();
-      url = _this.wsUrl + "?" + inputs;
-      window.location.hash = inputs;
-      Gmm.updatePlot(_this, url);
-    });
-    
-    
-    /*
-    $("#r-check").change(function(event) {
-      rCompute = this.checked;
-      $("#rJB").prop("readonly", rCompute);
-      $("#rRup").prop("readonly", rCompute);
-      $("#hw-fw-hw").prop("disabled", !rCompute);
-      $("#hw-fw-fw").prop("disabled", !rCompute);
-      GmmDistance.updateDistance();
-    });
-    
-    $("#rX, #zTop, #dip, #width").on("input", GmmDistance.updateDistance);
-
-    $("#z-check").change(function(event) {
-      $("#zHyp").prop("readonly", this.checked);
-      GmmDistance.updateHypoDepth();
-    });
-    
-    $("#zTop, #dip, #width").on("input", GmmDistance.updateHypoDepth);
-
-    $("#rake").on("input", GmmDistance.updateFocalMech);
-    */
-    //--------------------------------------------------------------------------
-  
-    
-  
-  }
-  //---------------------- End Constructor: GmmDistance ------------------------
-
-  
-  
-  //..................... Method: plotSetup ....................................
-  static plotSetup(_this){
-
-    //.......................... Variables .....................................
-    let contentEl,
-        meanPlotOptions,
-        meanTooltipText,
-        sigmaTooltipText,
-        sigmaPlotOptions;
-
-    // Properties of class
-    _this.meanPlot;
-    _this.sigmaPlot;
-
-    contentEl = document.querySelector("#content");
-    //--------------------------------------------------------------------------
-
-
-    //....................... Mean Plot Setup ..................................
-    meanTooltipText = ["GMM", "Distance (km)", "MGM (g)"];
-    meanPlotOptions = {
-        legendLocation: "bottomleft",
-        pointRadius: 2.75,
-        pointRadiusSelection: 3.5,
-        pointRadiusTooltip: 4.5,
-        tooltipText: meanTooltipText,
-        xAxisScale: "log",
-        yAxisScale: "log"
-    };
-    //--------------------------------------------------------------------------
-
-  
-    _this.plot = new D3LinePlot(contentEl,
-        {},
-        meanPlotOptions,
-        {}); 
-    
-  }
-  //------------------ End Method: plotSetup -----------------------------------
+class GmmDistance extends Gmm {
  
-  
-
-  //....................... Method: updatePlot .................................
-  static updatePlot(_this,url) {
-
-    //........................ Variables .......................................
-    let dataSet,
-        mean,
-        meanData,
-        metadata,
-        series,
-        seriesData,
-        seriesIds,
-        seriesLabels,
-        sigma,
-        sigmaData;
-    //--------------------------------------------------------------------------
-
+  /**
+  * @param {HTMLElement} contentEl - Container element to put plots
+  */ 
+  constructor(contentEl) {
+    let webServiceUrl = '/nshmp-haz-ws/gmm/distance';
+    let webApp = 'GmmDistance';
+    super(webApp, webServiceUrl);
+    this.header.setTitle('Ground Motion Vs. Distance');
+    this.spinner.on();
     
-    //............................. Query and Plot .............................
-    d3.json(url, function(error, response) {
+    /**
+    * @type {{
+    *   rMaxDefault: {number} - Maximum distance,
+    *   rMinDefault: {number} - Minimum distance,
+    * }} Object 
+    */ 
+    this.options = {
+      rMax: 300,
+      rMin: 0.001,
+    };
+    
+    /** @type {number} */
+    this.rMax = this.options.rMax;
+    /** @type {number} */
+    this.rMin = this.options.rMin; 
+
+    /** @type {HTMLElement} */
+    this.contentEl = contentEl; 
+    /** @type {HTMLElement} */
+    this.dipEl = document.querySelector('#dip');
+    /** @type {HTMLElement} */
+    this.imtEl = document.querySelector('#imt');
+    /** @type {HTMLElement} */
+    this.widthEl = document.querySelector('#width');
+    /** @type {HTMLElement} */
+    this.zTopEl = document.querySelector('#zTop');
+    
+    /** @type {D3LinePlot} */
+    this.plot = this.plotSetup();
+    
+    $(this.imtEl).change((event) => { this.imtOnChange(); }); 
+    
+    this.getUsage();
+  }
+ 
+  /**
+  * Plot ground motion vs. distance in the upper plot panel
+  * @param {Object} response JSON return from the gmm/distance web service
+  */ 
+  plotGmm(response) {
+    let metadata = {
+      url: window.location.href,
+      time: new Date(),
+    }; 
+    
+    let mean = response.means;
+    let meanData = mean.data;
+    let seriesLabels = [];
+    let seriesIds = [];
+    let seriesData = [];
+      
+    meanData.forEach((d, i) => {
+      seriesLabels.push(d.label);
+      seriesIds.push(d.id);
+      seriesData.push(d3.zip(d.data.xs, d.data.ys));
+    });
+   
+    let selectedImt = $(':selected', this.imtEl);
+    let selectedImtVal = selectedImt.val();
+    
+    this.plot.upperPanel.data = seriesData;
+    this.plot.upperPanel.dataTableTitle = 'Median Ground Motion';
+    this.plot.upperPanel.ids = seriesIds;
+    this.plot.upperPanel.labels = seriesLabels;
+    this.plot.upperPanel.metadata = metadata;
+    this.plot.upperPanel.plotFilename = 'gmmDistance' + selectedImtVal;
+    this.plot.upperPanel.xLabel = mean.xLabel;
+    this.plot.upperPanel.yLabel = mean.yLabel;
+    // Plot upper panel: Ground motion Vs. distance 
+    this.plot.plotData(this.plot.upperPanel);
+  }
+
+  /**
+  * Set the plot options for the ground motion vs. distance plot
+  *     and the fault plane plot.
+  * @return {D3LinePlot} New instance of D3LinePlot 
+  */ 
+  plotSetup() {
+    let meanTooltipText = ['GMM', 'Distance (km)', 'MGM (g)'];
+    let meanPlotOptions = {
+      legendLocation: 'bottomleft',
+      pointRadius: 2.75,
+      pointRadiusSelection: 3.5,
+      pointRadiusTooltip: 4.5,
+      tooltipText: meanTooltipText,
+    };
+    
+    return new D3LinePlot(
+        this.contentEl,
+        {} /* main plot options */,
+        meanPlotOptions,
+        {} /* lower panel options */); 
+  }
+
+  /**
+  * @override
+  * @method serializeGmmUrl
+  *
+  * Serialize all forms for ground motion web wervice and set 
+  *     set the hash of the window location to reflect the form values.
+  */
+  serializeGmmUrl(){
+    let controlInputs = $(this.inputsEl).serialize();
+    let inputs = controlInputs + '&' + 
+        '&rMin=' + this.rMin +
+        '&rMax=' + this.rMax;
+    let url = this.webServiceUrl + '?' + inputs;
+    window.location.hash = inputs;
+    
+    return url;
+  }
+ 
+  /**
+  * Call the ground motion web service and plot the results 
+  */
+  updatePlot() {
+    let url = this.serializeGmmUrl(); 
+    if (this.rMin < this.options.rMin) return;
+    // Call ground motion gmm/distance web service 
+    d3.json(url, (error, response) => {
       if (error) return console.warn(error);
-      if (response.status == "ERROR") {
-        svg.append("text")
-            .attr("y", margin.top)
-            .attr("x", margin.left)
+      if (response.status == 'ERROR') {
+        d3.select(this.plot.upperPanel.svgEl)
+            .append('text')
+            .attr('y', this.plot.upperPanel.options.marginTop)
+            .attr('x', this.plot.upperPanel.options.marginLeft)
             .text(response.message);
         return;
       }  
       
-      _this.spinner.off();
-     
-      metadata ={
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-      }; 
-      
-      
-      let selectedImtDisplay = $("#imt :selected").text();
-      let selectedImt = $("#imt :selected").val();
-      _this.plot.title = "Ground Motion Vs. Distance: " + 
+      this.spinner.off();
+      let selectedImt = $(':selected', this.imtEl);
+      let selectedImtDisplay = selectedImt.text();
+      this.plot.title = 'Ground Motion Vs. Distance: ' + 
           selectedImtDisplay;
-      
-      //........................ Plot Means .................................... 
-      mean = response.means;
-      meanData = mean.data;
-
-      seriesLabels = [];
-      seriesIds = [];
-      seriesData = [];
-        
-      meanData.forEach(function(d, i) {
-        seriesLabels.push(d.label);
-        seriesIds.push(d.id);
-        seriesData.push(d3.zip(d.data.xs, d.data.ys));
-      });
-     
-
-      _this.plot.upperPanel.data = seriesData;
-      _this.plot.upperPanel.dataTableTitle = "Median Ground Motion";
-      _this.plot.upperPanel.ids = seriesIds;
-      _this.plot.upperPanel.labels = seriesLabels;
-      _this.plot.upperPanel.metadata = metadata;
-      _this.plot.upperPanel.plotFilename = "gmmDistance" + selectedImt;
-      _this.plot.upperPanel.xLabel = mean.xLabel;
-      _this.plot.upperPanel.yLabel = mean.yLabel;
-      
-      _this.plot.plotData(_this.plot.upperPanel);
-      //------------------------------------------------------------------------
-      
-      
-      $(_this.footer.rawBtnEl).off() 
-      $(_this.footer.rawBtnEl).click(function(){
+    
+      // Plot ground motion Vs. distance
+      this.plotGmm(response);
+      // Show raw JSON results on click
+      $(this.footer.rawBtnEl).off() 
+      $(this.footer.rawBtnEl).click((event) => {
         window.open(url);
       });
-
     });
-    //--------------------------------------------------------------------------
- 
-  
   }
-  //------------------------ End Method: updatePlot ----------------------------
-
-
 
 }
-//----------------------- End Class: GmmDistance -------------------------------
-
-
-

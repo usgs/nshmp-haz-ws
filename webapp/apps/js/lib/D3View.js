@@ -134,6 +134,8 @@ class D3View{
       colSizeMinCenter: "col-md-offset-3 col-md-6",
       colSizeMax: "col-md-offset-1 col-md-10",
       colSizeDefault: "max",
+      disableXAxisBtns: false,
+      disableYAxisBtns: false,
       plotLowerPanel: false,
       printLowerPanel: true,
       syncSelections: false,
@@ -185,12 +187,16 @@ class D3View{
       tooltipXToExponent: false,
       tooltipYToExponent: false,
       transitionDuration: 500,
+      xAxisNice: true,
       xAxisScale: _this.options.xAxisScale,
       xLabelPadding: 8,
+      xTickMarks: 10,
       xAxisLocation: "bottom",
+      yAxisNice: true,
       yAxisScale: _this.options.yAxisScale,
       yLabelPadding: 10,
-      yAxisLocation: "left"
+      yAxisLocation: "left",
+      yTickMarks: 10
     };
     _this.options = $.extend({}, _this.options, options);
 
@@ -490,7 +496,7 @@ class D3View{
     // Update X scale
     let optionsX = _this.options.syncXAxis ? _this.options :
         _this.upperPanel.options;
-    
+   
     d3.select(_this.plotFooterEl)
         .selectAll(".x-axis-btns")
         .select("input").each(function(){
@@ -498,6 +504,9 @@ class D3View{
           _btn = d3.select(this.parentNode);
           _isActive = _input.attr("value") == optionsX.xAxisScale;
           _btn.classed("active",_isActive)
+          if (_this.options.disableXAxisBtns){
+            _btn.attr("disabled", "");
+          }
       });
     
     // Update Y scale
@@ -511,6 +520,9 @@ class D3View{
           _btn = d3.select(this.parentNode);
           _isActive = _input.attr("value") == optionsY.yAxisScale;
           _btn.classed("active",_isActive)
+          if (_this.options.disableYAxisBtns){
+            _btn.attr("disabled", "");
+          }
       });
   }
   //---------------- End Method: Update Options --------------------------------
