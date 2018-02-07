@@ -1,252 +1,237 @@
-"use strict"
-
+'use strict'
 
 /** 
+* @fileoverview Parent class for ground motion model based web apps including:
+*     - HwFw
+*     - GmmDistance
+*     - Spectra
+* This class contains some common HTML elements, including:
+*     - #gmms
+*     - .gmm-alpha
+*     - .gmm-group
+*     - #gmm-sorter
+*     - #inputs
+*     - #Mw
+*     - #vs30
+*     - #z1p0
+*     - #z2p5
+* This class creates the web pages header, footer, spinner, and settings
+*     elements.
+* Once getUsage() is called, the class will call out to the respective
+*     web service, gmm/distance, gmm/hw-fw, or gmm/spectra, to get the 
+*     usage and build the control panel with values.
+* NOTE: If any other classes extend this class the WebApps enum must be 
+*     updated accordingly.
+*
 * @class Gmm
-*
-* @classdesc class for GmmDistance and Spectra 
-*
-*
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Gmm{
+class Gmm {
 
-
-  //............................ Constructor: Gmm ..............................
-  constructor(webApp, wsUrl){
-    
-
-    //........................... Variables ....................................
-    let _this,
-        // Variables
-        disable,
-        inputs,
-        promise,
-        url;
-
-    _this = this;
-    // Properties of class
-    _this.footer;
-    _this.footerOptions;
-    _this.header;
-    _this.spinner;
-    
-    // Create Footer 
-    _this.footer = new Footer();
-    _this.footerOptions = {
+  /**
+  * @param {!String} webApp Identifier of the application being used.
+  *     Possible values: GmmDistance, HwFW, or Spectra
+  * @param {!String} wsUrl URL to corresponding web service.
+  *     Possible values: /nshmp-haz-ws/gmm/distance, 
+  *         /nshmp-haz-ws/gmm/hw-fw, /nshmp-haz-ws/gmm/spectra
+  */
+  constructor(webApp, webServiceUrl) {
+    /** @type {Footer} */
+    this.footer = new Footer();
+    this.footerOptions = {
         rawBtnDisable: true,
-        updateBtnDisable: true
+        updateBtnDisable: true,
     };
-    _this.footer.setOptions(_this.footerOptions);
+    this.footer.setOptions(this.footerOptions);
 
-    // Create header
-    _this.header = new Header();
-
-    // Create spinner
-    _this.spinner = new Spinner();
-
-    // Settings menu                                                            
-    _this.settings = new Settings(_this.footer.settingsBtnEl);
-
-    _this.webApp = webApp;
-    _this.GmmDistance = "GmmDistance";
-    _this.Spectra = "Spectra";
-
-    _this.wsUrl = wsUrl;
-    //--------------------------------------------------------------------------
-
+    /** @type {Header} */
+    this.header = new Header();
+    /** @type {Spinner} */
+    this.spinner = new Spinner();
+    /** @type {Settings} */
+    this.settings = new Settings(this.footer.settingsBtnEl);
+    /** @type {String} */
+    this.currentWebApp = webApp;
+    /** @type {String} */
+    this.webServiceUrl = webServiceUrl;
     
-    //......................... Update Plot on Click ...........................  
-    $(_this.footer.updateBtnEl).click(function (){   
-      inputs = $("#inputs").serialize();
-      url = _this.wsUrl + "?" + inputs; 
-      _this.spinner.on();
-      window.location.hash = inputs;
-      $(_this.footer.rawBtnEl).off();
-      Gmm.updatePlot(_this, url);
-    });
-    //--------------------------------------------------------------------------
-      
-   
-    //....................... Update Footer Buttons ............................   
-    $("#gmms").change(function() { 
-      disable = $(":selected", this).length == 0;
-      _this.footerOptions.rawBtnDisable = disable;
-      _this.footerOptions.updateBtnDisable = disable;
-      _this.footer.setOptions(_this.footerOptions);
-    });
-    //--------------------------------------------------------------------------
-  
+    /** @type {HTMLElement} */
+    this.gmmsEl = document.querySelector('#gmms');
+    /** @type {HTMLElement} */
+    this.gmmAlphaEl = document.querySelector('.gmm-alpha');
+    /** @type {HTMLElement} */
+    this.gmmGroupEl = document.querySelector('.gmm-group');
+    /** @type {HTMLElement} */
+    this.gmmSorterEl = document.querySelector('#gmm-sorter');
+    /** @type {HTMLElement} */
+    this.inputsEl = document.querySelector('#inputs');
+    /** @type {HTMLElement} */
+    this.MwEl = document.querySelector('#Mw');
+    /** @type {HTMLElement} */ 
+    this.vs30El = document.querySelector('#vs30');
+    /** @type {HTMLElement} */
+    this.z1p0El = document.querySelector('#z1p0');
+    /** @type {HTMLElement} */
+    this.z2p5El = document.querySelector('#z2p5');
 
-    //....................... Event Listeners ..................................
-    $(document).keypress(function(event){
-      if(event.which == 13 && !$("#update-plot").prop("disabled")) {
-        $("#update-plot").click();
+    /** 
+    * Web applications extending the Gmm class
+    * @enum {String} 
+    */
+    this.WebApps = {
+      GMM_DISTANCE: 'GmmDistance',
+      HW_FW: 'HwFw',
+      SPECTRA: 'Spectra',
+    };
+
+    $(this.footer.updateBtnEl).click((event) => {
+      this.spinner.on();
+      $(this.footer.rawBtnEl).off();
+      this.updatePlot();
+    });
+    
+    // On enter
+    $(document).keypress((event) => {
+      if (event.which == 13 && !$(this.footer.updateBtnEl).prop('disabled')) {
+        $(this.footer.updateBtnEl).click();
       }
     });
+   
+    // On any input
+    $(this.inputsEl).on('input', (event) => { this.inputsOnInput(event); });
     
+    // Setup jQuery tooltip   
     $('[data-toggle="tooltip"]').tooltip(); 
-    //--------------------------------------------------------------------------
-  
-    
-    //........................ Get Parameters ..................................
-    promise = $.getJSON(_this.wsUrl);
-    promise.done(function(usage){
-      Gmm.buildInputs(_this, usage);
-    });
-    promise.fail(function(){
-      console.log("JSON Error");
-    });
-    //--------------------------------------------------------------------------
-  
   
   }
-  //---------------------- End Constructor: Gmm --------------------------------
-
   
-  
-  //...................... Method: addToggle ...................................
-  /* Add toggle behavier to all button children of id. */
-  static addToggle(id, callback) {
-    $("#" + id + " button").click(function(event) {
-      if ($(this).hasClass("active")) return;
-      $(this).siblings().removeClass("active");
-      $(this).addClass("active");
-      callback($(this).attr('id'));
+  /**
+  * @method addToggle
+  *
+  * Add toggle behavier to all button children of id. 
+  * @param {!String} id ID of the button element
+  * @param {!Function} callback 
+  */
+  addToggle(id, callback) {
+    $('#' + id + ' button').click((event) => {
+      if ($(event.target).hasClass('active')) return;
+      $(event.target).siblings().removeClass('active');
+      $(event.target).addClass('active');
+      this.callback_ = callback;
+      this.callback_(event.target.id);
     });
   }
-  //-------------------- End Method: addToggle ---------------------------------
- 
   
-  
-  //........................... Method: buildInputs ............................
-  /* process usage response */
-  static buildInputs(_this, usage) {
-    
-    let gmmAlphaOptions,
-        gmmGroupOptions,
-        members,
-        optGroup,
-        options,
-        params;
-    
-    _this.spinner.off();
-    
-    params = usage.parameters;
-    _this.parameters = params;
+  /**
+  * @method buildInputs
+  * 
+  * Process usage response and build form inputs
+  * @param {!Object} usage JSON response from web service call 
+  */
+  buildInputs(usage) {
+    this.spinner.off();
+    let params = usage.parameters;
 
-    /* Alphabetical GMMs. */
-    gmmAlphaOptions = $();
-    params.gmm.values.forEach(function (gmm) {
+    // Alphabetical GMMs. 
+    let gmmAlphaOptions = $();
+    params.gmm.values.forEach((gmm) => {
       gmmAlphaOptions = gmmAlphaOptions.add($('<option>')
         .attr('value', gmm.id)
         .attr('id', gmm.id)
         .text(gmm.label));
-
     });
 
-    /* Grouped GMMs. */
-    gmmGroupOptions = $();
-    params.group.values.forEach(function (group) {
-      members = group.data;
-      optGroup = $('<optgroup>')
+    // Grouped GMMs. 
+    let gmmGroupOptions = $();
+    params.group.values.forEach((group) => {
+      let members = group.data;
+      let optGroup = $('<optgroup>')
           .attr('label', group.label)
-          .attr("id",group.id);
+          .attr('id', group.id);
       gmmGroupOptions = gmmGroupOptions.add(optGroup);
       optGroup.append(gmmAlphaOptions
-        .filter(function (index, gmmOption) {
-          return members.includes(gmmOption.getAttribute("value")); })
+        .filter((index, gmmOption) => {
+          return members.includes(gmmOption.getAttribute('value')); 
+        })
         .clone());
     });
 
-    /* Bind option views to sort buttons */
-    $("#gmm-sorter input").change(function() {
-      options = this.value === "alpha" ? gmmAlphaOptions : gmmGroupOptions;
-      $("#gmms").empty().append(options);
-      $("#gmms").scrollTop(0);
+    // Bind option views to sort buttons 
+    $(this.gmmSorterEl).find('input').change((event) => {
+      let options = event.target.value === 'alpha' ? 
+          gmmAlphaOptions : gmmGroupOptions;
+      $(this.gmmsEl).empty().append(options);
+      $(this.gmmsEl).scrollTop(0);
     });
 
-    /* Set initial view to groups */
-    $("#gmms").empty().append(gmmGroupOptions);
+    // Set initial view to groups 
+    $(this.gmmsEl).empty().append(gmmGroupOptions);
 
-    /* Populate fields with defaults. */
+    // Populate fields with defaults. 
     Object.keys(params)
-      .filter(function (key) {
-        if (key === "gmms") return false;
-        if (key === "groups") return false;
-        return true; })
-      .forEach(function (key, index) {
-        $("input[name='" + key + "']").val(params[key].value); });
+      .filter((key) => {
+        if (key === 'gmm') return false;
+        if (key === 'group') return false;
+        return true; 
+      })
+      .forEach((key, index) => {
+        let input = $('input[name="' + key + '"]');
+        let inputEl = input[0];
+        input.val(params[key].value); 
+        if (inputEl != undefined && inputEl.type != 'radio'){
+          Constraints.addTooltip(inputEl, params[key].min, params[key].max);
+        }
+      });
 
-
-    if (_this.webApp == _this.GmmDistance){
-      $("#rMax").val(_this.options.rMaxDefault);
+    if (this.currentWebApp != this.WebApps.SPECTRA){
       let imtOptions = $();
-      imtOptions = imtOptions.add($("<option>")
-          .attr("value", "default")
-          .text("Select a GMM")
+      imtOptions = imtOptions.add($('<option>')
+          .attr('value', 'default')
+          .text('Select a GMM')
       );
-      $("#imt").append(imtOptions);
+      $(this.imtEl).append(imtOptions);
       
-      $("#gmms").change(function(){
-        Gmm.setImts(_this);
+      $(this.gmmsEl).change((event) => {
+        this.setImts();
       });
     }
-
-    Gmm.checkQuery(_this, gmmAlphaOptions);
-  }
-  //----------------------- End Method: buildInputs ----------------------------
-  
-  
-  
-  //..................... Method: calcDistances ................................
-  static calcDistances() {
-
-    //........................ Variables .......................................
-    let δ,
-        cosδ,
-        footwall,
-        h1, 
-        h2,
-        rCut1,
-        rCut2,
-        rJB,
-        rRup,
-        rX,
-        sinδ, 
-        W,
-        Wx,
-        Wz, 
-        zBot,
-        zTop;
-    //--------------------------------------------------------------------------
     
-
-    rX = Gmm.rX_val();
-    zTop = Gmm.zTop_val();
-    footwall = $("#hw-fw-fw").hasClass("active");
-    rRup = Math.hypot(rX, zTop);
+    this.checkQuery(gmmAlphaOptions);
+  }
+  
+  /**
+  * @method calcDistances
+  *
+  * Calculate rX, rJB, and rRup
+  * @return {Array<number, number, number>} [rX, rRup, rX] 
+  */  
+  calcDistances() {
+    let rX = this.rX_val();
+    let zTop = this.zTop_val();
+    let footwall = $(this.hwFwFwEl).hasClass('active');
+    let rRup = Math.hypot(rX, zTop);
 
     if (footwall) {
       return [rX, rRup, rX];
     }
 
-    δ = Gmm.dip_val();
-    W = Gmm.width_val();
-    sinδ = Math.sin(δ);
-    cosδ = Math.cos(δ);
-    Wx = W * cosδ;
-    Wz = W * sinδ;
-    rJB = Math.max(0.0, rX - Wx);
-    h1 = zTop / cosδ;
-    rCut1 = h1 * sinδ;
+    let δ = this.dip_val();
+    let W = this.width_val();
+    let sinδ = Math.sin(δ);
+    let cosδ = Math.cos(δ);
+    let Wx = W * cosδ;
+    let Wz = W * sinδ;
+    let rJB = Math.max(0.0, rX - Wx);
+    let h1 = zTop / cosδ;
+    let rCut1 = h1 * sinδ;
 
     if (rX < rCut1) {
       return [rJB, rRup, rX];
     }
 
-    zBot = zTop + Wz;
-    h2 = zBot / cosδ;
-    rCut2 = Wx + h2 * sinδ;
+    let zBot = zTop + Wz;
+    let h2 = zBot / cosδ;
+    let rCut2 = Wx + h2 * sinδ;
 
     if (rX >= rCut2) {
       rRup = Math.hypot(zBot, rJB);
@@ -260,256 +245,316 @@ class Gmm{
     rRup = h1 + (h2 - h1) * ((rX - rCut1) / (rCut2 - rCut1));
     return [rJB, rRup, rX];
   }
-  //----------------------- End Method: calcDistance ---------------------------
-  
-  
-  
-  //.................... Method: checkRakeRange ................................
-  static checkRakeRange(mech, value) {
-    let isNormal,
-        isReverse,
-        isStrike;
-    
-    isNormal = value < -45.0 && value > -135.0;
-    isReverse = value > 45.0 && value < 135.0;
-    isStrike = !isReverse && !isNormal;
-    if (mech == "fault-style-reverse") return isReverse ? value : 90.0;
-    if (mech == "fault-style-normal") return isNormal ? value : -90.0;
+ 
+  /**
+  * @method checkRakeRange
+  *
+  * Check if rake is normal, reverse, or strike-slip
+  * @return {number} Rake value
+  */ 
+  checkRakeRange(mech, value) {
+    console.log(mech);
+    let isNormal = value < -45.0 && value > -135.0;
+    let isReverse = value > 45.0 && value < 135.0;
+    let isStrike = !isReverse && !isNormal;
+    if (mech == 'fault-style-reverse') return isReverse ? value : 90.0;
+    if (mech == 'fault-style-normal') return isNormal ? value : -90.0;
     return isStrike ? value : 0.0;
   }
-  //------------------- End Method: checkRakeRange -----------------------------
  
-  
-  
-  //...................... Method: checkQuery ..................................
-  static checkQuery(_this, gmmOptions){
-    let inputs,
-        key,
-        pars,
-        url,
-        value;
-         
-    url = window.location.hash.substring(1);
+  /**
+  * @method checkQuery
+  *
+  * Check URL to see if parameters exist on hash part of URL and plot 
+  *     parameters if they are present.
+  * @param {Array<HTMLElements>} Array of GMM options for GMM select menu
+  */
+  checkQuery(gmmOptions){
+    let url = window.location.hash.substring(1);
     if (!url) return;
     
-    //................... Update Buttons and Checkboxes ........................
-    $(".gmm-group").removeClass("active");
-    $(".gmm-alpha").addClass("active");
-    $(".gmm-alpha input").prop("checked",true);
-    $("#gmms").empty().append(gmmOptions);
-    if (_this.webApp == _this.Spectra){
-      $("input[type*='checkbox']").prop("checked",false);
-      $("#zHyp,#rRup,#rJB").prop("readOnly",false);
-      $("#hw-fw-hw").prop("disabled", true);
-      $("#hw-fw-fw").prop("disabled", true);
-    }
-    //--------------------------------------------------------------------------
-
+    $(this.gmmGroupEl).removeClass('active');
+    $(this.gmmAlphaEl).addClass('active');
+    $(this.gmmAlphaEl).find('input').prop('checked', true);
+    $(this.gmmsEl).empty().append(gmmOptions);
     
-    //.................... Set Parameters ......................................
-    pars = url.split("&");
-    key;
-    value;
-    pars.forEach(function(par,i){
-      key = par.split("=")[0]; 
-      value  = par.split("=")[1]; 
-      if (key == "gmm"){
-        $( "#gmms option[value='"+value+"']")
-            .prop("selected",true);
-      }else{
-        $("input[name='"+key+"']").val(value);
+    if (this.currentWebApp == this.WebApps.SPECTRA){
+      $('input[type*="checkbox"]').prop('checked', false);
+      $(this.zHypEl).prop('readOnly', false);
+      $(this.rRupEl).prop('readOnly', false);
+      $(this.rJBEl).prop('readOnly', false);
+      $(this.hwFwHwEl).prop('disabled', true);
+      $(this.hwFwFwEl).prop('disabled', true);
+    }
+    
+    let pars = url.split('&');
+    pars.forEach((par, i) => {
+      let key = par.split('=')[0]; 
+      let value  = par.split('=')[1]; 
+      if (key == 'gmm'){
+        $(this.gmmsEl).find('option[value="' + value + '"]')
+            .prop('selected', true);
+      } else if (key == 'rMin') {
+        this.rMin = parseFloat(value);
+      } else if (key == 'rMax') {
+        this.rMax = parseFloat(value);
+      } else {
+        $('input[name="' + key + '"]').val(value);
       }
     });
-    if (_this.webApp == _this.Spectra) Gmm.updateFocalMech();
-    if (_this.webApp == _this.GmmDistance) Gmm.setImts(_this);
-    let gmm = document.querySelector("#"+$("#gmms").val()[0]);
+
+    if (this.currentWebApp == this.WebApps.SPECTRA){
+       this.updateFocalMech();
+    } else {
+      this.setImts();
+    }
+
+    let gmm = document.querySelector('#' + this.gmmsEl.value);
     gmm.scrollIntoView();
-    $("#fault-style .btn").removeClass("focus");
-    //--------------------------------------------------------------------------
     
+    this.footerOptions.rawBtnDisable = false;
+    this.footerOptions.updateBtnDisable = false;
+    this.footer.setOptions(this.footerOptions);
+    this.updatePlot();
+  }
+
+  /**
+  * @method dip_val
+  *
+  * Return the dip in radians as a float
+  * @return {number} Dip in radians
+  */ 
+  dip_val() {
+    return parseFloat(this.dipEl.value) * Math.PI / 180.0;
+  }
+  
+  /**
+  * @method getUsage
+  * 
+  * Call web service and get usage information to build control panel
+  * @param {Function=} callback - Callback function
+  */
+  getUsage(callback = () => {}) {
+    this.callback = callback;
+    let promise = $.getJSON(this.webServiceUrl);
+    promise.done((usage) => {
+      this.parameters = usage.parameters;
+      this.buildInputs(usage);
+      this.callback();
+    });
+    promise.fail((err) => {
+      console.log('JSON Error');
+    });
+  }
+  
+  /**
+  * @method imtOnChange
+  *
+  * Update plot on any IMT change
+  * @param {Event=} event - The event that triggered the change
+  */
+  imtOnChange(event) {
+    this.spinner.on('Calculating ...');
+    this.updatePlot();
+  } 
+  
+  /**
+  * @method inputsOnInput
+  *
+  * Check to see if any input field has class "has-error" and
+  *     disable the update button if true. 
+  * @param {Event=} event - The event that triggered it
+  */
+  inputsOnInput(event = null) {
+    if (event != null) { 
+      let el = event.target;
+      let id = el.id;
+      if (el.type == 'text' || el.type == 'number'){
+        let minVal = this.parameters[id].min;
+        let maxVal = this.parameters[id].max;
+        if (id == 'z1p0' || id == 'z2p5'){
+          Constraints.check(el, minVal, maxVal, true /* can have NaN */);
+        } else {
+          Constraints.check(el, minVal, maxVal);
+        }
+      }
+    }
     
-    //............................ Plot ........................................ 
-    inputs = $("#inputs").serialize();
-    url = _this.wsUrl + "?" + inputs;
-    _this.footerOptions.rawBtnDisable = false;
-    _this.footerOptions.updateBtnDisable = false;
-    _this.footer.setOptions(_this.footerOptions);
-    Gmm.updatePlot(_this, url);
-    //--------------------------------------------------------------------------
-
-  
+    let hasError = $('*').hasClass('has-error');
+    let hasNoGmm = $(':selected', this.gmmsEl).length == 0;
+    if ( !hasNoGmm) {
+      this.footerOptions.updateBtnDisable = hasError;
+      this.footer.setOptions(this.footerOptions);
+    }
   }
-  //----------------------- End Method: checkQuery -----------------------------
-  
-  
 
-  //......................... Method: dip_val .................................. 
-  static dip_val() {
-    return parseFloat($("#dip").val()) * Math.PI / 180.0;
+  /**
+  * @method rake_val
+  *
+  * Return the rake value as a float
+  * @return {number} Rake 
+  */
+  rake_val() {
+    return parseFloat(this.rakeEl.value);
   }
-  //----------------------- End Method: dip_val --------------------------------
-  
-  
-  
-  //......................... Method: rake_val ................................. 
-  static rake_val() {
-    return parseFloat($("#rake").val());
-  }
-  //----------------------- End Method: rake_val -------------------------------
 
- 
- 
-  //......................... Method: rX_val ................................... 
-  static rX_val() {
-    return parseFloat($("#rX").val());
+  /**
+  * @method rX_val
+  * 
+  * Return rX as a float
+  * @return {number} rX 
+  */
+  rX_val() {
+    return parseFloat(this.rXEl.value);
   }
-  //----------------------- End Method: rX_val ---------------------------------
 
-  
-  
-  //....................... Method: setImts .................................... 
-  static setImts(_this){
-    
-    let selectedGmms = $("#gmms").val();
+  /**
+  * @method setImts
+  *  
+  * Set the intensity mesure type select menu
+  */
+  setImts(){
+    let selectedGmms = $(this.gmmsEl).val();
     let supportedImts = [];
     
-    selectedGmms.forEach(function(selectedGmm){
-      let gmm = _this.parameters.gmm.values.find(function(gmm){
+    selectedGmms.forEach((selectedGmm) => {
+      let gmm = this.parameters.gmm.values.find((gmm) => {
           return gmm.id == selectedGmm;
       });
       supportedImts.push(gmm.supportedImts);
     });
     
-    let commonImts = GmmDistance
-        .supportedValues(supportedImts, _this.parameters.imt);
+    let commonImts = this.supportedValues(supportedImts, this.parameters.imt);
     
     let imtOptions = $();
-    commonImts.forEach(function(imt){
-      imtOptions = imtOptions.add($("<option>")
-          .attr("value", imt.value)
+    commonImts.forEach((imt) => {
+      imtOptions = imtOptions.add($('<option>')
+          .attr('value', imt.value)
           .text(imt.display)
       );
     });
-    $("#imt").empty().append(imtOptions);
-  
+    $(this.imtEl).empty().append(imtOptions);
   }
-  //------------------------ End Method: setImts -------------------------------
-  
 
-
-  //.......................... Method: supportedValues ......................... 
-  static supportedValues(values,params){
+  /**
+  * @method serializeGmmUrl
+  *
+  * Serialize all forms for ground motion web service and 
+  *     set the hash of the window location to reflect the form values
+  * @return {String} URL to call the web service
+  */
+  serializeGmmUrl() {
+    let inputs = $(this.inputsEl).serialize();
+    let url = this.webServiceUrl + '?' + inputs; 
+    window.location.hash = inputs;
     
+    return url;
+  }
+  
+  /**
+  * @method supportedValues
+  *
+  * Find common supported values of a parameters
+  * @param {Array<String>} values - Array of all supported values
+  * @param {Object} params
+  * @return {Object} 
+  */
+  supportedValues(values, params){
     let allValues = values.toString().split(",");
     let uniqueValues = [];
-    allValues.forEach(function(val){
+    allValues.forEach((val) => {
       if ($.inArray(val, uniqueValues) == -1) uniqueValues.push(val);
     });
     
-    let commonValues = uniqueValues.filter(function(val,jv){
-      return values.every(function(d,i){
+    let commonValues = uniqueValues.filter((val, jv) => {
+      return values.every((d, i) => {
         return d.includes(val);
       });
     });
     
-    let supportedParams = params.values.filter(function(par){
-      return commonValues.find(function(val){
+    let supportedParams = params.values.filter((par) => {
+      return commonValues.find((val) => {
         return val == par.value;
       })
     });
     
     return supportedParams;
   }
-  //------------------------- End Method: supportedValues ----------------------
   
-  
-  
-  //...................... Method: updateDistance ..............................
-  static updateDistance() {
-    if (!$("#r-check").prop("checked")) return;
-    var r = Gmm.calcDistances();
-    $("#rJB").val(r[0].toFixed(2));
-    $("#rRup").val(r[1].toFixed(2));
+  /**
+  * @method updateDistance
+  * 
+  * Update rJB, rRup, and rX calculations and input fields
+  */
+  updateDistance() {
+    if (!$(this.rCheckEl).prop('checked')) return;
+    let r = this.calcDistances();
+    $(this.rJBEl).val(r[0].toFixed(2));
+    $(this.rRupEl).val(r[1].toFixed(2));
   }
-  //--------------------- End Method: updateDistance ---------------------------
 
-
-
-  //..................... Method: updateFocalMech ..............................
-  /* Update focal mech selection based on rake. */
-  static updateFocalMech() {
-    let rake;
-     
-    rake = Gmm.rake_val();
+  /**
+  * @method updateFocalMech
+  * 
+  * Update focal mech selection based on rake. 
+  */
+  updateFocalMech() {
+    let rake = this.rake_val();
     if (rake > 45.0 && rake < 135.0 
-          && !$("#fault-style-reverse").hasClass("active")) {
-      $("#fault-style-reverse").click();
+          && !$(this.faultStyleReverseEl).hasClass('active')) {
+      $(this.faultStyleReverseEl).click();
       return;
     }
     if (rake < -45.0 && rake > -135.0 
-          && !$("#fault-style-normal").hasClass("active")) {
-      $("#fault-style-normal").click();
+          && !$(this.faultStyleNormalEl).hasClass('active')) {
+      $(this.faultStyleNormalEl).click();
       return;
     }
-    if (!$("#fault-style-strike").hasClass("active")) {
-      $("#fault-style-strike").click();
-    }
-
-  }
-  //------------------- End Method: updateFocalMech ----------------------------
-
-
-  
-  //...................... Method: updateHypoDepth .............................
-  static updateHypoDepth() {
-    var hypoDepth = Gmm.zTop_val() + 
-        Math.sin(Gmm.dip_val()) * Gmm.width_val() / 2.0;
-    $("#zHyp").val(hypoDepth.toFixed(2));
-  }
-  //--------------------- End Method: updateHypoDepth --------------------------
-
- 
-  
-  //......................... Method: updatePlot ............................... 
-  static updatePlot(_this, url){
-    
-    if(_this.webApp == _this.GmmDistance){
-      GmmDistance.updatePlot(_this, url);
-    }else if (_this.webApp == _this.Spectra){
-      Spectra.updatePlot(_this, url);
+    if (!$(this.faultStyleStrikeEl).hasClass('active')) {
+      $(this.faultStyleStrikeEl).click();
     }
   }
-  //---------------------- End Method: updatePlot -----------------------------
-
   
-
-  //...................... Method: updateRake ..................................
-  /* Update rake if out of focal mech range */
-  static updateRake(id) {
-    $("#rake").val(Gmm.checkRakeRange(id, Gmm.rake_val()));
+  /**
+  * @method updateHypoDepth
+  *
+  * Update 
+  */
+  updateHypoDepth() {
+    let hypoDepth = this.zTop_val() + 
+        Math.sin(this.dip_val()) * this.width_val() / 2.0;
+    $(this.zHypEl).val(hypoDepth.toFixed(2));
   }
-  //---------------------- End Method: updateRake ------------------------------
-  
-  
-  
-  //......................... Method: width_val ................................ 
-  static width_val() {
-    return  parseFloat($("#width").val());
+
+  /**
+  * @method updateRake
+  *
+  * Update rake if out of focal mech range 
+  * @param {String} id - ID of fault mech 
+  */
+  updateRake(id) {
+    $(this.rakeEl)
+        .val(this.checkRakeRange(id, this.rake_val()));
   }
-  //---------------------- End Method: width_val -------------------------------
-
-
-
-  //......................... Method: zTop_val ................................. 
-  static zTop_val() {
-    return parseFloat($("#zTop").val());
+  
+  /**
+  * @method width_val
+  *
+  * Return the width
+  * @return {number} The width
+  */
+  width_val() {
+    return  parseFloat(this.widthEl.value);
   }
-  //----------------------- End Method: zTop_val -------------------------------
 
-
+  /**
+  * @method zTop_val
+  *
+  * Return zTop
+  * @return {number} zTop
+  */
+  zTop_val() {
+    return parseFloat(this.zTopEl.value);
+  }
 
 }
-//----------------------- End Class: Gmm ---------------------------------------
-
-
-
