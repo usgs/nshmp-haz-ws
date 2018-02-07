@@ -124,22 +124,6 @@ class D3LinePlot extends D3View{
 
 
     //......................... SVG Outline for Plot ...........................
-    let lpOptions = _this.lowerPanel.options;
-    _this.lowerPanel.svgHeight = lpOptions.plotHeight;
-    _this.lowerPanel.svgWidth = lpOptions.plotWidth; 
-    _this.lowerPanel.plotHeight = _this.lowerPanel.svgHeight-
-        lpOptions.marginTop - lpOptions.marginBottom;
-    _this.lowerPanel.plotWidth = _this.lowerPanel.svgWidth-
-        lpOptions.marginLeft - lpOptions.marginRight;
-    
-    let upOptions = _this.upperPanel.options;
-    _this.upperPanel.svgHeight = upOptions.plotHeight;
-    _this.upperPanel.svgWidth = upOptions.plotWidth; 
-    _this.upperPanel.plotHeight = _this.upperPanel.svgHeight-
-        upOptions.marginTop - upOptions.marginBottom;
-    _this.upperPanel.plotWidth = _this.upperPanel.svgWidth-
-        upOptions.marginLeft - upOptions.marginRight;
-    
     _svgD3 = d3.select(_this.plotBodyEl)
         .selectAll(".panel-body")
         .append("svg")
@@ -148,17 +132,8 @@ class D3LinePlot extends D3View{
         .attr("xmlns","http://www.w3.org/2000/svg")                               
         .attr("preserveAspectRatio","xMinYMin meet");
     
-    d3.select(_this.upperPanel.plotBodyEl)
-        .select(".D3LinePlot")
-        .attr("viewBox","0 0 "+_this.upperPanel.svgWidth
-            +" " + _this.upperPanel.svgHeight);
 
-    if(_this.options.plotLowerPanel){
-      d3.select(_this.lowerPanel.plotBodyEl)
-          .select(".D3LinePlot")
-          .attr("viewBox","0 0 "+_this.lowerPanel.svgWidth
-              +" " + _this.lowerPanel.svgHeight);
-    }else{
+    if(!_this.options.plotLowerPanel){
       d3.select(_this.lowerPanel.plotBodyEl)
           .remove();
     }
@@ -196,50 +171,54 @@ class D3LinePlot extends D3View{
 
 
     //........... Rescale (log/linear) the X Axis on Button Click ..............
-    d3.select(_this.plotFooterEl)
-        .selectAll(".x-axis-btns")
-        .on("click",function(){
-          d3.select(_this.plotFooterEl)
-              .selectAll(".x-axis-btns")                                        
-              .select("label")                                                  
-              .classed("active",false);
-          
-          let options = _this.options.syncXAxis ? _this.options :
-              _this.upperPanel.options;
-               
-          options.xAxisScale = d3.select(this)
-              .select("input")
-              .attr("value");
-          
-          if (_this.options.plotLowerPanel && _this.options.syncXAxis)
-            D3LinePlot.plotRedraw(_this, _this.lowerPanel);
-          
-          D3LinePlot.plotRedraw(_this, _this.upperPanel);
-        }); 
+    if (!_this.options.disableXAxisBtns){
+      d3.select(_this.plotFooterEl)
+          .selectAll(".x-axis-btns")
+          .on("click",function(){
+            d3.select(_this.plotFooterEl)
+                .selectAll(".x-axis-btns")                                        
+                .select("label")                                                  
+                .classed("active",false);
+            
+            let options = _this.options.syncXAxis ? _this.options :
+                _this.upperPanel.options;
+                 
+            options.xAxisScale = d3.select(this)
+                .select("input")
+                .attr("value");
+            
+            if (_this.options.plotLowerPanel && _this.options.syncXAxis)
+              D3LinePlot.plotRedraw(_this, _this.lowerPanel);
+            
+            D3LinePlot.plotRedraw(_this, _this.upperPanel);
+          }); 
+    }
     //--------------------------------------------------------------------------
 
 
     //......... Rescale (log/linear) the Y Axis on Button Click ................
-    d3.select(_this.plotFooterEl)
-        .selectAll(".y-axis-btns")
-        .on("click",function(){
-          d3.select(_this.plotFooterEl) 
-              .selectAll(".y-axis-btns")                                        
-              .select("label")                                                  
-              .classed("active",false);
-          
-          let options = _this.options.syncYAxis ? _this.options :
-              _this.upperPanel.options;
-          
-          options.yAxisScale = d3.select(this)
-              .select("input")
-              .attr("value");
-          
-          if (_this.options.plotLowerPanel && _this.options.syncYAxis)
-            D3LinePlot.plotRedraw(_this, _this.lowerPanel);
-          
-          D3LinePlot.plotRedraw(_this, _this.upperPanel);
-        }); 
+    if (!_this.options.disableYAxisBtns){
+      d3.select(_this.plotFooterEl)
+          .selectAll(".y-axis-btns")
+          .on("click",function(){
+            d3.select(_this.plotFooterEl) 
+                .selectAll(".y-axis-btns")
+                .select("label") 
+                .classed("active",false);
+            
+            let options = _this.options.syncYAxis ? _this.options :
+                _this.upperPanel.options;
+            
+            options.yAxisScale = d3.select(this)
+                .select("input")
+                .attr("value");
+            
+            if (_this.options.plotLowerPanel && _this.options.syncYAxis)
+              D3LinePlot.plotRedraw(_this, _this.lowerPanel);
+            
+            D3LinePlot.plotRedraw(_this, _this.upperPanel);
+          }); 
+    }
     //--------------------------------------------------------------------------
 
      
@@ -750,7 +729,18 @@ class D3LinePlot extends D3View{
     
     //--------------------------------------------------------------------------
 
-
+    panel.svgHeight = options.plotHeight;
+    panel.svgWidth = options.plotWidth; 
+    panel.plotHeight = panel.svgHeight-
+        options.marginTop - options.marginBottom;
+    panel.plotWidth = panel.svgWidth-
+        options.marginLeft - options.marginRight;
+    
+    d3.select(panel.plotBodyEl)
+        .select(".D3LinePlot")
+        .attr("viewBox","0 0 " + panel.svgWidth
+            + " " + panel.svgHeight);
+    
     //................. D3 Function: Line Function .............................
     panel.line = d3.line()                            
       .defined(function(d,i) {return d[1] != null})  
@@ -763,14 +753,18 @@ class D3LinePlot extends D3View{
     panel.xBounds = D3LinePlot.getXScale(_this, panel);
     panel.xExtremes = xDomain || D3LinePlot.getXExtremes(panel.data);
     panel.xBounds.range([0, panel.plotWidth])
-        .domain(panel.xExtremes)
-        .nice();
+        .domain(panel.xExtremes);
+    if (panel.options.xAxisNice){
+      panel.xBounds.nice();
+    }
 
     panel.yBounds = D3LinePlot.getYScale(_this, panel);
     panel.yExtremes = yDomain || D3LinePlot.getYExtremes(panel.data);
     panel.yBounds.range([panel.plotHeight, 0])
-        .domain(panel.yExtremes)
-        .nice();
+        .domain(panel.yExtremes);
+    if (panel.options.yAxisNice){
+      panel.yBounds.nice();
+    }
     //-------------------------------------------------------------------------- 
   
 
@@ -999,15 +993,19 @@ class D3LinePlot extends D3View{
     panel.xBounds = D3LinePlot.getXScale(_this, panel);
     panel.xBounds
         .range([0, panel.plotWidth])
-        .domain(panel.xExtremes)
-        .nice();
+        .domain(panel.xExtremes);
+    if (panel.options.xAxisNice){
+      panel.xBounds.nice();
+    }
     
     // Update Y bounds
     panel.yBounds = D3LinePlot.getYScale(_this, panel);
     panel.yBounds
         .range([panel.plotHeight, 0])
-        .domain(panel.yExtremes)
-        .nice()
+        .domain(panel.yExtremes);
+    if (panel.options.yAxisNice){
+      panel.yBounds.nice();
+    }
     
     // Update X axis
     _svgD3.select(".x-tick")  
@@ -1653,7 +1651,8 @@ class D3LinePlot extends D3View{
   
   static getXAxisLocation(panel){
     return panel.options.xAxisLocation == "top" ? 
-        d3.axisTop(panel.xBounds) : d3.axisBottom(panel.xBounds);
+        d3.axisTop(panel.xBounds).ticks(panel.options.xTickMarks) : 
+            d3.axisBottom(panel.xBounds).ticks(panel.options.xTickMarks);
   }
   
   static getYAxisLocation(panel){
