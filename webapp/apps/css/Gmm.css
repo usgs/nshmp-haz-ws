@@ -8,7 +8,14 @@
 */
 
 
+.D3View .fault-form .row{
+  margin: 0;
+}
 
+.D3View label{
+  margin: 0;
+  font-weight: 700;
+}
 
 .fault-form{
   position: absolute;
@@ -17,22 +24,36 @@
   bottom: 0;
   left: 65%;
   border-left: 1px solid #ddd;
-  padding: 10px 5px 5px 5px;
+  padding: 1em 0.5em 0.5em 0.5em;
   height: 100%;
   overflow: auto;
+  font-size: 0.80vw;
 }
 
-.fault-form #dip-slider-value{
-  height: 2em;
+.D3View .fault-form .form-control{
+  height: 2vw;
+  font-size: 0.75em;
+  line-height: 1.5;
+  padding: 0 0.5em;
 }
 
 .panel-lower .fault-form .input-group-addon{
-  height: 2em;
+  height: 2vw;
+  font-size: 0.75em;
+  line-height: 1;
 }
 
 .panel-lower .fault-form [class*="col-"] {
-  padding-left: 2px;
-  padding-right: 2px;
+ padding: 0.2em; 
+}
+
+.D3View .fault-form .form-group{
+  margin: 0;
+  padding: 0 0.25em;
+}
+
+.D3View .fault-form .slider-form{
+  margin-bottom: 0.50em;
 }
 
 .slider{
