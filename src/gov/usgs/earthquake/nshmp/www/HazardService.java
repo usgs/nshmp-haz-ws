@@ -13,20 +13,23 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
-import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -175,42 +178,86 @@ public final class HazardService extends HttpServlet {
     }
   }
 
-  /* Reduce query string key-value pairs */
-  private RequestData buildRequest(Map<String, String[]> paramMap) {
-    Edition edition = readValue(paramMap, EDITION, Edition.class);
-    Region region = readValue(paramMap, REGION, Region.class);
+  /*
+   * Reduce query string key-value pairs. This method is shared with deagg.
+   * Deagg must supply a single Imt. See RequestData notes below.
+   */
+  static RequestData buildRequest(Map<String, String[]> paramMap) {
 
+    /* Read params as for hazard. */
+    double lon = readDoubleValue(paramMap, LONGITUDE);
+    double lat = readDoubleValue(paramMap, LATITUDE);
+    Vs30 vs30 = Vs30.fromValue(readDoubleValue(paramMap, VS30));
+    Edition edition = readValue(paramMap, EDITION, Edition.class);
+    Region region = ServletUtil.checkRegion(
+        readValue(paramMap, REGION, Region.class),
+        lon);
+    Set<Imt> supportedImts = Metadata.commonImts(edition, region);
     Set<Imt> imts = paramMap.containsKey(IMT.toString())
         ? readValues(paramMap, IMT, Imt.class)
-        : Metadata.commonImts(edition, region);
+        : supportedImts;
+    OptionalDouble returnPeriod = OptionalDouble.empty();
+    Optional<Imt> deaggImt = Optional.empty();
+
+    /* Possibly update for deagg. */
+    if (paramMap.containsKey(RETURNPERIOD.toString())) {
+      // imts = supportedImts; TODO for CMS, need all periods
+      Imt imt = readValue(paramMap, IMT, Imt.class);
+      imts = Sets.immutableEnumSet(imt);
+      returnPeriod = OptionalDouble.of(readDoubleValue(paramMap, RETURNPERIOD));
+      deaggImt = Optional.of(imt);
+    }
 
     return new RequestData(
         edition,
         region,
-        readDoubleValue(paramMap, LONGITUDE),
-        readDoubleValue(paramMap, LATITUDE),
+        lon,
+        lat,
         imts,
-        Vs30.fromValue(readDoubleValue(paramMap, VS30)),
-        Optional.<Double> absent());
+        vs30,
+        returnPeriod,
+        deaggImt);
   }
 
-  /* Reduce slash-delimited request */
-  private RequestData buildRequest(List<String> params) {
-    Edition edition = readValue(params.get(0), Edition.class);
-    Region region = readValue(params.get(1), Region.class);
+  /*
+   * Reduce slash-delimited request. This method is shared with deagg. Deagg
+   * must supply a single Imt. See RequestData notes below.
+   */
+  static RequestData buildRequest(List<String> params) {
 
+    /* Read params as for hazard */
+    double lon = Double.valueOf(params.get(2));
+    double lat = Double.valueOf(params.get(3));
+    Vs30 vs30 = Vs30.fromValue(Double.valueOf(params.get(5)));
+    Edition edition = readValue(params.get(0), Edition.class);
+    Region region = ServletUtil.checkRegion(
+        readValue(params.get(1), Region.class),
+        lon);
+    Set<Imt> supportedImts = Metadata.commonImts(edition, region);
     Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
-        ? Metadata.commonImts(edition, region)
+        ? supportedImts
         : readValues(params.get(4), Imt.class);
+    OptionalDouble returnPeriod = OptionalDouble.empty();
+    Optional<Imt> deaggImt = Optional.empty();
+
+    /* Possibly update for deagg. */
+    if (params.size() == 7) {
+      //imts = supportedImts; TODO for CMS, need all periods
+      Imt imt = readValue(params.get(4), Imt.class);
+      imts = Sets.immutableEnumSet(imt);
+      returnPeriod = OptionalDouble.of(Double.valueOf(params.get(6)));
+      deaggImt = Optional.of(imt);
+    }
 
     return new RequestData(
         edition,
         region,
-        Double.valueOf(params.get(2)),
-        Double.valueOf(params.get(3)),
+        lon,
+        lat,
         imts,
-        Vs30.fromValue(Double.valueOf(params.get(5))),
-        Optional.<Double> absent());
+        vs30,
+        returnPeriod,
+        deaggImt);
   }
 
   private static class HazardTask extends TimedTask<Result> {
@@ -244,13 +291,6 @@ public final class HazardService extends HttpServlet {
     // TODO cache calls should be using checked get(id)
 
     /*
-     * Although client checks that selected location is valid for selected
-     * edition, it doesn't use the uimin-max constraints to be more specific
-     * about which region to use, so we select it here.
-     */
-    Region region = (data.region == COUS) ? Metadata.checkRegion(data.longitude) : data.region;
-
-    /*
      * When combining (merging) Hazard, the config from the first supplied
      * Hazard is used for the result. This means, for example, the exceedance
      * model used for deaggregation may be different than that used to compute
@@ -261,7 +301,7 @@ public final class HazardService extends HttpServlet {
      * However, it is important to have the WUS result be first in the merge()
      * call below.
      */
-    if (region == COUS) {
+    if (data.region == COUS) {
 
       Model wusId = Model.valueOf(WUS, data.edition.year());
       HazardModel wusModel = modelCache.getUnchecked(wusId);
@@ -274,7 +314,7 @@ public final class HazardService extends HttpServlet {
       return Hazard.merge(wusResult, ceusResult);
     }
 
-    Model modelId = Model.valueOf(region, data.edition.year());
+    Model modelId = Model.valueOf(data.region, data.edition.year());
     HazardModel model = modelCache.getUnchecked(modelId);
     return process(model, site, data.imts);
   }
@@ -283,10 +323,24 @@ public final class HazardService extends HttpServlet {
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
     configBuilder.imts(imts);
     CalcConfig config = configBuilder.build();
-    Optional<Executor> executor = Optional.<Executor> of(ServletUtil.CALC_EXECUTOR);
+    Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
     return HazardCalc.calc(model, config, site, executor);
   }
 
+  /*
+   * We use a single request object type for both hazard and deagg. With the
+   * extension of deagg to support CMS, we need medians and sigmas for other
+   * spectral periods, but we don't (at least not yet) want to return serialized
+   * deaggs across all periods. Whereas both underlying programs support
+   * multiple Imts, the hazard service expects a set of Imts (that may
+   * correspond to 'any' implying all supportedImts), but the deagg service
+   * expects a single Imt. To address this, we've added the deaggImt field,
+   * which will be derived from the singleton imt URL argument as before, but
+   * hazard will always be computed across the set of Imts supplied so that the
+   * cms at the deaggImt can be computed. Under the hood the deagg application
+   * provides support for all specified Imts. Also note that the presence of a
+   * 'return period' is used to flag deagg service requests.
+   */
   static final class RequestData {
 
     final Edition edition;
@@ -295,7 +349,8 @@ public final class HazardService extends HttpServlet {
     final double longitude;
     final Set<Imt> imts;
     final Vs30 vs30;
-    final Optional<Double> returnPeriod;
+    final OptionalDouble returnPeriod;
+    final Optional<Imt> deaggImt;
 
     RequestData(
         Edition edition,
@@ -304,7 +359,8 @@ public final class HazardService extends HttpServlet {
         double latitude,
         Set<Imt> imts,
         Vs30 vs30,
-        Optional<Double> returnPeriod) {
+        OptionalDouble returnPeriod,
+        Optional<Imt> deaggImt) {
 
       this.edition = edition;
       this.region = region;
@@ -313,6 +369,7 @@ public final class HazardService extends HttpServlet {
       this.imts = imts;
       this.vs30 = vs30;
       this.returnPeriod = returnPeriod;
+      this.deaggImt = deaggImt;
     }
   }
 
