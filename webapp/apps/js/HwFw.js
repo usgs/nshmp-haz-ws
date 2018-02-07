@@ -251,13 +251,17 @@ class HwFw extends Gmm {
     let step;
     let sliderEl;
     let valueEl; 
-    
-    let name = event.target.name;
+      
+    let id = event.target.id;
     let value = parseFloat(event.target.value);
     let inputType = event.target.type;
     let eventType = event.type;
     
-    if (name == this.dipSliderEl.name || name == this.dipEl.name) {
+    if (!id || id.length == 0 || isNaN(value)){ 
+      return;  
+    }
+
+    if (id == this.dipSliderEl.id || id == this.dipEl.id) {
       parEl = this.dipEl; 
       sliderEl = this.dipSliderEl;
       valueEl = this.dipEl;
@@ -266,7 +270,7 @@ class HwFw extends Gmm {
       maxVal = this.options.maxDip;
       minVal = this.options.minDip;
       
-    } else if (name == this.widthSliderEl.name || name == this.widthEl.name) {
+    } else if (id == this.widthSliderEl.id || id == this.widthEl.id) {
       parEl = this.widthEl;
       sliderEl = this.widthSliderEl;
       valueEl = this.widthEl;
@@ -274,7 +278,7 @@ class HwFw extends Gmm {
       maxValStr = 'maxWidth';
       maxVal = this.options.maxWidth;
       minVal = this.options.minWidth;
-    } else if (name == this.zTopSliderEl.name || name == this.zTopEl.name) {
+    } else if (id == this.zTopSliderEl.id || id == this.zTopEl.id) {
       parEl = this.zTopEl;
       sliderEl = this.zTopSliderEl;
       valueEl = this.zTopEl;
@@ -283,7 +287,7 @@ class HwFw extends Gmm {
       maxVal = this.options.maxZTop;
       minVal = this.options.minZTop;
     }
-   
+    
     let canSubmit = Constraints.check(valueEl, minVal, maxVal);
     if (!canSubmit) return; 
     
