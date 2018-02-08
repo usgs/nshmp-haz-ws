@@ -245,11 +245,11 @@
   <script src="js/lib/Settings.js" charset="UTF-8"></script>
   <script src="js/lib/Gmm.js" charset="UTF-8"></script>
   <script src="js/lib/Constraints.js" charset="UTF-8"></script>
+  <script src="js/lib/Config.js" charset="UTF-8"></script>
   <script src="js/GmmDistance.js" charset="UTF-8"></script>
   
   <script> 
-    let contentEl = document.querySelector("#content");
-    let gmm = new GmmDistance(contentEl);
+    Config.getConfig(GmmDistance);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

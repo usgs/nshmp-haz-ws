@@ -35,7 +35,7 @@ class Gmm {
   *     Possible values: /nshmp-haz-ws/gmm/distance, 
   *         /nshmp-haz-ws/gmm/hw-fw, /nshmp-haz-ws/gmm/spectra
   */
-  constructor(webApp, webServiceUrl) {
+  constructor(webApp, webServiceUrl, config) {
     /** @type {Footer} */
     this.footer = new Footer();
     this.footerOptions = {
@@ -73,7 +73,10 @@ class Gmm {
     this.z1p0El = document.querySelector('#z1p0');
     /** @type {HTMLElement} */
     this.z2p5El = document.querySelector('#z2p5');
-
+    
+    /** @type {Object} */
+    this.config = config;
+    
     /** 
     * Web applications extending the Gmm class
     * @enum {String} 
@@ -336,7 +339,9 @@ class Gmm {
   */
   getUsage(callback = () => {}) {
     this.callback = callback;
-    let promise = $.getJSON(this.webServiceUrl);
+    let dynamic = this.config.server.dynamic;
+    let url = dynamic + this.webServiceUrl;
+    let promise = $.getJSON(url);
     promise.done((usage) => {
       this.parameters = usage.parameters;
       this.buildInputs(usage);
@@ -445,7 +450,8 @@ class Gmm {
   */
   serializeGmmUrl() {
     let inputs = $(this.inputsEl).serialize();
-    let url = this.webServiceUrl + '?' + inputs; 
+    let dynamic = this.config.server.dynamic;
+    let url = dynamic + this.webServiceUrl + '?' + inputs; 
     window.location.hash = inputs;
     
     return url;

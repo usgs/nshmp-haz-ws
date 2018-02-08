@@ -12,10 +12,10 @@
 class ModelCompare extends Hazard{
 
   //.......................... Constructor: ModelCompare .......................
-  constructor(){
+  constructor(config){
 
     //......................... Variables ......................................
-    let _this = super(); 
+    let _this = super(config); 
     
     _this.header.setTitle("Model Comparison");
     _this.spinner.on();
@@ -26,8 +26,6 @@ class ModelCompare extends Hazard{
         regionDefault: "COUS",
         imtDefault: "PGA",
         vs30Default: 760,
-        staticUrl: "hazws/staticcurve/1/",
-        dynamicUrl: "nshmp-haz-ws/hazard"
     };
 
     //..................... Plot Setup .........................................

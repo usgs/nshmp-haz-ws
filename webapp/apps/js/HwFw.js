@@ -33,10 +33,10 @@ class HwFw extends Gmm {
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
   */ 
-  constructor(contentEl) {
+  constructor(config) {
     let webServiceUrl = '/nshmp-haz-ws/gmm/hw-fw';
     let webApp = 'HwFw';
-    super(webApp, webServiceUrl);
+    super(webApp, webServiceUrl, config);
     this.header.setTitle('Hanging Wall Effects');
     this.spinner.on();
     
@@ -79,7 +79,7 @@ class HwFw extends Gmm {
     this.rMin = this.options.rMin; 
     
     /** @type {HTMLElement} */
-    this.contentEl = contentEl; 
+    this.contentEl = document.querySelector("#content");
     /** @type {HTMLElement} */
     this.dipEl = undefined; 
     /** @type {HTMLElement} */
@@ -550,7 +550,8 @@ class HwFw extends Gmm {
     let inputs = controlInputs + '&' + faultInputs + 
         '&rMin=' + this.rMin +
         '&rMax=' + this.rMax;
-    let url = this.webServiceUrl + '?' + inputs;
+    let dynamic = this.config.server.dynamic;
+    let url = dynamic + this.webServiceUrl + '?' + inputs;
     window.location.hash = inputs;
     
     return url; 

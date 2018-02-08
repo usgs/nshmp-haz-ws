@@ -41,15 +41,15 @@ class Spectra extends Gmm {
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
   */
-  constructor(contentEl) {
+  constructor(config) {
     let webApp = 'Spectra';
     let wsUrl = '/nshmp-haz-ws/gmm/spectra'
-    super(webApp, wsUrl);
+    super(webApp, wsUrl, config);
     this.header.setTitle('Response Spectra');
     this.spinner.on();
 
     /** @type {HTMLElement} */ 
-    this.contentEl = contentEl;
+    this.contentEl = document.querySelector('#content'); 
     /** @type {HTMLElement} */                                                  
     this.dipEl = document.querySelector('#dip');                                
     /** @type {HTMLElement} */ 
