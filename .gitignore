@@ -10,3 +10,4 @@ webapp/models
 webapp/jsdocs
 Scratch*.java
 scratch*.html
+webapp/config.json
