@@ -97,7 +97,7 @@ class D3MapView{
 
 
   //.......................... D3MapView Constructor ...........................
-  constructor(containerEl,options,settings){
+  constructor(containerEl, options, settings, config){
 
     //............................ Variables ...................................
     let _this,
@@ -132,6 +132,7 @@ class D3MapView{
     _this.siteListEl;
 
     _this.settings = settings;
+    this.config = config;
     //--------------------------------------------------------------------------
 
 
@@ -275,7 +276,7 @@ class D3MapView{
 
 
     //.................... Call Test Sites Web Service .........................
-    wsUrl = "/nshmp-haz-ws/util/testsites";                                     
+    wsUrl = _this.config.server.dynamic + "/nshmp-haz-ws/util/testsites";                                     
     jsonPromise = $.getJSON(wsUrl);
     jsonPromise.done(function(json){
       _this.testSites = json.features;

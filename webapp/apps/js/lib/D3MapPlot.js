@@ -13,7 +13,7 @@ class D3MapPlot extends D3MapView{
 
 
   //.......................... D3MapPlot Constructor ...........................
-  constructor(containerEl,options,settings){
+  constructor(containerEl,options,settings, config){
     
 
     //.......................... Variables .....................................
@@ -27,7 +27,7 @@ class D3MapPlot extends D3MapView{
         svgD3,
         tooltipD3;
 
-    _this = super(containerEl,options,settings);
+    _this = super(containerEl, options, settings, config);
     // Properties of class
     _this.svgEl;
     _this.tooltipEl;
@@ -56,8 +56,9 @@ class D3MapPlot extends D3MapView{
     
 
     //..................... Get GeoJSON Files and Plot Map .....................
-    mapBorderUrl = "/nshmp-haz-ws/data/us.json";
-    mapUrl = "/nshmp-haz-ws/data/americas.json";
+    let dynamic = this.config.server.dynamic;
+    mapBorderUrl = dynamic + "/nshmp-haz-ws/data/us.json";
+    mapUrl = dynamic + "/nshmp-haz-ws/data/americas.json";
 
     mapBorderPromise = $.getJSON(mapBorderUrl);
     mapPromise = $.getJSON(mapUrl);

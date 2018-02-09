@@ -37,10 +37,10 @@ class GmmDistance extends Gmm {
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
   */ 
-  constructor(contentEl) {
+  constructor(config) {
     let webServiceUrl = '/nshmp-haz-ws/gmm/distance';
     let webApp = 'GmmDistance';
-    super(webApp, webServiceUrl);
+    super(webApp, webServiceUrl, config);
     this.header.setTitle('Ground Motion Vs. Distance');
     this.spinner.on();
     
@@ -61,7 +61,7 @@ class GmmDistance extends Gmm {
     this.rMin = this.options.rMin; 
 
     /** @type {HTMLElement} */
-    this.contentEl = contentEl; 
+    this.contentEl = document.querySelector('#content'); 
     /** @type {HTMLElement} */
     this.dipEl = document.querySelector('#dip');
     /** @type {HTMLElement} */
@@ -150,7 +150,8 @@ class GmmDistance extends Gmm {
     let inputs = controlInputs + '&' + 
         '&rMin=' + this.rMin +
         '&rMax=' + this.rMax;
-    let url = this.webServiceUrl + '?' + inputs;
+    let dynamic = this.config.server.dynamic;
+    let url = dynamic + this.webServiceUrl + '?' + inputs;
     window.location.hash = inputs;
     
     return url;

@@ -56,22 +56,12 @@
   <script src="js/lib/D3MapPlot.js" charset="UTF-8"> </script>
   <script src="js/lib/Tooltip.js" charset="UTF-8"> </script>
   <script src="js/lib/Settings.js" charset="UTF-8"> </script>
+  <script src="js/lib/Config.js" charset="UTF-8"> </script>
+  <script src="js/TestSites.js" charset="UTF-8"> </script>
   
   
   <script> 
-    let footer = new Footer();
-    let options = {
-        rawBtnDisable: true,
-        updateBtnDisable: true
-    };
-    footer.setOptions(options);
-    let header = new Header();
-    header.setTitle("Test Sites");
-
-    let settings = new Settings(footer.settingsBtnEl);
-     
-    let el = document.querySelector("#testsites");
-    let map = new D3MapPlot(el,{},settings);
+    Config.getConfig(TestSites);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

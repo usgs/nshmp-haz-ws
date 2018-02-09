@@ -3,7 +3,7 @@
 
 class Hazard{
 
-  constructor(){
+  constructor(config){
     let _this = this;
     
     _this.footer = new Footer();
@@ -35,6 +35,7 @@ class Hazard{
     _this.latFormEl = document.getElementById("lat-form");
     _this.lonFormEl = document.getElementById("lon-form");
 
+    this.config = config;
 
     $(_this.lonEl).change(function(){
       Hazard.checkCoordinates(_this,false,true);
@@ -51,19 +52,18 @@ class Hazard{
       };
       _this.footer.setOptions(_this.footerOptions);
     });
-  
+ 
+    this.dynamicUrl = this.config.server.dynamic + "/nshmp-haz-ws/hazard";
+    this.staticUrl  = this.config.server.static + "/hazws/staticcurve/1";
   }
 
 
 
   //.................. Method: getHazardParameters .............................
   static getHazardParameters(_this,callback){
-    var dynamicUrl = _this.settings.serverUrl + "nshmp-haz-ws/hazard";
-    var staticUrl  = _this.settings.serverUrl + "hazws/staticcurve/1";
     
-    
-    let dynamicPromise = $.getJSON(dynamicUrl);
-    let staticPromise = $.getJSON(staticUrl);
+    let dynamicPromise = $.getJSON(_this.dynamicUrl);
+    let staticPromise = $.getJSON(_this.staticUrl);
     
     
     $.when(dynamicPromise,staticPromise)
@@ -126,9 +126,6 @@ class Hazard{
               values: vs30Values
             }
           };
-          console.log("Combined Parameters: ");     
-          console.log(combinedParameters);   
-          console.log("\n");
           //--------------------------------------------------------------------
             
           callback(combinedParameters); 
@@ -187,7 +184,7 @@ class Hazard{
     if (dataType == "static"){  
       var urlInfo =  {
         dataType: "static",
-        url: obj.settings.serverUrl + obj.options.staticUrl +
+        url: obj.staticUrl +
         edition + "/" + 
         region  + "/" +
         lon     + "/" +
@@ -198,7 +195,7 @@ class Hazard{
     }else if (dataType == "dynamic"){
       var urlInfo =  {
         dataType: "dynamic", 
-        url: obj.settings.serverUrl + obj.options.dynamicUrl +
+        url: obj.dynamicUrl +
         "?edition="   + edition   +
         "&region="    + region    +
         "&longitude=" + lon       +
