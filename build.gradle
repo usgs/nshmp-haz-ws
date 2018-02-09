@@ -21,6 +21,7 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 sourceCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8'
 
 repositories {
   jcenter()
