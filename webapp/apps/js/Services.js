@@ -8,15 +8,17 @@
 */
 class Services {
 
-  constructor() {
+  constructor(config) {
     /** @type {Header} */
     this.header = new Header();
     this.header.setTitle('Services');
     
     /** @type {String} */
-    this.urlPrefix = window.location.protocol + "//" + 
-        window.location.host + "/nshmp-haz-ws"
-   
+    this.urlPrefix = config.server.dynamic.trim() != '' ? 
+        config.server.dynamic + '/nshmp-haz-ws' :
+        window.location.protocol + '//' + 
+            window.location.host + '/nshmp-haz-ws';
+    
     /** @type {HTMLElement} */
     this.servicesEl = undefined;
     /** @type {HTMLElement} */
