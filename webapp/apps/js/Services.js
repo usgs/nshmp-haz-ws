@@ -346,8 +346,6 @@ class Services {
         .append('a')
         .attr('href', (d,i) => {return this.urlPrefix + d})
         .text((d, i) => {return this.urlPrefix + d});
-
-
   }
   
   /**
