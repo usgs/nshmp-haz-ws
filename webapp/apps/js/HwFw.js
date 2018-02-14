@@ -305,10 +305,10 @@ class HwFw extends Gmm {
     }
      
     this.plotFaultPlane();
-    if (inputType == "range" && 
+    if (inputType == 'range' && 
           (eventType == 'keyup' || eventType == 'mouseup')) {
       this.updatePlot();
-    } else if (inputType != "range") {
+    } else if (inputType != 'range') {
       this.updatePlot();
     }
   }

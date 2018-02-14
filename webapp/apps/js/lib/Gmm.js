@@ -88,8 +88,10 @@ class Gmm {
     };
 
     $(this.footer.updateBtnEl).click((event) => {
-      this.spinner.on();
+      this.spinner.on('Calculating');
       $(this.footer.rawBtnEl).off();
+      this.footerOptions.rawBtnDisable = false; 
+      this.footer.setOptions(this.footerOptions);
       this.updatePlot();
     });
     
