@@ -1,4 +1,8 @@
-'use strict'
+'use strict';
+
+import Footer from './lib/Footer.js';
+import Header from './lib/Header.js';
+import Settings from './lib/Settings.js';
 
 /**
 * @fileoverview Class for index.html, this class 
@@ -7,8 +11,7 @@
 * @class Dashboard
 * @author bclayton@usgs.gov
 */
-
-class Dashboard {
+export default class Dashboard {
   
   /** 
   * @param {Object} config - config.json object, output from 
@@ -19,7 +22,7 @@ class Dashboard {
     this.footer = new Footer();
     this.footer.removeButtons();
     /** @type {Settings} */
-    this.settings = new Settings(footer.settingsBtnEl);
+    //this.settings = new Settings(footer.settingsBtnEl);
     /** @type {Header} */
     this.header = new Header();
     this.header.setTitle("Dashboard");
