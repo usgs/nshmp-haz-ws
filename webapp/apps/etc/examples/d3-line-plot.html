@@ -1,0 +1,111 @@
+<!doctype html>
+
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../../css/template.css">
+  <link rel="stylesheet" href="../../css/D3View.css">
+  <link rel="stylesheet" 
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  
+  <style>
+    #line-plot{
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: 3em 0 3em 0;
+      padding: 20px;
+      overflow: scroll;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div id='line-plot'></div>  
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>   
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  
+  <script type='module'>
+    import D3LinePlot from '../../js/lib/D3LinePlot.js';
+    import Footer from '../../js/lib/Footer.js';
+    import Header from '../../js/lib/Header.js';
+    import Spinner from '../../js/lib/Spinner.js';
+
+    let footer = new Footer();
+    let header = new Header().setTitle('D3LinePlot Test');
+    let spinner = new Spinner();
+    spinner.on('Calculating ...');
+    let el = document.querySelector('#line-plot');
+     
+    let plotOptions = {
+      xAxisScale: 'linear',
+      yAxisScale: 'linear',
+    };
+    let upperPlotOptions = {};
+    let lowerPlotOptions = {};
+
+    let plot = new D3LinePlot(
+        el, 
+        plotOptions,
+        upperPlotOptions, 
+        lowerPlotOptions)
+        .withPlotHeader()
+        .withPlotFooter();
+    
+    let spectra = '/nshmp-haz-ws/gmm/spectra';
+    let url = spectra + '?gmm=FRANKEL_96&Mw=6.5&rake=0&zHyp=7.5&' + 
+        'zTop=0.5&dip=90&width=14&rX=10&rRup=10.3&rJB=10&' + 
+        'vs30=760&vsInf=true&z1p0=&z2p5=';
+        
+    d3.json(url, (error, json) => {
+      spinner.off();
+      
+      // Plot Means
+      let means = json.means;
+      let meanData = means.data[0];
+      let data = [d3.zip(meanData.data.xs, meanData.data.ys)];
+     
+      let metadata = {
+        url: url,
+        time: new Date(),
+      };
+       
+      plot.setPlotTitle('Plot Test')
+          .setUpperData(data)
+          .setUpperDataTableTitle('Means')
+          .setUpperPlotFilename('spectraMean')
+          .setUpperPlotIds([meanData.id])
+          .setUpperPlotLabels([meanData.label])
+          .setUpperMetadata(metadata)
+          .setUpperXLabel(means.xLabel)
+          .setUpperYLabel(means.yLabel)
+          .plotData(plot.upperPanel);
+      
+      // Plot Sigmas
+      let sigmas = json.sigmas;
+      let sigmaData = sigmas.data[0];
+      data = [d3.zip(sigmaData.data.xs, sigmaData.data.ys)];
+     
+      plot.setLowerData(data)
+          .setLowerDataTableTitle('Sigmas')
+          .setLowerPlotFilename('spectraSigma')
+          .setLowerPlotIds([sigmaData.id])
+          .setLowerPlotLabels([sigmaData.label])
+          .setLowerMetadata(metadata)
+          .setLowerXLabel(sigmas.xLabel)
+          .setLowerYLabel(sigmas.yLabel)
+          .plotData(plot.lowerPanel);
+    });
+  </script>
+
+</body>
+
+</html>
