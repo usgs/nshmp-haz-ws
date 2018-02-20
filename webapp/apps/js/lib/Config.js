@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 /**
 * @fileoverview Static method to read two possible config files:
@@ -15,7 +15,7 @@
 * @class Config
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Config {
+export default class Config {
 
   /**
   * @param {Class} callback - The callback must be a class as 

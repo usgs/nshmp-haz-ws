@@ -1,5 +1,7 @@
-"use strict"
+"use strict";
 
+import D3MapView from './D3MapView.js';
+import Tooltip from './Tooltip.js';
 
 /**
 * @class D3MapPlot
@@ -9,7 +11,7 @@
 * @classdesc Plots the map 
 *
 */
-class D3MapPlot extends D3MapView{
+export default class D3MapPlot extends D3MapView{
 
 
   //.......................... D3MapPlot Constructor ...........................
@@ -246,11 +248,11 @@ class D3MapPlot extends D3MapView{
           tooltip.decreaseRadius(mapPlot);
           if (!d3.select(this).classed("active"))
             tooltip.pointColor(mapPlot.options.pointColor);
-          tooltip.destroy(mapPlot);
+          tooltip.destroy();
         })
         .on("mouseover",function(){
-          tooltip = new Tooltip(mapPlot,this);
-          tooltip.increaseRadius(mapPlot);
+          tooltip = new Tooltip(mapPlot, this);
+          tooltip.increaseRadius();
           tooltip.pointColor(mapPlot.options.pointColorSelection);
         });
   

@@ -1,102 +1,58 @@
-'use strict'
-
-
-
+'use strict';
 
 /**
 * @class Spinner
 *
-* @description Creates a loading spinner 
-*
-*
-* @argument containerEl {Element}
-*     optional: html element where the spinner will be created <br>
-*     default: body
-*
-*
-* @parameter containerEl {Element}
-*     html element where the spinner is created <br>
-*     default: body
+* @fileoverview Creates a loading spinner
+* 
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Spinner{
-
-  
-  //.......................... Spinner Constructor .............................
-  constructor(containerEl){
-    let _this;
-
-    _this = this;
-    _this.containerEl;
-
-    _this.containerEl = containerEl ? containerEl : 
-        document.querySelector("body");
+export default class Spinner{
+ 
+  /**
+  * @param {HTMLElement=} containerEl - Optional container element to put 
+  *     spinner. Default is body.
+  */ 
+  constructor(containerEl = document.querySelector('body')) {
+    /** @type {HTMLElement */
+    this.containerEl = containerEl;
   }
-  //-------------------------- End: Spinner Constructor ------------------------
 
-
-
-  //........................... Method: off ....................................
   /**
   * @method off 
   *
-  * @description remove the loading spinner overlay 
-  *
+  * Remove the loading spinner overlay 
   */
-  off(){
-    let _this;
-    _this = this;
-
-    d3.select(_this.containerEl)
-        .select(".loading-spinner")
+  off() {
+    d3.select(this.containerEl)
+        .select('.loading-spinner')
         .remove();
   }
-  //-------------------------- End Method: off ---------------------------------
   
-  
-  
-  //............................ Method: on ....................................
   /**
   * @method on
   *
-  * @description creates a loading spinner overlay 
-  *
-  *
-  * @argument text {String}
-  *     string for the spinner text <br>
-  *     default: Loading ...
+  * Create a loading spinner overlay 
+  * @param {String=} text - Optional text to put under the spinner. 
+  *     Default is 'Loading ...'
   */
-  on(text){
-    let _this,
-        // Variables
-        loaderD3,
-        spinnerD3,
-        spinnerText;
-    
-    _this = this;
-     
-    spinnerText = text == null ? "Loading ..." : text;
+  on(text = 'Loading ...') {
+    let spinnerD3 = d3.select(this.containerEl)
+        .append('div')
+        .attr('class', 'loading-spinner');
 
-    spinnerD3 = d3.select(_this.containerEl)
-        .append("div")
-        .attr("class","loading-spinner");
+    spinnerD3.append('div')
+        .attr('id', 'overlay');
 
-    spinnerD3.append("div")
-        .attr("id","overlay");
+    let loaderD3 = spinnerD3.append('div')
+        .attr('id', 'loader');
 
-    loaderD3 = spinnerD3.append("div")
-        .attr("id","loader");
+    loaderD3.append('div')
+        .attr('id', 'spinner');
 
-    loaderD3.append("div")
-        .attr("id","spinner");
-
-    loaderD3.append("div")
-        .attr("id","loader-text")
-        .text(spinnerText);
+    loaderD3.append('div')
+        .attr('id', 'loader-text')
+        .text(text);
   }
-  //------------------------- End Method: on -----------------------------------
-  
 
 }
-
-
-//-------------------------- End Spinner Class ---------------------------------

@@ -1,6 +1,4 @@
-"use strict"
-
-
+"use strict";
 
 
 /**
@@ -93,7 +91,7 @@
 * 
 *
 */
-class D3MapView{
+export default class D3MapView{
 
 
   //.......................... D3MapView Constructor ...........................
