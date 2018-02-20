@@ -1,7 +1,7 @@
+'use strict';
 
-
-
-
+import D3LinePlot from './lib/D3LinePlot.js';
+import Hazard from './lib/Hazard.js';
 
 /**
 * @class ModelCompare
@@ -9,7 +9,7 @@
 * @classdec Class for model-compare.html
 *
 */
-class ModelCompare extends Hazard{
+export default class ModelCompare extends Hazard{
 
   //.......................... Constructor: ModelCompare .......................
   constructor(config){
@@ -44,7 +44,9 @@ class ModelCompare extends Hazard{
     _this.plot = new D3LinePlot(_this.plotEl,
         plotOptions,
         hazardCurveOptions,
-        {}); 
+        {})
+        .withPlotHeader()
+        .withPlotFooter(); 
     //--------------------------------------------------------------------------
 
 
@@ -227,18 +229,17 @@ class ModelCompare extends Hazard{
     
 
     //.................... Plot Info Object for D3 .............................
-    _this.plot.title = title;
-    
-    _this.plot.upperPanel.data = seriesData;
-    _this.plot.upperPanel.ids = seriesLabelIds;
-    _this.plot.upperPanel.labels = seriesLabels;
-    _this.plot.upperPanel.metadata = metadata;
-    _this.plot.upperPanel.plotFilename = filename;
-    _this.plot.upperPanel.xLabel = xLabel;
-    _this.plot.upperPanel.yLabel = yLabel;
-   
-    _this.plot.removeSmallValues(_this.plot.upperPanel, 1e-14); 
-    _this.plot.plotData(_this.plot.upperPanel);
+    _this.plot.setPlotTitle(title)
+        .setUpperData(seriesData)
+        .setUpperDataTableTitle('')
+        .setUpperPlotFilename(filename)
+        .setUpperPlotIds(seriesLabelIds)
+        .setUpperPlotLabels(seriesLabels)
+        .setUpperMetadata(metadata)
+        .setUpperXLabel(xLabel)
+        .setUpperYLabel(yLabel)
+        .removeSmallValues(_this.plot.upperPanel, 1e-14)
+        .plotData(_this.plot.upperPanel);
     //--------------------------------------------------------------------------
 
   }

@@ -1,7 +1,14 @@
-'use strict'
+'use strict';
+
+import Gmm from './lib/Gmm.js';
+import D3LinePlot from './lib/D3LinePlot.js';
 
 /** 
-* @fileoverview Class for gmm-distance..html, ground motion Vs. distance web app.
+* @class GmmDistance 
+* @extends Gmm
+*
+* @fileoverview Class for gmm-distance..html, ground motion Vs. 
+*   distance web app.
 * This class plots the results of nshmp-haz-ws/gmm/distance web service.
 * This class will first call out to nshmp-haz-ws/gmm/distance web service
 *     to obtain the usage and create the control panel with the following:
@@ -28,11 +35,9 @@
 *     - #z1p0
 *     - #z2p5
 *
-* @class GmmDistance 
-* @extends Gmm
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class GmmDistance extends Gmm {
+export default class GmmDistance extends Gmm {
  
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
@@ -104,16 +109,15 @@ class GmmDistance extends Gmm {
     let selectedImt = $(':selected', this.imtEl);
     let selectedImtVal = selectedImt.val();
     
-    this.plot.upperPanel.data = seriesData;
-    this.plot.upperPanel.dataTableTitle = 'Median Ground Motion';
-    this.plot.upperPanel.ids = seriesIds;
-    this.plot.upperPanel.labels = seriesLabels;
-    this.plot.upperPanel.metadata = metadata;
-    this.plot.upperPanel.plotFilename = 'gmmDistance' + selectedImtVal;
-    this.plot.upperPanel.xLabel = mean.xLabel;
-    this.plot.upperPanel.yLabel = mean.yLabel;
-    // Plot upper panel: Ground motion Vs. distance 
-    this.plot.plotData(this.plot.upperPanel);
+    this.plot.setUpperData(seriesData)
+        .setUpperDataTableTitle('Median Ground Motion')
+        .setUpperPlotFilename('gmmDistance' + selectedImtVal)
+        .setUpperPlotIds(seriesIds)
+        .setUpperPlotLabels(seriesLabels)
+        .setUpperMetadata(metadata)
+        .setUpperXLabel(mean.xLabel)
+        .setUpperYLabel(mean.yLabel)
+        .plotData(this.plot.upperPanel);
   }
 
   /**
@@ -135,7 +139,9 @@ class GmmDistance extends Gmm {
         this.contentEl,
         {} /* main plot options */,
         meanPlotOptions,
-        {} /* lower panel options */); 
+        {} /* lower panel options */)
+        .withPlotHeader()
+        .withPlotFooter(); 
   }
 
   /**
@@ -178,8 +184,8 @@ class GmmDistance extends Gmm {
       this.spinner.off();
       let selectedImt = $(':selected', this.imtEl);
       let selectedImtDisplay = selectedImt.text();
-      this.plot.title = 'Ground Motion Vs. Distance: ' + 
-          selectedImtDisplay;
+      this.plot.setPlotTitle('Ground Motion Vs. Distance: ' + 
+          selectedImtDisplay);
     
       // Plot ground motion Vs. distance
       this.plotGmm(response);
