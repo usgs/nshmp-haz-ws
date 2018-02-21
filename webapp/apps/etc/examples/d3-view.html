@@ -32,19 +32,20 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>   
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="../../js/lib/Header.js" charset="UTF-8"></script>
-  <script src="../../js/lib/Footer.js" charset="UTF-8"></script>
-  <script src="../../js/lib/D3View.js" charset="UTF-8"></script>
   
-  <script>
+  <script type='module'>
+    import D3View from '../../js/lib/D3View.js';
+    import Header from '../../js/lib/Header.js';
+    import Footer from '../../js/lib/Footer.js';
+
     let footer = new Footer();
-    let header = new Header();
+    let header = new Header().setTitle('D3View Example');
     let el = document.querySelector('#view');
     let view = new D3View(el)
         .withPlotHeader()
         .withPlotFooter();
     view.hide(false);
-    view.setPanelTitle('This is a title');
+    view.setPlotTitle('This is a title');
   </script>
 
 </body>
