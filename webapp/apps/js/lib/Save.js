@@ -72,9 +72,11 @@ export default class Save {
         // JPEG or PNG
         case 'png':
         case 'jpeg':
-          imgSrc = canvas.canvasEl.toDataURL('image/' + plotFormat, 1.0);
-          aEl.href = imgSrc;
-          aEl.click();
+          canvas.canvasEl.toBlob((blob) => {
+            imgSrc = URL.createObjectURL(blob);
+            aEl.href = imgSrc;
+            aEl.click();
+          }, 'image/' + plotFormat, 1.0);
           break;
         // PDF
         case 'pdf':
