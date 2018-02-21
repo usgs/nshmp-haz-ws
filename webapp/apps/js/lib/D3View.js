@@ -28,23 +28,6 @@ import Save from './Save.js';
 *     - Lower/upper X-label
 *     - Lower/upper Y-label 
 *
-* @typedef {Object} ViewOptions
-* @property {String} colSizeMin - Bootstrap column panel minimum size
-* @property {String} colSizeMinCenter - Bootstrap column panel centered min size
-* @property {String} colSizeMax - Bootstrap column panel max size
-* @property {String} colSizeDefault - Default column size: min or max
-* @property {Boolean} disableXAxisBtns - Whether to disable X axis buttons
-* @property {Boolean} disableYAxisBtns - Whether to disable Y axis buttons
-* @property {Boolean} plotLowerPanel - Whether a plot will exist is lower panel
-* @property {Boolean} printLowerPanel - Wheter to print lower plot
-* @property {Boolean} syncSelections - Whether to sync upper and lower plots
-*     when clicking on data 
-* @property {Boolean} syncXAxis - Whether to sync upper and lower plots
-*     when clicking the X axis log and linear buttons
-* @property {Boolean} syncYAxis - Whether to sync upper and lower plots
-*     when clicking the Y axis log and linear buttons
-* 
-*
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
 export default class D3View {
@@ -66,7 +49,44 @@ export default class D3View {
     /** @type {String} */
     this.resizeSmall = 'icon resize glyphicon glyphicon-resize-small';
     
-    /** @type {ViewOptions} */
+    /** 
+    * @typedef {Object} ViewOptions
+    * @property {String} colSizeMin - Bootstrap column panel minimum size.
+    *     Default: 'col-md-6'.
+    * @property {String} colSizeMinCenter - Bootstrap column panel 
+    *     centered min size. 
+    *     Default: 'col-md-offset-3 col-md-6'.
+    * @property {String} colSizeMax - Bootstrap column panel max size.
+    *     Default: 'col-md-offset-1 col-md-10'.
+    * @property {String} colSizeDefault - Default column size: min or max.
+    *     Default: 'max'.
+    * @property {Boolean} disableXAxisBtns - Whether to disable X axis buttons.
+    *     Default: false.
+    * @property {Boolean} disableYAxisBtns - Whether to disable Y axis buttons.
+    *     Default: false.
+    * @property {Boolean} plotLowerPanel - Whether a plot will exist 
+    *     is lower panel. 
+    *     Default: false.
+    * @property {Boolean} printLowerPanel - Wheter to print lower plot.
+    *     Default: true.
+    * @property {Boolean} syncSelections - Whether to sync upper and 
+    *     lower plots when clicking on data. 
+    *     Default: false.
+    * @property {Boolean} syncXAxis - Whether to sync upper and lower plots
+    *     when clicking the X axis log and linear buttons. 
+    *     Default: true.
+    * @property {Boolean} syncYAxis - Whether to sync upper and lower plots
+    *     when clicking the Y axis log and linear buttons. 
+    *     Default: true.
+    * @property {String} xAxisScale - X axis scale: 'log' || 'linear' for
+    *     D3LinePlot. This value is overridden with the PlotOptions value
+    *     if syncXAxis is false. 
+    *     Default: 'log'.
+    * @property {String} yAxisScale - Y axis scale: 'log' || 'linear' for
+    *     D3LinePlot. This value is overridden with the PlotOptions value
+    *     if syncYAxis is false.
+    *     Default: 'log'.
+    */
     this.options = {
       colSizeMin: 'col-md-6',
       colSizeMinCenter: 'col-md-offset-3 col-md-6',
@@ -85,6 +105,123 @@ export default class D3View {
     // Override options
     this.options = $.extend({}, this.options, options);
 
+    /**
+    * @typedef {Object} PlotOptions
+    * @property {Number} labelFontSize - Font size of X/Y labels in px.
+    *     Default: 16.
+    * @property {String} lengendLocation - Location of legend: 'topright' ||
+    *     'topleft' || 'bottomright' || 'bottomleft'. Default: 'topright'.
+    * @property {Number} legendOffset - Offset around legend in px.
+    *     Default: 5.
+    * @property {Number} legendPaddingX - Padding inside legend in X in px.
+    *     Default: 20.
+    * @property {Number} legendPaddingY - Padding inside legend in Y in px.
+    *     Default: 15.
+    * @property {Number} legendLineBreak - Distance between each label in
+    *     the legend in px. Default: 20.
+    * @property {Number} legendFontSize - Font size of legend in px.
+    *     Default: 14.
+    * @property {Number} linewidth - Data line linewidth. Default: 2.5.
+    * @property {Number} linewidthSelection - Data line linewidth when selected.
+    *     Default: 4.5.
+    * @property {Number} marginBottom - Margin bottom around plot in px.
+    *     Default: 50.
+    * @property {Number} marginLeft - Margin left around plot in px.
+    *     Default: 70.
+    * @property {Number} marginRight - Margin right around plot in px.
+    *     Default: 20.
+    * @property {Number} marginTop - Margin top around plot in px.
+    *     Default: 20.
+    * @property {Number} plotHeight - Plot height in px for plot aspect.
+    *     Default: 504.
+    * @property {Number} plotWidth - Plot width in px for plot aspect.
+    *     Default: 896.
+    * @property {Number} pointRadius - Data point radius. Default: 3.5.
+    * @property {Number} pointRadiusSelection - Data point radius when selected.
+    *     Default: 5.5.
+    * @property {Number} pointRadiusTooltip - Data point radius when 
+    *     selected and mouse is over data point. Default: 8.5.
+    * @property {Boolean} printTitle - Whether to add the plot title to the 
+    *     printed version. Default: true.
+    * @property {Boolean} printFooter - Whether to add the metadata to the 
+    *     printed version. Default: true.
+    * @property {Number} printFooterPadding - Padding around printed footer.
+    *     Default: 20.
+    * @property {Number} printFooterLineBreak - Distance between each line
+    *     in printed footer. Default: 20.
+    * @property {Number} printFooterFontSize - Font size for printed footer. 
+    *     Default: 14.
+    * @property {Number} printHeight - Printed page height in inches.
+    *     Default: 8.5.
+    * @property {Number} printWidth - Printed page width in inches.
+    *     Default: 11.
+    * @property {Number} printPlotWidth - Plot width in inches for printed
+    *     version. Height is determined from plot ratio.  
+    *     Default: 10. 
+    * @property {Number} printDpi - Print quality in dots per inch.
+    *     Default: 600.
+    * @property {Number} printMarginTop - Top margin in inches on page.
+    *     Default: 1.
+    * @property {Number} printMarginLeft - Left margin in inches on page.
+    *     Default: 0.
+    * @property {Boolean} showData - Whether to show data in data table view.
+    *     Default: true.
+    * @property {Boolean} showLegend - Whether to show legend on plot.
+    *     Default: true.
+    * @property {Number} tickFontSize - Font size of tick labels.
+    *     Default 12.
+    * @property {Number} tickExponentFontSize - Font size of the exponent
+    *     in the tick label. Default: 10.
+    * @property {Number} titleFontSize - Font size of the title when printed.
+    *     Default: 20.
+    * @property {Number} tooltipOffset - Offset in Y in px from data point for 
+    *     tooltip.
+    *     Default: 10.
+    * @property {Number} tooltipPadding - Padding inside tooltip in px.
+    *     Default: 10.
+    * @property {Array<String>} tooltipText - Array of labels for the tooltip.
+    *     Must be length of three and is ordered: line-label, x-label, y-label.
+    *     Default: ['Label:', 'X Value:', 'Y Value:'].
+    * @property {Boolean} tooltipXToExponent - Whether to put X values in 
+    *     exponent form in tooltip.
+    *     Default: false.
+    * @property {Boolean} tooltipYToExponent - Whether to put Y values in 
+    *     exponent form in tooltip.
+    *     Default: false.
+    * @property {Number} transitionDuration - Time in miliseconds for 
+    *     transitions when updating the plot from linear to log.
+    *     Default: 500.
+    * @property {String} xAxisLocation - Location for the X axis: 
+    *     'top' || 'bottom'.
+    *     Default: 'bottom'.
+    * @property {Boolean} xAxisNice - Whether to extend the X domain to round
+    *     number. d3.domain.nice.
+    *     Default: true.
+    * @property {String} xAxisScale - X axis scale: 'log' || 'linear' for
+    *     D3LinePlot. This value is overridden with the ViewOptions value
+    *     if syncXAxis is true.
+    *     Default: 'log'.
+    * @property {Number} xLabelPadding - Padding around X-label.
+    *     Default: 8.
+    * @property {Number} xTickMarks - The number of tick marks in X axis. 
+    *     This is only suggested as D3 may override this value.
+    *     Default: 10.
+    * @property {String} yAxisLocation - Location for the Y axis: 
+    *     'top' || 'bottom'.
+    *     Default: 'bottom'.
+    * @property {Boolean} yAxisNice - Whether to extend the Y domain to round
+    *     number. d3.domain.nice.
+    *     Default: true.
+    * @property {String} yAxisScale - Y axis scale: 'log' || 'linear' for
+    *     D3LinePlot. This value is overridden with the ViewOptions value
+    *     if syncYAxis is true.
+    *     Default: 'log'.
+    * @property {Number} yLabelPadding - Padding around Y-label.
+    *     Default: 10.
+    * @property {Number} yTickMarks - The number of tick marks in Y axis. 
+    *     This is only suggested as D3 may override this value.
+    *     Default: 10.
+    */
     let plotOptions = {
       labelFontSize: 16,
       legendLocation: 'topright',
@@ -126,15 +263,15 @@ export default class D3View {
       tooltipXToExponent: false,
       tooltipYToExponent: false,
       transitionDuration: 500,
+      xAxisLocation: 'bottom',
       xAxisNice: true,
       xAxisScale: this.options.xAxisScale,
       xLabelPadding: 8,
       xTickMarks: 10,
-      xAxisLocation: 'bottom',
+      yAxisLocation: 'left',
       yAxisNice: true,
       yAxisScale: this.options.yAxisScale,
       yLabelPadding: 10,
-      yAxisLocation: 'left',
       yTickMarks: 10,
     };
 
@@ -160,12 +297,61 @@ export default class D3View {
     this.tableEl = this.plotBodyEl.querySelector('.data-table');
     
     let lowerPanelEl = this.el.querySelector('.panel-lower');
-    /** @type {Panel} */
+    /** @typedef {Object} Panel
+    * @property {HTMLElement} allDataEl - All data group inside SVG.
+    * @property {Array<String>} color -  Array of colors for the plots.
+    *     Value: d3.schemeCategory10.
+    * @property {Array<Array<Array<Number, Number>>>} data - Data to plot.
+    *     Format: [ [ [x11, y11], ... ], [ [x21, y21], ...], ...].
+    *     Use setUpperData or setLowerData methods.
+    * @property {String} dataTableTitle - Title for data.
+    *     Default: 'Data'.
+    *     Use setUpperDataTableTitle or setLowerDataTableTitle method.
+    * @property {Array<String>} ids - ID corresponding to each data series.
+    *     Format: [ ['id1'], ['id2], ... ].
+    *     Use setUpperPlotIds or setLowerPlotIds method.
+    * @property {Array<String>} labels - Labels corresponding to each 
+    *     data series. 
+    *     Format: [ ['Label 1'], ['Label 2'], ... ].
+    *     Use setUpperPlotLabels or setLowerPlotLabels method.
+    * @property {HTMLElement} legendEl - Legend element.
+    * @property {Function} line - D3 line function.
+    * @property {{url: {String}, date: {Date} }} metadata -
+    *     Metadata to print underneath plot.
+    *     Use setUpperMetadata or setLowerMetadata methods.
+    * @property {PlotOptions} options - Plot options for specific panel.
+    * @property {String} panelId - Panel id: 'lower' || 'upper'.
+    * @property {HTMLElement} plotBodyEl - Upper or lower panel body.
+    * @property {HTMLElement} plotEl - Upper or lower panel plot group inside
+    *     SVG element.
+    * @property {String} plotFilename - Download filename.
+    * @property {Number} plotHeight - Calculated plot height. 
+    *     options.plotHeight - options.marginBottom - options.marginTop.
+    * @property {Number} plotWidth - Calculated plot width.
+    *     options.plotWidth - options.marginLeft - options.marginRight.
+    * @property {Number} plotScale - Calculated value from the current 
+    *     panel width Vs. the plot width. plotWidth / panelWidth.
+    * @property {HTMLElement} svgEl - Upper or lower SVG element.
+    * @property {Number} svgHeight - options.plotHeight.
+    * @property {Number} svgWidth - options.plotWidth.
+    * @property {HTMLElement} tooltipEl - Tooltip element inside SVG.
+    * @property {HTMLElement} xAxisEl - X-axis element inside SVG.
+    * @property {Function} xBounds - D3 axis function. d3.range().domain().
+    * @property {Array<Number, Number>} xExtremes - Min and max X value.
+    *     Format: [min, max].
+    * @property {String} xLabel - X axis label.
+    *     Use setUpperXLabel or setLowerXLabel methods.
+    * @property {HTMLElement} yAxisEl - Y-axis element inside SVG.
+    * @property {Function} yBounds - D3 axis function. d3.range().domain().
+    * @property {Array<Number, Number>} yExtremes - Min and max Y value.
+    *     Format: [min, max].
+    * @property {String} yLabel - Y axis label.
+    *     Use setUpperYLabel or setLowerYLabel methods.
+    */ 
     this.lowerPanel = {
       allDataEl: lowerPanelEl.querySelector('.all-data'),
       color: d3.schemeCategory10,
       data: undefined,
-      dataFilename: 'data',
       dataTableTitle: 'Data',
       ids: undefined,
       labels: undefined,
@@ -200,7 +386,6 @@ export default class D3View {
       allDataEl: upperPanelEl.querySelector('.all-data'),
       color: d3.schemeCategory10,
       data: undefined,
-      dataFilename: 'data',
       dataTableTitle: 'Data',
       ids: undefined,
       labels: undefined,
@@ -238,15 +423,18 @@ export default class D3View {
   *
   */
   createDataTable(panel) {
-    if (!panel.options.showData) return;
-    
     let panelDim = this.plotBodyEl.getBoundingClientRect();
-   
+    let plotRatio = Number((panelDim.width / panelDim.height).toFixed(8)); 
+
     // Update table height and width
     d3.select(this.tableEl)
         .style('height', panelDim.height + 'px')
         .style('width', panelDim.width + 'px');
   
+    // On window resize
+    this.onResize(plotRatio);
+    if (!panel.options.showData) return;
+    
     d3.select(this.tableEl)
         .selectAll('.' + panel.panelId + '-tables')
         .remove();
@@ -289,14 +477,6 @@ export default class D3View {
         tableRowY.append('td')
             .text(dataPair[1]);
       })
-    });
-    
-    $(window).resize(() => {
-      let panelDimResize = this.plotBodyEl.getBoundingClientRect();
-      // Update table height and width
-      d3.select(this.tableEl)
-          .style('height', panelDimResize.height + 'px')
-          .style('width', panelDimResize.width + 'px');
     });
   }
 
@@ -449,7 +629,8 @@ export default class D3View {
   onPlotDataViewSwitch() {
     $(this.plotFooterEl).find('.plot-data-btns').on('click', (event) => {
       let selectedValue = $(event.target).find('input').val();
-      
+      let panelDim = this.plotBodyEl.getBoundingClientRect();
+
       if (selectedValue == 'plot'){
         d3.select(this.tableEl)
             .classed('hidden', true);
@@ -462,7 +643,9 @@ export default class D3View {
               .classed('hidden', false);
       }else{
         d3.select(this.tableEl)
-            .classed('hidden', false);
+            .classed('hidden', false)
+            .style('height', panelDim.height + 'px')
+            .style('width', panelDim.width + 'px');
         
         d3.select(this.upperPanel.plotBodyEl)
             .classed('hidden', true);
@@ -481,6 +664,24 @@ export default class D3View {
   * Resizes the plot panel when the resize glyphicon is clicked
   */
   onPanelResize() {
+    d3.select(this.tableEl)
+        .classed('hidden', true);
+    
+    d3.select(this.plotFooterEl)
+        .select('.plot-btn')
+        .classed('active', true);
+
+    d3.select(this.plotFooterEl)
+        .select('.data-btn')
+        .classed('active', false);
+    
+    d3.select(this.upperPanel.plotBodyEl)
+        .classed('hidden', false);
+    
+    if (this.options.plotLowerPanel)
+      d3.select(this.lowerPanel.plotBodyEl)
+          .classed('hidden', false);
+    
     let nplots = d3.selectAll('.D3View') 
         .filter((d, i, els) => {
           return !d3.select(els[i]).classed('hidden')
@@ -519,7 +720,7 @@ export default class D3View {
     $(this.saveAsMenuEl).find('a').on('click', (event) => {
       if ($(event.target).hasClass('data')) {
         Save.saveData(
-            this.tableEl, this.upperPanel.dataFilename, event.target.id);
+            this.tableEl, this.upperPanel.plotFilename, event.target.id);
       } else {
         Save.saveFigure(
             this.upperPanel, this.plotTitleEl.textContent, event.target.id);
@@ -532,6 +733,24 @@ export default class D3View {
     });
   }
 
+  /**
+  * @method onResize
+  *
+  * Update the table height and width to keep aspect ratio
+  */
+  onResize(plotRatio) {
+    $(window).off();
+    $(window).resize(() => {
+      let panelDimResize = this.plotBodyEl.getBoundingClientRect();
+      let width = panelDimResize.width;
+      let height = Number((width / plotRatio).toFixed(6));
+      // Update table height and width
+      d3.select(this.tableEl)
+          .style('height', height + 'px')
+          .style('width', width + 'px');
+    });
+  }
+  
   /**
   * @method panelResize
   *
