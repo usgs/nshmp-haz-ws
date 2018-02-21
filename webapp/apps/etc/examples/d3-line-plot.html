@@ -71,8 +71,9 @@
       // Plot Means
       let means = json.means;
       let meanData = means.data[0];
-      let data = [d3.zip(meanData.data.xs, meanData.data.ys)];
-     
+      let data = [];
+      data.push(d3.zip(meanData.data.xs, meanData.data.ys));
+      
       let metadata = {
         url: url,
         time: new Date(),
