@@ -1,13 +1,8 @@
-
-
 <!doctype html>
-
 
 <html lang="en">
 
-<!-- ......................... Head ........................................ -->
 <head>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8"> 
 
@@ -18,96 +13,10 @@
   <!-- CSS Files -->
   <link rel="stylesheet" href="apps/css/template.css" type="text/css">
   <link rel="stylesheet" href="apps/css/dashboard.css" type="text/css">
-
 </head>
-<!-- ......................... End: Head ................................... -->
 
 
-
-<!-- ........................... Body ...................................... -->
 <body>
-
-  <div id="container">
-    <div id="dash">
-    
-    
-      <div class="row"> 
-        
-        <div class="col-sm-3"
-          onclick=window.location="apps/gmm-distance.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Ground Motion Vs. Distance </h2> 
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-sm-3"
-          onclick=window.location="apps/hw-fw.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Hanging Wall Effects </h2> 
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-sm-3"
-          onclick=window.location="apps/model-compare.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Model Comparison </h2> 
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-sm-3"
-            onclick=window.location="apps/model-explorer.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Model Explorer </h2> 
-            </div>
-          </div>
-        </div>
-      
-      </div>
-
-      <div class="row">
-        
-        <div class="col-sm-4"
-            onclick=window.location="apps/spectra-plot.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Response Spectra </h2> 
-            </div>
-          </div>
-        </div>
-
-        
-        <div class="col-sm-4"
-            onclick=window.location="apps/test-sites.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Test Sites </h2> 
-            </div>
-          </div>
-        </div>
-        
-        
-        <div class="col-sm-4"
-            onclick=window.location="apps/services.html">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h2 class="panel-title"> Services </h2> 
-            </div>
-          </div>
-        </div>
-
-      </div>
-    
-    </div>
-  </div>
-
-  <!-- ..................... Import JavaScript ............................. -->
 
   <!-- jQuery -->
   <script 
@@ -119,20 +28,17 @@
       src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
   </script>
 
-  <!-- Application Specific JavaScript -->
+  <!-- D3 -->
   <script src="https://d3js.org/d3.v4.min.js"> </script>
   
+  <!-- Application Specific JavaScript -->
   <script type='module'>
     import Config from './apps/js/lib/Config.js';
     import Dashboard from './apps/js/Dashboard.js';
      
     Config.getConfig(Dashboard);
   </script>
-  <!-- ..................... End: Import JavaScript ........................ -->
-
-
 
 </body>
-<!-- ......................... End: Body ................................... -->
 
 </html>
