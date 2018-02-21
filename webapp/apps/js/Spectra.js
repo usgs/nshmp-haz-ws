@@ -180,14 +180,14 @@ export default class Spectra extends Gmm {
       xAxisScale: 'linear',
     };
 
-    let meanTooltipText = ['GMM', 'Period (s)', 'MGM (g)'];
+    let meanTooltipText = ['GMM:', 'Period (s):', 'MGM (g):'];
     let meanPlotOptions = {
       legendLocation: 'topright',
       tooltipText: meanTooltipText,
       yAxisScale: 'linear',
     };
     
-    let sigmaTooltipText = ['GMM', 'Period (s)', 'SD'];
+    let sigmaTooltipText = ['GMM:', 'Period (s):', 'SD:'];
     let sigmaPlotOptions = {
       legendFontSize: 10,
       legendLineBreak: 14,

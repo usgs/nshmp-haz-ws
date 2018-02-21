@@ -32,7 +32,7 @@ export default class ModelExplorer extends Hazard{
     //..................... Plot Setup .........................................
     _this.plotEl = document.querySelector("#content");
     let plotOptions = {};
-    let tooltipText = ["IMT", "GM (g)", "AFE"];
+    let tooltipText = ["IMT:", "GM (g):", "AFE:"];
     let hazardCurveOptions = {
       legendLocation: "bottomleft",
       tooltipText: tooltipText,
@@ -49,7 +49,7 @@ export default class ModelExplorer extends Hazard{
         colSizeDefault: "min"
     };
     
-    tooltipText = ["Component", "GM (g)", "AFE"];
+    tooltipText = ["Component:", "GM (g):", "AFE:"];
     let componentCurveOptions = {
       legendLocation: "bottomleft",
       tooltipText: tooltipText

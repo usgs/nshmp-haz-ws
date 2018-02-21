@@ -126,7 +126,7 @@ export default class GmmDistance extends Gmm {
   * @return {D3LinePlot} New instance of D3LinePlot 
   */ 
   plotSetup() {
-    let meanTooltipText = ['GMM', 'Distance (km)', 'MGM (g)'];
+    let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
     let meanPlotOptions = {
       legendLocation: 'bottomleft',
       pointRadius: 2.75,

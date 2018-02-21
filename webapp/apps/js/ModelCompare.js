@@ -34,7 +34,7 @@ export default class ModelCompare extends Hazard{
       colSizeMin: "col-md-offset-3 col-md-6",
     };
 
-    let tooltipText = ["Edition", "GM (g)", "AFE"];
+    let tooltipText = ["Edition:", "GM (g):", "AFE:"];
     let hazardCurveOptions = {
       legendLocation: "bottomleft",
       tooltipText: tooltipText

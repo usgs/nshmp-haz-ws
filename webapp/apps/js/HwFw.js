@@ -494,7 +494,7 @@ export default class HwFw extends Gmm {
       syncYAxis: false, 
     };
 
-    let meanTooltipText = ['GMM', 'Distance (km)', 'MGM (g)'];
+    let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
     let meanPlotOptions = {
       pointRadius: 2.75,
       pointRadiusSelection: 3.5,
