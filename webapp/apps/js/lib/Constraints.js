@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 /**
 * @fileoverview Class of static methods to listen and check if a input
@@ -9,7 +9,7 @@
 * @class Constraints      
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Constraints {
+export default class Constraints {
 
   /**
   * @method check
@@ -23,7 +23,7 @@ class Constraints {
   * @param {boolean=} canHaveNaN - Whether the value can be empty
   * @return {boolean} Whether the value is inside the bounds (true) or not
   */
-  static check(el, minVal, maxVal, canHaveNaN = false){
+  static check(el, minVal, maxVal, canHaveNaN = false) {
     let isInBounds;
     let val = parseFloat(el.value);
 

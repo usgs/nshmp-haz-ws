@@ -1,7 +1,11 @@
-"use strict"
+'use strict';
 
+import Footer from './Footer.js';
+import Header from './Header.js';
+import Settings from './Settings.js';
+import Spinner from './Spinner.js';
 
-class Hazard{
+export default class Hazard{
 
   constructor(config){
     let _this = this;
@@ -20,7 +24,7 @@ class Hazard{
     _this.spinner = new Spinner();                                              
 
     // Settings menu
-    _this.settings = new Settings(_this.footer.settingsBtnEl);
+    //_this.settings = new Settings(_this.footer.settingsBtnEl);
     
      
     _this.controlEl = document.querySelector("#control");

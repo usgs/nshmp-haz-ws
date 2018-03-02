@@ -1,7 +1,4 @@
-
-
 <!doctype html>
-
 
 <html lang="en">
 
@@ -266,19 +263,11 @@
 
   <!-- Application Specific JavaScript -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="js/lib/D3View.js" charset="UTF-8"></script>
-  <script src="js/lib/D3LinePlot.js" charset="UTF-8"></script>
-  <script src="js/lib/Tooltip.js" charset="UTF-8"></script>
-  <script src="js/lib/Footer.js" charset="UTF-8"></script>
-  <script src="js/lib/Header.js" charset="UTF-8"></script>
-  <script src="js/lib/Spinner.js" charset="UTF-8"></script>
-  <script src="js/lib/Settings.js" charset="UTF-8"></script>
-  <script src="js/lib/Gmm.js" charset="UTF-8"></script>
-  <script src="js/lib/Constraints.js" charset="UTF-8"></script>
-  <script src="js/lib/Config.js" charset="UTF-8"></script>
-  <script src="js/HwFw.js" charset="UTF-8"></script>
   
-  <script> 
+  <script type='module'>
+    import Config from './js/lib/Config.js';
+    import HwFw from './js/HwFw.js';
+     
     Config.getConfig(HwFw);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->

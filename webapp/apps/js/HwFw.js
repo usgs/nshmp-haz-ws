@@ -1,6 +1,13 @@
-'use strict'
+'use strict';
+
+import D3LinePlot from './lib/D3LinePlot.js';
+import Constraints from './lib/Constraints.js';
+import Gmm from './lib/Gmm.js';
 
 /** 
+* @class HwFw
+* @extends Gmm
+*
 * @fileoverview Class for hw-fw.html, hanging wall effects web app.
 * This class plots the results of nshmp-haz-ws/gmm/hw-fw web service.
 * This class will first call out to nshmp-haz-ws/gmm/hw-fw web service
@@ -24,11 +31,9 @@
 * Once the fault plane is changed with either of the sliders, the 
 *   ground motions vs. distance plot is updated automatically. 
 *
-* @class HwFw
-* @extends Gmm
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class HwFw extends Gmm {
+export default class HwFw extends Gmm {
  
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
@@ -379,19 +384,19 @@ class HwFw extends Gmm {
     let xDomain = [rMin, xLimit];
     let yDomain = [-this.options.maxFaultBottom, 0];
     
-    let a = xLimit - rMin;
-    let b = this.options.maxFaultBottom;
-    let plotRatio = a / b;
+    let x = xLimit - rMin;
+    let y = this.options.maxFaultBottom;
+    let plotRatio = x / y;
     let plotWidth = this.plot.upperPanel.options.plotWidth * 
         this.options.lowerPlotWidth;
     let plotHeight = plotWidth / plotRatio;
     // Update lower plot height
     this.plot.lowerPanel.options.plotHeight = plotHeight;
-    // Update lower plot ratio
-    this.plot.lowerPanel.options.plotRatio = plotRatio;
     // Update lower plot width
     this.plot.lowerPanel.options.plotWidth = plotWidth;
-    
+    // Update the svg view box
+    this.plot.setSvgViewBox();
+
     let domain = {
       xDomain: xDomain,
       yDomain: yDomain,
@@ -414,16 +419,17 @@ class HwFw extends Gmm {
         .selectAll(".tick")
         .size(); 
     tickMarks = Math.ceil(tickMarks / 2);
-
-    this.plot.lowerPanel.data = seriesInfo.seriesData;
-    this.plot.lowerPanel.plotFilename = 'faultPlane';
-    this.plot.lowerPanel.ids = seriesInfo.seriesIds;
-    this.plot.lowerPanel.labels = seriesInfo.seriesLabels;
-    this.plot.lowerPanel.metadata = metadata;
     this.plot.lowerPanel.options.xTickMarks = tickMarks;
-    this.plot.lowerPanel.xLabel ='km';
-    this.plot.lowerPanel.yLabel = 'km';
-    this.plot.plotData(this.plot.lowerPanel);
+    
+    this.plot.setLowerData(seriesInfo.seriesData)
+        .setLowerPlotFilename('faultPlane')
+        .setLowerPlotIds(seriesInfo.seriesIds)
+        .setLowerPlotLabels(seriesInfo.seriesLabels)
+        .setLowerMetadata(metadata)
+        .setLowerXLabel('km')
+        .setLowerYLabel('km')
+        .plotData(this.plot.lowerPanel);
+    
     let domain = this.getFaultPlaneDomain();
     // Replot with new domain
     this.plot.plotData(
@@ -463,16 +469,15 @@ class HwFw extends Gmm {
     let selectedImt = $(':selected', this.imtEl);
     let selectedImtVal = selectedImt.val();
     
-    this.plot.upperPanel.data = seriesData;
-    this.plot.upperPanel.dataTableTitle = 'Median Ground Motion';
-    this.plot.upperPanel.ids = seriesIds;
-    this.plot.upperPanel.labels = seriesLabels;
-    this.plot.upperPanel.metadata = metadata;
-    this.plot.upperPanel.plotFilename = 'hwFw' + selectedImtVal;
-    this.plot.upperPanel.xLabel = mean.xLabel;
-    this.plot.upperPanel.yLabel = mean.yLabel;
-    // Plot upper panel: Ground motion Vs. distance 
-    this.plot.plotData(this.plot.upperPanel);
+    this.plot.setUpperData(seriesData)
+        .setUpperDataTableTitle('Median Ground Motion')
+        .setUpperPlotFilename('hwFw' + selectedImtVal)
+        .setUpperPlotIds(seriesIds)
+        .setUpperPlotLabels(seriesLabels)
+        .setUpperMetadata(metadata)
+        .setUpperXLabel(mean.xLabel)
+        .setUpperYLabel(mean.yLabel)
+        .plotData(this.plot.upperPanel);
   }
 
   /**
@@ -489,7 +494,7 @@ class HwFw extends Gmm {
       syncYAxis: false, 
     };
 
-    let meanTooltipText = ['GMM', 'Distance (km)', 'MGM (g)'];
+    let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
     let meanPlotOptions = {
       pointRadius: 2.75,
       pointRadiusSelection: 3.5,
@@ -523,7 +528,9 @@ class HwFw extends Gmm {
         this.contentEl,
         plotOptions,
         meanPlotOptions,
-        faultPlotOptions); 
+        faultPlotOptions)
+        .withPlotHeader()
+        .withPlotFooter(); 
   }
   
   /**
@@ -577,9 +584,9 @@ class HwFw extends Gmm {
       this.spinner.off();
       let selectedImt = $(':selected', this.imtEl);
       let selectedImtDisplay = selectedImt.text();
-      this.plot.title = 'Hanging Wall Effects: ' + 
-          selectedImtDisplay;
-    
+      this.plot.setPlotTitle('Hanging Wall Effects: ' + 
+          selectedImtDisplay);
+      
       // Plot ground motion Vs. distance
       this.plotGmm(response);
       // Plot fault plane

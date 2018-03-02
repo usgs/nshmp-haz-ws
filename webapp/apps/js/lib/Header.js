@@ -1,231 +1,169 @@
-'use strict'
-
-
-
+'use strict';
 
 /**
 * @class Header
 *
-* @classdesc Creates the header to be used for all nshmp-haz-ws webapps.
+* @fileoverview Creates the header to be used for all nshmp-haz-ws webapps.
 *
-* 
-* @argument containerEl {Element}
-*     optional: html container element where the header will be placed <br>
-*     default: body
-* 
-* @property headerEl {Element}
-*     html element for the header
+* @typedef {Object} HeaderOptions - Object for header options
+* @property {String} position - CSS positions: fixed || absolute
 *
-* @property headerTitleEl {Element}
-*     html element of the title in the header
+* @typedef {Array<Object>} HeaderMenu - Header menu labels and hrefs
+* @property {String} label - The header menu text to be shown
+* @property {String} href - The href for the corresponding menu
 *
-* @property menuItems {Array<Array<String>>}
-*     array of string coorseponding to the dropdown menu label and url: <br>
-*     [ ["Model Compare Webapp","model-compare.html"] ,.., ["",""] ]
-*
-* @property options {Object}                                                    
-*     options object for the footer options                                     
-*                                                                               
-* @property options.position {String}                                           
-*     default fixed <br>                                                        
-*     whether to use fixed or absolute positioning 
-*
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Header{
+export default class Header{
 
-  //........................... Header Constructor .............................
-  constructor(containerEl){
-
-    
-    //............................... Variables ................................
-    let _this,
-        // Variables
-        headerD3,
-        headerMenuD3;
-
-    _this = this;
-    _this.headerEl;
-    _this.headerTitleEl;
-    _this.menuItems;
-    _this.options;
-    
-    // Check for optional argument                                              
-    containerEl = containerEl ? containerEl : document.querySelector("body"); 
-    
+  /**
+  * @param {HTMLElement=} containerEl -  Optional container element 
+  *     to put the header. Default is body.
+  */
+  constructor(containerEl = document.querySelector('body')) {
     document.title = "NSHMP-HAZ-WS";
-    //--------------------------------------------------------------------------
-
     
-    //...................... Header Options ....................................
-    _this.options = {
-      position: "fixed"
+    /** @type {HeaderOptions} */
+    this.options = {
+      position: 'fixed',
     };
-    //--------------------------------------------------------------------------
 
-
-    //...................... Set Dropdown Menu Items ...........................
-    _this.menuItems = [
-        ["Dashboard","/nshmp-haz-ws/"],
-        ["Ground Motion Vs. Distance", "/nshmp-haz-ws/apps/gmm-distance.html"],
-        ["Hanging Wall Effects", "/nshmp-haz-ws/apps/hw-fw.html"],
-        ["Model Compare", "/nshmp-haz-ws/apps/model-compare.html"],
-        ["Model Explorer", "/nshmp-haz-ws/apps/model-explorer.html"],
-        ["Response Spectra", "/nshmp-haz-ws/apps/spectra-plot.html"],
-        ["Test Sites", "/nshmp-haz-ws/apps/test-sites.html"],
-        ["Services",  "/nshmp-haz-ws/apps/services.html"]
+    /** @type {HeaderMenu} */
+    this.menuItems = [
+      { 
+        label: 'Dashboard', 
+        href: '/nshmp-haz-ws/',
+      }, {
+        label: 'Ground Motion Vs. Distance', 
+        href: '/nshmp-haz-ws/apps/gmm-distance.html',
+      }, {
+        label: 'Hanging Wall Effects', 
+        href: '/nshmp-haz-ws/apps/hw-fw.html',
+      }, {
+        label: 'Model Compare', 
+        href: '/nshmp-haz-ws/apps/model-compare.html',
+      }, {
+        label: 'Model Explorer', 
+        href: '/nshmp-haz-ws/apps/model-explorer.html',
+      }, {
+        label: 'Response Spectra', 
+        href: '/nshmp-haz-ws/apps/spectra-plot.html',
+      }, {
+        label: 'Test Sites', 
+        href: '/nshmp-haz-ws/apps/test-sites.html',
+      }, {
+        label: 'Services',  
+        href: '/nshmp-haz-ws/apps/services.html',
+      }
     ];
-    //--------------------------------------------------------------------------
-
             
-    //............................. Create Header ..............................
     // Append header to body
-    headerD3 = d3.select(containerEl)
-        .append("div")
-        .attr("id","header");
+    let headerD3 = d3.select(containerEl)
+        .append('div')
+        .attr('id', 'header');
+    
     // Append webapp title
-    headerD3.append("span")
-        .attr("class","title")
-        .attr("id","header-title")
-        .text("");
+    headerD3.append('span')
+        .attr('class', 'title')
+        .attr('id', 'header-title')
+        .text('');
+    
     // Create dropdown 
-    headerD3.append("div")
-        .attr("class","dropdown-toggle")
-        .attr("id","header-menu")
-        .attr("data-toggle","dropdown")
-        .append("span")
-        .attr("class","glyphicon glyphicon-menu-hamburger");
+    headerD3.append('div')
+        .attr('class', 'dropdown-toggle')
+        .attr('id', 'header-menu')
+        .attr('data-toggle', 'dropdown')
+        .append('span')
+        .attr('class', 'glyphicon glyphicon-menu-hamburger');
+    
     // Append unordered list
-    headerMenuD3 = headerD3.append("ul")
-        .attr("class","dropdown-menu dropdown-menu-right")
-        .attr("aria-labelledby","header-menu");
+    let headerMenuD3 = headerD3.append('ul')
+        .attr('class', 'dropdown-menu dropdown-menu-right')
+        .attr('aria-labelledby', 'header-menu');
+    
     // Create dropdown list of all webapps 
-    headerMenuD3.selectAll("li")
-        .data(_this.menuItems)
+    headerMenuD3.selectAll('li')
+        .data(this.menuItems)
         .enter()
-        .append("li")
-        .append("a")
-        .text(function(d,i){return d[0]})
-        .attr("href",function(d,i){return d[1]});
+        .append('li')
+        .append('a')
+        .text((d,i) => {return d.label})
+        .attr('href', (d,i) => {return d.href});
 
     headerD3.lower(); 
-    //--------------------------------------------------------------------------
-
-
-    //........................... DOM Elements .................................
-    _this.headerEl = headerD3.node(); 
-    _this.headerListEl = _this.headerEl.querySelector("ul");
-    _this.headerTitleEl = _this.headerEl.querySelector("#header-title");
-    //--------------------------------------------------------------------------
     
+    /** @type {HTMLElement} */
+    this.containerEl = containerEl;
+    /** @type {HTMLElement} */
+    this.headerEl = headerD3.node(); 
+    /** @type {HTMLElement} */
+    this.headerListEl = this.headerEl.querySelector('ul');
+    /** @type {HTMLElement} */
+    this.headerTitleEl = this.headerEl.querySelector('#header-title');
   }
-  //----------------------- End: Header Constructor ----------------------------
 
-
-
-  //......................... Method: setCustomMenu ............................
   /**
   * @method setCustomMenu
   *
-  * @description create a custom dropdown menu for the header
-  *
-  *
-  * @argument menuItems {Array<Array<String>>}
-  *     array of string coorseponding to the dropdown menu label and url: <br>
-  *     [ ["Model Compare Webapp","model-compare.html"] ,.., ["",""] ]
-  *
+  * Create a custom dropdown menu for the header
+  * @param {HeaderMenu} menuItems - New custom header menu
   */
-  setCustomMenu(menuItems){
-    let _this;
-
-    _this = this;
-    
-    d3.select(_this.headerListEl)
-        .selectAll("li")
+  setCustomMenu(menuItems) {
+    d3.select(this.headerListEl)
+        .selectAll('li')
         .remove();
   
     // Create dropdown list of all webapps 
-    d3.select(_this.headerListEl)
+    d3.select(this.headerListEl)
         .selectAll("li")
         .data(menuItems)
         .enter()
-        .append("li")
-        .append("a")
-        .text(function(d,i){return d[0]})
-        .attr("href",function(d,i){return d[1]});
+        .append('li')
+        .append('a')
+        .text((d,i) => {return d.label})
+        .attr('href', (d,i) => {return d.href});
 
   }
-  //-------------------- End Method: customMenu --------------------------------
-
   
-  
-  //......................... Method: setOptions ...............................
   /**                                                                           
   * @method setOptions
   *
-  * @description method to set the header options
-  *
-  * @arguments options {Object}
-  *     options object for footer <br>
-  *     should contain: <br>
-  *     options.position {String}
-  *
+  * Set the header options.
+  * @param {HeaderOptions} options - Header options
+  * @return {Header} - Return class to be chainable
   */
-  setOptions(options){
-    let _this,
-        header;
-                                                                                
-    header = this;
-    _this = header.options;
-
-    options.position = options.position == "fixed" ||
-        options.position == "absolute" ? options.position : "fixed"; 
+  setOptions(options) {
+    options.position = options.position == 'fixed' ||
+        options.position == 'absolute' ? options.position : 'fixed'; 
      
-    $.extend(_this,options);
-    Header.updateOptions(header);
+    $.extend(this.options, options);
+    this.updateOptions();
+    return this;
   }
-  //---------------------- End Method: setOptions ------------------------------
-                                                                                
-                                                                                
-                                                                                
-  //......................... Method: setTitle .................................
+  
   /**
   * @method setTitle
   *
-  * @argument title {String}
-  *     title for webapp that goes in header 
-  *
+  * Set the header title next to the header menu.
+  * @param {String} title - The header title
+  * @return {Header} - Return class to be chainable
   */
-  setTitle(title){
-    let _this;
-
-    _this = this;
-
-    d3.select(_this.headerTitleEl)
+  setTitle(title) {
+    d3.select(this.headerTitleEl)
         .text(title);
 
     document.title = "NSHMP: " + title;
+    return this;
   }
-  //-------------------- End Method: setTitle ----------------------------------
-
   
-  
-  //......................... Method: updateOptions ............................
   /** 
   * @method updateOptions
   * 
-  * @description static method to update the header options: the
-  * position of the header (fixed || absolute}
-  *
-  * @arguments header {Object}
-  *     Header object
+  * Update the header options: the position of the header (fixed || absolute}
   */
-  static updateOptions(header){
-    d3.select(header.headerEl)
-        .style("position",header.options.position); 
+  updateOptions() {
+    d3.select(this.headerEl)
+        .style('position', this.options.position); 
   }
-  //-------------------- End Method: updateOptions -----------------------------
 
 }
-
-
-//------------------------ End Header Class ------------------------------------

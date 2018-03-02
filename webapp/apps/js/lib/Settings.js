@@ -1,8 +1,6 @@
+'use strict';
 
-
-
-
-class Settings{
+export default class Settings{
 
   constructor(btnEl,options){
     let _this = this;

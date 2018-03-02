@@ -1,4 +1,6 @@
-'use strict'
+'use strict';
+
+import Header from './lib/Header.js';
 
 /**
 * @fileoverview Set all service information. 
@@ -6,7 +8,7 @@
 * @class Services
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Services {
+export default class Services {
 
   constructor(config) {
     /** @type {Header} */

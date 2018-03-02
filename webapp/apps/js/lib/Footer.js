@@ -1,189 +1,114 @@
 'use strict'
 
-
-
-
 /**
 * @class Footer
 *
-* @classdesc Creates the footer to be used with all 
-*     nshmp-haz-ws webapps. <br>
-*     The footer contains two buttons: <br>
-*       1. raw-data: When clicked would open a new 
-*          tab with raw JSON return <br>
-*       2. update-plot: When clicked would update the plot(s) 
+* @fileoverview Creates the footer to be used with all 
+*     nshmp-haz-ws webapps. 
+*     The footer contains two buttons: 
+*       - raw-data: When clicked would open a new 
+*          tab with raw JSON return.
+*       - update-plot: When clicked would update the plot(s).
 *
-* @argument containerEl {Element}                                               
-*     optional: html container element where the footer will be placed <br>
-*     default: body
+* @typedef {Object} FooterOptions - Options for page footer
+* @property {String} position - CSS position: fixed || absolute
+* @property {Boolean} rawBtnDisable - Whether the raw button is disabled or not
+* @property {Boolean} updateBtnDisable - Whether the update button is disabled
 *
-*
-* @property footerEl {Element}
-*     selected html element of the footer
-*
-* @property options {Object}
-*     options object for the footer options
-*
-* @property options.position {String}
-*     default fixed <br>
-*     whether to use fixed or absolute positioning 
-*
-* @property options.rawBtnDisable {Boolean}
-*     default false <br>
-*     whether to have the raw data button disabled or not
-*
-* @property options.updateBtnDisable {Boolean}
-*     default false <br>
-*     whether to have the update plot button disabled or not 
-*
-* @property rawBtnEl {Element}
-*     selected html element of the raw data button
-*
-* @property updateBtnEl {Element}
-*     selected html element of the update plot button
-*
-*
+* @author bclayton@usgs.gov (Brandon Clayton)
 */
-
-
-class Footer{
-
-  //........................ Footer Contructor .................................
-  constructor(containerEl){
-    
-    
-    //.............................. Variables .................................
-    let _this,
-        // Variables
-        footerD3;
-
-    _this = this;
-    _this.footerEl;
-    _this.options;
-    _this.rawDataBtnEl;
-    _this.updatePlotEl;
-    
-    // Check for optional argument 
-    containerEl = containerEl ? containerEl : document.querySelector("body");
-    //--------------------------------------------------------------------------
-
-    
-    //............................... Options ..................................
-    _this.options = {
-      position: "fixed",
+export default class Footer{
+  
+  /**
+  * @param {HTMLElement=} containerEl - DOM element to put the footer
+  */ 
+  constructor(containerEl = document.querySelector('body')) {
+    /** @type {FooterOptions} */
+    this.options = {
+      position: 'fixed',
       rawBtnDisable: false,
-      updateBtnDisable: false
+      updateBtnDisable: false,
     };       
-    //--------------------------------------------------------------------------  
-    
 
-    //.............................. Create Footer .............................
     // Append footer to body
-    footerD3 = d3.select(containerEl)
-        .append("div")
-        .attr("id","footer");
+    let footerD3 = d3.select(containerEl)
+        .append('div')
+        .attr('id', 'footer');
+
     // Append update plot button to footer
-    footerD3.append("button")
-        .attr("id","update-plot")
-        .attr("class","btn btn-primary")
-        .text("Update");
+    footerD3.append('button')
+        .attr('id', 'update-plot')
+        .attr('class', 'btn btn-primary')
+        .text('Update');
     
     // Append raw data button to footer
-    let btnRightD3 = footerD3.append("span")
-        .append("div")
-        .attr("class","btn-float-right")
+    let btnRightD3 = footerD3.append('span')
+        .append('div')
+        .attr('class', 'btn-float-right');
     
-    btnRightD3.append("button")
-        .attr("id","raw-data")
-        .attr("class","btn btn-danger")
-        .text("Raw Data");
-    
-    btnRightD3.append("span")
-        .attr("class","glyphicon glyphicon-cog settings-btn")
-        .attr("title","Settings");
+    btnRightD3.append('button')
+        .attr('id', 'raw-data')
+        .attr('class', 'btn btn-danger')
+        .text('Raw Data');
+    /* 
+    btnRightD3.append('span')
+        .attr('class', 'glyphicon glyphicon-cog settings-btn')
+        .attr('title', 'Settings');
+    */
 
     footerD3.lower();
-    //--------------------------------------------------------------------------
 
-
-    //....................... DOM Elements .....................................
-    _this.footerEl = footerD3.node();
-    _this.rawBtnEl = _this.footerEl.querySelector("#raw-data");
-    _this.updateBtnEl = _this.footerEl.querySelector("#update-plot");
-    _this.settingsBtnEl = _this.footerEl.querySelector(".settings-btn");
-    //--------------------------------------------------------------------------
-    
+    /** @type {HTMLElment} */
+    this.footerEl = footerD3.node();
+    /** @type {HTMLElment} */
+    this.rawBtnEl = this.footerEl.querySelector('#raw-data');
+    /** @type {HTMLElment} */
+    this.updateBtnEl = this.footerEl.querySelector('#update-plot');
+    //this.settingsBtnEl = this.footerEl.querySelector('.settings-btn');
   }
-  //-------------------- End: Footer Constructor -------------------------------
+  
+  /**
+  * @method removeButtons
+  *
+  * Remove the update and raw data buttons
+  */
+  removeButtons() {
+    d3.select(this.rawBtnEl)
+        .remove();
 
+    d3.select(this.updateBtnEl)
+        .remove();
+  }
 
-        	
-  //......................... Method: setOptions ...............................
   /**
   * @method setOptions
   *
-  * @description method to set the footer options
+  * Set the footer options
   *
-  * @arguments options {Object}
-  *     options object for footer <br>
-  *     should contain: <br>
-  *     options.rawBtnDisable {Boolean} <br>
-  *     options.updateBtnDisable {Boolean} <br>
-  *
+  * @param {FooterOptions} options -  Footer options 
   */
-  setOptions(options){
-    let _this,
-        footer;
-
-    footer = this;
-    _this = footer.options;
-
-    options.position = options.position == "fixed" || 
-        options.position == "absolute" ? options.position : "fixed";
+  setOptions(options) {
+    options.position = options.position == 'fixed' || 
+        options.position == 'absolute' ? options.position : 'fixed';
          
-    $.extend(_this,options);
-    
-    Footer.updateOptions(footer);
+    $.extend(this.options, options);
+    this.updateOptions();
   }
-  //---------------------- End Method: setOptions ------------------------------
 
-
-
-  //......................... Method: updateOptions ............................
   /**
   * @method updateOptions
   *
-  * @description static method to update the footer options: whether to
-  * disable the footer buttons;
-  *
-  * @arguments footer {Object}
-  *     Footer object
+  * Update the footer options: whether to disable the footer buttons;
   */
-  static updateOptions(footer){
-   
-    d3.select(footer.footerEl)
-        .style("position",footer.options.position);
+  updateOptions() {
+    d3.select(this.footerEl)
+        .style('position', this.options.position);
          
-    d3.select(footer.rawBtnEl)
-        .property("disabled",footer.options.rawBtnDisable);   
+    d3.select(this.rawBtnEl)
+        .property('disabled', this.options.rawBtnDisable);   
   
-    d3.select(footer.updateBtnEl)
-        .property("disabled",footer.options.updateBtnDisable);
+    d3.select(this.updateBtnEl)
+        .property('disabled', this.options.updateBtnDisable);
   }
-  //-------------------- End Method: updateOptions -----------------------------
-
-
-  removeButtons(){
-    let _this = this;
-
-    d3.select(_this.rawBtnEl)
-        .remove();
-    d3.select(_this.updateBtnEl)
-        .remove();
-  }
-
 
 }
-
-
-//-------------------------- End Footer Class ----------------------------------

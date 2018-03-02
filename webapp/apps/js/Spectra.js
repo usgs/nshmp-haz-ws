@@ -1,5 +1,8 @@
 'use strict'
 
+import D3LinePlot from './lib/D3LinePlot.js';
+import Gmm from './lib/Gmm.js';
+
 /** 
 * @fileoverview Class for spectra-plot.html, response spectra web app.
 * This class plots the results of nshmp-haz-ws/gmm/spectra web service.
@@ -36,7 +39,7 @@
 * @extends Gmm
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Spectra extends Gmm {
+export default class Spectra extends Gmm {
 
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
@@ -150,16 +153,15 @@ class Spectra extends Gmm {
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
     });
     
-    this.plot.upperPanel.data = seriesData;
-    this.plot.upperPanel.dataTableTitle = 'Means';
-    this.plot.upperPanel.ids = seriesIds;
-    this.plot.upperPanel.labels = seriesLabels;
-    this.plot.upperPanel.metadata = metadata;
-    this.plot.upperPanel.plotFilename = 'spectraMean';
-    this.plot.upperPanel.xLabel = mean.xLabel;
-    this.plot.upperPanel.yLabel = mean.yLabel;
-    
-    this.plot.plotData(this.plot.upperPanel);
+    this.plot.setUpperData(seriesData)
+        .setUpperDataTableTitle('Means')
+        .setUpperPlotFilename('spectraMean')
+        .setUpperPlotIds(seriesIds)
+        .setUpperPlotLabels(seriesLabels)
+        .setUpperMetadata(metadata)
+        .setUpperXLabel(mean.xLabel)
+        .setUpperYLabel(mean.yLabel)
+        .plotData(this.plot.upperPanel);
   }
 
   /**
@@ -178,14 +180,14 @@ class Spectra extends Gmm {
       xAxisScale: 'linear',
     };
 
-    let meanTooltipText = ['GMM', 'Period (s)', 'MGM (g)'];
+    let meanTooltipText = ['GMM:', 'Period (s):', 'MGM (g):'];
     let meanPlotOptions = {
       legendLocation: 'topright',
       tooltipText: meanTooltipText,
       yAxisScale: 'linear',
     };
     
-    let sigmaTooltipText = ['GMM', 'Period (s)', 'SD'];
+    let sigmaTooltipText = ['GMM:', 'Period (s):', 'SD:'];
     let sigmaPlotOptions = {
       legendFontSize: 10,
       legendLineBreak: 14,
@@ -203,7 +205,9 @@ class Spectra extends Gmm {
         this.contentEl,
         plotOptions,
         meanPlotOptions,
-        sigmaPlotOptions);
+        sigmaPlotOptions)
+        .withPlotHeader()
+        .withPlotFooter();
   }
 
   /**
@@ -229,17 +233,16 @@ class Spectra extends Gmm {
       seriesIds.push(d.id);
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
     });
-    
-    this.plot.lowerPanel.data = seriesData;
-    this.plot.lowerPanel.dataTableTitle = 'Sigmas';
-    this.plot.lowerPanel.ids = seriesIds;
-    this.plot.lowerPanel.labels = seriesLabels;
-    this.plot.lowerPanel.metadata = metadata;
-    this.plot.lowerPanel.plotFilename = 'spectraSigma';
-    this.plot.lowerPanel.xLabel = sigma.xLabel;
-    this.plot.lowerPanel.yLabel = sigma.yLabel;
-    
-    this.plot.plotData(this.plot.lowerPanel);
+   
+    this.plot.setLowerData(seriesData)
+        .setLowerDataTableTitle('Sigmas')
+        .setLowerPlotFilename('spectraSigma')
+        .setLowerPlotIds(seriesIds)
+        .setLowerPlotLabels(seriesLabels)
+        .setLowerMetadata(metadata)
+        .setLowerXLabel(sigma.xLabel)
+        .setLowerYLabel(sigma.yLabel)
+        .plotData(this.plot.lowerPanel);
   }
   
   /**
@@ -261,7 +264,7 @@ class Spectra extends Gmm {
       }  
       
       this.spinner.off();
-      this.plot.title = 'Response Spectra';
+      this.plot.setPlotTitle('Response Spectra');
       // Plot means
       this.plotGmm(response);
       // Plot sigmas

@@ -1,4 +1,10 @@
-'use strict'
+'use strict';
+
+import Constraints from './Constraints.js';
+import Footer from './Footer.js';
+import Header from './Header.js';
+import Settings from './Settings.js';
+import Spinner from './Spinner.js';
 
 /** 
 * @fileoverview Parent class for ground motion model based web apps including:
@@ -26,7 +32,7 @@
 * @class Gmm
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-class Gmm {
+export default class Gmm {
 
   /**
   * @param {!String} webApp Identifier of the application being used.
@@ -49,7 +55,7 @@ class Gmm {
     /** @type {Spinner} */
     this.spinner = new Spinner();
     /** @type {Settings} */
-    this.settings = new Settings(this.footer.settingsBtnEl);
+    //this.settings = new Settings(this.footer.settingsBtnEl);
     /** @type {String} */
     this.currentWebApp = webApp;
     /** @type {String} */

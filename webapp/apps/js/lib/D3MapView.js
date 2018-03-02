@@ -1,6 +1,4 @@
-"use strict"
-
-
+"use strict";
 
 
 /**
@@ -93,7 +91,7 @@
 * 
 *
 */
-class D3MapView{
+export default class D3MapView{
 
 
   //.......................... D3MapView Constructor ...........................
@@ -153,7 +151,7 @@ class D3MapView{
       pointRadiusTooltip: 10,
       tooltipOffset: 10,
       tooltipPadding: 10,
-      tooltipText: ["Site","Longitude","Latitude"]
+      tooltipText: ["Site:", "Longitude:", "Latitude:"]
     };
     $.extend(_this.options,options);
     _this.selectedRegionId = _this.options.defaultRegion;

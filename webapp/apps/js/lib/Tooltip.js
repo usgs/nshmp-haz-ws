@@ -1,324 +1,206 @@
-'use strict'
-
-
-
+'use strict';
 
 /**
 * @class Tooltip
 *
-* @classdesc Tooltip class
-* Creates a tooltip for the plot 
-*
-*
-* @argument plotObj {Object}
-*     plot object from D3LineView
-* 
-* @argument plotObj.plotEl {Element}
-* @argument plotObj.options {Object}
-* @argument plotObj.options.tooltipOffset {Integer}
-* @argument plotObj.options.tooltipPadding {Integer}
-* @argument plotObj.labels {Array<String>}
-* @argument plotObj.ids {Array<String>}
-* @argument plotObj.options.tooltipText {Array<Array<String>>}
-* @argument plotObj.tooltipEl {Element}
-* @argument plotObj.svgEl {Element}
-* @argument plotObj.options.pointRadius {Integer}
-* @argument plotObj.options.pointRadiusSelection {Integer}
-* @argument plotObj.options.pointRadiusTooltip {Integer}
-*
-* @argument selectedEl {Element}
-*     DOM selection of the data point to put the tooltip
-*
-*
-* @property mouseX {Number}
-*     the mouse location in X in pixels
-*
-* @property mouseY {number}
-*     the mouse location in Y in pixels
-*
-* @property offset {Number}
-*     tooltip offset from data point <br>
-*     comes from plotObj.options.tooltipOffset
-*
-* @property padding {Number}
-*     tooltip text padding <br>
-*     comes from plotObj.options.tooltipPadding
-*
-* @property selectedEl {Element}
-*     DOM selected element of the data point to put the tooltip
-*
-* @property text {Array<String>}
-*     array of 3 strings for the tooltip:  <br>
-*     ["Data Label","X Value Label","Y Value Label"] <br>
-*     comes from plotObj.options.tooltipText
-*
-* @property tooltipHeight {Number}
-*     rectangle height to enclose tooltip
-*
-* @property tooltipWidth {Number}
-*     rectangle width to enclose tooltip
-*
-* @property xVal {Number}
-*     X value of data 
-*
-* @property yVal {Number}
-*     Y value of data
-*
+* @fileoverview Create a tooltip 
 */
-
-class Tooltip{
+export default class Tooltip {
   
-  //...................... Tooltip Contructor ..................................
-  constructor(plotObj,selectedEl){
-    
-    //......................... Variables ......................................
-    let _this,
-        // Variables
-        _label,
-        _mouseCoord,
-        _plotGeom,
-        _tooltipGeom,
-        scale;
-    
-    _this = this;
-    _this.mouseX;
-    _this.mouseY;
-    _this.offset;
-    _this.padding;
-    _this.selectedEl;
-    _this.text;
-    _this.tooltipHeight;
-    _this.tooltipWidth;
-    _this.xVal;
-    _this.yVal;
-    
+  /**
+  * @param {Panel} panel - Upper or lower panel object
+  * @param {HTMLElement} selectedEl - The DOM element of the data point to 
+  *     add tooltip. 
+  */
+  constructor(panel, selectedEl) {
+    /** @type {HTMLElement} */
+    this.selectedEl = selectedEl;
+    /** @type {PlotOptions} */
+    this.panelOptions = panel.options;
+    /** @type {HTMLElement} */
+    this.tooltipEl = panel.tooltipEl;
+    /** @type {Number} */
+    this.mouseX = parseFloat(d3.select(selectedEl).attr('cx')); 
+    this.mouseY = parseFloat(d3.select(selectedEl).attr('cy'));
+    /** @type {Number} */
+    this.offset = parseFloat(this.panelOptions.tooltipOffset);
+    /** @type {Number} */
+    this.padding = parseFloat(this.panelOptions.tooltipPadding);
+    /** @type {Number} */
+    this.xVal = d3.select(selectedEl).data()[0][0];                              
+    /** @type {Number} */
+    this.yVal = d3.select(selectedEl).data()[0][1];
+    /** @type {Number} */
+    this.xVal = this.panelOptions.tooltipXToExponent ? 
+        this.xVal.toExponential(4) : this.xVal;
+    /** @type {Number} */
+    this.yVal = this.panelOptions.tooltipYToExponent ? 
+        this.yVal.toExponential(4) : this.yVal;
 
-    _this.mouseX = parseFloat(d3.select(selectedEl).attr("cx")); 
-    _this.mouseY = parseFloat( d3.select(selectedEl).attr("cy"));
-    _this.offset = parseFloat(plotObj.options.tooltipOffset);
-    _this.padding = parseFloat(plotObj.options.tooltipPadding);
-    _this.selectedEl = selectedEl;
-    _this.xVal = d3.select(selectedEl).data()[0][0];                              
-    _this.yVal = d3.select(selectedEl).data()[0][1];
-    _this.xVal = plotObj.options.tooltipXToExponent ? 
-        _this.xVal.toExponential(4) : _this.xVal;
-    _this.yVal = plotObj.options.tooltipYToExponent ? 
-        _this.yVal.toExponential(4) : _this.yVal;
-
-    scale = plotObj.scale ? plotObj.scale : 1;
-    //-------------------------------------------------------------------------
-
+    let scale = panel.plotScale || 1;
+    let labelId = d3.select(selectedEl).attr('id');
+    let iLabel = panel.ids.indexOf(labelId);
+    let label = panel.labels[iLabel];
     
-    //........................ Set Tooltip Text ................................
-    let _labelId = d3.select(selectedEl).attr("id");
-    let _iLabel = plotObj.ids.indexOf(_labelId);
-    _label = plotObj.labels[_iLabel];
+    /** @type {Array<String>} */ 
+    this.text = [
+      this.panelOptions.tooltipText[0] + ' ' + label,
+      this.panelOptions.tooltipText[1] + ' ' + this.xVal,
+      this.panelOptions.tooltipText[2] + ' ' + this.yVal,
+    ];
     
-    _this.text = [
-        plotObj.options.tooltipText[0] + ": " + _label,
-        plotObj.options.tooltipText[1] + ": " + _this.xVal,
-        plotObj.options.tooltipText[2] + ": " + _this.yVal
-      ];
-    //--------------------------------------------------------------------------
-
-    
-    //................... Create Tooltip ....................................... 
-    d3.select(plotObj.tooltipEl)
-        .selectAll("text")                       
-        .data(_this.text)                             
+    d3.select(panel.tooltipEl)
+        .selectAll('text')
+        .data(this.text)
         .enter()
-        .append("text")                                 
-        .attr("class","tooltip-text")                 
-        .attr("font-size",11)                         
-        .style("visibility","hidden")
-        .attr("y",function(d,i){return i*16} )        
-        .attr("alignment-baseline","text-before-edge")
-        .text(function(d,i){return d});               
+        .append('text')
+        .attr('class', 'tooltip-text')
+        .attr('font-size', 11)
+        .style('visibility', 'hidden')
+        .attr('y', (d,i) => {return i * 16})
+        .attr('alignment-baseline', 'text-before-edge')
+        .text((d,i) => {return d});
 
-    _tooltipGeom   = plotObj.tooltipEl               
-        .getBoundingClientRect();
+    let tooltipGeom = panel.tooltipEl.getBoundingClientRect();
 
-    _this.tooltipWidth  = parseFloat(_tooltipGeom.width*scale  + 2*_this.padding); 
-    _this.tooltipHeight = parseFloat(_tooltipGeom.height*scale + 2*_this.padding); 
+    /** @type {Number} */
+    this.tooltipWidth = parseFloat(tooltipGeom.width * scale + 
+        2 * this.padding); 
+    /** @type {Number} */
+    this.tooltipHeight = parseFloat(tooltipGeom.height * scale + 
+        2 * this.padding); 
 
+    let plotGeom = panel.svgEl.getBoundingClientRect();
+    /** @type {Number} */
+		this.plotWidth = plotGeom.width * scale; 
+    /** @type {Number} */
+		this.plotHeight = plotGeom.height * scale;
 
-    _plotGeom = plotObj.svgEl
-			.getBoundingClientRect();
-		_this.plotWidth  = _plotGeom.width*scale; 
-		_this.plotHeight = _plotGeom.height*scale;
+    let tooltipTrans = this.tooltipLocation();
 
-    Tooltip.tooltipLocation(_this);
+    d3.select(this.tooltipEl)
+        .append('rect')                     
+        .attr('class', 'tooltip-outline')   
+        .attr('height', this.tooltipHeight)    
+        .attr('width', this.tooltipWidth)     
+        .attr('transform', tooltipTrans.rectTrans)   
+        .attr('stroke', '#999')         
+        .attr('fill', 'white');        
 
-    d3.select(plotObj.tooltipEl)
-        .append("rect")                     
-        .attr("class","tooltip-outline")   
-        .attr("height",_this.tooltipHeight)    
-        .attr("width",_this.tooltipWidth)     
-        .attr("transform",_this.rectTrans)   
-        .attr("stroke","#999")         
-        .attr("fill","white");        
-
-    d3.select(plotObj.tooltipEl)
-      .selectAll(".tooltip-text")
-      .style("visibility","initial")
-      .attr("transform",_this.textTrans)
+    d3.select(this.tooltipEl)
+      .selectAll('.tooltip-text')
+      .style('visibility', 'initial')
+      .attr('transform', tooltipTrans.textTrans)
       .raise();
 
-    d3.select(plotObj.tooltipEl)
+    d3.select(this.tooltipEl)
         .raise();
-    //--------------------------------------------------------------------------
-  
   }
-  //------------------------- End Constructor ----------------------------------
 
-
-
-  //................... Method: Decrease Circle Radius .........................
   /**
   * @method decreaseRadius
   *
-  * @description Method to decrease the radius of a circle
-  *
-  * @argument plotObj {Object}
-  *     the plot object (D3LinePlot)
-  *
+  * Method to decrease the radius of a circle
+  * @param {Panel} panel - Upper or lower panel object
   */
-  decreaseRadius(plotObj){
-    let _this = this;
-    let options = plotObj.options;
-    var r = d3.select(_this.selectedEl).attr("r");
+  decreaseRadius() {
+    let options = this.panelOptions;
+    var r = d3.select(this.selectedEl).attr('r');
     
-    if (r == options.pointRadiusSelection){
-      d3.select(_this.selectedEl)
-        .attr("r",options.pointRadius);
-    }else if (r == options.pointRadiusTooltip){
-      d3.select(_this.selectedEl)
-        .attr("r",options.pointRadiusSelection);
+    if (r == options.pointRadiusSelection) {
+      d3.select(this.selectedEl)
+          .attr('r', options.pointRadius);
+    } else if (r == options.pointRadiusTooltip) {
+      d3.select(this.selectedEl)
+          .attr('r',options.pointRadiusSelection);
     }
   }
-  //---------------- End Method: Decrease Circle Radius ------------------------
   
-  
-  
-  //.................... Method: Remove Tooltip ................................
   /**
   * @method destroy
   *
-  * @description Method to remove the tooltip and remove all variables 
-  *
-  * @argument plotObj {Object}
-  *     the plot object (D3LinePlot)
-  *
+  * Method to remove the tooltip and remove all variables 
+  * @param {Panel} panel - Upper or lower panel object
   */
-  destroy(plotObj){
-    let _this,
-        _obj;
-    
-    _this = this;
-        
-    for (_obj in _this){
-      _this[_obj] = null;
-    }
-    
-    d3.select(plotObj.tooltipEl)
+  destroy() {
+    d3.select(this.tooltipEl)
         .selectAll("*")
         .remove();
+    
+    for( let obj in this) {
+      this[obj] = null;
+    }
   }
-  //--------------------- End Method: Remove Tooltip ---------------------------
   
-  
-
-  //...................... Method: Increase Circle Radius ......................
   /**
   * @method increaseRadius
   *
-  * @description Method to increase the radius of a circle
-  *
-  * @argument plotObj {Object}
-  *     the plot object (D3LinePlot)
-  *
+  * Method to increase the radius of a circle
+  * @param {Panel} panel - Upper or lower panel object
   */
-  increaseRadius(plotObj){
-    let _this = this;
-    let options = plotObj.options;
-
-    var r = d3.select(_this.selectedEl).attr("r");
+  increaseRadius() {
+    let options = this.panelOptions;
+    var r = d3.select(this.selectedEl).attr('r');
     
-    if (r == options.pointRadiusSelection){
-      d3.select(_this.selectedEl)
-        .attr("r",options.pointRadiusTooltip);
-    }else if (r == options.pointRadius){
-      d3.select(_this.selectedEl)
-        .attr("r",options.pointRadiusSelection);
+    if (r == options.pointRadiusSelection) {
+      d3.select(this.selectedEl)
+        .attr('r', options.pointRadiusTooltip);
+    } else if (r == options.pointRadius) {
+      d3.select(this.selectedEl)
+        .attr('r', options.pointRadiusSelection);
     }
   }
-  //----------------- End Method: Increase Circle Radius -----------------------
 
-
-
-  //....................... Method: Tooltip Location ...........................
   /**
   * @method tooltipLocation 
   *
-  * @description Static method to set the location of tooltip so it doesn't 
-  * extend over the panel
-  *
-  * @argument tooltip {Object}
-  *     Tooltip object
-  *
+  * Find best location to put the tooltip
+  * @return {{
+  *   rectTrans: {String} - Translation string of tooltip outline,
+  *   textTrans: {String} - Translation string for tooltip text
+  * }} Object
   */
-  static tooltipLocation(tooltip){
-    let _this = tooltip,
-        _xRect,
-        _xText,
-        _yText,
-        _yRect,
-        _xPer,
-        _yPer,
-        rectTrans,
-        textTrans;
-
-    _xPer = _this.mouseX/_this.plotWidth; 
-    _yPer = _this.mouseY/_this.plotHeight; 
-
-    if (_xPer < 0.30){              
-      _xRect = (_this.mouseX);
-      _xText = (_this.mouseX+_this.padding);
-    }else if (_xPer > 0.70){         
-      _xRect = (_this.mouseX-_this.tooltipWidth);
-      _xText = (_this.mouseX-_this.tooltipWidth+_this.padding);
-    }else{                               
-      _xRect = (_this.mouseX-_this.tooltipWidth/2);
-      _xText = (_this.mouseX-_this.tooltipWidth/2+_this.padding);
+  tooltipLocation() {
+    let xPer = this.mouseX / this.plotWidth; 
+    let xRect;
+    let xText;
+    if (xPer < 0.30) {
+      xRect = (this.mouseX);
+      xText = (this.mouseX + this.padding);
+    } else if (xPer > 0.70) {         
+      xRect = (this.mouseX - this.tooltipWidth);
+      xText = (this.mouseX - this.tooltipWidth + this.padding);
+    } else {
+      xRect = (this.mouseX - this.tooltipWidth / 2);
+      xText = (this.mouseX - this.tooltipWidth / 2 + this.padding);
     }
 
-    if (_yPer < 0.25){                   
-      _yRect = (_this.mouseY+_this.offset);
-      _yText = (_this.mouseY+_this.offset+_this.padding);
-    }else{                             
-      _yRect = (_this.mouseY-_this.tooltipHeight-_this.offset);
-      _yText = (_this.mouseY-_this.offset-_this.tooltipHeight+_this.padding);
+    let yPer = this.mouseY / this.plotHeight; 
+    let yRect;
+    let yText;
+    if (yPer < 0.25) {
+      yRect = (this.mouseY + this.offset);
+      yText = (this.mouseY + this.offset + this.padding);
+    } else {
+      yRect = (this.mouseY - this.tooltipHeight - this.offset);
+      yText = (this.mouseY - this.offset - this.tooltipHeight + this.padding);
     }
 
-    rectTrans = "translate("+_xRect+","+_yRect+")"; 
-    textTrans = "translate("+_xText+","+_yText+")"; 
-  
-    _this.rectTrans = rectTrans;
-    _this.textTrans = textTrans;
+    let rectTrans = 'translate(' + xRect + ',' + yRect + ')'; 
+    let textTrans = 'translate(' + xText + ',' + yText + ')'; 
+    
+    return {rectTrans: rectTrans, textTrans: textTrans}; 
   }
-  //-------------------- End Method: Tooltip Location --------------------------
 
-
-
-  pointColor(color){
-    let _this = this;
-
-    d3.select(_this.selectedEl)
-        .attr("fill",color);
+  /**
+  * @method pointColor
+  *
+  * Change the dot color
+  * @param {String} color - The color the dot should be
+  */
+  pointColor(color) {
+    d3.select(this.selectedEl)
+        .attr('fill', color);
   }
     
-
-
 }
-
-//--------------------- End Tooltip Class --------------------------------------

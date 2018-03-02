@@ -1,10 +1,9 @@
+'use strict';
 
+import Footer from './lib/Footer.js';
+import Header from './lib/Header.js';
 
-
-
-
-
-class Util{
+export default class Util{
 
   constructor(){
     let _this = this;
