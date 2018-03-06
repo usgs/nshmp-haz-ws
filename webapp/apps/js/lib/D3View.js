@@ -763,7 +763,8 @@ export default class D3View {
             .fileFormat(event.target.id)
             .build();
         
-        if (this.lowerPanel.options.showData) {
+        if (this.lowerPanel.options.showData &&
+              this.options.plotLowerPanel) {
           new D3SaveData.Builder()
               .data(this.lowerPanel.data)
               .dataRowLabels(this.lowerPanel.options.tooltipText)
