@@ -34,6 +34,9 @@ export default class Header{
         label: 'Dashboard', 
         href: '/nshmp-haz-ws/',
       }, {
+        label: 'Geographic Deaggregation',
+        href: '/nshmp-haz-ws/apps/geo-deagg.html',
+      }, {
         label: 'Ground Motion Vs. Distance', 
         href: '/nshmp-haz-ws/apps/gmm-distance.html',
       }, {
