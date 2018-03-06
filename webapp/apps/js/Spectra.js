@@ -189,14 +189,10 @@ export default class Spectra extends Gmm {
     
     let sigmaTooltipText = ['GMM:', 'Period (s):', 'SD:'];
     let sigmaPlotOptions = {
-      legendFontSize: 10,
-      legendLineBreak: 14,
-      legendPaddingX: 15,
-      legendPaddingY: 12,
-      legendLocation: 'topright',
       plotHeight: 224,
       plotWidth: 896,
       plotRatio: 4/1,
+      showLegend: false,
       tooltipText: sigmaTooltipText,
       yAxisScale: 'linear',
     };
@@ -270,7 +266,7 @@ export default class Spectra extends Gmm {
       // Plot sigmas
       this.plotSigma(response); 
       // Sync selections
-      this.plot.syncSelections(this.plot);
+      this.plot.syncSelections();
      
       $(this.footer.rawBtnEl).off(); 
       $(this.footer.rawBtnEl).click((event) =>{
