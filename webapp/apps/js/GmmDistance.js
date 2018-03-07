@@ -130,8 +130,7 @@ export default class GmmDistance extends Gmm {
     let meanPlotOptions = {
       legendLocation: 'bottomleft',
       pointRadius: 2.75,
-      pointRadiusSelection: 3.5,
-      pointRadiusTooltip: 4.5,
+      selectionIncrement: 1,
       tooltipText: meanTooltipText,
     };
     

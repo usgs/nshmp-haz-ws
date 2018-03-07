@@ -390,10 +390,17 @@ export default class HwFw extends Gmm {
     let plotWidth = this.plot.upperPanel.options.plotWidth * 
         this.options.lowerPlotWidth;
     let plotHeight = plotWidth / plotRatio;
+    let options = this.plot.lowerPanel.options;
+    // Update lower plot svg height
+    this.plot.lowerPanel.svgHeight = plotHeight;
     // Update lower plot height
-    this.plot.lowerPanel.options.plotHeight = plotHeight;
-    // Update lower plot width
-    this.plot.lowerPanel.options.plotWidth = plotWidth;
+    this.plot.lowerPanel.plotHeight = plotHeight - 
+        options.marginTop - options.marginBottom; 
+    // Update lower plot svg width
+    this.plot.lowerPanel.svgWidth = plotWidth;
+    // Update lower plot height
+    this.plot.lowerPanel.plotWidth = plotWidth - 
+        options.marginLeft - options.marginRight; 
     // Update the svg view box
     this.plot.setSvgViewBox();
 
@@ -497,8 +504,7 @@ export default class HwFw extends Gmm {
     let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
     let meanPlotOptions = {
       pointRadius: 2.75,
-      pointRadiusSelection: 3.5,
-      pointRadiusTooltip: 4.5,
+      selectionIncrement: 1,
       tooltipText: meanTooltipText,
       xAxisNice: false,
       xAxisScale: 'linear',
@@ -509,10 +515,8 @@ export default class HwFw extends Gmm {
       marginTop: 50,
       marginBottom: 20,
       linewidth: 4,
-      linewidthSelection: 4,
+      selectionIncrease: 0, 
       pointRadius: 0,
-      pointRadiusSelection: 0,
-      pointRadiusTooltip: 0,
       plotWidth: 896 * this.options.lowerPlotWidth, 
       printTitle: false,
       showData: false,

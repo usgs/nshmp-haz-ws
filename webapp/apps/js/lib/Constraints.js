@@ -68,10 +68,11 @@ export default class Constraints {
     let title = '[' + minVal + ', ' + maxVal +']'; 
     let options = {
       container: 'body',
-      title: title,
     };
-
-    $(el).tooltip(options);
+    
+    $(el).attr('title', title)
+        .attr('data-original-title', title)
+        .tooltip(options);
   }
 
 }

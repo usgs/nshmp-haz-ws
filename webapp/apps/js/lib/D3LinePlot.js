@@ -1,7 +1,7 @@
 'use strict';
 
 import D3View from './D3View.js';
-import Tooltip from './Tooltip.js';
+import D3Tooltip from './D3Tooltip.js';
 
 /**
 * @class D3LinePlot
@@ -30,7 +30,7 @@ export default class D3LinePlot extends D3View {
    
   /**
   * @param {!HTMLElement} containerEl - DOM element to append to
-  * @param {ViewOptions=} options - General options for plot panel
+  * @param {LineViewOptions=} options - General options for plot panel
   * @param {PlotOptions=} plotOptionsUpper - Upper plot options
   * @param {PlotOptions=} plotOptionsLower - Lower plot options
   */
@@ -38,14 +38,43 @@ export default class D3LinePlot extends D3View {
       options = {},
       plotOptionsUpper = {},
       plotOptionsLower = {}){
+    let lineViewOptions = {
+      disableXAxisBtns: false,
+      disableYAxisBtns: false,
+      syncSelections: false,
+      syncXAxis: true,
+      syncYAxis : true,
+      xAxisScale: 'log',
+      yAxisScale: 'log',
+    };
+    let plotOptions = {
+      tooltipText: ['Label:', 'X Value:', 'Y Value:'],
+      xAxisLocation: 'bottom',
+      xAxisNice: true,
+      xAxisScale: lineViewOptions.xAxisScale,
+      xLabelPadding: 8,
+      xTickMarks: 10,
+      yAxisLocation: 'left',
+      yAxisNice: true,
+      yAxisScale: lineViewOptions.yAxisScale,
+      yLabelPadding: 10,
+      yTickMarks: 10,
+    };
+    
+    // Update options with specific line options
+    options = $.extend({}, lineViewOptions, options);
+    plotOptionsUpper = $.extend({}, plotOptions, plotOptionsUpper);
+    plotOptionsLower = $.extend({}, plotOptions, plotOptionsLower);
+
     super(containerEl,
         options,
         plotOptionsUpper,
         plotOptionsLower);
-
-    d3.select(this.plotBodyEl)
-        .selectAll('svg')
-        .attr('class', 'D3LinePlot');    
+    
+    // Update SVG structure for line plots 
+    this.updateSvgStructure();
+    this.lowerPanel = this.updatePlotPanelObject(this.lowerPanel);
+    this.upperPanel = this.updatePlotPanelObject(this.upperPanel);
   }
 
   /**
@@ -247,17 +276,44 @@ export default class D3LinePlot extends D3View {
   createTooltip(panel) {
     let tooltip;
     this.setPlotScale(panel);
-   
-    $(panel.allDataEl).find('.dot').on('mouseover', (event) => {
-      this.setPlotScale(panel);
-      tooltip =  new Tooltip(panel, event.target); 
-      tooltip.increaseRadius();
-    });
+    let tooltipOptions = {
+      fontSize: panel.options.tooltipFontSize,
+      offsetX: panel.options.tooltipOffsetX,
+      offsetY: panel.options.tooltipOffsetY,
+      padding: panel.options.tooltipPadding,
+      selectionIncrement: panel.options.selectionIncrement, 
+    };
     
-    $(panel.allDataEl).find('.dot').on('mouseout', (event) => {
-      tooltip.decreaseRadius();
-      tooltip.destroy();
-    });
+    d3.select(panel.allDataEl)
+        .selectAll('.dot')
+        .on('mouseover', (d, i, els) => {
+          let xVal = panel.options.tooltipXToExponent ?
+                  d[0].toExponential(4) : d[0];
+          let yVal = panel.options.tooltipYToExponent ?
+                  d[1].toExponential(4) : d[1];
+          let id = els[i].id;
+          let cx = d3.select(els[i]).attr('cx');
+          let cy = d3.select(els[i]).attr('cy'); 
+          let tooltipText = [
+            panel.options.tooltipText[0] + ' ' + this.idToLabel(panel, id),
+            panel.options.tooltipText[1] + ' ' + xVal,
+            panel.options.tooltipText[2] + ' ' + yVal,
+          ];
+          tooltip = new D3Tooltip.Builder()
+              .coordinates(cx, cy)
+              .dataEl(els[i])
+              .options(tooltipOptions)
+              .plotHeight(panel.svgHeight)
+              .plotWidth(panel.svgWidth)
+              .tooltipText(tooltipText)
+              .tooltipEl(panel.tooltipEl)
+              .build()
+              .changeSizeAttribute('r', true /* To increase */)
+        })
+        .on('mouseout', () => {
+          tooltip.changeSizeAttribute('r', false /* To increase */)
+              .destroy();
+        });
   }
 
   /**
@@ -715,19 +771,22 @@ export default class D3LinePlot extends D3View {
   plotSelection(panel, selectedId){
     let selectedD3 = d3.select(panel.allDataEl)
         .select('#' + selectedId); 
-    let linewidthCheck = selectedD3.select('.line')
-        .attr('stroke-width');
+    let linewidthCheck = parseFloat(selectedD3.select('.line')
+        .attr('stroke-width'));
     
     this.plotSelectionReset(panel);
-    
-    if (linewidthCheck == panel.options.linewidthSelection){
+    let increment = panel.options.selectionIncrement;
+    let linewidthSelected = panel.options.linewidth + increment;
+    let pointRadiusSelected = panel.options.pointRadius + increment;
+
+    if (linewidthCheck == linewidthSelected){
       return;
     }
     
     selectedD3.select('.line') 
-        .attr('stroke-width', panel.options.linewidthSelection);
+        .attr('stroke-width', linewidthSelected);
     selectedD3.selectAll('.dot')                 
-        .attr('r', panel.options.pointRadiusSelection);             
+        .attr('r', pointRadiusSelected);
     selectedD3.raise();                          
         
     let legendExists = !d3.select(panel.legendEl)
@@ -738,9 +797,9 @@ export default class D3LinePlot extends D3View {
       let legendD3 = d3.select(panel.legendEl)
           .select('#' + selectedId);                   
       legendD3.select('.legend-line')                    
-          .attr('stroke-width', panel.options.linewidthSelection);
+          .attr('stroke-width',linewidthSelected) 
       legendD3.select('.legend-circle')                  
-          .attr('r', panel.options.pointRadiusSelection);     
+          .attr('r', pointRadiusSelected) 
       legendD3.select('.legend-text')                    
           .style('font-weight', 'bold');               
     }
@@ -796,19 +855,6 @@ export default class D3LinePlot extends D3View {
     
     return this;
   }
-
-  /**
-  * @method setPlotScale
-  *
-  * Calculate a scaling value from the current plot width and the viewbox 
-  *     width;
-  * @param {Panel} panel - Upper or lower plot panel
-  */
-  setPlotScale(panel){
-    let svgGeom = panel.svgEl.getBoundingClientRect();
-    let width = svgGeom.width;
-    panel.plotScale = panel.svgWidth / width;
-  }
   
   /**
   * @method setTicks
@@ -849,12 +895,8 @@ export default class D3LinePlot extends D3View {
     });
     
     $(this.plotBodyEl).find('.legend-entry').on('click', (event) => {
-      if (this.upperPanel.options.showLegend) {
-        this.plotSelection(this.upperPanel, event.target.parentNode.id);
-      }
-      if (this.lowerPanel.options.showLegend) {
-        this.plotSelection(this.lowerPanel, event.target.parentNode.id);
-      }
+      this.plotSelection(this.upperPanel, event.target.parentNode.id);
+      this.plotSelection(this.lowerPanel, event.target.parentNode.id);
     });
   }
 
@@ -897,6 +939,66 @@ export default class D3LinePlot extends D3View {
       });
   }
 
+  /**
+  * @method updatePlotPanelObject
+  */
+  updatePlotPanelObject(panelObject) {
+    let panelEl = panelObject.plotBodyEl;
+    let panelUpdate = {
+      allDataEl: panelEl.querySelector('.all-data'),
+      color: d3.schemeCategory10,
+      legendEl: panelEl.querySelector('.legend'),
+      line: undefined,
+      plotBodyEl: panelEl,
+      plotScale: 1,
+      xAxisEl: panelEl.querySelector('.x-axis'),
+      xBounds: undefined,
+      xExtremes: undefined,
+      xLabel: 'X',
+      yAxisEl: panelEl.querySelector('.y-axis'),
+      yBounds: undefined,
+      yExtremes: undefined,
+      yLabel: 'Y',
+    };
+    
+    return $.extend({}, panelObject, panelUpdate); 
+  }
+
+  /**
+  * @method updateSvgStructure
+  */
+  updateSvgStructure() {
+    let svgD3 = d3.select(this.el)
+        .select('.panel-outer')
+        .selectAll('svg')
+        .attr('class', 'D3LinePlot')
+        .selectAll('.plot');
+              
+    let dataD3 = svgD3.append('g')
+        .attr('class', 'all-data');
+    
+    // X-axis
+    let xD3 = svgD3.append('g')
+        .attr('class','x-axis');
+    xD3.append('g')
+        .attr('class','x-tick')
+        .append('text')
+        .attr('class', 'x-label')
+        .attr('fill', 'black');
+    
+    // Y-axis
+    let yD3 = svgD3.append('g')
+        .attr('class', 'y-axis');
+    yD3.append('g')
+        .attr('class', 'y-tick')
+        .append('text')
+        .attr('class', 'y-label')
+        .attr('fill', 'black');
+    
+    svgD3.append('g')
+        .attr('class', 'legend');
+  }
+
   /**                                                                           
   * @override 
   * @method withPlotFooter
@@ -906,14 +1008,6 @@ export default class D3LinePlot extends D3View {
   * @return {D3LinePlot} - Return the class instance to be chainable
   */
   withPlotFooter() {
-    let plotFooterD3 = d3.select(this.plotPanelEl)
-        .append('div')
-        .attr('class', 'panel-footer');
-    
-    let footerBtnsD3 = plotFooterD3.append('div')
-        .attr('class', 'btn-toolbar footer-btn-toolbar')
-        .attr('role', 'toolbar');
-    
     let buttons = [
       {
         class: 'x-axis-btns',
@@ -965,39 +1059,7 @@ export default class D3LinePlot extends D3View {
         ]
       }
     ];
-    
-    // Create buttons
-    let axisD3 = footerBtnsD3.selectAll('div')
-        .data(buttons)
-        .enter()
-        .append('div')
-        .attr('class', (d, i) => {return d.col + ' footer-btn-group';})
-        .append('div')
-        .attr('class', (d, i) => {
-          return 'btn-group btn-group-xs btn-group-justified ' + d.class;
-        })
-        .attr('data-toggle', 'buttons')
-        .attr('role', 'group');
-    
-    axisD3.selectAll('label')
-        .data((d, i) => {return d.btns})
-        .enter()
-        .append('label')
-        .attr('class',(d, i) => {
-          return 'btn btn-xs btn-default footer-button ' + d.class;
-        })
-        .attr('for', (d, i) => {return d.name})
-        .html((d, i) => {
-          return '<input type="radio" name="' + d.name + '"' +
-              ' value="' + d.value + '"/> ' + d.text;
-        });
-    
-    axisD3.select('.plot-btn')
-        .classed('active', true);
-    
-    this.plotFooterEl = this.el.querySelector('.panel-footer');
-    // Create the save menu
-    this.createSaveMenu();
+    this.createPanelFooter(buttons);
     // Update buttons
     this.updateLinePlotButtons();
     this.onPlotDataViewSwitch();

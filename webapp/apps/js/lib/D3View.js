@@ -1,6 +1,7 @@
 'use strict';
 
-import Save from './Save.js';
+import D3SaveFigure from './D3SaveFigure.js';
+import D3SaveData from './D3SaveData.js';
 
 /**
 * @class D3View
@@ -92,19 +93,12 @@ export default class D3View {
       colSizeMinCenter: 'col-md-offset-3 col-md-6',
       colSizeMax: 'col-md-offset-1 col-md-10',
       colSizeDefault: 'max',
-      disableXAxisBtns: false,
-      disableYAxisBtns: false,
       plotLowerPanel: false,
       printLowerPanel: true,
-      syncSelections: false,
-      syncXAxis: true,
-      syncYAxis : true,
-      xAxisScale: 'log',
-      yAxisScale: 'log',
     };
     // Override options
     this.options = $.extend({}, this.options, options);
-
+    
     /**
     * @typedef {Object} PlotOptions
     * @property {Number} labelFontSize - Font size of X/Y labels in px.
@@ -239,27 +233,27 @@ export default class D3View {
       plotHeight: 504,
       plotWidth: 896,
       pointRadius: 3.5,
-      pointRadiusSelection: 5.5,
-      pointRadiusTooltip: 8.5,
       printTitle: true,
+      printCenter: true,
       printFooter: true,
       printFooterPadding: 20,
       printFooterLineBreak: 20,
       printFooterFontSize: 14,
-      printHeight: 8.5,
-      printWidth: 11,
-      printPlotWidth: 10,
+      printPageHeight: 8.5,
+      printPageWidth: 11,
       printDpi: 600,
       printMarginTop: 1,
       printMarginLeft: 0,
+      selectionIncrement: 2,
       showData: true,
       showLegend: true,
       tickFontSize: 12,
       tickExponentFontSize: 10,
       titleFontSize: 20,
-      tooltipOffset: 10,
+      tooltipFontSize: 12,
+      tooltipOffsetX: 2,
+      tooltipOffsetY: 8,
       tooltipPadding: 10,
-      tooltipText: ['Label:', 'X Value:', 'Y Value:'],
       tooltipXToExponent: false,
       tooltipYToExponent: false,
       transitionDuration: 500,
@@ -274,6 +268,13 @@ export default class D3View {
       yLabelPadding: 10,
       yTickMarks: 10,
     };
+
+    /** 
+    * @typedef {Array<Number, Number>} SiteLocation - Use setSiteLocation 
+    *   method.
+    *   Format: [Logitude, Latitude]
+    */
+    this.siteLocation = undefined;
 
     /** @type {HTMLElement} */
     this.plotFooterEl = undefined; 
@@ -296,123 +297,11 @@ export default class D3View {
     /** @type {HTMLElement} */
     this.tableEl = this.plotBodyEl.querySelector('.data-table');
     
-    let lowerPanelEl = this.el.querySelector('.panel-lower');
-    /** @typedef {Object} Panel
-    * @property {HTMLElement} allDataEl - All data group inside SVG.
-    * @property {Array<String>} color -  Array of colors for the plots.
-    *     Value: d3.schemeCategory10.
-    * @property {Array<Array<Array<Number, Number>>>} data - Data to plot.
-    *     Format: [ [ [x11, y11], ... ], [ [x21, y21], ...], ...].
-    *     Use setUpperData or setLowerData methods.
-    * @property {String} dataTableTitle - Title for data.
-    *     Default: 'Data'.
-    *     Use setUpperDataTableTitle or setLowerDataTableTitle method.
-    * @property {Array<String>} ids - ID corresponding to each data series.
-    *     Format: [ ['id1'], ['id2], ... ].
-    *     Use setUpperPlotIds or setLowerPlotIds method.
-    * @property {Array<String>} labels - Labels corresponding to each 
-    *     data series. 
-    *     Format: [ ['Label 1'], ['Label 2'], ... ].
-    *     Use setUpperPlotLabels or setLowerPlotLabels method.
-    * @property {HTMLElement} legendEl - Legend element.
-    * @property {Function} line - D3 line function.
-    * @property {{url: {String}, date: {Date} }} metadata -
-    *     Metadata to print underneath plot.
-    *     Use setUpperMetadata or setLowerMetadata methods.
-    * @property {PlotOptions} options - Plot options for specific panel.
-    * @property {String} panelId - Panel id: 'lower' || 'upper'.
-    * @property {HTMLElement} plotBodyEl - Upper or lower panel body.
-    * @property {HTMLElement} plotEl - Upper or lower panel plot group inside
-    *     SVG element.
-    * @property {String} plotFilename - Download filename.
-    * @property {Number} plotHeight - Calculated plot height. 
-    *     options.plotHeight - options.marginBottom - options.marginTop.
-    * @property {Number} plotWidth - Calculated plot width.
-    *     options.plotWidth - options.marginLeft - options.marginRight.
-    * @property {Number} plotScale - Calculated value from the current 
-    *     panel width Vs. the plot width. plotWidth / panelWidth.
-    * @property {HTMLElement} svgEl - Upper or lower SVG element.
-    * @property {Number} svgHeight - options.plotHeight.
-    * @property {Number} svgWidth - options.plotWidth.
-    * @property {HTMLElement} tooltipEl - Tooltip element inside SVG.
-    * @property {HTMLElement} xAxisEl - X-axis element inside SVG.
-    * @property {Function} xBounds - D3 axis function. d3.range().domain().
-    * @property {Array<Number, Number>} xExtremes - Min and max X value.
-    *     Format: [min, max].
-    * @property {String} xLabel - X axis label.
-    *     Use setUpperXLabel or setLowerXLabel methods.
-    * @property {HTMLElement} yAxisEl - Y-axis element inside SVG.
-    * @property {Function} yBounds - D3 axis function. d3.range().domain().
-    * @property {Array<Number, Number>} yExtremes - Min and max Y value.
-    *     Format: [min, max].
-    * @property {String} yLabel - Y axis label.
-    *     Use setUpperYLabel or setLowerYLabel methods.
-    */ 
-    this.lowerPanel = {
-      allDataEl: lowerPanelEl.querySelector('.all-data'),
-      color: d3.schemeCategory10,
-      data: undefined,
-      dataTableTitle: 'Data',
-      ids: undefined,
-      labels: undefined,
-      legendEl: lowerPanelEl.querySelector('.legend'),
-      line: undefined,
-      metadata: undefined,
-      options: $.extend({}, plotOptions, plotOptionsLower),
-      panelId: 'lower-panel',
-      plotBodyEl: lowerPanelEl,
-      plotEl: lowerPanelEl.querySelector('.plot'),
-      plotFilename: 'figure',
-      plotHeight: undefined,
-      plotWidth: undefined,
-      plotScale: 1,
-      svgEl: lowerPanelEl.querySelector('svg'),
-      svgHeight: undefined,
-      svgWidth: undefined,
-      tooltipEl: lowerPanelEl.querySelector('.d3-tooltip'),
-      xAxisEl: lowerPanelEl.querySelector('.x-axis'),
-      xBounds: undefined,
-      xExtremes: undefined, 
-      xLabel: 'X',
-      yAxisEl: lowerPanelEl.querySelector('.y-axis'),
-      yBounds: undefined,
-      yExtremes: undefined, 
-      yLabel: 'Y',
-    };
-  
-    let upperPanelEl = this.el.querySelector('.panel-upper');
-    /** @type {Panel} */
-    this.upperPanel = {
-      allDataEl: upperPanelEl.querySelector('.all-data'),
-      color: d3.schemeCategory10,
-      data: undefined,
-      dataTableTitle: 'Data',
-      ids: undefined,
-      labels: undefined,
-      legendEl: upperPanelEl.querySelector('.legend'),
-      line: undefined,
-      metadata: undefined,
-      options: $.extend({}, plotOptions, plotOptionsUpper),
-      panelId: 'upper-panel',
-      plotBodyEl: upperPanelEl,
-      plotEl: upperPanelEl.querySelector('.plot'),
-      plotFilename: 'figure',
-      plotHeight: undefined,
-      plotWidth: undefined,
-      plotScale: 1,
-      svgEl: upperPanelEl.querySelector('svg'),
-      svgHeight: undefined,
-      svgWidth: undefined,
-      tooltipEl: upperPanelEl.querySelector('.d3-tooltip'),
-      xAxisEl: upperPanelEl.querySelector('.x-axis'),
-      xBounds: undefined,
-      xExtremes: undefined, 
-      xLabel: 'X',
-      yAxisEl: upperPanelEl.querySelector('.y-axis'),
-      yBounds: undefined,
-      yExtremes: undefined, 
-      yLabel: 'Y',
-    };
+    this.lowerPanel = this.createPlotPanelObject('lower', 
+        $.extend({}, plotOptions, plotOptionsLower));
+
+    this.upperPanel = this.createPlotPanelObject('upper', 
+        $.extend({}, plotOptions, plotOptionsUpper));
   
     // Update SVG view box
     this.setSvgViewBox();
@@ -461,23 +350,65 @@ export default class D3View {
           .attr('colspan', dataSet.length+1)
           .text(panel.labels[ids]);
       
-      let tableRowX = tableBodyD3.append('tr');
-      tableRowX.append('td')
-          .attr('nowrap', true)
-          .text(panel.options.tooltipText[1]);
-      
-      let tableRowY = tableBodyD3.append('tr');
-      tableRowY.append('td')
-          .attr('nowrap', true)
-          .text(panel.options.tooltipText[2]);
-      
-      dataSet.forEach((dataPair, idp) => {
-        tableRowX.append('td')
-            .text(dataPair[0]);
-        tableRowY.append('td')
-            .text(dataPair[1]);
-      })
+      let dataSetTranspose = d3.transpose(dataSet);
+      dataSetTranspose.forEach((dataArray, ida) => {
+        let tableRow = tableBodyD3.append('tr')
+        tableRow.append('td')
+            .attr('nowrap', true)
+            .text(panel.options.tooltipText[ida + 1]);
+        dataArray.forEach((datum) => {
+          tableRow.append('td')
+              .text(datum);
+        });
+      });
     });
+  }
+
+  /**
+  * @method createPanelFooter
+  * 
+  * Create the panel footer with input buttons.
+  * @param {Array<Object>} btns - Buttons to add.
+  * @param {Boolean=} withSaveMenu - Whether to add save menu. 
+  */
+  createPanelFooter(btns, withSaveMenu = true) {
+     let plotFooterD3 = d3.select(this.plotPanelEl)
+        .append('div')
+        .attr('class', 'panel-footer');
+    
+    let footerToolbarD3 = plotFooterD3.append('div')
+        .attr('class', 'btn-toolbar footer-btn-toolbar')
+        .attr('role', 'toolbar');
+
+    // Create buttons
+    let footerBtnsD3 = footerToolbarD3.selectAll('div')
+        .data(btns)
+        .enter()
+        .append('div')
+        .attr('class', (d, i) => {return d.col + ' footer-btn-group';})
+        .append('div')
+        .attr('class', (d, i) => {
+          return 'btn-group btn-group-xs btn-group-justified ' + d.class;
+        })
+        .attr('data-toggle', 'buttons')
+        .attr('role', 'group');
+    
+    footerBtnsD3.selectAll('label')                                                   
+        .data((d, i) => {return d.btns})
+        .enter()
+        .append('label')
+        .attr('class',(d, i) => {
+          return 'btn btn-xs btn-default footer-button ' + d.class;
+        })
+        .attr('for', (d, i) => {return d.name})
+        .html((d, i) => {
+          return '<input type="radio" name="' + d.name + '"' +
+              ' value="' + d.value + '"/> ' + d.text;
+        });
+    
+    this.plotFooterEl = this.el.querySelector('.panel-footer');
+    // Create the save menu
+    if (withSaveMenu) this.createSaveMenu();
   }
 
   /**
@@ -519,7 +450,93 @@ export default class D3View {
   }
 
   /**
+  * @method createPlotPanelObject
+  *
+  * @typedef {Object} Panel
+  * @property {HTMLElement} allDataEl - All data group inside SVG.
+  * @property {Array<String>} color -  Array of colors for the plots.
+  *     Value: d3.schemeCategory10.
+  * @property {Array<Array<Array<Number, Number>>>} data - Data to plot.
+  *     Format: [ [ [x11, y11], ... ], [ [x21, y21], ...], ...].
+  *     Use setUpperData or setLowerData methods.
+  * @property {String} dataTableTitle - Title for data.
+  *     Default: 'Data'.
+  *     Use setUpperDataTableTitle or setLowerDataTableTitle method.
+  * @property {Array<String>} ids - ID corresponding to each data series.
+  *     Format: [ ['id1'], ['id2], ... ].
+  *     Use setUpperPlotIds or setLowerPlotIds method.
+  * @property {Array<String>} labels - Labels corresponding to each 
+  *     data series. 
+  *     Format: [ ['Label 1'], ['Label 2'], ... ].
+  *     Use setUpperPlotLabels or setLowerPlotLabels method.
+  * @property {HTMLElement} legendEl - Legend element.
+  * @property {Function} line - D3 line function.
+  * @property {{url: {String}, date: {Date} }} metadata -
+  *     Metadata to print underneath plot.
+  *     Use setUpperMetadata or setLowerMetadata methods.
+  * @property {PlotOptions} options - Plot options for specific panel.
+  * @property {String} panelId - Panel id: 'lower' || 'upper'.
+  * @property {HTMLElement} plotBodyEl - Upper or lower panel body.
+  * @property {HTMLElement} plotEl - Upper or lower panel plot group inside
+  *     SVG element.
+  * @property {String} plotFilename - Download filename.
+  * @property {Number} plotHeight - Calculated plot height. 
+  *     options.plotHeight - options.marginBottom - options.marginTop.
+  * @property {Number} plotWidth - Calculated plot width.
+  *     options.plotWidth - options.marginLeft - options.marginRight.
+  * @property {Number} plotScale - Calculated value from the current 
+  *     panel width Vs. the plot width. plotWidth / panelWidth.
+  * @property {HTMLElement} svgEl - Upper or lower SVG element.
+  * @property {Number} svgHeight - options.plotHeight.
+  * @property {Number} svgWidth - options.plotWidth.
+  * @property {HTMLElement} tooltipEl - Tooltip element inside SVG.
+  * @property {HTMLElement} xAxisEl - X-axis element inside SVG.
+  * @property {Function} xBounds - D3 axis function. d3.range().domain().
+  * @property {Array<Number, Number>} xExtremes - Min and max X value.
+  *     Format: [min, max].
+  * @property {String} xLabel - X axis label.
+  *     Use setUpperXLabel or setLowerXLabel methods.
+  * @property {HTMLElement} yAxisEl - Y-axis element inside SVG.
+  * @property {Function} yBounds - D3 axis function. d3.range().domain().
+  * @property {Array<Number, Number>} yExtremes - Min and max Y value.
+  *     Format: [min, max].
+  * @property {String} yLabel - Y axis label.
+  *     Use setUpperYLabel or setLowerYLabel methods.
+  */
+  createPlotPanelObject(panel, options) {
+    panel = panel.toLowerCase();
+    let panelEl = this.el.querySelector('.panel-' + panel);
+    let svgHeight = options.plotHeight;
+    let svgWidth = options.plotWidth;
+    let plotHeight = svgHeight -
+        options.marginTop - options.marginBottom;
+    let plotWidth = svgWidth -
+        options.marginLeft - options.marginRight;
+    return {
+      data: undefined,
+      dataTableTitle: 'Data',
+      ids: undefined,
+      labels: undefined,
+      metadata: undefined,
+      options: options, 
+      panelId: panel + '-panel',
+      plotBodyEl: panelEl,
+      plotEl: panelEl.querySelector('.plot'),
+      plotFilename: 'figure',
+      plotHeight: plotHeight,
+      plotWidth: plotWidth,
+      svgEl: panelEl.querySelector('svg'),
+      svgHeight: svgHeight,
+      svgWidth: svgWidth,
+      tooltipEl: panelEl.querySelector('.d3-tooltip'),
+    };
+  
+  }
+
+  /**
   * @method createSvgStructure
+  *
+  * Create the basic SVG structure
   */
   createSvgStructure() {
     let svgD3 = d3.select(this.el)
@@ -532,30 +549,6 @@ export default class D3View {
     
     let plotD3  = svgD3.append('g')
         .attr('class', 'plot');
-
-    let dataD3 = plotD3.append('g')
-        .attr('class', 'all-data');
-    
-    // X-axis
-    let xD3 = plotD3.append('g')
-        .attr('class','x-axis');
-    xD3.append('g')
-        .attr('class','x-tick')
-        .append('text')
-        .attr('class', 'x-label')
-        .attr('fill', 'black');
-    
-    // Y-axis
-    let yD3 = plotD3.append('g')
-        .attr('class', 'y-axis');
-    yD3.append('g')
-        .attr('class', 'y-tick')
-        .append('text')
-        .attr('class', 'y-label')
-        .attr('fill', 'black');
-    
-    plotD3.append('g')
-        .attr('class', 'legend');
     
     plotD3.append('g')
         .attr('class', 'd3-tooltip');
@@ -586,7 +579,6 @@ export default class D3View {
       { label: 'SVG', id: 'svg', class: 'plot' },
       { label: 'Save Data As:', id: 'dropdown-header', class: 'data' },
       { label: 'CSV', id: 'csv', class: 'data' },
-      { label: 'TSV', id: 'tsv', class: 'data' }
     ];
 
     let saveListD3 = saveAsD3.append('ul')
@@ -622,6 +614,19 @@ export default class D3View {
     d3.select(this.el).classed('hidden', toHide);
   }
  
+  /**
+  * @method idToLabel
+  *
+  * Given and ID, return the corresponding label.
+  * @param {Panel} panel - Panel with data.
+  * @param {String} id - ID to search and match.
+  * @return {String} - Label of matching ID.
+  */
+  idToLabel(panel, id) {
+    let iLabel = panel.ids.findIndex((d, i) => { return d == id; });
+    return panel.labels[iLabel]; 
+  }
+
   /**
   * @method onPlotDataViewSwitch
   *
@@ -718,16 +723,86 @@ export default class D3View {
   */
   onSaveMenuClick() {
     $(this.saveAsMenuEl).find('a').on('click', (event) => {
+      let lowerSaveOptions = {
+        footerFontSize: this.lowerPanel.options.printFooterFontSize,
+        footerLineBreak: this.lowerPanel.options.printFooterLineBreak,
+        footerPadding: this.lowerPanel.options.printFooterPadding,
+        marginLeft: this.lowerPanel.options.printMarginLeft,
+        marginTop: this.lowerPanel.options.printMarginTop,
+        pageHeight: this.lowerPanel.options.printPageHeight,
+        pageWidth: this.lowerPanel.options.printPageWidth,
+        printDpi: this.lowerPanel.options.printDpi,
+        printCenter: this.lowerPanel.options.printCenter,
+        printFooter: this.lowerPanel.options.printFooter,
+        printTitle: this.lowerPanel.options.printTitle,
+        titleFontSize: this.lowerPanel.options.titleFontSize,
+      };
+      
+      let upperSaveOptions = {
+        footerFontSize: this.upperPanel.options.printFooterFontSize,
+        footerLineBreak: this.upperPanel.options.printFooterLineBreak,
+        footerPadding: this.upperPanel.options.printFooterPadding,
+        marginLeft: this.upperPanel.options.printMarginLeft,
+        marginTop: this.upperPanel.options.printMarginTop,
+        pageHeight: this.upperPanel.options.printPageHeight,
+        pageWidth: this.upperPanel.options.printPageWidth,
+        printDpi: this.upperPanel.options.printDpi,
+        printCenter: this.upperPanel.options.printCenter,
+        printFooter: this.upperPanel.options.printFooter,
+        printTitle: this.upperPanel.options.printTitle,
+        titleFontSize: this.upperPanel.options.titleFontSize,
+      };
+      
       if ($(event.target).hasClass('data')) {
-        Save.saveData(
-            this.tableEl, this.upperPanel.plotFilename, event.target.id);
+
+        new D3SaveData.Builder()
+            .data(this.upperPanel.data)
+            .dataRowLabels(this.upperPanel.options.tooltipText)
+            .dataSeriesLabels(this.upperPanel.labels)
+            .filename(this.upperPanel.plotFilename)
+            .fileFormat(event.target.id)
+            .build();
+        
+        if (this.lowerPanel.options.showData &&
+              this.options.plotLowerPanel) {
+          new D3SaveData.Builder()
+              .data(this.lowerPanel.data)
+              .dataRowLabels(this.lowerPanel.options.tooltipText)
+              .dataSeriesLabels(this.lowerPanel.labels)
+              .filename(this.lowerPanel.plotFilename)
+              .fileFormat(event.target.id)
+              .build();
+        }
       } else {
-        Save.saveFigure(
-            this.upperPanel, this.plotTitleEl.textContent, event.target.id);
+        new D3SaveFigure.Builder()
+            .filename(this.upperPanel.plotFilename)
+            .options(upperSaveOptions)
+            .metadata(this.upperPanel.metadata.url, 
+                this.upperPanel.metadata.time)
+            .plotFormat(event.target.id)
+            .plotHeight(this.upperPanel.svgHeight)
+            .plotMarginLeft(this.upperPanel.options.marginLeft)
+            .plotMarginTop(this.upperPanel.options.marginTop)
+            .plotTitle(this.plotTitleEl.textContent)
+            .plotWidth(this.upperPanel.svgWidth)
+            .svgEl(this.upperPanel.svgEl)
+            .build();
+           
         if (this.options.plotLowerPanel &&
               this.options.printLowerPanel){
-          Save.saveFigure(
-              this.lowerPanel, this.plotTitleEl.textContent, event.target.id);
+          new D3SaveFigure.Builder()
+              .filename(this.lowerPanel.plotFilename)
+              .options(lowerSaveOptions)
+              .metadata(this.lowerPanel.metadata.url, 
+                  this.lowerPanel.metadata.time)
+              .plotFormat(event.target.id)
+              .plotHeight(this.lowerPanel.svgHeight)
+              .plotMarginLeft(this.lowerPanel.options.marginLeft)
+              .plotMarginTop(this.lowerPanel.options.marginTop)
+              .plotTitle(this.plotTitleEl.textContent)
+              .plotWidth(this.lowerPanel.svgWidth)
+              .svgEl(this.lowerPanel.svgEl)
+              .build();
         }
       }
     });
@@ -886,6 +961,33 @@ export default class D3View {
     this.plotTitleEl.textContent = title;  
     return this;
   }
+  
+  /**
+  * @method setPlotScale
+  *
+  * Calculate a scaling value from the current plot width and the viewbox
+  *     width.
+  * @param {Panel} panel - Upper or lower plot panel.
+  */
+  setPlotScale(panel) {
+    let svgGeom = panel.svgEl.getBoundingClientRect();
+    let width = svgGeom.width;
+    panel.plotScale = panel.svgWidth / width;
+  }
+  
+  /**
+  * @method setSiteLocation
+  *
+  * Sets the site location. This method is chainable.
+  * @param {!Object} site - Site location
+  * @property {Number} latitude
+  * @property {Number} longitude
+  * @return {D3View} - Return the class instance to be chainable
+  */
+  setSiteLocation(site) {
+    this.siteLocation = [site.longitude, site.latitude];
+    return this;
+  }
 
   /**
   * @method setSvgViewBox 
@@ -894,15 +996,6 @@ export default class D3View {
   */
   setSvgViewBox() { 
     // Update lower plot dimensions
-    this.lowerPanel.svgHeight = this.lowerPanel.options.plotHeight;
-    this.lowerPanel.svgWidth = this.lowerPanel.options.plotWidth;
-    this.lowerPanel.plotHeight = this.lowerPanel.svgHeight -
-        this.lowerPanel.options.marginTop - 
-        this.lowerPanel.options.marginBottom;
-    this.lowerPanel.plotWidth = this.lowerPanel.svgWidth -
-        this.lowerPanel.options.marginLeft - 
-        this.lowerPanel.options.marginRight;
-
     d3.select(this.el)
         .select('.panel-lower')
         .select('svg')
@@ -914,15 +1007,6 @@ export default class D3View {
             this.lowerPanel.options.marginTop +')');
     
     // Update upper plot dimension 
-    this.upperPanel.svgHeight = this.upperPanel.options.plotHeight;
-    this.upperPanel.svgWidth = this.upperPanel.options.plotWidth;
-    this.upperPanel.plotHeight = this.upperPanel.svgHeight -
-        this.upperPanel.options.marginTop - 
-        this.upperPanel.options.marginBottom;
-    this.upperPanel.plotWidth = this.upperPanel.svgWidth -
-        this.upperPanel.options.marginLeft - 
-        this.upperPanel.options.marginRight;
-    
     d3.select(this.el)
         .select('.panel-upper')
         .select('svg')
@@ -1072,14 +1156,6 @@ export default class D3View {
   * @return {D3View} - Return the class instance to be chainable
   */
   withPlotFooter() {
-    let plotFooterD3 = d3.select(this.plotPanelEl)
-        .append('div')
-        .attr('class', 'panel-footer');
-    
-    let footerBtnsD3 = plotFooterD3.append('div')
-        .attr('class', 'btn-toolbar footer-btn-toolbar')
-        .attr('role', 'toolbar');
-    
     let buttons = [
       {
         class: 'plot-data-btns',
@@ -1100,38 +1176,12 @@ export default class D3View {
       }
     ];
     
-    // Create buttons  
-    let xAxisD3 = footerBtnsD3.selectAll('div')
-        .data(buttons)
-        .enter()
-        .append('div')
-        .attr('class', (d, i) => {return d.col + ' footer-btn-group';})
-        .append('div')
-        .attr('class', (d, i) => { 
-          return 'btn-group btn-group-xs btn-group-justified ' + d.class;
-        })
-        .attr('data-toggle', 'buttons')
-        .attr('role', 'group');
-    
-    xAxisD3.selectAll('label')
-        .data((d, i) => {return d.btns})
-        .enter()
-        .append('label')
-        .attr('class',(d, i) => {
-          return 'btn btn-xs btn-default footer-button ' + d.class
-        })
-        .attr('for', (d, i) => {return d.name})
-        .html((d, i) => {
-          return '<input type="radio" name="' + d.name + '"' +
-              ' value="' + d.value + '"/> ' + d.text;
-        });
-    
-    xAxisD3.select('.plot-btn')
+    this.createPanelFooter(buttons, true /* With save menu */); 
+    d3.select(this.el)
+        .select('.plot-btn')
         .classed('active', true);
 
     this.plotFooterEl = this.el.querySelector('.panel-footer');
-    // Create the save menu
-    this.createSaveMenu();
     // Update buttons
     this.onPlotDataViewSwitch(); 
 

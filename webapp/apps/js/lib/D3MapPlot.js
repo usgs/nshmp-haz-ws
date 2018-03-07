@@ -1,7 +1,7 @@
 "use strict";
 
 import D3MapView from './D3MapView.js';
-import Tooltip from './Tooltip.js';
+import D3Tooltip from './D3Tooltip.js';
 
 /**
 * @class D3MapPlot
@@ -225,6 +225,7 @@ export default class D3MapPlot extends D3MapView{
 
 
     //......................... Plot Test Sites ................................
+    let tooltipOptions = {};
     d3.select(mapPlot.svgEl)
         .select(".plot")
         .append("g")  
@@ -245,15 +246,37 @@ export default class D3MapPlot extends D3MapView{
           D3MapPlot.plotSelection(mapPlot,selectedId,true);
         })
         .on("mouseout",function(){
-          tooltip.decreaseRadius(mapPlot);
           if (!d3.select(this).classed("active"))
-            tooltip.pointColor(mapPlot.options.pointColor);
-          tooltip.destroy();
+            tooltip.changeAttribute('fill', mapPlot.options.pointColor);
+          tooltip.changeSizeAttribute('r', false /* To increase */)
+              .destroy();
         })
-        .on("mouseover",function(){
-          tooltip = new Tooltip(mapPlot, this);
-          tooltip.increaseRadius();
-          tooltip.pointColor(mapPlot.options.pointColorSelection);
+        .on("mouseover",(d, i, els) => {
+          let mouse = d3.mouse(els[0]);
+          let id = els[i].id;
+          let iSite = mapPlot.ids.findIndex((d, i) => { return d == id; });
+          let site = mapPlot.labels[iSite];
+          let lon = d[0];
+          let lat = d[1];
+          let tooltipText = [
+            mapPlot.options.tooltipText[0] + ' ' + site,
+            mapPlot.options.tooltipText[1] + ' ' + lon,
+            mapPlot.options.tooltipText[2] + ' ' + lat,
+          ]; 
+          let plotHeight = D3MapPlot.plotHeight(mapPlot, true);
+          let plotWidth = D3MapPlot.plotWidth(mapPlot, true);
+          
+          tooltip = new D3Tooltip.Builder()
+              .coordinates(mouse[0], mouse[1])
+              .dataEl(els[i])
+              .options(tooltipOptions)
+              .plotHeight(plotHeight)
+              .plotWidth(plotWidth)
+              .tooltipText(tooltipText)
+              .tooltipEl(mapPlot.tooltipEl)
+              .build()
+              .changeSizeAttribute('r', true /* To increase */)
+              .changeAttribute('fill', mapPlot.options.pointColorSelection);
         });
   
     d3.select(mapPlot.svgEl)

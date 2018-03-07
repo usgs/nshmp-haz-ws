@@ -30,6 +30,9 @@ export default class Dashboard {
     /** @ type {Array{Object}} */
     this.webapps = [
       {
+        label: 'Geographic Deaggregation',
+        href: 'apps/geo-deagg.html',
+      }, {
         label: 'Ground Motion Vs. Distance',
         href: 'apps/gmm-distance.html',
       }, {
