@@ -60,7 +60,9 @@ export default class Gmm {
     this.currentWebApp = webApp;
     /** @type {String} */
     this.webServiceUrl = webServiceUrl;
-    
+   
+    /** @type {HTMLElement} */
+    this.controlPanelEl = document.querySelector('#control');
     /** @type {HTMLElement} */
     this.gmmsEl = document.querySelector('#gmms');
     /** @type {HTMLElement} */
@@ -94,20 +96,12 @@ export default class Gmm {
     };
 
     $(this.footer.updateBtnEl).click((event) => {
-      this.spinner.on('Calculating');
       $(this.footer.rawBtnEl).off();
       this.footerOptions.rawBtnDisable = false; 
       this.footer.setOptions(this.footerOptions);
       this.updatePlot();
     });
     
-    // On enter
-    $(document).keypress((event) => {
-      if (event.which == 13 && !$(this.footer.updateBtnEl).prop('disabled')) {
-        $(this.footer.updateBtnEl).click();
-      }
-    });
-   
     // On any input
     $(this.inputsEl).on('input', (event) => { this.inputsOnInput(event); });
     
@@ -206,7 +200,9 @@ export default class Gmm {
         this.setImts();
       });
     }
-    
+   
+    $(this.controlPanelEl).removeClass('hidden');
+
     this.checkQuery(gmmAlphaOptions);
   }
   
@@ -338,7 +334,24 @@ export default class Gmm {
   dip_val() {
     return parseFloat(this.dipEl.value) * Math.PI / 180.0;
   }
-  
+ 
+  /**
+  * @method getCurrentGmms
+  *
+  * Get a list of all selected ground motion models
+  * @return {Array<String>} - Array of string values corresponding
+  *     to ground motion model.
+  */
+  getCurrentGmms() {
+    let gmmVals = $(this.gmmsEl).val();
+    let gmms = [];
+    gmmVals.forEach((val) => {
+      gmms.push(d3.select('#' + val).text());
+    });
+
+    return gmms;
+  };
+
   /**
   * @method getUsage
   * 
@@ -350,6 +363,8 @@ export default class Gmm {
     let dynamic = this.config.server.dynamic;
     let url = dynamic + this.webServiceUrl;
     let promise = $.getJSON(url);
+    this.spinner.on(promise);
+
     promise.done((usage) => {
       this.parameters = usage.parameters;
       this.buildInputs(usage);
@@ -367,7 +382,6 @@ export default class Gmm {
   * @param {Event=} event - The event that triggered the change
   */
   imtOnChange(event) {
-    this.spinner.on('Calculating ...');
     this.updatePlot();
   } 
   

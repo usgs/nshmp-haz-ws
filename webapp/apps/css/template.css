@@ -91,7 +91,7 @@ html, body{
 /**/
 /* .................... Footer ..................... */
 
-#footer{
+.Footer{
 	position: absolute;
   left: 0;
   right: 0;
@@ -99,20 +99,58 @@ html, body{
   background-color: #f7f7f7;
   border-top: 1px solid #bbb;
   box-shadow: 0px 0px 3px 1px #ccc;
-  padding: 8px;
   z-index: 101;
   height: 3.5em;
 }
 
 
-.btn-float-right{
+.Footer .btn-float-right{
   float: right;
 }
 
 
-#footer .settings-btn{
+.Footer .settings-btn{
   padding-left: 10px;
   cursor: pointer;
+}
+
+.Footer .code-info-icon {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: 0.75em;
+  transform: translate(25%, -50%);
+  font-size: 1.5em;
+}
+
+.Footer .code-info-icon:focus {
+  outline: none;
+}
+
+.Footer .footer-btns {
+  margin: 0 3em;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+.Footer .code-info-collapse {
+  bottom: 100%;
+  left: 400px;
+  position: absolute;
+  right: 0;
+}
+
+.Footer .well {
+  background-color: white;
+  margin: 10px 2px 3px 2px;
+}
+
+.Footer .code-info-icon.disabled {
+  color: grey;
+  cursor: not-allowed;  
+  opacity: 0.65;
 }
 
 /*-------------- End: Footer ----------------------- */
@@ -273,55 +311,44 @@ label.control-spacer {
 /**/
 /*................... Spinner .......................*/
 
-
-/*............. Screen Overlay ......................*/
-#overlay{
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: black;
-  opacity: 0.20;
-  z-index: 1000;
+.Spinner {
+  display: grid !important;
 }
-/*---------------------------------------------------*/
 
-/*............. Loader Box to Put Spinner ...........*/
-#loader{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
-  padding: 10px;
-  height: 175px;
-  width: 125px;
-  box-sizing: border-box;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-  z-index: 1001;
-  background-color: white;
+.Spinner .modal-dialog {
+  margin: auto;
+  width: auto;
 }
-/*---------------------------------------------------*/
 
-/*............. Loader Text Under Spinner ...........*/
-#loader-text{
+.Spinner .spinner-text {
+  font-size: 1.5em;
+  padding: 1em 0 0 0;
+  margin: 0;
+}
+
+.Spinner .modal-content {
+  height: auto;
+  width: 12em;
+}
+
+.Spinner .modal-content {
   text-align: center;
-  padding-top: 10px;
 }
-/*---------------------------------------------------*/
 
-/*................. Spinner  ........................*/
-#spinner {
-  margin: 20px auto;
-  border: 10px solid #f3f3f3;
+.Spinner .modal-footer {
+  text-align: center;
+}
+
+.Spinner .loading-spinner {
+  margin: 0.25em auto;
+  border: 0.7em solid #E0E0E0;
   border-radius: 50%;
-  border-top: 10px solid #3498db;
-  width: 50px;
-  height: 50px;
+  border-top: 0.7em solid #337ab7;
+  width: 4em;
+  height: 4em;
   -webkit-animation: spin 2s linear infinite;
   animation: spin 2s linear infinite;
 }
-
 
 @-webkit-keyframes spin {
   0% { -webkit-transform: rotate(0deg); }
@@ -332,8 +359,6 @@ label.control-spacer {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-/*---------------------------------------------------*/
-
 /*-------------- End: Spinner -----------------------*/
 /**/
 /*###################################################*/

@@ -62,25 +62,32 @@
 }
 
 /* Plot panel body data table */
-.D3View .data-table td{
+.D3View .panel-table td {
   font-size: 0.75vw;
+  vertical-align: initial;
 }
 
-.D3View .data-table th{
+.D3View .panel-table th {
   font-size: 1vw;
-  font-weight: 450;
-}
-                                                                                
-.D3View .data-table-title{
-  font-size: 1.25vw;
+  font-weight: 550;
+  vertical-align: initial;
 }
 
-.D3View .data-table{
+.D3View .panel-table tr tr td {
+  padding: 2px 5px;
+}
+
+.D3View .panel-table .data-table-title {
+  font-size: 1.25vw;
+  font-weight: 800;
+}
+
+.D3View .panel-table {
   overflow-x: scroll;
   overflow-y: scroll;
 }
 
-.D3View .data-table .table{
+.D3View .panel-table .table {
   margin-bottom: 2em;
 }
 

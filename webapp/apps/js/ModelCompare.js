@@ -18,7 +18,6 @@ export default class ModelCompare extends Hazard{
     let _this = super(config); 
     
     _this.header.setTitle("Model Comparison");
-    _this.spinner.on();
     //--------------------------------------------------------------------------
   
     _this.options = {
@@ -80,7 +79,6 @@ export default class ModelCompare extends Hazard{
     //....................... Get Hazard Parameters ............................
     ModelCompare.getHazardParameters(_this,setParameters); 
     function setParameters(par){
-      _this.spinner.off();
       _this.parameters = par;
       ModelCompare.buildInputs(_this); 
     };
@@ -90,26 +88,15 @@ export default class ModelCompare extends Hazard{
     $(_this.footer.updateBtnEl).click(function(){
       Hazard.callHazard(_this,ModelCompare.callHazardCallback);
     });
-                                                                                
-    //............. Call Hazard Code on Enter ..................................
-    $(_this.controlEl).keypress(function(key){
-      var keyCode = key.which || key.keyCode;
-      if (keyCode == 13){
-        Hazard.callHazard(_this,ModelCompare.callHazardCallback);
-      }
-    });
     //--------------------------------------------------------------------------
-
-  
-    
   
   }
   //---------------------- End Constructor: ModelComapre -----------------------
 
-
   //......................... Method: buildInputs ..............................
   static buildInputs(_this){
-     
+    _this.spinner.off();
+
     ModelCompare.checkQuery(_this);
     
     ModelCompare.setParameterMenu(_this,"region",_this.comparableRegions);
@@ -148,12 +135,34 @@ export default class ModelCompare extends Hazard{
       ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
      });
     
+    $(_this.controlEl).removeClass('hidden');
+
     let canSubmit = ModelCompare.checkQuery(_this);
     if (canSubmit) ModelCompare.callHazard(_this,ModelCompare.callHazardCallback);
   }                                                                             
   //------------------- End Method: buildInputs --------------------------------
 
+  /**
+  * @method getMetadata
+  */
+  getMetadata() {
+    let editionVals = $(this.editionEl).val();
+    let editions = [];
+    editionVals.forEach((val) => {
+      editions.push(d3.select('#' + val).text());
+    });
+    
+    let metadata = {
+      'Region': $(this.regionEl).find(':selected').text(),
+      'Edition(s)': editions,
+      'Latitude (°)': this.latEl.value,
+      'Longitude (°)': this.lonEl.value,
+      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
+      'V<sub>S</sub>30': $(this.vs30El).find(':selected').text(),
+    }
 
+    return metadata;
+  }
 
   static supportedEditions(_this){
     var selectedRegion = _this.comparableRegions.find(function(region,i){
@@ -175,6 +184,9 @@ export default class ModelCompare extends Hazard{
   //.......................... Plot Hazard Curves ..............................
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
+    let metadata = _this.getMetadata();
+    metadata.url = window.location.href;
+    metadata.time = new Date();
     
     var selectedImtDisplay = _this.imtEl.querySelector(":checked").text; 
     var selectedImtValue   = _this.imtEl.value; 
@@ -217,25 +229,20 @@ export default class ModelCompare extends Hazard{
     //--------------------------------------------------------------------------
    
     //.................. Get Axis Information ..................................
-    var metadata = jsonResponse[0][0].metadata;
-    var xLabel   = metadata.xlabel;
-    var yLabel   = metadata.ylabel;
-    metadata = {
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-      };
+    var returnMetadata = jsonResponse[0][0].metadata;
+    var xLabel   = returnMetadata.xlabel;
+    var yLabel   = returnMetadata.ylabel;
     //--------------------------------------------------------------------------
     
 
     //.................... Plot Info Object for D3 .............................
     _this.plot.setPlotTitle(title)
+        .setMetadata(metadata)
         .setUpperData(seriesData)
         .setUpperDataTableTitle('')
         .setUpperPlotFilename(filename)
         .setUpperPlotIds(seriesLabelIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperMetadata(metadata)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
         .removeSmallValues(_this.plot.upperPanel, 1e-14)

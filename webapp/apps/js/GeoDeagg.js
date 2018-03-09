@@ -53,7 +53,6 @@ export default class GeoDeagg {
     this.header = new Header().setTitle('Geographic Deaggregation');
     /** @type {Spinner} */
     this.spinner = new Spinner();
-    this.spinner.on();
    
     /**
     * @typedef {Object} GeoDeaggOptions - Geographic deagg options
@@ -75,6 +74,8 @@ export default class GeoDeagg {
     
     /** @type {HTMLElement} */
     this.contentEl = document.querySelector('#content');
+    /** @type {HTMLElement} */
+    this.controlPanelEl = document.querySelector('#control');
     /** @type {HTMLElement} */
     this.editionEl = document.querySelector('#edition');
     /** @type {HTMLElement} */
@@ -112,16 +113,8 @@ export default class GeoDeagg {
       this.checkCoordinates(event.target);
     });
  
-    // On enter
-    $(document).keypress((event) => {
-      if (event.which == 13 && !$(this.footer.updateBtnEl).prop('disabled')) {
-        $(this.footer.updateBtnEl).click();
-      }
-    });
-
     // Update plot when update button pressed
     $(this.footer.updateBtnEl).click((event) => {
-      this.spinner.on('Calculating');
       $(this.footer.rawBtnEl).off();
       this.footerOptions.rawBtnDisable = false;
       this.footer.setOptions(this.footerOptions);
@@ -174,7 +167,9 @@ export default class GeoDeagg {
     this.setVs30Menu();
     this.setDefaultReturnPeriod();
     this.addInputTooltip();
-    
+   
+    $(this.controlPanelEl).removeClass('hidden');
+
     // Update return period on change
     this.onReturnPeriodChange();
     // Update menus when edition is changed
@@ -269,6 +264,28 @@ export default class GeoDeagg {
   }
   
   /**
+  * @method getMetadata
+  *
+  * Get current chosen parameters.
+  * @return {{
+  *   key: value || Array<Values>
+  * }} Object - Metadata containing key and value pairs.
+  */
+  getMetadata() {
+    let metadata = {
+      'Edition': $(this.editionEl).find(':selected').text(),
+      'Region': $(this.regionEl).find(':selected').text(),
+      'Latitude (°)': this.latEl.value,
+      'Longitude (°)': this.lonEl.value,
+      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
+      'V<sub>s</sub>30': $(this.vs30El).find(':selected').text(),
+      'Return Period (years)': this.returnPeriodEl.value + ' years',
+    };
+    
+    return metadata;
+  }
+
+  /**
   * @method getUsage
   *
   * Call deagg web service and get the JSON usage. Once usage is received,
@@ -276,7 +293,8 @@ export default class GeoDeagg {
   */
   getUsage() {
     let promise = $.getJSON(this.webServiceUrl);
-    
+    this.spinner.on(promise);
+
     promise.done((usage) => {
       this.buildInputs(usage);
     });
@@ -499,9 +517,14 @@ export default class GeoDeagg {
   */
   updatePlot() {
     let url = this.serializeUrl();
-     
-    d3.json(url, (error, response) => {
+    let metadata = this.getMetadata();
+
+    let promise = $.getJSON(url);
+    this.spinner.on(promise, 'Calculating');
+
+    promise.done((response) => {
       this.spinner.off();
+      this.footer.setMetadata(response.server);
       
       // Find total data component 
       let totalData = response.response[0].data.find((d, i) => {
@@ -523,10 +546,8 @@ export default class GeoDeagg {
         seriesIds.push(d.name.replace(/ /g, '_'));
       });
       
-      let metadata = {
-        url: window.location.href,
-        time: new Date(),
-      };
+      metadata.url = window.location.href;
+      metadata.time = new Date();
       
       let lat = response.response[0].metadata.latitude;
       let lon = response.response[0].metadata.longitude;
@@ -535,12 +556,12 @@ export default class GeoDeagg {
       
       this.plot.setPlotTitle('Geographic Deaggregation')
           .setSiteLocation({latitude: lat, longitude: lon})
+          .setMetadata(metadata)
           .setUpperData(seriesData)
           .setUpperPlotFilename('geoDeagg')
           .setUpperDataTableTitle('Deaggregation Contribution')
           .setUpperPlotIds(seriesIds)
           .setUpperPlotLabels(seriesLabels)
-          .setUpperMetadata(metadata)
           .plotData(this.plot.upperPanel, rotate);
 
       $(this.footer.rawBtnEl).off();

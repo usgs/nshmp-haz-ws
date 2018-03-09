@@ -49,7 +49,6 @@ export default class Spectra extends Gmm {
     let wsUrl = '/nshmp-haz-ws/gmm/spectra'
     super(webApp, wsUrl, config);
     this.header.setTitle('Response Spectra');
-    this.spinner.on();
 
     /** @type {HTMLElement} */ 
     this.contentEl = document.querySelector('#content'); 
@@ -131,16 +130,40 @@ export default class Spectra extends Gmm {
 	}
  
   /**
+  * @method getMetadata
+  */
+  getMetadata() {
+    let gmms = this.getCurrentGmms(); 
+
+    let metadata = {
+      'Ground Motion Models': gmms, 
+      'M<sub>W</sub>': this.MwEl.value,
+      'Rake (°)': this.rakeEl.value,
+      'Z<sub>Top</sub> (km)': this.zTopEl.value,
+      'Dip (°)': this.dipEl.value,
+      'Width (km)': this.widthEl.value,
+      'R<sub>X</sub> (km)': this.rXEl.value,
+      'R<sub>Rup</sub> (km)': this.rRupEl.value,
+      'R<sub>JB</sub> (km)': this.rJBEl.value,
+      'V<sub>s</sub>30 (m/s)': this.vs30El.value,
+      'Z<sub>1.0</sub> (km)': this.z1p0El.value,
+      'Z<sub>2.5</sub> (km)': this.z2p5El.value,
+    };
+
+    return metadata;
+  }
+
+  /**
   * @method plotGmm
   *
   * Plot ground motions Vs. period in the upper plot panel
   * @param {Object} response - JSON return from gmm/spectra web service
   */
   plotGmm(response) {
-    let metadata = {
-      url: window.location.href,
-      time: new Date()
-    }; 
+    let metadata = this.getMetadata();
+    metadata.url = window.location.href;
+    metadata.time = new Date();
+
     let mean = response.means;
     let meanData = mean.data;
     let seriesLabels = [];
@@ -154,11 +177,11 @@ export default class Spectra extends Gmm {
     });
     
     this.plot.setUpperData(seriesData)
+        .setMetadata(metadata)
         .setUpperDataTableTitle('Means')
         .setUpperPlotFilename('spectraMean')
         .setUpperPlotIds(seriesIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperMetadata(metadata)
         .setUpperXLabel(mean.xLabel)
         .setUpperYLabel(mean.yLabel)
         .plotData(this.plot.upperPanel);
@@ -213,10 +236,6 @@ export default class Spectra extends Gmm {
   * @param {Object} response - JSON return from gmm/spectra web service
   */
   plotSigma(response) {
-    let metadata = {
-      url: window.location.href,
-      time: new Date()
-    }; 
     let sigma = response.sigmas;
     let sigmaData = sigma.data;
 
@@ -235,7 +254,6 @@ export default class Spectra extends Gmm {
         .setLowerPlotFilename('spectraSigma')
         .setLowerPlotIds(seriesIds)
         .setLowerPlotLabels(seriesLabels)
-        .setLowerMetadata(metadata)
         .setLowerXLabel(sigma.xLabel)
         .setLowerYLabel(sigma.yLabel)
         .plotData(this.plot.lowerPanel);
@@ -248,18 +266,15 @@ export default class Spectra extends Gmm {
   */ 
   updatePlot() {
     let url = this.serializeGmmUrl(); 
-    d3.json(url, (error, response) => {
-      if (error) return console.warn(error);
-      if (response.status == 'ERROR') {
-        d3.select(this.plot.upperPanel.svgEl)
-            .append('text')
-            .attr('y', margin.top)
-            .attr('x', margin.left)
-            .text(response.message);
-        return;
-      }  
-      
+    let metadata = this.getMetadata();
+
+    let promise = $.getJSON(url);
+    this.spinner.on(promise, 'Calculating');
+
+    promise.done((response) => {
       this.spinner.off();
+      this.footer.setMetadata(response.server);
+
       this.plot.setPlotTitle('Response Spectra');
       // Plot means
       this.plotGmm(response);
@@ -267,7 +282,7 @@ export default class Spectra extends Gmm {
       this.plotSigma(response); 
       // Sync selections
       this.plot.syncSelections();
-     
+
       $(this.footer.rawBtnEl).off(); 
       $(this.footer.rawBtnEl).click((event) =>{
         window.open(url);

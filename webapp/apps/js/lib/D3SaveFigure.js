@@ -242,11 +242,8 @@ export default class D3SaveFigure {
         return this;
       }
       
-      metadata(url, date) {
-        this.metadata = {
-          url: url,
-          date: date,
-        };
+      metadata(metadata) {
+        this.metadata = metadata;
         return this;
       }
 
@@ -343,7 +340,6 @@ export default class D3SaveFigure {
     
     // Update svg height and width
     let svgD3 = svgDivD3.select('svg')
-        .attr('class', 'plot')
         .attr('preserveAspectRatio', null)
         .attr('viewBox', null)
         .style('font-family', '"Helvetica Neue",Helvetica,Arial,sans-serif')

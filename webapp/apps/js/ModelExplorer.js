@@ -18,7 +18,6 @@ export default class ModelExplorer extends Hazard{
     let _this = super(config); 
     
     _this.header.setTitle("Model Explorer");
-    _this.spinner.on();
     //--------------------------------------------------------------------------
   
     _this.options = {
@@ -67,7 +66,6 @@ export default class ModelExplorer extends Hazard{
     //....................... Get Hazard Parameters ............................
     Hazard.getHazardParameters(_this,setParameters); 
     function setParameters(par){
-      _this.spinner.off();
       _this.parameters = par;
       ModelExplorer.buildInputs(_this); 
     };
@@ -78,16 +76,6 @@ export default class ModelExplorer extends Hazard{
     $(_this.footer.updateBtnEl).click(function(){
       ModelExplorer.callHazard(_this,ModelExplorer.callHazardCallback);
     });
-    
-    //............. Call Hazard Code on Enter ..................................
-    $(_this.controlEl).keypress(function(key){
-      var keyCode = key.which || key.keyCode;
-      if (keyCode == 13){
-        ModelExplorer.callHazard(_this,ModelExplorer.callHazardCallback);
-      }
-    });
-    //--------------------------------------------------------------------------
-    
   }
   //---------------------- End Constructor: ModelComapre -----------------------
 
@@ -96,7 +84,7 @@ export default class ModelExplorer extends Hazard{
   
   //......................... Method: buildInputs ..............................
   static buildInputs(_this){
-
+    _this.spinner.off();
     ModelExplorer.checkQuery(_this);
 
     let editionValues = _this.parameters.edition.values;
@@ -130,12 +118,29 @@ export default class ModelExplorer extends Hazard{
       ModelExplorer.setParameterMenu(_this,"imt",supportedImt);
       ModelExplorer.setParameterMenu(_this,"vs30",supportedVs30);
      });
+    
+    $(_this.controlEl).removeClass('hidden');
 
     let urlInfo = ModelExplorer.checkQuery(_this);
     if (urlInfo) ModelExplorer.callHazard(_this,ModelExplorer.callHazardCallback);
   }
   //------------------- End Method: buildInputs --------------------------------
 
+  /**
+  * @method getMetadata
+  */
+  getMetadata() {
+    let metadata = {
+      'Edition': $(this.editionEl).find(':selected').text(),
+      'Region': $(this.regionEl).find(':selected').text(),
+      'Latitude (°)': this.latEl.value,
+      'Longitude (°)': this.lonEl.value,
+      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
+      'V<sub>S</sub>30': $(this.vs30El).find(':selected').text(),
+    };
+
+    return metadata;
+  }
 
   static supportedRegions(_this){
     let selectedEdition = _this.parameters.edition
@@ -161,6 +166,9 @@ export default class ModelExplorer extends Hazard{
 
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
+    let metadata = _this.getMetadata();
+    metadata.url = window.location.href;
+    metadata.time = new Date();
     
     // Reset listeners
     $(_this.imtEl).off();
@@ -206,24 +214,19 @@ export default class ModelExplorer extends Hazard{
     //--------------------------------------------------------------------------
     
     //.................. Get Axis Information ..................................
-    var metadata = jsonResponse[0][0].metadata;
-    var xLabel   = metadata.xlabel;
-    var yLabel   = metadata.ylabel;
-    metadata = {
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-    };
+    var returnMetadata = jsonResponse[0][0].metadata;
+    var xLabel   = returnMetadata.xlabel;
+    var yLabel   = returnMetadata.ylabel;
     //--------------------------------------------------------------------------
     
     //.................... Plot Info Object for D3 .............................
     _this.hazardPlot.setPlotTitle(title)
+        .setMetadata(metadata)
         .setUpperData(seriesData)
         .setUpperDataTableTitle('')
         .setUpperPlotFilename(filename)
         .setUpperPlotIds(seriesLabelIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperMetadata(metadata)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
         .removeSmallValues(_this.hazardPlot.upperPanel, 1e-14)
@@ -280,6 +283,9 @@ export default class ModelExplorer extends Hazard{
 
 
   static plotComponentCurves(_this,hazardReturn){
+    let metadata = _this.getMetadata();
+    metadata.url = window.location.href;
+    metadata.time = new Date();
     
     let imtSelectedDisplay = _this.imtEl.querySelector(":checked").text; 
     let title = "Component Curves at "+ imtSelectedDisplay
@@ -307,24 +313,19 @@ export default class ModelExplorer extends Hazard{
   
   
     //.................. Get Axis Information ..................................
-    var metadata = hazardReturn[0][0].metadata;
-    var xLabel   = metadata.xlabel;
-    var yLabel   = metadata.ylabel;
-    metadata = {
-        version: "1.1",
-        url: window.location.href,
-        time: new Date()
-    };
+    var returnMetadata = hazardReturn[0][0].metadata;
+    var xLabel   = returnMetadata.xlabel;
+    var yLabel   = returnMetadata.ylabel;
     //--------------------------------------------------------------------------
     
     //.................... Plot Info Object for D3 .............................
     _this.componentPlot.setPlotTitle(title)
+        .setMetadata(metadata)
         .setUpperData(seriesData)
         .setUpperDataTableTitle('')
         .setUpperPlotFilename(filename)
         .setUpperPlotIds(seriesLabelIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperMetadata(metadata)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
         .removeSmallValues(_this.componentPlot.upperPanel, 1e-14)
