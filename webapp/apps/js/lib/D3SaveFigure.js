@@ -12,8 +12,8 @@
 *  Use builder for class:
 *     new D3SaveFigure.Builder()
 *         .filename('myFile')
-*         .options({})
-*         .metadata(url, date)
+*         .options(object)
+*         .metadata(object)
 *         .plotFormat('png')
 *         .plotHeight(current svg height)
 *         .plotWidth(current svg width)
@@ -285,41 +285,6 @@ export default class D3SaveFigure {
   }
   
   /**
-  * @method saveAsPdf
-  * 
-  * Open SVG in new tab and open print dialog
-  * @param {Image} svgImg - The svg image
-  */ 
-  saveAsPdf(svgImg) {
-    let win = window.open();
-    let headD3 = d3.select(win.document.head);
-    headD3.append('title')
-        .text(this.filename);
-    headD3.append('meta')
-      .attr('name', 'viewport')
-      .attr('content', 'width=device-width, initial-scale=1.0');
-    headD3.append('meta')
-        .attr('charset', 'UTF-8');
-    let styleD3 = headD3.append('style');
-    let promise = $.ajax({
-      url: '/nshmp-haz-ws/apps/css/Print.css',
-      type: 'GET',
-    });
-    
-    d3.select(win.document.body)
-        .append('div')
-        .attr('class', 'svg-img')
-        .html(svgImg.outerHTML);
-     
-    promise.done((css) => {
-      styleD3.html(css);
-      win.print();
-      win.close();
-    });
-  
-  }
- 
-  /**
   * @method createSvgImage
   * 
   * Create the SVG image for canvas
@@ -405,4 +370,40 @@ export default class D3SaveFigure {
     return {canvasEl: canvasEl, canvasContext: canvasContext};
   }
 
+  /**
+  * @method saveAsPdf
+  * 
+  * Put SVG image in iframe and print. 
+  * @param {Image} svgImg - The svg image
+  */ 
+  saveAsPdf(svgImg) {
+    d3.selectAll('.save-figure-iframe-' + this.filename)
+        .remove();
+
+    let iframeD3 = d3.select('body')
+        .append('iframe')
+        .attr('class', 'hidden save-figure-iframe-' + this.filename);
+    
+    let iframeEl = iframeD3.node();
+    
+    d3.select(iframeEl.contentWindow.document.head)
+        .append('link')
+        .attr('rel', 'stylesheet')
+        .attr('href', '/nshmp-haz-ws/apps/css/PrintFigure.css');
+        
+    iframeEl.contentWindow.document.title = this.filename;
+
+    d3.select(iframeEl.contentWindow.document.body)
+        .html(svgImg.outerHTML);
+    
+    $(iframeEl).ready(() => {
+      iframeEl.contentWindow.print();
+     
+      iframeEl.contentWindow.onafterprint = () => {
+        d3.select(iframeEl).remove();
+      };
+      
+    });
+  }
+ 
 }
