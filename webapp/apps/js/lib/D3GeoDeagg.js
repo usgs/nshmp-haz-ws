@@ -839,7 +839,7 @@ export default class D3GeoDeagg extends D3View {
     let buttons = [
       {
         class: 'view-btns',
-        col: 'col-xs-6',
+        col: 'col-xs-5',
         btns: [
           {
             name: 'overview',
@@ -855,7 +855,7 @@ export default class D3GeoDeagg extends D3View {
         ]
       },{
         class: 'plot-data-btns',
-        col: 'col-xs-6',
+        col: 'col-xs-7',
         btns: [
           {
             name: 'plot',
