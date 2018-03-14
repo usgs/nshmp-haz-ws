@@ -59,8 +59,8 @@ export default class D3MapPlot extends D3MapView{
 
     //..................... Get GeoJSON Files and Plot Map .....................
     let dynamic = this.config.server.dynamic;
-    mapBorderUrl = dynamic + "/nshmp-haz-ws/data/us.json";
-    mapUrl = dynamic + "/nshmp-haz-ws/data/americas.json";
+    mapBorderUrl = "/nshmp-haz-ws/data/us.json";
+    mapUrl = "/nshmp-haz-ws/data/americas.json";
 
     mapBorderPromise = $.getJSON(mapBorderUrl);
     mapPromise = $.getJSON(mapUrl);
