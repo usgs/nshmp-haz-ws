@@ -651,6 +651,7 @@ export default class D3LinePlot extends D3View {
         .classed('hidden', false);
 
     d3.select(this.plotFooterEl)
+        .select('.plot-data-btns')
         .selectAll('label')
         .classed('active', false)
         .classed('focus', false);
@@ -919,7 +920,7 @@ export default class D3LinePlot extends D3View {
           let input = d3.select(els[i]);
           let btn = d3.select(els[i].parentNode);
           let isActive = input.attr('value') == optionsX.xAxisScale;
-          btn.classed('active', isActive)
+          btn.classed('active', isActive);
           if (this.options.disableXAxisBtns) {
             btn.attr('disabled', '');
           }
@@ -935,7 +936,7 @@ export default class D3LinePlot extends D3View {
           let input = d3.select(els[i]);
           let btn = d3.select(els[i].parentNode);
           let isActive = input.attr('value') == optionsY.yAxisScale;
-          btn.classed('active', isActive)
+          btn.classed('active', isActive);
           if (this.options.disableYAxisBtns) {
             btn.attr('disabled', '');
           }
@@ -1014,7 +1015,7 @@ export default class D3LinePlot extends D3View {
     let buttons = [
       {
         class: 'x-axis-btns',
-        col: 'col-xs-4',
+        col: 'col-xs-3',
         btns: [
           {
             name: 'x-axis-x',
@@ -1030,7 +1031,7 @@ export default class D3LinePlot extends D3View {
         ]
       },{
         class: 'plot-data-btns',
-        col: 'col-xs-4',
+        col: 'col-xs-6',
         btns: [
           {
             name: 'plot',
@@ -1051,7 +1052,7 @@ export default class D3LinePlot extends D3View {
         ]
       }, {
         class: 'y-axis-btns',
-        col: 'col-xs-4',
+        col: 'col-xs-3',
         btns: [
           {
             name: 'y-axis-x',
