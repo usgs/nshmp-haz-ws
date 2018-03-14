@@ -383,7 +383,6 @@ export default class D3View {
     // On window resize
     this.onResize(plotRatio);
    
-    
     d3.select(this.metadataTableEl)
         .selectAll('table')
         .remove();
@@ -1258,6 +1257,11 @@ export default class D3View {
             value: 'data',
             text: 'Data',
             class: 'data-btn',
+          }, {
+            name: 'metadata',
+            value: 'metadata',
+            text: 'Metadata',
+            class: 'metadata-btn',
           }
         ]
       }
