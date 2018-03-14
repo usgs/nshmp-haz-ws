@@ -103,12 +103,6 @@ html, body{
   height: 3.5em;
 }
 
-
-.Footer .btn-float-right{
-  float: right;
-}
-
-
 .Footer .settings-btn{
   padding-left: 10px;
   cursor: pointer;
@@ -134,7 +128,6 @@ html, body{
   transform: translateY(-50%);
 }
 
-
 .Footer .code-info-collapse {
   bottom: 100%;
   left: 400px;
@@ -145,6 +138,7 @@ html, body{
 .Footer .well {
   background-color: white;
   margin: 10px 2px 3px 2px;
+  padding: 10px;
 }
 
 .Footer .code-info-icon.disabled {
