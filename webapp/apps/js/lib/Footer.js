@@ -51,7 +51,7 @@ export default class Footer{
         id: 'update-plot',
         text: 'Update',
       }, {
-        class: 'btn btn-danger btn-float-right',
+        class: 'btn btn-danger pull-right',
         id: 'raw-data',
         text: 'Raw Data',
       }
@@ -179,8 +179,18 @@ export default class Footer{
         .property('disabled', false)
         .classed('disabled', false);
 
-    $(this.codeInfoEl).text('nshmp-haz version: ' + 
-        server['nshmp-haz'].version);
+    let codeInfo = [
+      ['nshmp-haz version: ' + server['nshmp-haz'].version],
+      ['nshmp-haz-ws version: ' + server['nshmp-haz-ws'].version],
+      ['Cores used: ' + server['threads']],
+    ];
+    
+    d3.select(this.codeInfoEl)
+        .selectAll('div')
+        .data(codeInfo)
+        .enter()
+        .append('div')
+        .text((d) => { return d; });
   }
 
   /**
