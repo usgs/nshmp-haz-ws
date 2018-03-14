@@ -480,7 +480,7 @@ export default class HwFw extends Gmm {
   plotGmm(response) {
     let metadata = this.getMetadata();
     metadata.url = window.location.href;
-    metadata.time = new Date();
+    metadata.date = response.date;
     
     let mean = response.means;
     let meanData = mean.data;

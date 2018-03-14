@@ -107,7 +107,7 @@ export default class GmmDistance extends Gmm {
       'Z<sub>1.0</sub> (km)': this.z1p0El.value,
       'Z<sub>2.5</sub> (km)': this.z2p5El.value,
     };
-
+    
     return metadata;
   }
 
@@ -118,7 +118,7 @@ export default class GmmDistance extends Gmm {
   plotGmm(response) {
     let metadata = this.getMetadata();
     metadata.url = window.location.href;
-    metadata.time = new Date();
+    metadata.date = response.date; 
     
     let mean = response.means;
     let meanData = mean.data;

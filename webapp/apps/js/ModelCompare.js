@@ -186,7 +186,7 @@ export default class ModelCompare extends Hazard{
     _this.spinner.off();
     let metadata = _this.getMetadata();
     metadata.url = window.location.href;
-    metadata.time = new Date();
+    metadata.date = new Date();
     
     var selectedImtDisplay = _this.imtEl.querySelector(":checked").text; 
     var selectedImtValue   = _this.imtEl.value; 

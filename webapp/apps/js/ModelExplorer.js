@@ -168,7 +168,7 @@ export default class ModelExplorer extends Hazard{
     _this.spinner.off();
     let metadata = _this.getMetadata();
     metadata.url = window.location.href;
-    metadata.time = new Date();
+    metadata.date = new Date();
     
     // Reset listeners
     $(_this.imtEl).off();

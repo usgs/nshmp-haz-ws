@@ -547,7 +547,7 @@ export default class GeoDeagg {
       });
       
       metadata.url = window.location.href;
-      metadata.time = new Date();
+      metadata.date = response.date;
       
       let lat = response.response[0].metadata.latitude;
       let lon = response.response[0].metadata.longitude;
