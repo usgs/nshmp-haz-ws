@@ -47,7 +47,6 @@ export default class GmmDistance extends Gmm {
     let webApp = 'GmmDistance';
     super(webApp, webServiceUrl, config);
     this.header.setTitle('Ground Motion Vs. Distance');
-    this.spinner.on();
     
     /**
     * @type {{
@@ -83,16 +82,43 @@ export default class GmmDistance extends Gmm {
     
     this.getUsage();
   }
- 
+  
+  /**
+  * @method getMetadata
+  *
+  * Get current chosen parameters.
+  * @return {{
+  *   key: value || Array<Values>
+  * }} Object - Metadata containing key and value pairs.
+  */
+  getMetadata() {
+    let gmms = this.getCurrentGmms();
+
+    let metadata = {
+      'Ground Motion Models': gmms,
+      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
+      'M<sub>W</sub>': this.MwEl.value,
+      'Z<sub>Top</sub> (km)': this.zTopEl.value,
+      'Dip (°)': this.dipEl.value,
+      'Width (km)': this.widthEl.value,
+      'Minimum Rupture Distance (km)': this.rMin,
+      'Maximum Rupture Distance (km)': this.rMax,
+      'V<sub>S</sub>30 (m/s)': this.vs30El.value,
+      'Z<sub>1.0</sub> (km)': this.z1p0El.value,
+      'Z<sub>2.5</sub> (km)': this.z2p5El.value,
+    };
+    
+    return metadata;
+  }
+
   /**
   * Plot ground motion vs. distance in the upper plot panel
   * @param {Object} response JSON return from the gmm/distance web service
   */ 
   plotGmm(response) {
-    let metadata = {
-      url: window.location.href,
-      time: new Date(),
-    }; 
+    let metadata = this.getMetadata();
+    metadata.url = window.location.href;
+    metadata.date = response.date; 
     
     let mean = response.means;
     let meanData = mean.data;
@@ -110,11 +136,11 @@ export default class GmmDistance extends Gmm {
     let selectedImtVal = selectedImt.val();
     
     this.plot.setUpperData(seriesData)
+        .setMetadata(metadata)
         .setUpperDataTableTitle('Median Ground Motion')
         .setUpperPlotFilename('gmmDistance' + selectedImtVal)
         .setUpperPlotIds(seriesIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperMetadata(metadata)
         .setUpperXLabel(mean.xLabel)
         .setUpperYLabel(mean.yLabel)
         .plotData(this.plot.upperPanel);
@@ -168,19 +194,15 @@ export default class GmmDistance extends Gmm {
   updatePlot() {
     let url = this.serializeGmmUrl(); 
     if (this.rMin < this.options.rMin) return;
+    
     // Call ground motion gmm/distance web service 
-    d3.json(url, (error, response) => {
-      if (error) return console.warn(error);
-      if (response.status == 'ERROR') {
-        d3.select(this.plot.upperPanel.svgEl)
-            .append('text')
-            .attr('y', this.plot.upperPanel.options.marginTop)
-            .attr('x', this.plot.upperPanel.options.marginLeft)
-            .text(response.message);
-        return;
-      }  
-      
+    let promise = $.getJSON(url);
+    this.spinner.on(promise, 'Calculating');
+    
+    promise.done((response) => {
       this.spinner.off();
+      this.footer.setMetadata(response.server);
+
       let selectedImt = $(':selected', this.imtEl);
       let selectedImtDisplay = selectedImt.text();
       this.plot.setPlotTitle('Ground Motion Vs. Distance: ' + 

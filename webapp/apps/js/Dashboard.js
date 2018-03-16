@@ -19,8 +19,7 @@ export default class Dashboard {
   */
   constructor(config) {
     /** @type {Footer} */
-    this.footer = new Footer();
-    this.footer.removeButtons();
+    this.footer = new Footer().removeButtons().removeInfoIcon();
     /** @type {Settings} */
     //this.settings = new Settings(footer.settingsBtnEl);
     /** @type {Header} */

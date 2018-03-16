@@ -69,6 +69,7 @@ export default class Hazard{
     let dynamicPromise = $.getJSON(_this.dynamicUrl);
     let staticPromise = $.getJSON(_this.staticUrl);
     
+    _this.spinner.on([dynamicPromise, staticPromise]);
     
     $.when(dynamicPromise,staticPromise)
         .done(function(dp,sp){
@@ -480,10 +481,6 @@ export default class Hazard{
     let imt = _this.imtEl.value;
     
     //....................... Setup URLs to Submit .............................
-    
-    _this.spinner.on("Calculating ...");
-    
-    
     let type = _this.options.type;
     if (type == "compare"){
       var regionInfo = _this.comparableRegions.find(function(d,i){
@@ -542,6 +539,7 @@ export default class Hazard{
     for (var ju in urlInfo){
       promises[ju] = $.getJSON(urlInfo[ju].url);
     }
+    _this.spinner.on(promises, 'Calculating');
     //--------------------------------------------------------------------------
     
     
@@ -554,8 +552,15 @@ export default class Hazard{
         jsonReturn[0].response.dataType = urlInfo[i].dataType;
         jsonResponse.push(jsonReturn[0].response);
       });
+     
+      let responseWithServer = responses.find((d, i) => {
+        return d[0].server;
+      });
       
-      
+      let server = responseWithServer != undefined ?
+          responseWithServer[0].server : undefined;
+      _this.footer.setMetadata(server);
+
       callback(_this,jsonResponse); 
     });
     //--------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 import D3SaveFigure from './D3SaveFigure.js';
 import D3SaveData from './D3SaveData.js';
+import D3SaveMetadata from './D3SaveMetadata.js';
 
 /**
 * @class D3View
@@ -295,8 +296,10 @@ export default class D3View {
     /** @type {HTMLElement} */
     this.plotPanelEl = this.el.querySelector('.panel');
     /** @type {HTMLElement} */
+    this.metadataTableEl = this.plotBodyEl.querySelector('.metadata-table');
+    /** @type {HTMLElement} */
     this.tableEl = this.plotBodyEl.querySelector('.data-table');
-    
+
     this.lowerPanel = this.createPlotPanelObject('lower', 
         $.extend({}, plotOptions, plotOptionsLower));
 
@@ -362,6 +365,59 @@ export default class D3View {
         });
       });
     });
+  }
+
+  /**
+  * @method createMetadataTable
+  *
+  */
+  createMetadataTable() {
+    let panelDim = this.plotBodyEl.getBoundingClientRect();
+    let plotRatio = Number((panelDim.width / panelDim.height).toFixed(8)); 
+
+    // Update table height and width
+    d3.select(this.metadataTableEl)
+        .style('height', panelDim.height + 'px')
+        .style('width', panelDim.width + 'px');
+  
+    // On window resize
+    this.onResize(plotRatio);
+   
+    d3.select(this.metadataTableEl)
+        .selectAll('table')
+        .remove();
+    
+    let tableBodyD3 = d3.select(this.metadataTableEl)
+        .append('table')
+        .attr('class', 'table table-bordered table-condensed ')
+        .append('tbody')
+        .attr('class', 'metadata-table-body');
+    
+    for (let key in this.metadata) {
+      if (key == 'url' || key == 'time') break;
+
+      let values = this.metadata[key];
+      let isArray = Array.isArray(values);
+      let tableRowD3 = tableBodyD3.append('tr');
+      
+      tableRowD3.append('th')
+          .attr('nowrap', true)
+          .html(key);
+      
+      if (isArray) {
+        tableRowD3.selectAll('tr')
+            .data(values)
+            .enter()
+            .append('tr')
+            .append('td')
+            .attr('nowrap', true)
+            .text((d) => { return d; });
+      } else {
+        tableRowD3.append('td')
+            .attr('nowrap', true)
+            .text(values);
+      }
+    }
   }
 
   /**
@@ -444,8 +500,11 @@ export default class D3View {
         .classed('hidden', !this.options.plotLowerPanel);
     
     panelBodyD3.append('div')
-        .attr('class', 'data-table hidden');
-     
+        .attr('class', 'data-table panel-table hidden');
+    
+    panelBodyD3.append('div')
+        .attr('class', 'metadata-table panel-table hidden');
+
     return elD3.node(); 
   }
 
@@ -579,6 +638,8 @@ export default class D3View {
       { label: 'SVG', id: 'svg', class: 'plot' },
       { label: 'Save Data As:', id: 'dropdown-header', class: 'data' },
       { label: 'CSV', id: 'csv', class: 'data' },
+      { label: 'Save Metadata As:', id: 'dropdown-header', class: 'metadata' },
+      { label: 'PDF/Print', id: 'pdf', class: 'metadata' },
     ];
 
     let saveListD3 = saveAsD3.append('ul')
@@ -640,19 +701,41 @@ export default class D3View {
         d3.select(this.tableEl)
             .classed('hidden', true);
         
+        d3.select(this.metadataTableEl)
+            .classed('hidden', true);
+        
         d3.select(this.upperPanel.plotBodyEl)
             .classed('hidden', false);
-        
+
         if (this.options.plotLowerPanel)
           d3.select(this.lowerPanel.plotBodyEl)
               .classed('hidden', false);
-      }else{
+      }else if (selectedValue == 'data') {
         d3.select(this.tableEl)
             .classed('hidden', false)
             .style('height', panelDim.height + 'px')
             .style('width', panelDim.width + 'px');
         
         d3.select(this.upperPanel.plotBodyEl)
+            .classed('hidden', true);
+        
+        d3.select(this.metadataTableEl)
+            .classed('hidden', true);
+        
+        if (this.options.plotLowerPanel){
+          d3.select(this.lowerPanel.plotBodyEl)
+              .classed('hidden', true);
+        }
+      } else if (selectedValue == 'metadata') {
+        d3.select(this.metadataTableEl)
+            .classed('hidden', false)
+            .style('height', panelDim.height + 'px')
+            .style('width', panelDim.width + 'px');
+        
+        d3.select(this.upperPanel.plotBodyEl)
+            .classed('hidden', true);
+        
+        d3.select(this.tableEl)
             .classed('hidden', true);
         
         if (this.options.plotLowerPanel){
@@ -669,16 +752,19 @@ export default class D3View {
   * Resizes the plot panel when the resize glyphicon is clicked
   */
   onPanelResize() {
+    d3.select(this.metadataTableEl)
+        .classed('hidden', true);
+    
     d3.select(this.tableEl)
         .classed('hidden', true);
     
     d3.select(this.plotFooterEl)
+        .selectAll('label')
+        .classed('active', false);
+    
+    d3.select(this.plotFooterEl)
         .select('.plot-btn')
         .classed('active', true);
-
-    d3.select(this.plotFooterEl)
-        .select('.data-btn')
-        .classed('active', false);
     
     d3.select(this.upperPanel.plotBodyEl)
         .classed('hidden', false);
@@ -773,12 +859,17 @@ export default class D3View {
               .fileFormat(event.target.id)
               .build();
         }
+      } else if ($(event.target).hasClass('metadata')) {
+        new D3SaveMetadata.Builder()
+            .filename('metadata')
+            .fileFormat(event.target.id)
+            .metadata(this.metadata)
+            .build();
       } else {
         new D3SaveFigure.Builder()
             .filename(this.upperPanel.plotFilename)
             .options(upperSaveOptions)
-            .metadata(this.upperPanel.metadata.url, 
-                this.upperPanel.metadata.time)
+            .metadata(this.metadata) 
             .plotFormat(event.target.id)
             .plotHeight(this.upperPanel.svgHeight)
             .plotMarginLeft(this.upperPanel.options.marginLeft)
@@ -793,8 +884,7 @@ export default class D3View {
           new D3SaveFigure.Builder()
               .filename(this.lowerPanel.plotFilename)
               .options(lowerSaveOptions)
-              .metadata(this.lowerPanel.metadata.url, 
-                  this.lowerPanel.metadata.time)
+              .metadata(this.metadata) 
               .plotFormat(event.target.id)
               .plotHeight(this.lowerPanel.svgHeight)
               .plotMarginLeft(this.lowerPanel.options.marginLeft)
@@ -819,6 +909,12 @@ export default class D3View {
       let panelDimResize = this.plotBodyEl.getBoundingClientRect();
       let width = panelDimResize.width;
       let height = Number((width / plotRatio).toFixed(6));
+      
+      // Update metadata table height and width
+      d3.select(this.metadataTableEl)
+          .style('height', height + 'px')
+          .style('width', width + 'px');
+
       // Update table height and width
       d3.select(this.tableEl)
           .style('height', height + 'px')
@@ -915,18 +1011,6 @@ export default class D3View {
   }
 
   /**
-  * @method setLowerMetadata
-  *
-  * Sets the lower plot metadata. This method is chainable.
-  * @param {!Object} metadata - Metadata for plots 
-  * @return {D3View} - Return the class instance to be chainable
-  */
-  setLowerMetadata(metadata) {
-    this.lowerPanel.metadata = metadata;
-    return this;
-  }
-
-  /**
   * @method setLowerXLabel
   *
   * Sets the lower plot X label. This method is chainable.
@@ -947,6 +1031,20 @@ export default class D3View {
   */
   setLowerYLabel(yLabel) {
     this.lowerPanel.yLabel = yLabel;
+    return this;
+  }
+
+  /**
+  * @method setMetadata
+  *
+  * Sets the metadata and creates the metadata table. 
+  *     This method is chainable.
+  * @param {!Object} metadata - Metadata for plots 
+  * @return {D3View} - Return the class instance to be chainable
+  */
+  setMetadata(metadata) {
+    this.metadata = metadata;
+    this.createMetadataTable();
     return this;
   }
 
@@ -1079,18 +1177,6 @@ export default class D3View {
   }
 
   /**
-  * @method setUpperMetadata
-  *
-  * Sets the upper plot metadata. This method is chainable.
-  * @param {!Object} metadata - Metadata for plots 
-  * @return {D3View} - Return the class instance to be chainable
-  */
-  setUpperMetadata(metadata) {
-    this.upperPanel.metadata = metadata;
-    return this;
-  }
-
-  /**
   * @method setUpperXLabel
   *
   * Sets the upper plot X label. This method is chainable.
@@ -1171,6 +1257,11 @@ export default class D3View {
             value: 'data',
             text: 'Data',
             class: 'data-btn',
+          }, {
+            name: 'metadata',
+            value: 'metadata',
+            text: 'Metadata',
+            class: 'metadata-btn',
           }
         ]
       }

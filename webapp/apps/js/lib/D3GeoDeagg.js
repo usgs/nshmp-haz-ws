@@ -640,11 +640,17 @@ export default class D3GeoDeagg extends D3View {
     d3.select(this.tableEl)
         .classed('hidden', true);
 
+    d3.select(this.metadataTableEl)
+        .classed('hidden', true);
+    
     d3.select(this.plotBodyEl)
         .classed('hidden', false);
- 
+
+    d3.select(panel.plotBodyEl)
+        .classed('hidden', false);
+
     d3.select(this.plotFooterEl)
-        .select('.data-btn')
+        .selectAll('label')
         .classed('active', false)
         .classed('focus', false);
     
@@ -833,7 +839,7 @@ export default class D3GeoDeagg extends D3View {
     let buttons = [
       {
         class: 'view-btns',
-        col: 'col-xs-6',
+        col: 'col-xs-5',
         btns: [
           {
             name: 'overview',
@@ -849,7 +855,7 @@ export default class D3GeoDeagg extends D3View {
         ]
       },{
         class: 'plot-data-btns',
-        col: 'col-xs-6',
+        col: 'col-xs-7',
         btns: [
           {
             name: 'plot',
@@ -861,6 +867,11 @@ export default class D3GeoDeagg extends D3View {
             value: 'data',
             text: 'Data',
             class: 'data-btn',
+          }, {
+            name: 'metadata',
+            value: 'metadata',
+            text: 'Metadata',
+            class: 'metadata-btn',
           }
         ]
       }
