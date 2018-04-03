@@ -27,11 +27,13 @@ enum Model {
 
   final String path;
   final String name;
+  final Region region;
+  final String year;
 
   private Model() {
-    Region region = deriveRegion(name());
+    region = deriveRegion(name());
     String regionName = deriveRegionName(region);
-    String year = name().substring(name().lastIndexOf('_') + 1);
+    year = name().substring(name().lastIndexOf('_') + 1);
     path = deriveModelPath(region, regionName, year);
     name = Parsing.join(
         ImmutableList.of(year, "NSHM", regionName, "Hazard Model"),
