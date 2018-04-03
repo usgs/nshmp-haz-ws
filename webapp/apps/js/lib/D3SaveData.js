@@ -1,10 +1,10 @@
 'use strict';
 
 /**
-* @class Save
+* @class D3SaveData
 * 
-* @fileoverview This class will save a SVG element as a figure or 
-*     save data from a data table.
+* @fileoverview  Save multiple data sets as a CSV or TSV file.
+* Use Builder to set multiple data sets.
 */
 export default class D3SaveData { 
   
@@ -14,21 +14,26 @@ export default class D3SaveData {
     this.fileFormat = builder.fileFormat;
     this.dataSeriesLabels = builder.dataSeriesLabels;
     this.dataRowLabels = builder.dataRowLabels;
-
+   
     let delimiter = this.fileFormat == 'txt' ? '\t' : ',';
     let dataRow = [];
 
-    this.dataSeries.forEach((series, i) => {
-      let seriesTranspose = d3.transpose(series);
-      dataRow.push([this.dataRowLabels[0], this.dataSeriesLabels[i]]);
-      
-      seriesTranspose.forEach((dataArray, ida) => {
+    this.dataSeries.forEach((series, ids) => {
+      series.forEach((data, id) => { 
+        let dataTranspose = d3.transpose(data);
         dataRow.push([
-          this.dataRowLabels[ida + 1], 
-          dataArray.join(delimiter)
-        ]);
-      })
-      dataRow.push('');
+            this.dataRowLabels[ids][0], 
+            this.dataSeriesLabels[ids][id]]);
+        
+        dataTranspose.forEach((dataArray, ida) => {
+          dataRow.push([
+            this.dataRowLabels[ids][ida + 1], 
+            dataArray.join(delimiter)
+          ]);
+        })
+        dataRow.push('');
+      });
+      dataRow.push('\n');
     });
   
     let file = new Blob(
@@ -39,7 +44,7 @@ export default class D3SaveData {
     aEl.download = this.filename + '.' + this.fileFormat;
     aEl.href = URL.createObjectURL(file);
     aEl.click();
-
+    aEl.remove();
   }
 
   /**
@@ -50,24 +55,28 @@ export default class D3SaveData {
   static get Builder() {
     return class Builder {
       
-      constructor() {}
+      constructor() {
+        this.data = [];
+        this.dataRowLabels = [];
+        this.dataSeriesLabels = [];
+      }
     
       build() {
         return new D3SaveData(this);
       }
 
-      data(data) {
-        this.data = data;
+      addData(data) {
+        this.data.push(data);
         return this;
       }
 
-      dataRowLabels(dataRowLabels) {
-        this.dataRowLabels = dataRowLabels;
+      addDataRowLabels(dataRowLabels) {
+        this.dataRowLabels.push(dataRowLabels);
         return this;
       }
 
-      dataSeriesLabels(dataSeriesLabels) {
-        this.dataSeriesLabels = dataSeriesLabels;
+      addDataSeriesLabels(dataSeriesLabels) {
+        this.dataSeriesLabels.push(dataSeriesLabels);
         return this;
       }
       
