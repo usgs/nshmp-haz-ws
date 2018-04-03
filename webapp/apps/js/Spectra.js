@@ -171,6 +171,7 @@ export default class Spectra extends Gmm {
     let seriesData = [];
       
     meanData.forEach((d, i) => {
+      d.data.xs[0] = 'PGA';
       seriesLabels.push(d.label);
       seriesIds.push(d.id);
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
@@ -244,6 +245,7 @@ export default class Spectra extends Gmm {
     let seriesData = [];
       
     sigmaData.forEach((d, i) => {
+      d.data.xs[0] = 'PGA';
       seriesLabels.push(d.label);
       seriesIds.push(d.id);
       seriesData.push(d3.zip(d.data.xs, d.data.ys));
