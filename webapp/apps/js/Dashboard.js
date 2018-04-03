@@ -29,6 +29,9 @@ export default class Dashboard {
     /** @ type {Array{Object}} */
     this.webapps = [
       {
+        label: 'Dynamic Model Comparison',
+        href: 'apps/dynamic-compare.html',
+      }, {
         label: 'Geographic Deaggregation',
         href: 'apps/geo-deagg.html',
       }, {

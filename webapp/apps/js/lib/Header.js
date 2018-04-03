@@ -34,6 +34,9 @@ export default class Header{
         label: 'Dashboard', 
         href: '/nshmp-haz-ws/',
       }, {
+        label: 'Dynamic Comparison', 
+        href: '/nshmp-haz-ws/apps/dynamic-compare.html',
+      }, {
         label: 'Geographic Deaggregation',
         href: '/nshmp-haz-ws/apps/geo-deagg.html',
       }, {
