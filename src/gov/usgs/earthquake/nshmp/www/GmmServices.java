@@ -76,12 +76,12 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
 
 
 @WebServlet(
-  name = "Ground Motion Vs. Distance",
-  description = "USGS NSHMP Ground Motion Vs. Distance Calculator",
+  name = "Ground Motion Model Services",
+  description = "Utilities for working with ground motion models",
   urlPatterns = {"/gmm", 
   			"/gmm/*"}
 )
-public class GroundMotionService extends HttpServlet {
+public class GmmServices extends HttpServlet {
   private static final long serialVersionUID = 1L;
   
   private static final String GMM_KEY = "gmm";

@@ -2,6 +2,7 @@
 
 import D3View from './D3View.js';
 import D3Tooltip from './D3Tooltip.js';
+import Tools from './Tools.js';
 
 /**
 * @class D3LinePlot
@@ -76,6 +77,14 @@ export default class D3LinePlot extends D3View {
     this.lowerPanel = this.updatePlotPanelObject(this.lowerPanel);
     this.upperPanel = this.updatePlotPanelObject(this.upperPanel);
   }
+  
+  addReturnPeriod(panel) {
+    let xValues = panel.xBounds.domain();
+    let yValues = [panel.returnPeriod, panel.returnPeriod];
+    panel.data.unshift(d3.zip(xValues, yValues));
+    panel.labels.unshift('Return Period');
+    panel.ids.unshift('return-period');
+  }
 
   /**
   * @method createAxes
@@ -146,7 +155,7 @@ export default class D3LinePlot extends D3View {
             (options.marginLeft - yAxisWidth) / 2))
         .text(panel.yLabel);
   }
-
+  
   /**
   * @method createLegend
   *
@@ -339,7 +348,7 @@ export default class D3LinePlot extends D3View {
         .attr('class', 'data')
         .attr('id', (d, i) => {return panel.ids[i]})
         .style('cursor', 'pointer');
-    
+   
     // Plot lines
     seriesEnter.append('path')
         .attr('class', 'line')
@@ -349,7 +358,6 @@ export default class D3LinePlot extends D3View {
         .attr('stroke-width', options.linewidth)
         .style('shape-rendering', 'geometricPrecision')
         .attr('fill', 'none');
-   
     // Plot cirles
     seriesEnter.selectAll('circle')
         .data((d,i) => {return d})
@@ -393,7 +401,7 @@ export default class D3LinePlot extends D3View {
     // Find X max
     let xMax = d3.max(data, (ds,is) => {
       let tmp = d3.max(ds, (dp,ip) => {
-        return dp[0];
+        return dp[0] == 'PGA' ? Tools.imtToValue('PGA') : dp[0];
       });
       return tmp;
     });
@@ -401,7 +409,7 @@ export default class D3LinePlot extends D3View {
     // Find X min
     let xMin = d3.min(data, (ds,is) => {
       let tmp = d3.min(ds, (dp,ip) => {
-        return dp[0];
+        return dp[0] == 'PGA' ? Tools.imtToValue('PGA') : dp[0];
       });
       return tmp;
     });
@@ -411,7 +419,7 @@ export default class D3LinePlot extends D3View {
     } else if (xMin == xMax && xMin == 0 && xMax == 0) {
       [xMin, xMax] = [-1.0, 1.0] 
     }
-
+    
     return [xMin, xMax];   
   }
   
@@ -558,12 +566,40 @@ export default class D3LinePlot extends D3View {
     if (this.options.syncSelections){ 
       return;
     }
-    
-    $(panel.legendEl).find('.legend-entry').on('click', (event) => {
-      this.plotSelection(panel, event.target.parentNode.id); 
-    });
+   
+    d3.select(panel.legendEl)
+        .selectAll('.legend-entry')
+        .on('click', (d, i, els) => {
+          this.plotSelection(panel, els[i].id); 
+        });
   }
 
+  /**
+  * @method onReturnPeriodDrag
+  */ 
+  onReturnPeriodDrag(panel) {
+    let dy = d3.event.dy;
+    let yDrag = d3.event.y;
+    let returnPeriod = panel.yBounds.invert(yDrag);
+    let yBounds = panel.yBounds.domain();
+    
+    let yMax = 1 / this.timeHorizonUsage.values.minimum; 
+    let yMin = 1 / this.timeHorizonUsage.values.maximum;
+    yMax = yBounds[1] < yMax ? yBounds[1] : yMax;
+    
+    returnPeriod = returnPeriod <= yMin ? yMin : 
+        returnPeriod >= yMax ? yMax : returnPeriod;
+
+    returnPeriod = dy > 0 ? 1 / Math.ceil(1 / returnPeriod) : 
+        dy < 0 ? 1 / Math.floor(1 / returnPeriod) : 
+        1 / Math.ceil(1 / returnPeriod) ; 
+    
+    panel.timeHorizon = 1 / returnPeriod;
+    this.plotReturnPeriod(panel); 
+    let el = d3.select(panel.plotEl).select('.return-period').node();
+    $(el).trigger('change');
+  }
+  
   /**
   * @method onPlotSelection
   *
@@ -574,10 +610,13 @@ export default class D3LinePlot extends D3View {
     if (this.options.syncSelections){ 
       return;
     }
-    
-    $(panel.allDataEl).find('.data').on('click', (event) => {
-      this.plotSelection(panel, event.target.id); 
-    });
+   
+    d3.select(panel.allDataEl)
+        .selectAll('.data')
+        .selectAll('path')
+        .on('click', (d, i, els) => {
+          this.plotSelection(panel, els[i].id); 
+        });
   }
   
   /**
@@ -659,7 +698,8 @@ export default class D3LinePlot extends D3View {
     d3.select(this.plotFooterEl)
         .select('.plot-btn')
         .classed('active', true);
-    
+  
+
     // Get color scheme
     let ndata = panel.data.length;           
     panel.color = ndata < 10 ? d3.schemeCategory10 : d3.schemeCategory20;
@@ -669,9 +709,15 @@ export default class D3LinePlot extends D3View {
     this.createDataTable(panel);
     
     panel.line = d3.line()                            
-      .defined((d,i) => {return d[1] != null})  
-      .x((d, i) => {return panel.xBounds(d[0])})        
-      .y((d, i) => {return panel.yBounds(d[1])});      
+      .defined((d,i) => { return d[1] != null })  
+      .x((d, i) => {
+        if (d[0] == 'PGA') {
+          return panel.xBounds(Tools.imtToValue('PGA'));
+        } else {
+          return panel.xBounds(d[0])
+        }
+      })      
+      .y((d, i) => { return panel.yBounds(d[1]) }); 
 
     panel.xBounds = this.getXScale(panel);
     panel.xExtremes = xDomain || this.getXExtremes(panel.data);
@@ -700,6 +746,48 @@ export default class D3LinePlot extends D3View {
     if (options.showLegend) this.createLegend(panel);
     // Plot Selections
     this.onPlotSelection(panel); 
+    
+    if (panel.options.plotReturnPeriod) this.plotReturnPeriod(panel);
+  }
+
+  /**
+  * @method plotReturnPeriod
+  *
+  */
+  plotReturnPeriod(panel) {
+    let returnPeriod = 1 / panel.timeHorizon;
+    let xValues = panel.xBounds.domain();
+    let yValues = [returnPeriod, returnPeriod]; 
+
+    let data = [];
+    data.push(d3.zip(xValues, yValues));
+  
+    d3.select(panel.plotEl)
+        .select('.return-period')
+        .selectAll('path')
+        .remove();
+     
+    d3.select(panel.plotEl)
+        .select('.return-period')
+        .lower()
+        .selectAll('path')
+        .data(data)
+        .enter()
+        .append('path')
+        .attr('d', panel.line)
+        .attr('stroke', '#455A64')
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('fill', 'none')
+        .style('cursor', 'row-resize')
+        .call(d3.drag()
+            .on('drag', () => { 
+              this.onReturnPeriodDrag(panel); 
+            })
+            .on('end', () => {
+              this.onReturnPeriodDrag(panel); 
+            })
+          );
   }
 
   /**
@@ -721,7 +809,7 @@ export default class D3LinePlot extends D3View {
     if (options.xAxisNice){
       panel.xBounds.nice();
     }
-    
+
     // Update Y bounds
     panel.yBounds = this.getYScale(panel);
     panel.yBounds
@@ -732,8 +820,9 @@ export default class D3LinePlot extends D3View {
     }
     
     // Update X axis
+    panel.xAxis = this.getXAxisLocation(panel);
     svgD3.select('.x-tick')  
-        .call(this.getXAxisLocation(panel));
+        .call(panel.xAxis);
      
     // Update Y axis
     svgD3.select('.y-tick')                                   
@@ -755,6 +844,14 @@ export default class D3LinePlot extends D3View {
     // Set tick mark format
     this.setTicks(panel, 'x'); 
     this.setTicks(panel, 'y'); 
+  
+    if (options.plotReturnPeriod) {
+      svgD3.select('.return-period')
+          .selectAll('path')
+          .transition()
+          .duration(options.transitionDuration)
+          .attr('d', panel.line);
+    }
   }
 
 
@@ -1001,6 +1098,15 @@ export default class D3LinePlot extends D3View {
     
     svgD3.append('g')
         .attr('class', 'legend');
+  
+    /* Return period */
+    if (this.upperPanel.options.plotReturnPeriod) {
+      d3.select(this.el)
+          .select('.panel-upper')
+          .select('.plot')
+          .append('g')
+          .attr('class', 'return-period');
+    }
   }
 
   /**                                                                           

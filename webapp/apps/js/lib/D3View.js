@@ -234,6 +234,7 @@ export default class D3View {
       plotHeight: 504,
       plotWidth: 896,
       pointRadius: 3.5,
+      plotReturnPeriod: false,
       printTitle: true,
       printCenter: true,
       printFooter: true,
@@ -759,6 +760,7 @@ export default class D3View {
         .classed('hidden', true);
     
     d3.select(this.plotFooterEl)
+        .select('.plot-data-btns')
         .selectAll('label')
         .classed('active', false);
     
@@ -840,25 +842,17 @@ export default class D3View {
       };
       
       if ($(event.target).hasClass('data')) {
-
-        new D3SaveData.Builder()
-            .data(this.upperPanel.data)
-            .dataRowLabels(this.upperPanel.options.tooltipText)
-            .dataSeriesLabels(this.upperPanel.labels)
+        let saveBuilder = new D3SaveData.Builder()
             .filename(this.upperPanel.plotFilename)
-            .fileFormat(event.target.id)
-            .build();
-        
-        if (this.lowerPanel.options.showData &&
-              this.options.plotLowerPanel) {
-          new D3SaveData.Builder()
-              .data(this.lowerPanel.data)
-              .dataRowLabels(this.lowerPanel.options.tooltipText)
-              .dataSeriesLabels(this.lowerPanel.labels)
-              .filename(this.lowerPanel.plotFilename)
-              .fileFormat(event.target.id)
-              .build();
+            .fileFormat(event.target.id);
+
+        for (let panel of [this.upperPanel, this.lowerPanel]) {
+          if (!panel.options.showData) continue; 
+          saveBuilder.addData(panel.data)
+              .addDataRowLabels(panel.options.tooltipText)
+              .addDataSeriesLabels(panel.labels)
         }
+        saveBuilder.build();
       } else if ($(event.target).hasClass('metadata')) {
         new D3SaveMetadata.Builder()
             .filename('metadata')
@@ -1011,6 +1005,15 @@ export default class D3View {
   }
 
   /**
+  * @method setLowerTimeHorizon
+  *
+  */
+  setLowerTimeHorizon(timeHorizon) {
+    this.lowerPanel.timeHorizon = timeHorizon;
+    return this;
+  }
+    
+  /**
   * @method setLowerXLabel
   *
   * Sets the lower plot X label. This method is chainable.
@@ -1073,6 +1076,15 @@ export default class D3View {
     panel.plotScale = panel.svgWidth / width;
   }
   
+  /**
+  * @method setTimeHorizonUsage 
+  *
+  */
+  setTimeHorizonUsage(usage) {
+    this.timeHorizonUsage = usage;
+    return this;
+  }
+
   /**
   * @method setSiteLocation
   *
@@ -1176,6 +1188,15 @@ export default class D3View {
     return this;
   }
 
+  /**
+  * @method setUpperTimeHorizon
+  *
+  */
+  setUpperTimeHorizon(timeHorizon) {
+    this.upperPanel.timeHorizon = timeHorizon;
+    return this;
+  }
+  
   /**
   * @method setUpperXLabel
   *

@@ -142,6 +142,45 @@ export default class Footer{
   }
 
   /**
+  * @method onInput
+  *
+  * Listen for all input changes to a specified element, if there
+  *     is no 'has-error' class present then the update button can be 
+  *     visible.
+  * @param {HTMLElement} el - The element to listen for input changes.
+  */
+  onInput(el, options) {
+    $(el).on('change input', (event) => {
+      let hasError;
+      let val;
+      $(el).find('input').each((i, d) => {
+        val = parseFloat(d.value);
+        hasError = isNaN(val) ? true : $(d.parentNode).hasClass('has-error');
+        return !hasError;
+      });
+      
+      options.updateBtnDisable = hasError;
+      this.setOptions(options);
+    });
+  }
+
+  /**
+  * @method onRawDataBtn
+  *
+  * Listen for click on raw data button and open the new windows with 
+  *     raw data.
+  * @param {Array<String>} urls - The array of urls to call.
+  */
+  onRawDataBtn(urls) {
+    $(this.rawBtnEl).off();
+    $(this.rawBtnEl).on('click', (event) => {
+      for (let url of urls) {
+        window.open(url);
+      }
+    });
+  }
+
+  /**
   * @method removeButtons
   *
   * Remove the update and raw data buttons
@@ -203,7 +242,7 @@ export default class Footer{
   setOptions(options) {
     options.position = options.position == 'fixed' || 
         options.position == 'absolute' ? options.position : 'fixed';
-         
+        
     $.extend(this.options, options);
     this.updateOptions();
   }
@@ -219,7 +258,7 @@ export default class Footer{
          
     d3.select(this.rawBtnEl)
         .property('disabled', this.options.rawBtnDisable);   
-  
+    
     d3.select(this.updateBtnEl)
         .property('disabled', this.options.updateBtnDisable);
   }

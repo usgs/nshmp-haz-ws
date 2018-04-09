@@ -11,6 +11,73 @@
 export default class Tools {
 
   /**
+  * @method d3XTDataToArrays
+  * 
+  * Decomposes a data series structrued for D3 to seperate X and 
+  *     Y arrays.
+  */
+  static d3XYDataToArrays(dataSeries) {
+    let seriesArrays = [];
+
+    for (let data of dataSeries) {
+      let x = [];
+      let y = [];
+      for (let dataPoint of data) {
+        x.push(dataPoint[0]);
+        y.push(dataPoint[1]);    
+      }
+      seriesArrays.push({xValues: x, yValues: y});
+    }
+    
+    return seriesArrays;
+  }
+
+ /**
+ * @method imtToValue
+ *
+ * Given an IMT, return the corresponding values.
+ * @param {String} imt - IMT string.
+ * @return {Number} the corresponding IMT period value.
+ */ 
+  static imtToValue(imt) {
+    const IMT_VALUES = {
+      'PGA': 0.001,
+      'SA0P1': 0.1,
+      'SA0P2': 0.2,
+      'SA0P3': 0.3,
+      'SA0P5': 0.5,
+      'SA0P75': 0.75,
+      'SA1P0': 1.0,
+      'SA2P0': 2.0,
+      'SA3P0': 3.0,
+      'SA4P0': 4.0,
+      'SA5P0': 5.0,
+    };
+
+    return IMT_VALUES[imt];
+  }
+
+  /**
+  * @method percentDiffernce
+  *
+  * Conveince method for calculating percent difference.
+  */
+  static percentDifference(x0, x1) {
+    return ((x0 - x1) / ((x0 + x1) / 2)) * 100.0; 
+  }
+  
+  /**
+  * @method returnPeriodInterpolation
+  *
+  * Interpolate between two values at a return period and 
+  *     return that value at the return period.
+  */
+  static returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod) {
+    return x0 + 
+        ((Math.log10(returnPeriod / y0) * (x1 - x0)) / Math.log10(y1 / y0)); 
+  }
+ 
+  /**
   * @method setSelectMenu
   *
   * Add options to a select menu with and id, value, and text.
@@ -115,6 +182,8 @@ export default class Tools {
   * @method urlQueryStringToObject
   *
   * Take a URL string and convert into object of key/value pairs.
+  * If there are multiple of the same key then the values will be put in 
+  *   an array.
   * @param {String} url - String to convert to object.
   * @return {Object} - Object of key/value pairs from URL string.
   */
@@ -124,10 +193,43 @@ export default class Tools {
     pairs.forEach((pair, i) => {
       let key = pair.split('=')[0];
       let value = pair.split('=')[1];
-      urlObject[key] = value;
+      
+      if (urlObject[key] != undefined && !Array.isArray(urlObject[key])) {
+        urlObject[key] = [urlObject[key]]; 
+      } 
+      
+      if (urlObject[key] != undefined && Array.isArray(urlObject[key])) {
+        urlObject[key].push(value);
+      } else 
+        urlObject[key] = value;
     });
     
     return urlObject;
   }
 
+  /**
+  * @method valueToImt
+  *
+  * Given an IMT period value in seconds, return the 
+  *     corresponding IMT string.
+  * @param {Number} value - The IMT value.
+  */
+  static valueToImt(value) {
+    const IMT_VALUES = {
+      'PGA': 'PGA',
+      '0.1': 'SA0P1',
+      '0.2': 'SA0P2',
+      '0.3': 'SA0P3',
+      '0.5': 'SA0P5',
+      '0.75': 'SA0P75',
+      '1': 'SA1P0',
+      '2': 'SA2P0',
+      '3': 'SA3P0',
+      '4': 'SA4P0',
+      '5': 'SA5P0',
+    };
+
+    return IMT_VALUES[value];
+  }
+   
 }

@@ -1,7 +1,5 @@
 package gov.usgs.earthquake.nshmp.www;
 
-
-//....................................... Import ..........................................
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,15 +14,10 @@ import gov.usgs.earthquake.nshmp.internal.GeoJson.Feature;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-//--------------------------------------- End Import --------------------------------------
 
-
-//................................. Class: TestSites ......................................
-public class TestSites{
+public class TestSites {
   
-  
-  //............................. Method: Sites ...........................................
-  public static String sites(String queryInfo){
+  public static String sites(String queryInfo) {
     
   		Gson gson = new GsonBuilder()
        .setPrettyPrinting()
@@ -64,15 +57,10 @@ public class TestSites{
       }
     }
     
-    return jsonString;
-    
+    return jsonString; 
   }
-  //------------------------------- End Method: sites -------------------------------------
-
-
   
-  //............................ Class: CollectionProperties ..............................
-  static class CollectionProperties{
+  static class CollectionProperties {
     
     private String regionId;
     private String regionDisplay;
@@ -134,8 +122,7 @@ public class TestSites{
           this.regionDisplay = "Not Defined";
           this.region        = Region.COUS;
       }
-      
-      
+       
       this.minlatitude  = this.region.minlatitude;
       this.maxlatitude  = this.region.maxlatitude;
       this.minlongitude = this.region.minlongitude <= -180 ? -179 
@@ -154,10 +141,6 @@ public class TestSites{
       			this.maxlongitude, this.maxlatitude));
       this.regionBounds.features = this.regionFeatures;     
     }
-  }
-  //-------------------------- End Class: CollectionProperties ----------------------------
-  
-  
+  } 
   
 }
-//---------------------------- End Class: TestSites --------------------------------------

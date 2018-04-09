@@ -23,7 +23,9 @@ export default class D3SaveMetadata {
     
     let iframeD3 = d3.select('body')
         .append('iframe')
-        .attr('class', 'hidden save-metadata-iframe');
+        .attr('class', 'save-metadata-iframe')
+        .style('height', '0px')
+        .style('width', '0px');
         
     let iframeEl = iframeD3.node();
    
