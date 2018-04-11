@@ -96,8 +96,10 @@ export default class ModelCompare extends Hazard{
   //......................... Method: buildInputs ..............................
   static buildInputs(_this){
     _this.spinner.off();
-
-    ModelCompare.checkQuery(_this);
+    
+    _this.testSitePicker.on('testSiteLoad', (event) => { 
+      ModelCompare.checkQuery(_this);
+    });
     
     ModelCompare.setParameterMenu(_this,"region",_this.comparableRegions);
     ModelCompare.setBounds(_this);
@@ -190,7 +192,13 @@ export default class ModelCompare extends Hazard{
     
     var selectedImtDisplay = _this.imtEl.querySelector(":checked").text; 
     var selectedImtValue   = _this.imtEl.value; 
-    let title = "Hazard Curves at " + selectedImtDisplay; 
+    
+    let imt = $(':selected', _this.imtEl).text();
+    let vs30 = $(':selected', _this.vs30El).text();
+    let siteTitle = _this.testSitePicker
+        .getTestSiteTitle(_this.regionEl.value);
+
+    let title = siteTitle + ', ' + imt + ', ' + vs30; 
     let filename = "hazardCurves-"+selectedImtValue;
 
     var seriesData = [];       
