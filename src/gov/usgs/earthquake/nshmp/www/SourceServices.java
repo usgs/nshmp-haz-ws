@@ -230,8 +230,8 @@ public class SourceServices extends HttpServlet {
 			this.returnPeriod = new DoubleParameter(
 					"Return period (in years)",
 					ParamType.NUMBER,
-					1.0,
-					1000000.0);
+					100.0,
+					1e6);
 			
 			this.vs30 = new EnumParameter<>(
 					"Site soil (Vs30)",
