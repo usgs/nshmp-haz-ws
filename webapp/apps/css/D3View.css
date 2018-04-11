@@ -16,7 +16,7 @@
 }                                                                               
 
 .D3View .panel-title {
-  font-size: 1.15em;
+  font-size: 1.0em;
 }
 
 .D3View .plot-title{
@@ -63,12 +63,12 @@
 
 /* Plot panel body data table */
 .D3View .panel-table td {
-  font-size: 0.75vw;
+  font-size: 0.75em;
   vertical-align: initial;
 }
 
 .D3View .panel-table th {
-  font-size: 1vw;
+  font-size: 1em;
   font-weight: 550;
   vertical-align: initial;
   width: 50%;
@@ -79,7 +79,7 @@
 }
 
 .D3View .panel-table .data-table-title {
-  font-size: 1.25vw;
+  font-size: 1.25em;
   font-weight: 800;
 }
 

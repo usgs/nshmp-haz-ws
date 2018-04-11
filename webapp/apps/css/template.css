@@ -9,7 +9,34 @@
 */
 
 
+/* Test Site View Class */
 
+.test-site-view .model-body {
+  padding: 0 15px;
+}
+
+.test-site-view #map-body {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.test-site-view #site-list-body {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  overflow: scroll;
+}
+
+.test-site-view #site-list-body .form-group {
+  margin: 0;
+}
+
+.test-site-view #site-list {
+  width: 100%;
+}
 
 /*###################################################*/
 /**/
@@ -305,6 +332,16 @@ label.control-spacer {
 /**/
 /*................... Spinner .......................*/
 
+.test-site-modal.in {
+  display: grid !important;
+}
+
+.test-site-modal .modal-dialog {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .Spinner {
   display: grid !important;
 }
@@ -455,8 +492,6 @@ label.control-spacer {
   cursor: pointer;
 }
 /*------------------------------------------------*/
-
-
 
 
 /*------------- End: Plots ------------------------*/

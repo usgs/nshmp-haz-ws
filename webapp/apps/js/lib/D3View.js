@@ -251,7 +251,7 @@ export default class D3View {
       showLegend: true,
       tickFontSize: 12,
       tickExponentFontSize: 10,
-      titleFontSize: 20,
+      titleFontSize: 16,
       tooltipFontSize: 12,
       tooltipOffsetX: 2,
       tooltipOffsetY: 8,

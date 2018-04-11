@@ -313,13 +313,13 @@ export default class D3SaveFigure {
       
     svgD3.select('.plot')
         .attr('transform', plotTransform);
-    
+   
     // Add plot title 
     if (this.options.printTitle) {
       svgD3.select('.plot')      
           .append('text')
           .attr('class', 'plot-title')
-          .attr('x', this.originalPlotWidth / 2)
+          .attr('x', (this.originalPlotWidth - this.originalPlotMarginLeft) / 2)
           .attr('y', -40)
           .attr('text-anchor', 'middle')
           .attr('alignment-baseline', 'text-after-edge')
@@ -382,7 +382,9 @@ export default class D3SaveFigure {
 
     let iframeD3 = d3.select('body')
         .append('iframe')
-        .attr('class', 'hidden save-figure-iframe-' + this.filename);
+        .attr('class', 'save-figure-iframe-' + this.filename)
+        .style('height', '0px')
+        .style('width', '0px');
     
     let iframeEl = iframeD3.node();
     

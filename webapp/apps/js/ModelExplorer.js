@@ -85,7 +85,10 @@ export default class ModelExplorer extends Hazard{
   //......................... Method: buildInputs ..............................
   static buildInputs(_this){
     _this.spinner.off();
-    ModelExplorer.checkQuery(_this);
+    
+    _this.testSitePicker.on('testSiteLoad', (event) => {
+      ModelExplorer.checkQuery(_this);
+    });
 
     let editionValues = _this.parameters.edition.values;
     ModelExplorer.setParameterMenu(_this,"edition",editionValues);
@@ -108,6 +111,7 @@ export default class ModelExplorer extends Hazard{
       supportedVs30 = ModelExplorer.supportedValues(_this,"vs30") 
       ModelExplorer.setParameterMenu(_this,"imt",supportedImt);
       ModelExplorer.setParameterMenu(_this,"vs30",supportedVs30);
+      _this.testSitePicker.checkForRegion(_this.regionEl.value);
     });
           
     $(_this.regionEl).change(function(){
@@ -117,6 +121,7 @@ export default class ModelExplorer extends Hazard{
       supportedVs30 = ModelExplorer.supportedValues(_this,"vs30") 
       ModelExplorer.setParameterMenu(_this,"imt",supportedImt);
       ModelExplorer.setParameterMenu(_this,"vs30",supportedVs30);
+      _this.testSitePicker.checkForRegion(_this.regionEl.value);
      });
     
     $(_this.controlEl).removeClass('hidden');
@@ -175,7 +180,12 @@ export default class ModelExplorer extends Hazard{
     $(_this.hazardPlot.legendEl).off();
     $(_this.hazardPlot.allDataEl).off();
     
-    let title = "Hazard Curves";
+    let imt = $(':selected', _this.imtEl).text();
+    let vs30 = $(':selected', _this.vs30El).text();
+    let siteTitle = _this.testSitePicker
+        .getTestSiteTitle(_this.regionEl.value);
+    
+    let title = siteTitle + ', ' + imt + ', ' + vs30;
     let filename = "hazardCurves";
     var seriesData = [];
     var seriesLabels = [];
@@ -288,7 +298,13 @@ export default class ModelExplorer extends Hazard{
     metadata.time = new Date();
     
     let imtSelectedDisplay = _this.imtEl.querySelector(":checked").text; 
-    let title = "Component Curves at "+ imtSelectedDisplay
+    
+    let imt = $(':selected', _this.imtEl).text();
+    let vs30 = $(':selected', _this.vs30El).text();
+    let siteTitle = _this.testSitePicker
+        .getTestSiteTitle(_this.regionEl.value);
+    
+    let title = siteTitle + ', ' + imt + ', ' + vs30;
     let filename = "componentCurve-"+_this.imtEl.value;
     var seriesData = [];
     var seriesLabels = [];

@@ -3,6 +3,7 @@
 import Constraints from './lib/Constraints.js';
 import D3LinePlot from './lib/D3LinePlot.js';
 import Hazard from './lib/HazardNew.js';
+import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
 import Tools from './lib/Tools.js';
 
 /**
@@ -81,6 +82,8 @@ export default class DynamicCompare extends Hazard {
     this.secondModelEl = document.querySelector('#second-model'); 
     /** @type {HTMLElement} */
     this.modelsEl = document.querySelector('.model');
+    /** @type {HTMLElement} */
+    this.testSitePickerBtnEl = document.querySelector('#test-site-picker');
     /** @type {Object} */
     this.comparableModels = undefined;
    
@@ -107,6 +110,21 @@ export default class DynamicCompare extends Hazard {
  
     /* Listen for return period to change */ 
     this.onReturnPeriodChange();
+
+    /* @type {LeafletTestSitePicker} */
+    this.testSitePicker = new LeafletTestSitePicker(
+        this.latEl,
+        this.lonEl,
+        this.testSitePickerBtnEl); 
+  
+    /* Bring Leaflet map up when clicked */
+    $(this.testSitePickerBtnEl).on('click', (event) => {
+      let model = Tools.stringToParameter(
+          this.parameters.models,
+          this.firstModelEl.value);
+      
+      this.testSitePicker.plotMap(model.region.value);
+    });
   }
 
   /**
@@ -144,6 +162,7 @@ export default class DynamicCompare extends Hazard {
   * Process usage response from nshmp-haz-ws/source/models and set menus.
   */
   buildInputs() {
+    this.spinner.off();
     this.setComparableModels();
     
     this.setFirstModelMenu();
@@ -158,7 +177,10 @@ export default class DynamicCompare extends Hazard {
     /* Update menus when first model changes */ 
     this.onFirstModelChange();
     
-    this.checkQuery();
+    this.testSitePicker.on('testSiteLoad', (event) => {
+      this.checkQuery();
+    });
+    
   }
   
   /**
@@ -173,12 +195,12 @@ export default class DynamicCompare extends Hazard {
     
     /* Make sure all pramameters are present in URL */
     if (!urlObject.hasOwnProperty('model') ||
-          !urlObject.hasOwnProperty('latitude') ||
-          !urlObject.hasOwnProperty('longitude') ||
-          !urlObject.hasOwnProperty('imt') ||
-          !urlObject.hasOwnProperty('returnperiod') ||
-          !urlObject.hasOwnProperty('vs30')) return false;
-   
+        !urlObject.hasOwnProperty('latitude') ||
+        !urlObject.hasOwnProperty('longitude') ||
+        !urlObject.hasOwnProperty('imt') ||
+        !urlObject.hasOwnProperty('returnperiod') ||
+        !urlObject.hasOwnProperty('vs30')) return false;
+  
     /* Update values for the menus */ 
     this.firstModelEl.value = urlObject.model[0];
     $(this.firstModelEl).trigger('change');
@@ -264,22 +286,13 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method getTimeHorizonExtremes
-  *
-  * Find the minimum and maximum time horizon such that the 
-  *     response spectrum of both selected models are defined over the 
-  *     supported IMT values.
-  * @param {Object} results - The hazard results for the models.
-  * @return {{
-  *     minimum: {Number} - Minimum time horizon,
-  *     maximum: {Number} - Maximum time horizon, 
-  * }} Object
+  * @method getResponseSpectraExtremes
   */
-  getTimeHorizonExtremes(results) {
-    let maxAfe = []; 
-    let minAfe = [];
-    let supportedValues = this.modelSupports('imt'); 
-     
+  getResponseSpectraExtremes(results) {
+    let returnPeriod = 1 / this.parameters.returnPeriod.values.maximum; 
+    let supportedValues = this.modelSupports('imt');
+    
+    let spectraGm = []; 
     for (let result of results) {
       let responses = result.response.filter((response) => {
         return supportedValues.find((sp) => {
@@ -288,19 +301,32 @@ export default class DynamicCompare extends Hazard {
       });
       
       for (let response of responses) {
-        let data = response.data.filter((data) => { 
+        let imt = response.metadata.imt.value;
+        let xValues = response.metadata.xvalues;
+        let data = response.data.filter((data) => {
           return data.component == 'Total';
         })[0];
         
-        maxAfe.push(d3.max(data.yvalues));
-        minAfe.push(d3.min(data.yvalues));
+        let values = data.yvalues.filter((val) => {
+          return val > returnPeriod;
+        });
+        let index = data.yvalues.indexOf(values.pop());
+        
+        let x0 = xValues[index];
+        let x1 = xValues[index + 1];
+        let y0 = data.yvalues[index];
+        let y1 = data.yvalues[index + 1];
+        
+        let gm = Tools.returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
+        gm = isNaN(gm) ? null : Number(gm.toFixed(6));
+        spectraGm.push(gm);
       }
     }
-    
-    let maxTimeHorizon = Math.floor(1 / d3.max(minAfe));
-    let minTimeHorizon = Math.ceil(1 / d3.min(maxAfe));
-
-    return {minimum: minTimeHorizon, maximum: maxTimeHorizon}; 
+  
+    let maxSpectraGm = d3.max(spectraGm);
+    maxSpectraGm = isNaN(maxSpectraGm) ? 1.0 : maxSpectraGm;
+     
+    return [0, maxSpectraGm]; 
   }
 
   /**
@@ -393,8 +419,8 @@ export default class DynamicCompare extends Hazard {
         .node();
 
     $(d3ReturnPeriodEl).on('change', (event) => {
-      this.returnPeriodEl.value = Number((
-          this.hazardPlot.upperPanel.timeHorizon).toFixed(4));
+      let timeHorizon = parseInt(this.hazardPlot.upperPanel.timeHorizon);
+      this.returnPeriodEl.value = timeHorizon; 
       $(this.returnPeriodEl).trigger('input');
     });
   }
@@ -436,18 +462,22 @@ export default class DynamicCompare extends Hazard {
     let yLabel = results[0].response[0].metadata.ylabel;
     let imt = $(':selected', this.imtEl).text();
     let vs30 = $(':selected', this.vs30El).text();
-    let title = 'Hazard Curves: ' + imt + ', ' + vs30;
+    
+    let model = Tools.stringToParameter(
+        this.parameters.models,
+        this.firstModelEl.value);
+    
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region.value);
+
+    let selectedFirstModel = $(':selected', this.firstModelEl).val();
+    let selectedSecondModel = $(':selected', this.secondModelEl).val();
+    
+    let title = siteTitle + ', ' + imt + ', ' + vs30;
+
     let filename = 'dynamicCompare-' + 
         this.firstModelEl.value + '-' + 
         this.secondModelEl.value;
 
-    let minTimeHorizon = this.parameters.returnPeriod.values.minimum;
-    let timeHorizonValue = this.returnPeriodEl.value < minTimeHorizon ?
-        minTimeHorizon : this.returnPeriodEl.value;
-    this.returnPeriodEl.value = timeHorizonValue;
-    $(this.retunPeriodEl).trigger('input');
-    this.serializeUrls();
-    
     this.hazardPlot.setPlotTitle(title)
         .setMetadata(metadata)
         .setTimeHorizonUsage(this.parameters.returnPeriod)
@@ -456,7 +486,7 @@ export default class DynamicCompare extends Hazard {
         .setUpperPlotFilename(filename)
         .setUpperPlotIds(seriesIds)
         .setUpperPlotLabels(seriesLabels)
-        .setUpperTimeHorizon(timeHorizonValue)
+        .setUpperTimeHorizon(this.returnPeriodEl.value)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
         .removeSmallValues(this.hazardPlot.upperPanel, 1e-16)
@@ -467,18 +497,12 @@ export default class DynamicCompare extends Hazard {
     
     /* Update response spectrum and return period plot */      
     $(this.returnPeriodEl).on('change input', (event) => {
-      let rpMin = this.parameters.returnPeriod.values.minimum;
-      let rpMax = this.parameters.returnPeriod.values.maximum;
-
-      if (this.returnPeriodEl.value >= rpMin &&
-          this.returnPeriodEl.value <= rpMax ) { 
-        this.serializeUrls();
-        this.plotReturnPeriodDifference(seriesData);
-        this.plotResponseSpectrum(results);
-        this.hazardPlot
-            .setUpperTimeHorizon(this.returnPeriodEl.value)
-            .plotReturnPeriod(this.hazardPlot.upperPanel);
-      }
+      this.serializeUrls();
+      this.plotReturnPeriodDifference(seriesData);
+      this.plotResponseSpectrum(results);
+      this.hazardPlot
+          .setUpperTimeHorizon(this.returnPeriodEl.value)
+          .plotReturnPeriod(this.hazardPlot.upperPanel);
     });
   }
 
@@ -546,7 +570,7 @@ export default class DynamicCompare extends Hazard {
     metadata.url = window.location.href;
     metadata.date = results[0].date;
 
-    let returnPeriod = 1 / this.returnPeriodEl.value;
+    let returnPeriod = 1 / this.returnPeriodEl.value; 
     let seriesData = [];
     let seriesLabels = [];
     let seriesIds = [];
@@ -580,10 +604,10 @@ export default class DynamicCompare extends Hazard {
         let y1 = data.yvalues[index + 1];
         
         let gm = Tools.returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
-        if (isNaN(gm)) continue;
+        gm = isNaN(gm) ? null : Number(gm.toFixed(6));
         let per = imt == 'PGA' ? 'PGA' : Tools.imtToValue(imt);
         spectraX.push(per);
-        spectraY.push(Number(gm.toFixed(6)));
+        spectraY.push(gm);
       }
       
       let edition = result.response[0].metadata.edition.value;
@@ -596,8 +620,18 @@ export default class DynamicCompare extends Hazard {
       seriesLabels.push(model.display);
       seriesIds.push(model.value);
     }
-   
-    let title = 'Response Spectrum at ' + this.returnPeriodEl.value + ' years'; 
+    
+    let model = Tools.stringToParameter(
+        this.parameters.models,
+        this.firstModelEl.value);
+    
+    let vs30 = $(':selected', this.vs30El).text();
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region.value);
+    
+    let title = 'Response Spectrum at ' + 
+        this.returnPeriodEl.value + ' years, ' +
+        siteTitle + ', ' + vs30;
+         
     let xLabel = 'Spectral Period (s)';
     let yLabel = results[0].response[0].metadata.xlabel;
 
@@ -605,6 +639,7 @@ export default class DynamicCompare extends Hazard {
         this.firstModelEl.value + '-' + 
         this.secondModelEl.value; 
     
+    let bounds = this.getResponseSpectraExtremes(results);
     this.spectraPlot.setPlotTitle(title)
         .setMetadata(metadata)
         .setUpperData(seriesData)
@@ -614,7 +649,7 @@ export default class DynamicCompare extends Hazard {
         .setUpperPlotLabels(seriesLabels)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
-        .plotData(this.spectraPlot.upperPanel);
+        .plotData(this.spectraPlot.upperPanel, null, bounds);
     
     this.plotResponseSpectrumDifference(seriesData);
 
@@ -649,7 +684,7 @@ export default class DynamicCompare extends Hazard {
     let secondModel = spectraData[1];
     let yValues = [];
     let xValues = [];
-
+    
     for (let i in firstModel) {
       let xValFirst = firstModel[i][0];
       let xValSecond = secondModel[i][0];
@@ -670,7 +705,7 @@ export default class DynamicCompare extends Hazard {
     }
     let seriesData = [];
     seriesData.push(d3.zip(xValues, yValues)); 
-    
+     
     let selectedFirstModel = $(':selected', this.firstModelEl).text();
     let selectedSecondModel = $(':selected', this.secondModelEl).text();
 
@@ -946,13 +981,6 @@ export default class DynamicCompare extends Hazard {
       this.spinner.off();
       this.footer.setMetadata(results[0].server); 
       
-      /* Update return period min and max */
-      let timeHorizons = this.getTimeHorizonExtremes(results);
-      this.parameters.returnPeriod.values.minimum = timeHorizons.minimum;
-      this.parameters.returnPeriod.values.maximum = 
-        timeHorizons.maximum < this.parameters.returnPeriod.values.maximum ?
-        timeHorizons.maximum : this.parameters.returnPeriod.values.maximum; 
-     
       /* Update tooltips for input */
       this.addInputTooltip();
       /* Plot response spectrum */

@@ -136,6 +136,7 @@ export default class Hazard {
   getUsage(callback = () => {}) {
     this.callback = callback;
     let promise = $.getJSON(this.webServiceUrl);
+    this.spinner.on(promise);
 
     promise.done((usage) => {
       this.parameters = usage.parameters;

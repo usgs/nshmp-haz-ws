@@ -420,6 +420,9 @@ export default class D3LinePlot extends D3View {
       [xMin, xMax] = [-1.0, 1.0] 
     }
     
+    xMin = isNaN(xMin) ? 0 : xMin;
+    xMax = isNaN(xMax) ? 1 : xMax; 
+    
     return [xMin, xMax];   
   }
   
@@ -472,7 +475,10 @@ export default class D3LinePlot extends D3View {
       });
       return tmp;
     });
-    
+   
+    yMin = isNaN(yMin) ? 0 : yMin;
+    yMax = isNaN(yMax) ? 1 : yMax; 
+     
     return yMin == yMax ? [yMin / 1.1, yMax * 1.1] : [yMin, yMax];
   }
   

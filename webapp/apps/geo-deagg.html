@@ -6,6 +6,7 @@
   <meta charset="UTF-8">   
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
   <link rel="stylesheet" href="css/template.css" type="text/css">
   <link rel="stylesheet" href="css/D3View.css" type="text/css">
 </head>
@@ -56,6 +57,14 @@
             <div class="input-group-addon">&#176;</div>
           </div>
         </div>
+        
+        <!-- Choose location on map -->
+        <div class='form-group form-group-sm'>
+          <button class="btn btn-default" id='test-site-picker' type='button'>
+            Choose a test site
+          </button>
+        </div>
+        <!-- End: Choose location on map -->
 
         <!-- Itensity measure type select menu  -->
         <div class="form-group form-group-sm">
@@ -126,7 +135,8 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://d3js.org/topojson.v1.min.js"></script>
 	<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
-  
+  <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+   
   <!-- Application specific JavaScript --> 
   <script type='module'>
     import Config from './js/lib/Config.js';

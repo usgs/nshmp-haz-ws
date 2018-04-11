@@ -162,6 +162,29 @@ export default class D3Tooltip {
   }
 
   /**
+  * @method pointColor
+  *
+  * Change the dot color
+  * @param {String} color - The color the dot should be
+  */
+  pointColor(color) {
+    d3.select(this.selectedEl)
+        .attr('fill', color);
+  }
+    
+  /**
+  * @method remove
+  *
+  * Method to remove the tooltip
+  * @param {Panel} panel - Upper or lower panel object
+  */
+  remove() {
+    d3.select(this.tooltipEl)
+        .selectAll("*")
+        .remove();
+  }
+ 
+  /**
   * @method tooltipLocation 
   *
   * Find best location to put the tooltip
@@ -188,15 +211,4 @@ export default class D3Tooltip {
     return 'translate(' + xRect + ',' + yRect + ')'; 
   }
 
-  /**
-  * @method pointColor
-  *
-  * Change the dot color
-  * @param {String} color - The color the dot should be
-  */
-  pointColor(color) {
-    d3.select(this.selectedEl)
-        .attr('fill', color);
-  }
-    
 }

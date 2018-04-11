@@ -4,6 +4,7 @@ import Constraints from './lib/Constraints.js';
 import D3GeoDeagg from './lib/D3GeoDeagg.js';
 import Footer from './lib/Footer.js';
 import Header from './lib/Header.js';
+import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
 import Spinner from './lib/Spinner.js';
 import Tools from './lib/Tools.js';
 
@@ -93,6 +94,8 @@ export default class GeoDeagg {
     /** @type {HTMLElement} */
     this.returnPeriodBtnsEl = document.querySelector('#return-period-btns');
     /** @type {HTMLElement} */
+    this.testSitePickerBtnEl = document.querySelector('#test-site-picker');
+    /** @type {HTMLElement} */
     this.vs30El = document.querySelector('#vs30');
 
     /** @type {D3GeoDeagg} */
@@ -123,6 +126,17 @@ export default class GeoDeagg {
     
     // Listen for all control panel changes
     this.onInputChange(); 
+  
+    /* @type {LeafletTestSitePicker} */
+    this.testSitePicker = new LeafletTestSitePicker(
+        this.latEl,
+        this.lonEl,
+        this.testSitePickerBtnEl);
+
+    /* Bring Leaflet map up when clicked */                                     
+    $(this.testSitePickerBtnEl).on('click', (event) => {                        
+      this.testSitePicker.plotMap(this.regionEl.value);
+    });
   }
   
   /**
@@ -177,7 +191,9 @@ export default class GeoDeagg {
     // Update menus when region is changed
     this.onRegionChange();  
     // Check URL for parameters
-    this.checkQuery();
+    this.testSitePicker.on('testSiteLoad', (event) => {
+      this.checkQuery();
+    });
   }
 
   /**
@@ -554,7 +570,15 @@ export default class GeoDeagg {
       // Where the map should rotate to
       let rotate = [-lon, -lat, 0];
       
-      this.plot.setPlotTitle('Geographic Deaggregation')
+      let siteTitle = this.testSitePicker
+          .getTestSiteTitle(this.regionEl.value);
+      let vs30 = $(':selected', this.vs30El).text();
+      let imt = $(':selected', this.imtEl).text();
+      let edition = $(':selected', this.editionEl).text();
+
+      let title = edition + ', ' + siteTitle + ', ' + imt + ', ' + vs30;
+
+      this.plot.setPlotTitle(title)
           .setSiteLocation({latitude: lat, longitude: lon})
           .setMetadata(metadata)
           .setUpperData(seriesData)
