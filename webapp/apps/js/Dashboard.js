@@ -50,9 +50,6 @@ export default class Dashboard {
         label: 'Response Spectra',
         href: 'apps/spectra-plot.html',
       }, {
-        label: 'Test Sites', 
-        href: 'apps/test-sites.html',
-      }, {
         label: 'Services',
         href: 'apps/services.html',
       }
