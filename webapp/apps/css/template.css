@@ -11,6 +11,14 @@
 
 /* Test Site View Class */
 
+.test-site-view.in {
+  display: grid !important;
+}
+
+.test-site-view .modal-dialog {
+  margin: auto;
+}
+
 .test-site-view .model-body {
   padding: 0 15px;
 }
