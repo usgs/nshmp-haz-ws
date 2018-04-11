@@ -2,6 +2,7 @@
 
 import Footer from './Footer.js';
 import Header from './Header.js';
+import LeafletTestSitePicker from './LeafletTestSitePicker.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
 
@@ -41,15 +42,15 @@ export default class Hazard{
 
     this.config = config;
 
-    $(_this.lonEl).change(function(){
+    $(_this.lonEl).on('input', (event) => {
       Hazard.checkCoordinates(_this,false,true);
     });
     
-    $(_this.latEl).change(function(){
+    $(_this.latEl).on('input', (event) => {
       Hazard.checkCoordinates(_this,true,false);
     });
 
-    $(_this.controlEl).change(function(){
+    $(_this.controlEl).on('input change', (event) => {
       let canSubmit = Hazard.checkCoordinates(_this,false,false);
       _this.footerOptions = {
         updateBtnDisable: !canSubmit
@@ -59,6 +60,19 @@ export default class Hazard{
  
     this.dynamicUrl = this.config.server.dynamic + "/nshmp-haz-ws/hazard";
     this.staticUrl  = this.config.server.static + "/hazws/staticcurve/1";
+    
+    this.testSitePickerBtnEl = document.querySelector('#test-site-picker');
+  
+    /* @type {LeafletTestSitePicker} */
+    this.testSitePicker = new LeafletTestSitePicker(
+        this.latEl,
+        this.lonEl,
+        this.testSitePickerBtnEl);
+    
+    /* Bring Leaflet map up when clicked */
+    $(this.testSitePickerBtnEl).on('click', (event) => {
+      this.testSitePicker.plotMap(this.regionEl.value);
+    });
   }
 
 

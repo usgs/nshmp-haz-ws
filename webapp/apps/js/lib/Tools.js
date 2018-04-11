@@ -63,6 +63,9 @@ export default class Tools {
   * Conveince method for calculating percent difference.
   */
   static percentDifference(x0, x1) {
+    if (Number.isNaN(parseFloat(x0)) || 
+        Number.isNaN(parseFloat(x1))) return NaN;
+
     return ((x0 - x1) / ((x0 + x1) / 2)) * 100.0; 
   }
   

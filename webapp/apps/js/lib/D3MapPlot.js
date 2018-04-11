@@ -285,7 +285,8 @@ export default class D3MapPlot extends D3MapView{
         .attr("class","user-added-sites");
     //--------------------------------------------------------------------------
     
-
+    
+    /*
     //...................... Site List Events ..................................  
     d3.select(mapPlot.siteListEl)
         .selectAll("label")
@@ -310,7 +311,7 @@ export default class D3MapPlot extends D3MapView{
           tooltip.destroy(mapPlot);
         });
     //--------------------------------------------------------------------------
-  
+    */
 
     //....................... Snap to Event ....................................
     d3.select(mapPlot.snapToEl).on("change",function(){
