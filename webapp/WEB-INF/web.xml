@@ -44,7 +44,7 @@
       <param-name>ExpiresDefault</param-name>
       <param-value>access plus 15 minutes</param-value>
     </init-param>
-	</filter>
+  </filter>
 
   <filter-mapping>
     <filter-name>ExpiresFilter</filter-name>
