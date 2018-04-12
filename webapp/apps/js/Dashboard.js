@@ -29,30 +29,30 @@ export default class Dashboard {
     /** @ type {Array{Object}} */
     this.webapps = [
       {
+        label: 'Response Spectra',
+        href: 'apps/spectra-plot.html',
+      }, {
         label: 'Dynamic Model Comparison',
         href: 'apps/dynamic-compare.html',
       }, {
-        label: 'Geographic Deaggregation',
-        href: 'apps/geo-deagg.html',
-      }, {
         label: 'Ground Motion Vs. Distance',
         href: 'apps/gmm-distance.html',
-      }, {
-        label: 'Hanging Wall Effects',
-        href: 'apps/hw-fw.html',
       }, { 
         label: 'Model Comparison',
         href: 'apps/model-compare.html',
       }, {
+        label: 'Hanging Wall Effects',
+        href: 'apps/hw-fw.html',
+      }, {
         label: 'Model Explorer',
         href: 'apps/model-explorer.html', 
       }, {
-        label: 'Response Spectra',
-        href: 'apps/spectra-plot.html',
-      }, {
         label: 'Services',
         href: 'apps/services.html',
-      }
+      },{
+        label: 'Geographic Deaggregation',
+        href: 'apps/geo-deagg.html',
+      }, 
     ];
     
     this.createDashboard();
