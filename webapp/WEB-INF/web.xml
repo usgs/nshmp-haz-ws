@@ -37,7 +37,7 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<filter>
+  <filter>
     <filter-name>ExpiresFilter</filter-name>
     <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
     <init-param>
