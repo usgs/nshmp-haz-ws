@@ -37,4 +37,18 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
+  <filter>
+    <filter-name>ExpiresFilter</filter-name>
+    <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
+    <init-param>
+      <param-name>ExpiresDefault</param-name>
+      <param-value>access plus 15 minutes</param-value>
+    </init-param>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>ExpiresFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+  </filter-mapping>
 </web-app>
