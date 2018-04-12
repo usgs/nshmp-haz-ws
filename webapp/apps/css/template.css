@@ -11,16 +11,57 @@
 
 /* Test Site View Class */
 
+/* Test Site View Class */
+
 .test-site-view.in {
   display: grid !important;
 }
 
-.test-site-view .modal-dialog {
-  margin: auto;
+.test-site-view .modal-body {
+  padding: 0 15px;
+  height: 200px;
 }
 
-.test-site-view .model-body {
-  padding: 0 15px;
+.test-site-view .modal-dialog {
+  margin: auto;
+  padding: 1em;
+}
+
+@media (min-width: 1200px) {
+  .test-site-view .modal-lg {
+    width: 1100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .test-site-view .modal-dialog {
+    width: 100%;
+  }
+  
+  .test-site-view #site-list label {
+    font-size: 0.5em;
+  }
+}
+
+@media (min-height: 500px) {
+  .test-site-view .modal-body {
+    padding: 0 15px;
+    height: 300px;
+  }
+}
+
+@media (min-height: 700px) {
+  .test-site-view .modal-body {
+    padding: 0 15px;
+    height: 500px;
+  }
+}
+
+@media (min-height: 900px) {
+  .test-site-view .modal-body {
+    padding: 0 15px;
+    height: 700px;
+  }
 }
 
 .test-site-view #map-body {
@@ -31,11 +72,11 @@
 }
 
 .test-site-view #site-list-body {
-  position: absolute;
-  top: 0;
   bottom: 0;
-  right: 0;
   overflow: scroll;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .test-site-view #site-list-body .form-group {

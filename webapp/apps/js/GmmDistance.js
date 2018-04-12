@@ -56,7 +56,7 @@ export default class GmmDistance extends Gmm {
     */ 
     this.options = {
       rMax: 300,
-      rMin: 0.001,
+      rMin: 0.1,
     };
     
     /** @type {number} */

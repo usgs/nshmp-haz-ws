@@ -52,6 +52,10 @@ export default class TestSiteView {
     this.useLocationBtnEl = this.el.querySelector('#use-location');
     /** @type {HTMLElement} */
     //this.regionListEl = this.el.querySelector('#test-site-region-menu');
+ 
+ 
+    this.onDocumentPress();
+     
   }
 
   /**
@@ -247,6 +251,26 @@ export default class TestSiteView {
   getRegion(regionId) {
     return this.testSites.find((feature) => {                     
       return feature.properties.regionId == regionId;                           
+    });
+  }
+  
+  /**
+  * @method onDocumentPress
+  *
+  * Listen for return key press and if the use location btn
+  *     is not disabled, click it. This stops the event from 
+  *     propagating up to the parents.
+  */
+  onDocumentPress() {
+    let returnKeyCode = 13;
+
+    $(this.el).keypress((event) => {
+      event.stopPropagation();
+      let isDisabled = d3.select(this.useLocationBtnEl)
+          .property('disabled');
+      if (event.which == returnKeyCode && !isDisabled) {
+        $(this.useLocationBtnEl).click();
+      }
     });
   }
   

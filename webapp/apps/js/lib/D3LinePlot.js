@@ -601,7 +601,7 @@ export default class D3LinePlot extends D3View {
         1 / Math.ceil(1 / returnPeriod) ; 
     
     panel.timeHorizon = 1 / returnPeriod;
-    this.plotReturnPeriod(panel); 
+    this.plotReturnPeriod(panel, 0 /* Duration */); 
     let el = d3.select(panel.plotEl).select('.return-period').node();
     $(el).trigger('change');
   }
@@ -704,7 +704,6 @@ export default class D3LinePlot extends D3View {
     d3.select(this.plotFooterEl)
         .select('.plot-btn')
         .classed('active', true);
-  
 
     // Get color scheme
     let ndata = panel.data.length;           
@@ -753,47 +752,64 @@ export default class D3LinePlot extends D3View {
     // Plot Selections
     this.onPlotSelection(panel); 
     
-    if (panel.options.plotReturnPeriod) this.plotReturnPeriod(panel);
+    if (panel.options.plotReturnPeriod) {
+      this.plotReturnPeriod(panel, options.transitionDuration);
+    }
+
+    if (panel.options.plotZeroReferenceLine && 
+        panel.options.yAxisScale == 'linear') {
+      this.plotZeroReferenceLine(panel);
+    }
   }
 
   /**
   * @method plotReturnPeriod
   *
   */
-  plotReturnPeriod(panel) {
+  plotReturnPeriod(panel, duration) {
     let returnPeriod = 1 / panel.timeHorizon;
     let xValues = panel.xBounds.domain();
     let yValues = [returnPeriod, returnPeriod]; 
 
     let data = [];
     data.push(d3.zip(xValues, yValues));
-  
-    d3.select(panel.plotEl)
-        .select('.return-period')
-        .selectAll('path')
-        .remove();
-     
-    d3.select(panel.plotEl)
+    
+    let transition = d3.transition()
+        .duration(duration);
+         
+    let seriesEnter = d3.select(panel.plotEl)
         .select('.return-period')
         .lower()
         .selectAll('path')
         .data(data)
-        .enter()
+
+    seriesEnter.exit()
+        .transition(transition)
+        .remove();
+
+    seriesEnter.transition(transition)
+        .attr('d', panel.line)
+
+    seriesEnter.enter()
         .append('path')
+        .transition(transition)
         .attr('d', panel.line)
         .attr('stroke', '#455A64')
         .attr('stroke-width', 3)
         .attr('stroke-linecap', 'round')
         .attr('fill', 'none')
-        .style('cursor', 'row-resize')
+        .style('cursor', 'row-resize');
+        
+    d3.select(panel.plotEl)
+        .select('.return-period')
+        .selectAll('path')
         .call(d3.drag()
-            .on('drag', () => { 
-              this.onReturnPeriodDrag(panel); 
-            })
-            .on('end', () => {
-              this.onReturnPeriodDrag(panel); 
-            })
-          );
+        .on('drag', () => { 
+          this.onReturnPeriodDrag(panel); 
+        })
+        .on('end', () => {
+          this.onReturnPeriodDrag(panel); 
+        }));
   }
 
   /**
@@ -852,11 +868,14 @@ export default class D3LinePlot extends D3View {
     this.setTicks(panel, 'y'); 
   
     if (options.plotReturnPeriod) {
-      svgD3.select('.return-period')
-          .selectAll('path')
-          .transition()
-          .duration(options.transitionDuration)
-          .attr('d', panel.line);
+      this.plotReturnPeriod(panel, options.transitionDuration);
+      let el = d3.select(panel.plotEl).select('.return-period').node();
+      $(el).trigger('axisChange');
+    }
+    
+    if (panel.options.plotZeroReferenceLine && 
+        panel.options.yAxisScale == 'linear') {
+      this.plotZeroReferenceLine(panel);
     }
   }
 
@@ -942,6 +961,34 @@ export default class D3LinePlot extends D3View {
     }
   }
 
+  /**
+  * @method plotZerReferenceLine
+  *
+  * Plot a line at y=0.
+  */
+  plotZeroReferenceLine(panel) {
+    let xValues = panel.xBounds.domain();
+    let yValues = [0, 0];
+    let data = [];
+    data.push(d3.zip(xValues, yValues));
+    d3.select(panel.plotEl)
+        .selectAll('.reference-line')
+        .remove();
+
+    d3.select(panel.plotEl)
+        .append('g')
+        .attr('class', 'reference-line')
+        .lower()
+        .selectAll('path')
+        .data(data)
+        .enter()
+        .append('path')
+        .attr('d', panel.line)
+        .attr('stroke', panel.options.referenceLineStroke)
+        .attr('stroke-width', panel.options.referenceLineStrokeWidth)
+        .attr('fill', 'none');
+  }
+  
   /**
   * @method removeSmallValues
   *

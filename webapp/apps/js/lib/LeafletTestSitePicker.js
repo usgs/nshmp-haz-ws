@@ -53,8 +53,6 @@ export default class LeafletTestSitePciker extends TestSiteView {
     };
   
     /** @type {HTMLElement} */ 
-    this.svgEl = this.createSvgStructure(); 
-    /** @type {HTMLElement} */ 
     this.leafletEl = this.mapBodyEl;
     /** @type {LeafletMap} */
     this.leafletMap = this.createBaseMap();
@@ -212,28 +210,6 @@ export default class LeafletTestSitePciker extends TestSiteView {
     geoJsonLayer.addTo(this.leafletMap);
     
     return geoJsonLayer;
-  }
- 
-  /**
-  * @method createSvgStructure
-  *
-  * Create a responsive SVG structure as the Leaflet frame.
-  * @return {HTMLElement} The SVG element.
-  */
-  createSvgStructure() {
-    let viewBox = '0, 0, ' + this.options.plotWidth +
-        ', ' + this.options.plotHeight;
-    let svgD3 = d3.select('.modal-body')
-        .append('svg')
-        .attr('class', 'leaflet-frame')
-        .attr('version', 1.1)
-        .attr('xmlns', 'http://www.w3.org/2000/svg')
-        .attr('preserveAspectRatio', 'xMinYMin meet')
-        .attr('viewBox', viewBox)
-        .style('margin-bottom', '-5px')
-        .style('width', this.viewOptions.mapWidth);
-    
-    return svgD3.node();                                                        
   }
 
   /**

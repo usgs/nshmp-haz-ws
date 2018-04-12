@@ -289,44 +289,50 @@ export default class DynamicCompare extends Hazard {
   * @method getResponseSpectraExtremes
   */
   getResponseSpectraExtremes(results) {
-    let returnPeriod = 1 / this.parameters.returnPeriod.values.maximum; 
+    let minReturnPeriod = 1 / this.parameters.returnPeriod.values.maximum; 
+    let maxReturnPeriod = 1 / this.parameters.returnPeriod.values.minimum; 
     let supportedValues = this.modelSupports('imt');
     
     let spectraGm = []; 
-    for (let result of results) {
-      let responses = result.response.filter((response) => {
-        return supportedValues.find((sp) => {
-          return sp.value == response.metadata.imt.value;
+    for (let returnPeriod of [minReturnPeriod, maxReturnPeriod]) {
+      for (let result of results) {
+        let responses = result.response.filter((response) => {
+          return supportedValues.find((sp) => {
+            return sp.value == response.metadata.imt.value;
+          });
         });
-      });
-      
-      for (let response of responses) {
-        let imt = response.metadata.imt.value;
-        let xValues = response.metadata.xvalues;
-        let data = response.data.filter((data) => {
-          return data.component == 'Total';
-        })[0];
         
-        let values = data.yvalues.filter((val) => {
-          return val > returnPeriod;
-        });
-        let index = data.yvalues.indexOf(values.pop());
-        
-        let x0 = xValues[index];
-        let x1 = xValues[index + 1];
-        let y0 = data.yvalues[index];
-        let y1 = data.yvalues[index + 1];
-        
-        let gm = Tools.returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
-        gm = isNaN(gm) ? null : Number(gm.toFixed(6));
-        spectraGm.push(gm);
+        for (let response of responses) {
+          let imt = response.metadata.imt.value;
+          let xValues = response.metadata.xvalues;
+          let data = response.data.filter((data) => {
+            return data.component == 'Total';
+          })[0];
+          
+          let values = data.yvalues.filter((val) => {
+            return val > returnPeriod;
+          });
+          let index = data.yvalues.indexOf(values.pop());
+          
+          let x0 = xValues[index];
+          let x1 = xValues[index + 1];
+          let y0 = data.yvalues[index];
+          let y1 = data.yvalues[index + 1];
+          
+          let gm = Tools
+              .returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
+          gm = isNaN(gm) ? null : Number(gm.toFixed(6));
+          spectraGm.push(gm);
+        }
       }
-    }
-  
+    } 
     let maxSpectraGm = d3.max(spectraGm);
+    let minSpectraGm = d3.min(spectraGm);
+
     maxSpectraGm = isNaN(maxSpectraGm) ? 1.0 : maxSpectraGm;
-     
-    return [0, maxSpectraGm]; 
+    minSpectraGm = isNaN(minSpectraGm) ? 1e-4 : minSpectraGm;
+    
+    return [minSpectraGm, maxSpectraGm]; 
   }
 
   /**
@@ -426,6 +432,22 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
+  * Listen for a data point to be clicked and update the 
+  *     hazard curves to that IMT.
+  */ 
+  onSpectraPlotImtClick(panel) {
+    d3.select(panel.allDataEl)
+        .selectAll('.data')
+        .selectAll('circle')
+        .on('click', (d, i, els) => {
+          let imtVal = d[0];
+          let imt = Tools.valueToImt(imtVal);
+          this.imtEl.value = imt;
+          $(this.imtEl).trigger('change');
+        });
+  }
+  
+  /**
   * @method plotHazardCurves
   *
   * Plot the hazard curves of the selected models.
@@ -504,6 +526,16 @@ export default class DynamicCompare extends Hazard {
           .setUpperTimeHorizon(this.returnPeriodEl.value)
           .plotReturnPeriod(this.hazardPlot.upperPanel);
     });
+    
+    let returnPeriodLineEl = d3.select(this.hazardPlot.upperPanel.plotEl)
+        .select('.return-period')
+        .node();
+    
+    /* Update return period text when axis is changed */   
+    
+    $(returnPeriodLineEl).on('axisChange', (event) => {
+      this.plotReturnPeriodDifference(seriesData);
+    });
   }
 
   /**
@@ -538,6 +570,7 @@ export default class DynamicCompare extends Hazard {
       }
     }
     
+    let maxVal = d3.max(yValues, (d) => { return Math.abs(d) });
     let seriesData = [];
     seriesData.push(d3.zip(xValues, yValues)); 
     let selectedFirstModel = $(':selected', this.firstModelEl).text();
@@ -549,6 +582,7 @@ export default class DynamicCompare extends Hazard {
 
     let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
     let xDomain = this.hazardPlot.upperPanel.xExtremes;
+    let yDomain = [-maxVal, maxVal];
 
     this.hazardPlot.setLowerData(seriesData)
         .setLowerDataTableTitle('Percent Difference')
@@ -557,7 +591,7 @@ export default class DynamicCompare extends Hazard {
         .setLowerPlotLabels([label])
         .setLowerXLabel(this.hazardPlot.upperPanel.xLabel)
         .setLowerYLabel('% difference')
-        .plotData(this.hazardPlot.lowerPanel, xDomain);
+        .plotData(this.hazardPlot.lowerPanel, xDomain, yDomain);
   }
 
   /**
@@ -639,7 +673,7 @@ export default class DynamicCompare extends Hazard {
         this.firstModelEl.value + '-' + 
         this.secondModelEl.value; 
     
-    let bounds = this.getResponseSpectraExtremes(results);
+    let yDomain = this.getResponseSpectraExtremes(results);
     this.spectraPlot.setPlotTitle(title)
         .setMetadata(metadata)
         .setUpperData(seriesData)
@@ -649,7 +683,7 @@ export default class DynamicCompare extends Hazard {
         .setUpperPlotLabels(seriesLabels)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
-        .plotData(this.spectraPlot.upperPanel, null, bounds);
+        .plotData(this.spectraPlot.upperPanel, null, yDomain);
     
     this.plotResponseSpectrumDifference(seriesData);
 
@@ -657,22 +691,6 @@ export default class DynamicCompare extends Hazard {
     this.onSpectraPlotImtClick(this.spectraPlot.upperPanel);
   }
 
-  /**
-  * Listen for a data point to be clicked and update the 
-  *     hazard curves to that IMT.
-  */ 
-  onSpectraPlotImtClick(panel) {
-    d3.select(panel.allDataEl)
-        .selectAll('.data')
-        .selectAll('circle')
-        .on('click', (d, i, els) => {
-          let imtVal = d[0];
-          let imt = Tools.valueToImt(imtVal);
-          this.imtEl.value = imt;
-          $(this.imtEl).trigger('change');
-        });
-  }
-  
   /**
   * @method plotResponseSpectrumDifference
   *
@@ -703,6 +721,9 @@ export default class DynamicCompare extends Hazard {
         }
       }
     }
+    
+    let maxVal = d3.max(yValues, (d) => { return Math.abs(d) });
+    
     let seriesData = [];
     seriesData.push(d3.zip(xValues, yValues)); 
      
@@ -711,7 +732,8 @@ export default class DynamicCompare extends Hazard {
 
     let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
     let xDomain = this.spectraPlot.upperPanel.xExtremes;
-    
+    let yDomain = [-maxVal, maxVal];
+
     let filename = 'dynamicCompareSpectraDiff-' + 
         this.firstModelEl.value + '-' + 
         this.secondModelEl.value;
@@ -723,7 +745,7 @@ export default class DynamicCompare extends Hazard {
         .setLowerPlotLabels([label])
         .setLowerXLabel(this.spectraPlot.upperPanel.xLabel)
         .setLowerYLabel('% difference')
-        .plotData(this.spectraPlot.lowerPanel, xDomain);
+        .plotData(this.spectraPlot.lowerPanel, xDomain, yDomain);
     
     /* Update hazard curves on IMT click */
     this.onSpectraPlotImtClick(this.spectraPlot.lowerPanel);
@@ -806,6 +828,7 @@ export default class DynamicCompare extends Hazard {
     let diffOptions = {
       tooltipText: diffTooltip,
       plotHeight: 224,
+      plotZeroReferenceLine: true,
       showLegend: false,
       yAxisScale: 'linear',
     };
@@ -843,6 +866,7 @@ export default class DynamicCompare extends Hazard {
     let diffOptions = {
       tooltipText: diffTooltip,
       plotHeight: 224,
+      plotZeroReferenceLine: true,
       showLegend: false,
       yAxisScale: 'linear',
     };
