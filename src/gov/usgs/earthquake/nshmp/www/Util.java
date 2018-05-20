@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.FluentIterable;
 
 import java.util.EnumSet;
@@ -41,7 +41,7 @@ class Util {
   }
 
   static <T extends Enum<T>> T readValue(String value, Class<T> type) {
-    Optional<T> opt = Enums.getIfPresent(type, value);
+    Optional<T> opt = Enums.getIfPresent(type, value).toJavaUtil();
     checkState(opt.isPresent(), "Invalid value [%s] for enum: %s", value, type.getName());
     return opt.get();
   }

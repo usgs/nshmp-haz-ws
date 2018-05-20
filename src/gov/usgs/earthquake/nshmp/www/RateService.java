@@ -15,7 +15,7 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.TIMESPAN;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -154,7 +154,7 @@ public final class RateService extends HttpServlet {
   private RequestData buildRequest(Map<String, String[]> paramMap, ValueFormat format) {
 
     Optional<Double> timespan = (format == POISSON_PROBABILITY)
-        ? Optional.of(readDoubleValue(paramMap, TIMESPAN)) : Optional.<Double> absent();
+        ? Optional.of(readDoubleValue(paramMap, TIMESPAN)) : Optional.<Double> empty();
 
     return new RequestData(
         readValue(paramMap, EDITION, Edition.class),
@@ -169,7 +169,7 @@ public final class RateService extends HttpServlet {
   private RequestData buildRequest(List<String> params, ValueFormat format) {
 
     Optional<Double> timespan = (format == POISSON_PROBABILITY)
-        ? Optional.of(Double.valueOf(params.get(5))) : Optional.<Double> absent();
+        ? Optional.of(Double.valueOf(params.get(5))) : Optional.<Double> empty();
 
     return new RequestData(
         readValue(params.get(0), Edition.class),
@@ -231,7 +231,7 @@ public final class RateService extends HttpServlet {
      * annual rates and only convert to cumulative probabilities at the end if
      * probability service has been called.
      */
-    Optional<Double> emptyTimespan = Optional.<Double> absent();
+    Optional<Double> emptyTimespan = Optional.<Double> empty();
 
     if (data.region == Region.COUS) {
 
@@ -322,7 +322,7 @@ public final class RateService extends HttpServlet {
       this.latitude = request.latitude;
       this.distance = request.distance;
       this.ylabel = isProbability ? "Probability" : "Annual Rate (yr⁻¹)";
-      this.timespan = request.timespan.orNull();
+      this.timespan = request.timespan.orElse(null);
     }
   }
 

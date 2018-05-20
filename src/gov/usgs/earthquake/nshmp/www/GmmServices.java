@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Function;
+import java.util.function.Function;
 import java.util.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
@@ -403,7 +403,7 @@ public class GmmServices extends HttpServlet {
                     public List<Gmm> apply(Group group) {
                       return group.gmms();
                     }
-                  })
+                  }::apply)
               .toSortedSet(Ordering.usingToString());
           GmmParam gmmParam = new GmmParam(
               GMM_NAME,
