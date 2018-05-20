@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
@@ -457,7 +457,7 @@ public class GmmServices extends HttpServlet {
       NumberParam(GmmInput.Field field, Range<Double> constraint, Double value) {
         this.label = field.label;
         this.info = field.info;
-        this.units = field.units.orNull();
+        this.units = field.units.orElse(null);
         this.min = constraint.lowerEndpoint();
         this.max = constraint.upperEndpoint();
         this.value = Doubles.isFinite(value) ? value : null;
