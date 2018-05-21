@@ -26,6 +26,7 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -205,7 +206,7 @@ public class GmmServices extends HttpServlet {
   static class ResponseData{
   		String name; 
     String status = Status.SUCCESS.toString();
-    String date = ServletUtil.formatDate(new Date());
+    String date = LocalDateTime.now().format(ServletUtil.DATE_FMT);
     String url;
     Object server;
     RequestData request;

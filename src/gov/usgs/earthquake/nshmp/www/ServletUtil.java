@@ -25,6 +25,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
@@ -61,7 +63,7 @@ public class ServletUtil implements ServletContextListener {
    * depend on a context-param and may be accessed as context attributes.
    */
 
-  private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+  static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern(
       "yyyy-MM-dd'T'HH:mm:ssXXX");
 
   static final ListeningExecutorService CALC_EXECUTOR;
@@ -183,13 +185,6 @@ public class ServletUtil implements ServletContextListener {
       
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  static String formatDate(Date d) {
-    // TODO switch to Java 8 time
-    synchronized (dateFormat) {
-      return dateFormat.format(d);
     }
   }
 

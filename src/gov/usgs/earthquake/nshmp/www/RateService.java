@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -359,7 +360,7 @@ public final class RateService extends HttpServlet {
   private static final class Result {
 
     final String status = Status.SUCCESS.toString();
-    final String date = ServletUtil.formatDate(new Date()); // TODO time
+    final String date = LocalDateTime.now().format(ServletUtil.DATE_FMT);
     final String url;
     final Object server;
     final Response response;
