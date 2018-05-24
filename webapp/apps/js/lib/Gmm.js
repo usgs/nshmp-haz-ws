@@ -360,8 +360,7 @@ export default class Gmm {
   */
   getUsage(callback = () => {}) {
     this.callback = callback;
-    let dynamic = this.config.server.dynamic;
-    let url = dynamic + this.webServiceUrl;
+    let url = this.webServiceUrl;
     let promise = $.getJSON(url);
     this.spinner.on(promise);
 
@@ -472,8 +471,7 @@ export default class Gmm {
   */
   serializeGmmUrl() {
     let inputs = $(this.inputsEl).serialize();
-    let dynamic = this.config.server.dynamic;
-    let url = dynamic + this.webServiceUrl + '?' + inputs; 
+    let url = this.webServiceUrl + '?' + inputs; 
     window.location.hash = inputs;
     
     return url;

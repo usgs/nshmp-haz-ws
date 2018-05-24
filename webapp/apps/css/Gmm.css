@@ -120,7 +120,8 @@ optgroup {
   padding: 2px 4px;
 }
 
-[class*="col-sm-"] {
+#control [class*="col-sm-"],
+#control [class*='col-xs-'] {
   padding-left: 2px;
   padding-right: 2px;
 }

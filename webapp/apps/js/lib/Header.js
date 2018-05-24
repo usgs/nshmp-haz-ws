@@ -55,6 +55,9 @@ export default class Header{
         label: 'Response Spectra', 
         href: '/nshmp-haz-ws/apps/spectra-plot.html',
       }, {
+        label: 'Response Spectra: Multi Parameter',
+        href: '/nshmp-haz-ws/apps/spectra-plot-multi.html',
+      },{
         label: 'Services',  
         href: '/nshmp-haz-ws/apps/services.html',
       }

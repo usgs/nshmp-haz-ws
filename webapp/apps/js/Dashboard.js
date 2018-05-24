@@ -35,23 +35,26 @@ export default class Dashboard {
         label: 'Dynamic Model Comparison',
         href: 'apps/dynamic-compare.html',
       }, {
-        label: 'Ground Motion Vs. Distance',
-        href: 'apps/gmm-distance.html',
-      }, { 
+        label: 'Response Spectra: Multi Value Parameter Plots',
+        href: 'apps/spectra-plot-multi.html',
+      }, {
         label: 'Model Comparison',
         href: 'apps/model-compare.html',
-      }, {
-        label: 'Hanging Wall Effects',
-        href: 'apps/hw-fw.html',
+      }, { 
+        label: 'Ground Motion Vs. Distance',
+        href: 'apps/gmm-distance.html',
       }, {
         label: 'Model Explorer',
         href: 'apps/model-explorer.html', 
       }, {
-        label: 'Services',
-        href: 'apps/services.html',
-      },{
+        label: 'Hanging Wall Effects',
+        href: 'apps/hw-fw.html',
+      }, {
         label: 'Geographic Deaggregation',
         href: 'apps/geo-deagg.html',
+      },{
+        label: 'Services',
+        href: 'apps/services.html',
       }, 
     ];
     

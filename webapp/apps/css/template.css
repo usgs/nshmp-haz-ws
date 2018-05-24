@@ -235,7 +235,7 @@ html, body{
 /*.................. Control Panel ..................*/
 
 /*.................. Control Panel ..................*/
-#control{
+#control {
   background-color: #f7f7f7;
   position: fixed;
   top: 0;
@@ -247,23 +247,25 @@ html, body{
   overflow: auto;
   border-right: 1px solid #ddd;
 }
-/*---------------------------------------------------*/
 
+#control .btn-group .btn+.btn {
+  margin-left: 0;
+} 
 
 /*.................... Forms .......................*/
-.form-horizontal .form-group{
+#control .form-horizontal .form-group {
   margin-right: -5px;
   margin-left: -5px;
   margin-bottom: 6px;
-  padding: 2px 4px;
+  padding: 0.25em;
 }
 
 
-option:disabled{
+#control option:disabled {
     color:#999;
 }
 
-option {
+#control option {
   color: black;
 }
 
@@ -281,19 +283,56 @@ label.control-spacer {
   margin-top: 8px;
 }
 
-.form-inline label small{
+#control .form-inline label small {
   font-weight: normal;
 }
 
-.form-horizontal  .form-control{
+#control .form-horizontal .form-control {
   font-size: 12px;
 }
 
-.form-horizontal .form-group-sm .control-label {
+#control .form-horizontal .form-group-sm .control-label {
   padding-top: 3px;
 }
-/*---------------------------------------------------*/
 
+#control .control-panel-slider {
+  margin-top: 0.45em;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.8em;
+  border-radius: 0.5em;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+
+#control .control-panel-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+#control .control-panel-slider:focus {
+  outline: transparent;
+}
+
+#control .control-panel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1em;
+  width: 1em;
+  border-radius: 50%;
+  background: #337ab7;
+  border-color: #2e6da4;
+  cursor: pointer;
+}
+
+#control .control-panel-slider::-webkit-slider-thumb:active {
+  height: 1.35em;
+  width: 1.35em;
+}
+
+#control .control-panel-slider::-ms-fill-lower {
+  background-color: #337ab7
+}
 
 /*----------- End: Control Panel  -------------------*/
 /**/
