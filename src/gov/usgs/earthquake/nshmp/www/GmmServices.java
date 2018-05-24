@@ -26,6 +26,8 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -41,8 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
+import java.util.function.Function;
+import java.util.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
@@ -205,7 +207,7 @@ public class GmmServices extends HttpServlet {
   static class ResponseData{
   		String name; 
     String status = Status.SUCCESS.toString();
-    String date = ServletUtil.formatDate(new Date());
+    String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     String url;
     Object server;
     RequestData request;
@@ -403,7 +405,7 @@ public class GmmServices extends HttpServlet {
                     public List<Gmm> apply(Group group) {
                       return group.gmms();
                     }
-                  })
+                  }::apply)
               .toSortedSet(Ordering.usingToString());
           GmmParam gmmParam = new GmmParam(
               GMM_NAME,
@@ -457,7 +459,7 @@ public class GmmServices extends HttpServlet {
       NumberParam(GmmInput.Field field, Range<Double> constraint, Double value) {
         this.label = field.label;
         this.info = field.info;
-        this.units = field.units.orNull();
+        this.units = field.units.orElse(null);
         this.min = constraint.lowerEndpoint();
         this.max = constraint.upperEndpoint();
         this.value = Doubles.isFinite(value) ? value : null;

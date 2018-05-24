@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -176,7 +178,7 @@ public final class DeaggService extends HttpServlet {
   private static final class Result {
 
     final String status = Status.SUCCESS.toString();
-    final String date = ServletUtil.formatDate(new Date()); // TODO time
+    final String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     final String url;
     final Object server;
     final List<Response> response;

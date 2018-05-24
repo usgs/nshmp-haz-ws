@@ -1,6 +1,6 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -20,7 +20,7 @@ public final class Util {
 
   static <E extends Enum<E>> List<String> enumToString(Set<E> values,
       Function<E, String> function) {
-    return FluentIterable.from(values).transform(function).toList();
+    return FluentIterable.from(values).transform(function::apply).toList();
   }
 
   static final Function<Region, String> REGION_TO_STR = new Function<Region, String>() {
