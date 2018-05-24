@@ -70,6 +70,14 @@ export default class Tools {
   }
   
   /**
+   * Reset a radio button to a unchecked state
+   * @param {HTMLElement} inputEl The input form element with type radio.
+   */
+  static resetRadioButton(inputEl) {
+    inputEl.checked = false;
+  }
+
+  /**
   * @method returnPeriodInterpolation
   *
   * Interpolate between two values at a return period and 
