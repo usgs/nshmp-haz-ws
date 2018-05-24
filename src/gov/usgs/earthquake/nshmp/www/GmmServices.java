@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -206,7 +207,7 @@ public class GmmServices extends HttpServlet {
   static class ResponseData{
   		String name; 
     String status = Status.SUCCESS.toString();
-    String date = LocalDateTime.now().format(ServletUtil.DATE_FMT);
+    String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     String url;
     Object server;
     RequestData request;

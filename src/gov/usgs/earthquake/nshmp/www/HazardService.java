@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
@@ -424,7 +425,7 @@ public final class HazardService extends HttpServlet {
   private static final class Result {
 
     final String status = Status.SUCCESS.toString();
-    final String date = LocalDateTime.now().format(ServletUtil.DATE_FMT);
+    final String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     final String url;
     final Object server;
     final List<Response> response;

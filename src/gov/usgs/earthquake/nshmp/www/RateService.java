@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -360,7 +361,7 @@ public final class RateService extends HttpServlet {
   private static final class Result {
 
     final String status = Status.SUCCESS.toString();
-    final String date = LocalDateTime.now().format(ServletUtil.DATE_FMT);
+    final String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     final String url;
     final Object server;
     final Response response;
