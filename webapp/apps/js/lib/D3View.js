@@ -47,9 +47,9 @@ export default class D3View {
     /** @type {HTMLElement} */
     this.containerEl = containerEl;
     /** @type {String} */
-    this.resizeFull = 'icon resize glyphicon glyphicon-resize-full';
+    this.resizeFull = 'resize glyphicon glyphicon-resize-full';
     /** @type {String} */
-    this.resizeSmall = 'icon resize glyphicon glyphicon-resize-small';
+    this.resizeSmall = 'resize glyphicon glyphicon-resize-small';
     
     /** 
     * @typedef {Object} ViewOptions
@@ -90,16 +90,25 @@ export default class D3View {
     *     Default: 'log'.
     */
     this.options = {
-      colSizeMin: 'col-md-6',
-      colSizeMinCenter: 'col-md-offset-3 col-md-6',
-      colSizeMax: 'col-md-offset-1 col-md-10',
+      addLegendCheckBtn: true,
+      addGridLineCheckBtn: true,
+      disableXAxisBtns: false,
+      disableYAxisBtns: false,
+      syncSelections: false,
+      colSizeMin: 'col-sm-12 col-md-6',
+      colSizeMinCenter: 'col-sm-offset-1 col-sm-10 col-xl-offset-2 col-xl-8 col-xxl-offset-3 col-xxl-6',
+      colSizeMax: 'col-sm-12 col-xl-offset-1 col-xl-10 col-xxl-offset-2 col-xxl-8', 
       colSizeDefault: 'max',
       plotLowerPanel: false,
       printLowerPanel: true,
+      syncXAxis: true,
+      syncYAxis : true,
+      xAxisScale: 'log',
+      yAxisScale: 'log',
     };
     // Override options
     this.options = $.extend({}, this.options, options);
-    
+
     /**
     * @typedef {Object} PlotOptions
     * @property {Number} labelFontSize - Font size of X/Y labels in px.
@@ -259,6 +268,7 @@ export default class D3View {
       tooltipOffsetX: 2,
       tooltipOffsetY: 8,
       tooltipPadding: 10,
+      tooltipText: ['Label:', 'X value:', 'Y value'],
       tooltipXToExponent: false,
       tooltipYToExponent: false,
       transitionDuration: 500,
@@ -266,12 +276,12 @@ export default class D3View {
       xAxisNice: true,
       xAxisScale: this.options.xAxisScale,
       xLabelPadding: 8,
-      xTickMarks: 10,
+      xTickMarks: 8,
       yAxisLocation: 'left',
       yAxisNice: true,
       yAxisScale: this.options.yAxisScale,
       yLabelPadding: 10,
-      yTickMarks: 10,
+      yTickMarks: 6,
     };
 
     /** 
@@ -825,6 +835,7 @@ export default class D3View {
         printDpi: this.lowerPanel.options.printDpi,
         printCenter: this.lowerPanel.options.printCenter,
         printFooter: this.lowerPanel.options.printFooter,
+        printLegend: this.legendCheckEl.checked,
         printTitle: this.lowerPanel.options.printTitle,
         titleFontSize: this.lowerPanel.options.titleFontSize,
       };
@@ -840,6 +851,7 @@ export default class D3View {
         printDpi: this.upperPanel.options.printDpi,
         printCenter: this.upperPanel.options.printCenter,
         printFooter: this.upperPanel.options.printFooter,
+        printLegend: this.legendCheckEl.checked,
         printTitle: this.upperPanel.options.printTitle,
         titleFontSize: this.upperPanel.options.titleFontSize,
       };
@@ -1239,22 +1251,60 @@ export default class D3View {
     let plotTitleD3 = plotHeaderD3.append('h2')
         .attr('class', 'panel-title')
     
+    let plotTitleWidth = this.options.addLegendCheckBtn &&
+        this.options.addGridLineCheckBtn ? 'calc(100% - 8em)' :
+        this.options.addLegendCheckBtn || 
+        this.options.addGridLineCheckBtn ? 'calc(100% - 5em)' :
+        'calc(100% - 2em)';
+
     plotTitleD3.append('div')
         .attr('class', 'plot-title')
-        .attr('contenteditable', true);
-        
-    plotHeaderD3.append('span')
+        .attr('contenteditable', true)
+        .style('width', plotTitleWidth);
+    
+    let iconsD3 = plotHeaderD3.append('span')
+        .attr('class', 'icon');
+
+    if (this.options.addGridLineCheckBtn) {
+      iconsD3.append('div')
+          .attr('class', 'grid-line-check glyphicon glyphicon-align-justify')
+          .attr('data-toggle', 'tooltip')
+          .attr('title', 'Click to toggle grid lines')
+          .property('checked', true)
+          .style('margin-right', '2em');
+     
+      this.gridLinesCheckEl = this.el.querySelector('.grid-line-check');
+      $(this.gridLinesCheckEl).tooltip({container: 'body'});
+    }
+
+    if (this.options.addLegendCheckBtn) {
+      iconsD3.append('div')
+          .attr('class', 'legend-check glyphicon glyphicon-th-list')
+          .attr('data-toggle', 'tooltip')
+          .attr('title', 'Click to toggle legend')
+          .property('checked', true)
+          .style('margin-right', '2em');
+    
+      this.legendCheckEl = this.el.querySelector('.legend-check');
+      $(this.legendCheckEl).tooltip({container: 'body'});
+    }
+
+    iconsD3.append('div')
         .attr('class',() => {
           return this.colSize == this.options.colSizeMin
             ? this.resizeFull : this.resizeSmall; 
-        });
+        })
+        .attr('data-toggle', 'tooltip')
+        .attr('title', 'Click to resize');
     
     this.plotHeaderEl = this.el.querySelector('.panel-heading');
     this.plotResizeEl = this.el.querySelector('.resize');
     this.plotTitleEl = this.el.querySelector('.plot-title');
     
     $(this.plotResizeEl).on('click',() => { this.onPanelResize() });
-    
+
+    $(this.plotResizeEl).tooltip({container: 'body'});
+
     return this;
   }
   
