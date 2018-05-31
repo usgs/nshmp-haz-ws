@@ -593,6 +593,10 @@ export default class ControlPanel {
       Tools.resetRadioButton(event.target);
     });
 
+    /* Add tooltips */
+    $(gmmSorterEls.gmmAlphaEl).tooltip({container: 'body'});
+    $(gmmSorterEls.gmmGroupEl).tooltip({container: 'body'});
+
     let els = {
       gmmSorterEl: gmmSorterEl,
       gmmAlphaEl: gmmSorterEls.gmmAlphaEl,
