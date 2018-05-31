@@ -39,6 +39,8 @@ export default class D3GeoDeagg extends D3View {
       plotOptionsUpper = {}, 
       plotOptionsLower = {}) {
     let mapViewOptions = {
+      addGridLineCheckBtn: false,
+      addLegendCheckBtn: false,
       centerXOffset: 5,
       centerYOffsetFunction: (centerY) => { 
         return (centerY + this.options.centerXOffset); 
@@ -84,7 +86,7 @@ export default class D3GeoDeagg extends D3View {
       siteLocationStrokeWidth: 1,
       slowRotation: 6,
     };
-    
+   
     let plotOptions = {
       printTitle: false,
       tooltipText: [
