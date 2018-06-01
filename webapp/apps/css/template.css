@@ -184,24 +184,36 @@ html, body{
   cursor: pointer;
 }
 
+.Footer .footer-btns {
+  position: absolute;
+  left: 8em;
+  right: 8em;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.Footer .footer-icons {
+  position: absolute;
+  left: calc(100% - 8em);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .Footer .code-info-icon {
   cursor: pointer;
-  position: absolute;
-  top: 50%;
-  right: 0.75em;
-  transform: translate(25%, -50%);
-  font-size: 1.5em;
+  font-size: 2.0em;
+  vertical-align: middle;
+  margin: 0 0.5em;
+}
+
+.Footer .github-icon {
+  cursor: pointer;
+  width: 2.0em;
+  margin: 0 0.5em;
 }
 
 .Footer .code-info-icon:focus {
   outline: none;
-}
-
-.Footer .footer-btns {
-  margin: 0 3em;
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .Footer .code-info-collapse {
@@ -353,7 +365,7 @@ label.control-spacer {
   right: 0;
   margin: 2em 0 3.5em 400px;
   overflow: auto;
-  padding: 20px;
+  padding: 20px 0;
 }
 /*-------------- End: Main Content -------------------*/
 /**/

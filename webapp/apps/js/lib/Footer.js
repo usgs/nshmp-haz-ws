@@ -62,7 +62,7 @@ export default class Footer{
         .append('div')
         .attr('class', 'Footer')
         .attr('id', 'footer');
-    
+   
     // Add footer buttons
     footerD3.append('div')
         .attr('class', 'footer-btns')
@@ -74,12 +74,26 @@ export default class Footer{
         .attr('id', (d) => { return d.id; })
         .text((d) => { return d.text; })
     
+    let iconsD3 = footerD3.append('div')
+        .attr('class', 'footer-icons');
+
     // Add info icon
-    footerD3.append('div')
+    iconsD3.append('span')
         .attr('class', 'glyphicon glyphicon-info-sign code-info-icon disabled')
         .property('disabled', true)
         .attr('data-toggle', 'false')
         .attr('data-target', '#code-info-collapse');
+  
+    /* Github Icon */
+    let githubD3 = iconsD3.append('a')
+        .attr('href', 'https://github.com/usgs/nshmp-haz-ws/issues/new')
+        .attr('target', '_blank')
+        .append('img')
+        .attr('class', 'github-icon')
+        .attr('title', 'Submit a GitHub issue')
+        .attr('alt', 'Submit a GitHub issue')
+        .attr('data-toggle', 'tooltip')
+        .attr('src', '/nshmp-haz-ws/apps/img/github.svg');
     
     // Add collapsable div for metadata
     footerD3.append('div')
@@ -88,6 +102,7 @@ export default class Footer{
         .append('div')
         .attr('class', 'well')
         .attr('id', 'code-info');
+
 
     /* 
     btnRightD3.append('span')
@@ -110,9 +125,12 @@ export default class Footer{
     /** @type {HTMLElment} */
     this.updateBtnEl = this.footerEl.querySelector('#update-plot');
     //this.settingsBtnEl = this.footerEl.querySelector('.settings-btn');
+    this.githubBtnEl = this.footerEl.querySelector('.github-icon');
     
     this.onCodeInfo();
     this.onDocumentKeypress();
+
+    $(this.githubBtnEl).tooltip({container: 'body'});
   }
   
   /**

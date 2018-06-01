@@ -109,6 +109,7 @@ export default class D3SaveFigure {
       printDpi: 600,
       printCenter: true,
       printFooter: true,
+      printLegend: true,
       printTitle: true,
       svgHeight: (10 / plotRatio),
       svgWidth: 9,
@@ -326,11 +327,14 @@ export default class D3SaveFigure {
           .style('font-size', this.options.titleFontSize)
           .text(this.plotTitle);
     }
+  
+    if (!this.options.printLegend) {
+      svgD3.select('.legend').remove();
+    } else {
+      // Remove legend drag symbol
+      svgD3.select('.drag').remove(); 
+    }
 
-    // Remove legend drag symbol
-    svgD3.select('.drag')
-      .remove(); 
-    
     // Add print footer
     this.addPrintFooter(svgD3.node());
     

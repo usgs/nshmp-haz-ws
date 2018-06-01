@@ -39,34 +39,7 @@ export default class D3LinePlot extends D3View {
       options = {},
       plotOptionsUpper = {},
       plotOptionsLower = {}){
-    let lineViewOptions = {
-      disableXAxisBtns: false,
-      disableYAxisBtns: false,
-      syncSelections: false,
-      syncXAxis: true,
-      syncYAxis : true,
-      xAxisScale: 'log',
-      yAxisScale: 'log',
-    };
-    let plotOptions = {
-      tooltipText: ['Label:', 'X Value:', 'Y Value:'],
-      xAxisLocation: 'bottom',
-      xAxisNice: true,
-      xAxisScale: lineViewOptions.xAxisScale,
-      xLabelPadding: 8,
-      xTickMarks: 10,
-      yAxisLocation: 'left',
-      yAxisNice: true,
-      yAxisScale: lineViewOptions.yAxisScale,
-      yLabelPadding: 10,
-      yTickMarks: 10,
-    };
     
-    // Update options with specific line options
-    options = $.extend({}, lineViewOptions, options);
-    plotOptionsUpper = $.extend({}, plotOptions, plotOptionsUpper);
-    plotOptionsLower = $.extend({}, plotOptions, plotOptionsLower);
-
     super(containerEl,
         options,
         plotOptionsUpper,
@@ -78,6 +51,44 @@ export default class D3LinePlot extends D3View {
     this.upperPanel = this.updatePlotPanelObject(this.upperPanel);
   }
   
+  /**
+   * Add grid lines to a plot.
+   * 
+   * @param {PlotPanel} panel The plot panel to add the grid lines to.
+   */
+  addGridLines(panel) {
+    this.removeGridLines(panel);
+
+    let xGridLines = this.getXAxisLocation(panel);
+    xGridLines.tickFormat('')
+        .tickSize(-panel.plotHeight);
+
+    d3.select(panel.xAxisEl)
+        .select('.x-tick')
+        .append('g')
+        .attr('class', 'grid-lines')
+        .attr('stroke-width', 0.05)
+        .attr('stroke', '#f2f2f2')
+        .call(xGridLines);
+    
+    let yGridLines = this.getYAxisLocation(panel);
+    yGridLines.tickFormat('')
+        .tickSize(-panel.plotWidth);
+
+    d3.select(panel.yAxisEl)
+        .select('.y-tick')
+        .append('g')
+        .attr('class', 'grid-lines')
+        .attr('stroke-width', 0.05)
+        .attr('stroke', '#f2f2f2')
+        .call(yGridLines);
+  }
+
+  /**
+   * Add return period to the data.
+   * 
+   * @param {PlotPanel} panel The plot panel to add the return period to.
+   */
   addReturnPeriod(panel) {
     let xValues = panel.xBounds.domain();
     let yValues = [panel.returnPeriod, panel.returnPeriod];
@@ -157,22 +168,106 @@ export default class D3LinePlot extends D3View {
   }
   
   /**
-  * @method createLegend
-  *
-  * Create a SVG draggable legend using the labels
-  * @param {Panel} panel - Upper or lower plot panel
-  */
-  createLegend(panel){
+   * Create a SVG draggable legend using the labels.
+   * 
+   * @param {Panel} panel - Upper or lower plot panel
+   */
+  createLegend(panel) {
     let options = panel.options;
     let nleg = panel.labels.length-1; 
     let plotHeight = panel.plotHeight; 
     let plotWidth = panel.plotWidth;
-    
+    let scale = panel.plotScale;
+   
+    /* Remove legend entries */
     d3.select(panel.legendEl)
       .selectAll('*')
       .remove();
       
-    let scale = panel.plotScale;
+    this.createLegendText(panel);
+
+    // Legend geometry 
+    let legendGeom = panel.legendEl.getBoundingClientRect(); 
+    let legendWidth = parseFloat(legendGeom.width * scale + 
+        2 * options.legendPaddingX);
+    let legendHeight = parseFloat(legendGeom.height * scale +
+        2 * options.legendPaddingY);
+   
+    /* Create legend background */
+    this.createLegendBackground(panel, legendHeight, legendWidth);
+    /* Set the legend location */  
+    this.setLegendLocation(panel);
+    /* Listen for legend selection */
+    this.onLegendSelection(panel);
+    
+    d3.select(panel.legendEl)
+        .select('.drag')
+        .call(d3.drag()
+            .on('drag', () => { 
+              this.onLegendDrag(panel, legendHeight, legendWidth); 
+            })
+        );
+    
+    /* Show/hide legend */
+    $(this.legendCheckEl).off('click');
+    $(this.legendCheckEl).on('click', (event) => {
+      this.onLegendCheckClick(panel)
+    });  
+    
+    d3.select(panel.legendEl).raise()
+        .select('.legend-entries').raise(); 
+  } 
+
+  /**
+   * Create a white background for the legend with an outer 
+   *    padding around the legend with the 'move' symbol 
+   *    so the legend can be dragged around.
+   * 
+   * @param {PlotPanel} panel The plot panel to add the legend to.
+   * @param {Number} legendHeight The current legend height.
+   * @param {Number} legendWidth The current legend width.
+   */
+  createLegendBackground(panel, legendHeight, legendWidth) {
+    let options = panel.options;
+
+    // Legend outline
+    d3.select(panel.legendEl)
+        .append('g')
+        .attr('class', 'outlines')
+        .append('rect')
+        .attr('class', 'outer')
+        .attr('height', legendHeight)
+        .attr('width', legendWidth)
+        .attr('stroke', '#999')
+        .attr('fill', 'white');
+    
+    d3.select(panel.legendEl)
+        .select('.outlines')
+        .append('rect')
+        .attr('class', 'inner')
+        .attr('height', legendHeight - 2 * options.legendPaddingY)
+        .attr('width', legendWidth - 2 * options.legendPaddingX)
+        .attr('x', options.legendPaddingX)
+        .attr('y', options.legendPaddingY)
+        .attr('fill', 'white');
+
+    d3.select(panel.legendEl)
+        .select('.outlines')
+        .append('text')
+        .attr('class', 'glyphicon drag')
+        .attr('alignment-baseline', 'text-before-edge')
+        .attr('fill', '#999')
+        .style('cursor', 'move')
+        .text('\ue068')
+  }
+
+  /**
+   * Create the legend text from the labels with the matching line color.
+   * 
+   * @param {PlotPanel} panel The plot panel to add the legend to.
+   */
+  createLegendText(panel) {
+    let options = panel.options;
 
     let legendD3 = d3.select(panel.legendEl)
         .append('g')
@@ -213,68 +308,7 @@ export default class D3LinePlot extends D3View {
         .attr('cy', (d,i) => {return options.legendLineBreak * i}) 
         .attr('r', options.pointRadius)
         .attr('fill', (d,i) => {return panel.color[i]} );
-
-    // Legend geometry 
-    let legendGeom = panel.legendEl
-        .getBoundingClientRect(); 
-    let legendWidth = parseFloat(legendGeom.width * scale + 
-        2 * options.legendPaddingX);
-    let legendHeight = parseFloat(legendGeom.height * scale +
-        2 * options.legendPaddingY);
-    
-    
-    // Legend outline
-    d3.select(panel.legendEl)
-        .append('g')
-        .attr('class', 'outlines')
-        .append('rect')
-        .attr('class', 'outer')
-        .attr('height', legendHeight)
-        .attr('width', legendWidth)
-        .attr('stroke', '#999')
-        .attr('fill', 'white');
-    
-    d3.select(panel.legendEl)
-        .select('.outlines')
-        .append('rect')
-        .attr('class', 'inner')
-        .attr('height', legendHeight - 2 * options.legendPaddingY)
-        .attr('width', legendWidth - 2 * options.legendPaddingX)
-        .attr('x', options.legendPaddingX)
-        .attr('y', options.legendPaddingY)
-        .attr('fill', 'white');
-
-    d3.select(panel.legendEl)
-        .select('.outlines')
-        .append('text')
-        .attr('class', 'glyphicon drag')
-        .attr('alignment-baseline', 'text-before-edge')
-        .attr('fill', '#999')
-        .style('cursor', 'move')
-        .text('\ue068')
-
-    d3.select(panel.legendEl).raise();
-    d3.select(panel.legendEl).select('.legend-entries').raise(); 
-
-    // Set translation 
-    let translate = this.legendLocation(panel);
-    d3.select(panel.legendEl)
-        .select('.legend-entries')
-        .attr('transform', translate); 
-    d3.select(panel.legendEl)
-        .select('.outlines')
-        .selectAll('*')
-        .attr('transform', translate); 
-    
-    this.onLegendSelection(panel);
-    d3.select(panel.legendEl)
-        .select('.drag')
-        .call(d3.drag()
-            .on('drag', () => { 
-              this.onLegendDrag(panel, legendHeight, legendWidth); 
-            })
-        );
-  } 
+  }
 
   /**
   * @method createTooltip
@@ -446,9 +480,10 @@ export default class D3LinePlot extends D3View {
   * @param {Panel} panel - Upper or lower plot panel
   * @return {Object} - D3 axis object
   */
-  getYAxisLocation(panel){
+  getYAxisLocation(panel) {
     return panel.options.yAxisLocation == 'right' ? 
-        d3.axisRight(panel.yBounds) : d3.axisLeft(panel.yBounds);
+        d3.axisRight(panel.yBounds).ticks(panel.options.yTickMarks) : 
+        d3.axisLeft(panel.yBounds).ticks(panel.options.yTickMarks);
   }
 
   /**
@@ -530,6 +565,44 @@ export default class D3LinePlot extends D3View {
   
     return 'translate(' + xTranslate + ',' + yTranslate + ')';
   } 
+
+  /**
+   * When the gridline glyphicon is clicked update the 
+   *    checked state and add or remove the gridlines.
+   * 
+   * @param {Event} event The event that triggered it.
+   */
+  onGridLineCheckClick(event) {
+    this.gridLinesCheckEl.checked = !this.gridLinesCheckEl.checked;
+    let isChecked = this.gridLinesCheckEl.checked;
+
+    d3.select(this.gridLinesCheckEl)
+        .style('color', isChecked ? 'black' : '#bfbfbf');
+
+    if (isChecked) {
+      this.addGridLines(this.upperPanel);
+      if (this.options.plotLowerPanel) this.addGridLines(this.lowerPanel);
+    } else {
+      this.removeGridLines(this.upperPanel);
+      if (this.options.plotLowerPanel) this.removeGridLines(this.lowerPanel);
+    }
+  }
+
+  /**
+   * Show/hide the legend when legend glyhpicon is clicked. 
+   * 
+   * @param {PlotPanel} panel The plot panel where the legend is. 
+   */
+  onLegendCheckClick(panel) {
+    this.legendCheckEl.checked = !this.legendCheckEl.checked; 
+    let isChecked = this.legendCheckEl.checked;
+
+    d3.select(this.legendCheckEl)
+        .style('color', isChecked ? 'black' : '#bfbfbf');
+
+    d3.select(panel.legendEl).classed('hidden', !isChecked);
+    this.setLegendLocation(panel);
+  }
 
   /**
   * @method onLegendDrag
@@ -760,6 +833,15 @@ export default class D3LinePlot extends D3View {
         panel.options.yAxisScale == 'linear') {
       this.plotZeroReferenceLine(panel);
     }
+
+    if (this.gridLinesCheckEl.checked) {
+      this.addGridLines(panel);
+    }
+    
+    $(this.gridLinesCheckEl).off('click');
+    $(this.gridLinesCheckEl).on('click', (event) => { 
+      this.onGridLineCheckClick(event);
+    });
   }
 
   /**
@@ -877,6 +959,10 @@ export default class D3LinePlot extends D3View {
         panel.options.yAxisScale == 'linear') {
       this.plotZeroReferenceLine(panel);
     }
+    
+    if (this.gridLinesCheckEl.checked) {
+      this.addGridLines(panel);
+    }
   }
 
 
@@ -990,6 +1076,21 @@ export default class D3LinePlot extends D3View {
   }
   
   /**
+   * Remove grid lines from a plot.
+   * 
+   * @param {PlotPanel} panel The plot panel to remove the grid lines. 
+   */
+  removeGridLines(panel) {
+    d3.select(panel.xAxisEl)
+        .select('.grid-lines')
+        .remove();
+    
+    d3.select(panel.yAxisEl)
+        .select('.grid-lines')
+        .remove();
+  }
+
+  /**
   * @method removeSmallValues
   *
   * Set values of the data under a specifed limit 
@@ -1010,6 +1111,27 @@ export default class D3LinePlot extends D3View {
     return this;
   }
   
+  /**
+   * Set the legend location based on the options.legendLocation.
+   *  
+   * @param {PlotPanel} panel The plot panel where the legend is.
+   */
+  setLegendLocation(panel) {
+    /* Get legend location translation */
+    let translate = this.legendLocation(panel);
+    
+    /* Transform legend entries */
+    d3.select(panel.legendEl)
+        .select('.legend-entries')
+        .attr('transform', translate); 
+    
+    /* Transform legend outline */
+    d3.select(panel.legendEl)
+        .select('.outlines')
+        .selectAll('*')
+        .attr('transform', translate); 
+  }
+
   /**
   * @method setTicks
   *
