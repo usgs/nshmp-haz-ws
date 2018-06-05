@@ -99,6 +99,8 @@ public class GmmServices extends HttpServlet {
       HttpServletResponse response)
           throws ServletException, IOException {
     
+    ServletUtil.setCorsHeadersAndContentType(response);
+
     PrintWriter writer = response.getWriter();     
     
     String query = request.getQueryString();
