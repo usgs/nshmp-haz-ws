@@ -32,6 +32,7 @@ public class UtilitiesService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
+    ServletUtil.setCorsHeadersAndContentType(response);
     PrintWriter out = response.getWriter();
     String utilUrl = "/nshmp-haz-ws/apps/util.html";
 
