@@ -102,13 +102,13 @@ public class GmmServices extends HttpServlet {
     String pathInfo = request.getPathInfo();
     String host = request.getServerName();
 
-    Services service = null;
-    if (pathInfo.matches(Services.DISTANCE.pathInfo)) {
-      service = Services.DISTANCE;
-    } else if (pathInfo.matches(Services.HW_FW.pathInfo)) {
-      service = Services.HW_FW;
-    } else if (pathInfo.matches(Services.SPECTRA.pathInfo)) {
-      service = Services.SPECTRA;
+    Service service = null;
+    if (pathInfo.matches(Service.DISTANCE.pathInfo)) {
+      service = Service.DISTANCE;
+    } else if (pathInfo.matches(Service.HW_FW.pathInfo)) {
+      service = Service.HW_FW;
+    } else if (pathInfo.matches(Service.SPECTRA.pathInfo)) {
+      service = Service.SPECTRA;
     }
 
     Gson gson = new GsonBuilder()
@@ -153,11 +153,11 @@ public class GmmServices extends HttpServlet {
     ResponseData svcResponse = null;
     try {
       Map<String, String[]> params = request.getParameterMap();
-      if (service.equals(Services.DISTANCE)) {
+      if (service.equals(Service.DISTANCE)) {
         svcResponse = processRequestDistance(service, params);
-      } else if (service.equals(Services.HW_FW)) {
+      } else if (service.equals(Service.HW_FW)) {
         svcResponse = processRequestDistance(service, params);
-      } else if (service.equals(Services.SPECTRA)) {
+      } else if (service.equals(Service.SPECTRA)) {
         svcResponse = processRequestSpectra(service, params);
       }
       svcResponse.url = url;
@@ -208,7 +208,7 @@ public class GmmServices extends HttpServlet {
     XY_DataGroup means;
     XY_DataGroup sigmas;
 
-    ResponseData(Services service, RequestData request) {
+    ResponseData(Service service, RequestData request) {
       this.name = service.resultName;
       this.request = request;
       this.server =
@@ -246,9 +246,9 @@ public class GmmServices extends HttpServlet {
   }
 
   static ResponseData processRequestDistance(
-      Services service, Map<String, String[]> params) {
+      Service service, Map<String, String[]> params) {
 
-    boolean isLogSpace = service.equals(Services.DISTANCE) ? true : false;
+    boolean isLogSpace = service.equals(Service.DISTANCE) ? true : false;
     Imt imt = readValue(params, IMT, Imt.class);
     double rMin = Double.valueOf(params.get(RMIN_KEY)[0]);
     double rMax = Double.valueOf(params.get(RMAX_KEY)[0]);
@@ -266,7 +266,7 @@ public class GmmServices extends HttpServlet {
   }
 
   private static ResponseData processRequestSpectra(
-      Services service, Map<String, String[]> params) {
+      Service service, Map<String, String[]> params) {
 
     RequestData request = new RequestData(params);
     MultiResult result = spectra(request.gmms, request.input, false);
@@ -308,9 +308,9 @@ public class GmmServices extends HttpServlet {
 
   static final class InputSerializer implements JsonSerializer<GmmInput> {
 
-    Services service;
+    Service service;
 
-    InputSerializer(Services service) {
+    InputSerializer(Service service) {
       this.service = service;
     }
 
@@ -320,7 +320,7 @@ public class GmmServices extends HttpServlet {
         Type type,
         JsonSerializationContext context) {
 
-      boolean printDistance = !service.equals(Services.SPECTRA) ? true : false;
+      boolean printDistance = !service.equals(Service.SPECTRA) ? true : false;
       JsonObject root = new JsonObject();
       root.addProperty(MW.toString(), input.Mw);
       root.addProperty(RJB.toString(), printDistance ? input.rJB : null);
@@ -345,9 +345,9 @@ public class GmmServices extends HttpServlet {
     final String status = Status.USAGE.toString();
     String description;
     String syntax;
-    static Services service;
+    static Service service;
 
-    Metadata(Services service) {
+    Metadata(Service service) {
       this.service = service;
       this.syntax = "%s://%s/nshmp-haz-ws/gmm" + service.pathInfo + "?";
       this.description = service.description;
@@ -369,7 +369,7 @@ public class GmmServices extends HttpServlet {
             JsonSerializationContext context) {
           JsonObject root = new JsonObject();
 
-          if (!service.equals(Services.SPECTRA)) {
+          if (!service.equals(Service.SPECTRA)) {
             Set<Imt> imtSet = EnumSet.complementOf(EnumSet.range(PGV, AI));
             final EnumParameter<Imt> imts;
             imts = new EnumParameter<>(
@@ -551,7 +551,7 @@ public class GmmServices extends HttpServlet {
     }
   }
 
-  static enum Services {
+  static enum Service {
 
     DISTANCE(
         "Ground Motion Vs. Distance",
@@ -593,7 +593,7 @@ public class GmmServices extends HttpServlet {
     final String yLabelMedian;
     final String yLabelSigma;
 
-    private Services(
+    private Service(
         String name, String description,
         String pathInfo, String groupNameMean,
         String groupNameSigma, String xLabel,
