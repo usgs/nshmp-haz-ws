@@ -53,9 +53,7 @@ export default class TestSiteView {
     /** @type {HTMLElement} */
     //this.regionListEl = this.el.querySelector('#test-site-region-menu');
  
- 
     this.onDocumentPress();
-     
   }
 
   /**
@@ -71,7 +69,7 @@ export default class TestSiteView {
     
     d3.select(this.siteListEl)
         .selectAll('label')
-        .data(sites.features)
+        .data(sites)
         .enter()
         .append('label')
         .attr('class', 'btn btn-sm btn-default')
@@ -249,7 +247,7 @@ export default class TestSiteView {
   * @param {String} regionId - The region to find.
   */
   getRegion(regionId) {
-    return this.testSites.find((feature) => {                     
+    return this.testSites.filter((feature) => {                     
       return feature.properties.regionId == regionId;                           
     });
   }

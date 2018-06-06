@@ -222,7 +222,7 @@ export default class LeafletTestSitePciker extends TestSiteView {
   findTestSite(regionId) {
     let region = this.getRegion(regionId);
 
-    let site = region.features.find((site) => {
+    let site = region.find((site) => {
       let coords = this.getCoordinates(site);
       return this.lonEl.value == coords[0] &&
           this.latEl.value == coords[1];
@@ -424,8 +424,8 @@ export default class LeafletTestSitePciker extends TestSiteView {
     this.geoJsonLayer.clearLayers(); 
     this.geoJsonLayer.addData(regionGeoJson);
     /* Zoom to region bounds */
-    let regionBounds = L.geoJSON(regionGeoJson.properties.regionBounds)
-        .getBounds();
+    let bbox = regionGeoJson[0].bbox;
+    let regionBounds = L.latLngBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
     this.leafletMap.fitBounds(regionBounds, this.options.fitBounds);
     
     /* Listeners */
