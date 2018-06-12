@@ -5,6 +5,7 @@ import D3GeoDeagg from './lib/D3GeoDeagg.js';
 import Footer from './lib/Footer.js';
 import Header from './lib/Header.js';
 import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
+import NshmpError from './lib/NshmpError.js';
 import Spinner from './lib/Spinner.js';
 import Tools from './lib/Tools.js';
 
@@ -308,16 +309,15 @@ export default class GeoDeagg {
   *     build the inputs.
   */
   getUsage() {
-    let promise = $.getJSON(this.webServiceUrl);
-    this.spinner.on(promise);
+    let jsonCall = Tools.getJSON(this.webServiceUrl);
+    this.spinner.on(jsonCall.reject);
 
-    promise.done((usage) => {
+    jsonCall.promise.then((usage) => {
+      NshmpError.checkResponse(usage);
       this.buildInputs(usage);
-    });
-    
-    promise.fail((err) => {
-      console.log('getUsage Error');
-      console.log(err);
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 
@@ -535,11 +535,13 @@ export default class GeoDeagg {
     let url = this.serializeUrl();
     let metadata = this.getMetadata();
 
-    let promise = $.getJSON(url);
-    this.spinner.on(promise, 'Calculating');
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject, 'Calculating');
 
-    promise.done((response) => {
+    jsonCall.promise.then((response) => {
       this.spinner.off();
+      NshmpError.checkResponse(response, this.plot); 
+
       this.footer.setMetadata(response.server);
       
       // Find total data component 
@@ -592,7 +594,10 @@ export default class GeoDeagg {
       $(this.footer.rawBtnEl).on('click', (event) => {
         window.open(url);
       });
-    
+  
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 

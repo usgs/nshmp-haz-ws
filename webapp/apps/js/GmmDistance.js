@@ -2,6 +2,8 @@
 
 import Gmm from './lib/Gmm.js';
 import D3LinePlot from './lib/D3LinePlot.js';
+import NshmpError from './lib/NshmpError.js';
+import Tools from './lib/Tools.js';
 
 /** 
 * @class GmmDistance 
@@ -193,14 +195,15 @@ export default class GmmDistance extends Gmm {
   */
   updatePlot() {
     let url = this.serializeGmmUrl(); 
-    if (this.rMin < this.options.rMin) return;
     
     // Call ground motion gmm/distance web service 
-    let promise = $.getJSON(url);
-    this.spinner.on(promise, 'Calculating');
-    
-    promise.done((response) => {
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject, 'Calculating');
+
+    jsonCall.promise.then((response) => {
       this.spinner.off();
+      NshmpError.checkResponse(response, this.plot);
+
       this.footer.setMetadata(response.server);
 
       let selectedImt = $(':selected', this.imtEl);
@@ -215,6 +218,9 @@ export default class GmmDistance extends Gmm {
       $(this.footer.rawBtnEl).click((event) => {
         window.open(url);
       });
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 

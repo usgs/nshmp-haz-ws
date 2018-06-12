@@ -1,5 +1,8 @@
 'use strict';
 
+import Tools from './Tools.js';
+import NshmpError from './NshmpError.js';
+
 /**
 * @fileoverview Static method to read two possible config files:
 *     1. /nshmp-haz-ws/apps/js/lib/config.json
@@ -21,17 +24,24 @@ export default class Config {
   * @param {Class} callback - The callback must be a class as 
   *     new callback(config) will be called. 
   */
-  static getConfig(callback){
-    let p1 = $.ajax({url: '/nshmp-haz-ws/apps/config.json'});
-    let p2 = $.ajax({url: '/nshmp-haz-ws/config.json'});
+  static getConfig(callback) {
+    let mainConfigUrl = '/nshmp-haz-ws/apps/config.json';
+    let overrideConfigUrl = '/nshmp-haz-ws/config.json';
     
-    $.when(p1, p2).done((c1, c2) => {
-      let config = $.extend({}, c1[0], c2[0]);
+    let jsonCall = Tools.getJSONs([mainConfigUrl, overrideConfigUrl]);
+
+    Promise.all(jsonCall.promises).then((responses) => {
+      let mainConfig = responses[0];
+      let overrideConfig = responses[1];
+
+      let config = $.extend({}, mainConfig, overrideConfig);
       new callback(config);
-    }).fail(() => {
+    }).catch(() => {
       console.clear();
-      p1.done((config) => {
+      jsonCall.promises[0].then((config) => {
         new callback(config);
+      }).catch((errorMessage) => {
+        NshmpError.throwError(errorMessage);
       });
     });
   }

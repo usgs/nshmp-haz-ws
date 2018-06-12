@@ -2,6 +2,8 @@
 
 import D3LinePlot from './lib/D3LinePlot.js';
 import Gmm from './lib/Gmm.js';
+import NshmpError from './lib/NshmpError.js';
+import Tools from './lib/Tools.js';
 
 /** 
 * @fileoverview Class for spectra-plot.html, response spectra web app.
@@ -46,7 +48,7 @@ export default class Spectra extends Gmm {
   */
   constructor(config) {
     let webApp = 'Spectra';
-    let wsUrl = '/nshmp-haz-ws/gmm/spectra'
+    let wsUrl = '/nshmp-haz-ws/gmm/spectra';
     super(webApp, wsUrl, config);
     this.header.setTitle('Response Spectra');
 
@@ -268,15 +270,14 @@ export default class Spectra extends Gmm {
   */ 
   updatePlot() {
     let url = this.serializeGmmUrl(); 
-    let metadata = this.getMetadata();
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject, 'Calculating');
 
-    let promise = $.getJSON(url);
-    this.spinner.on(promise, 'Calculating');
-
-    promise.done((response) => {
+    jsonCall.promise.then((response) => {
       this.spinner.off();
-      this.footer.setMetadata(response.server);
+      NshmpError.checkResponse(response, this.plot);
 
+      this.footer.setMetadata(response.server);
       this.plot.setPlotTitle('Response Spectra');
       // Plot means
       this.plotGmm(response);
@@ -289,6 +290,9 @@ export default class Spectra extends Gmm {
       $(this.footer.rawBtnEl).click((event) =>{
         window.open(url);
       });
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 

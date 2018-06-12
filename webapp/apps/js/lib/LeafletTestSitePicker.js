@@ -2,6 +2,7 @@
 
 import TestSiteView from './TestSiteView.js';
 import Tools from './Tools.js';
+import NshmpError from './NshmpError.js';
 
 /**
 * @class LeafletTestSitePicker
@@ -285,15 +286,16 @@ export default class LeafletTestSitePciker extends TestSiteView {
   * Trigger the custom event on('testSiteLoad').
   */
   getUsage() {
-    let promise = $.getJSON(this.webServiceUrl);
-    promise.done((usage) => {
+    let jsonCall = Tools.getJSON(this.webServiceUrl);
+
+    jsonCall.promise.then((usage) => {
+      NshmpError.checkResponse(usage);
       this.testSites = usage.features;
       document.dispatchEvent(this.onTestSiteLoadEvent);
       d3.select(this.activationBtnEl)
           .property('disabled', false);
-    })
-    .fail((err) => {
-      console.log('getUsage: JSON error - ' + err);
+    }).catch((errorMessage) => {
+      NshmpError.throwError(errorMessage);
     });
   }
   

@@ -3,6 +3,7 @@
 import Constraints from './Constraints.js';
 import Footer from './Footer.js';
 import Header from './Header.js';
+import NshmpError from './NshmpError.js';
 import Spinner from './Spinner.js';
 import Tools from './Tools.js';
 
@@ -135,17 +136,17 @@ export default class Hazard {
   */
   getUsage(callback = () => {}) {
     this.callback = callback;
-    let promise = $.getJSON(this.webServiceUrl);
-    this.spinner.on(promise);
+    let jsonCall = Tools.getJSON(this.webServiceUrl);
+    this.spinner.on(jsonCall.reject);
 
-    promise.done((usage) => {
+    jsonCall.promise.then((usage) => {
+      NshmpError.checkResponse(usage);
       this.parameters = usage.parameters;
       this.buildInputs();
       this.callback();
-    });
-    
-    promise.fail((err) => {
-      console.log("getUsage: JSON error");
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 

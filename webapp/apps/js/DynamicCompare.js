@@ -4,6 +4,7 @@ import Constraints from './lib/Constraints.js';
 import D3LinePlot from './lib/D3LinePlot.js';
 import Hazard from './lib/HazardNew.js';
 import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
+import NshmpError from './lib/NshmpError.js';
 import Tools from './lib/Tools.js';
 
 /**
@@ -992,17 +993,15 @@ export default class DynamicCompare extends Hazard {
   *
   * Call the hazard web service for each model and plot the resuls.
   */
-  updatePlot() {
+  updatePlot() { 
     let urls = this.serializeUrls();
-    let promises = [];
-     
-    for (let url of urls) {
-      promises.push($.getJSON(url));
-    }
-    this.spinner.on(promises, 'Calculating'); 
+    let jsonCall = Tools.getJSONs(urls);     
+    this.spinner.on(jsonCall.reject, 'Calculating'); 
     
-    Promise.all(promises).then((results) => {
+    Promise.all(jsonCall.promises).then((results) => {
       this.spinner.off();
+
+      NshmpError.checkResponses(results, this.hazardPlot, this.spectraPlot);
       this.footer.setMetadata(results[0].server); 
       
       /* Update tooltips for input */
@@ -1018,6 +1017,9 @@ export default class DynamicCompare extends Hazard {
       
       /* Get raw data */
       this.footer.onRawDataBtn(urls); 
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 
