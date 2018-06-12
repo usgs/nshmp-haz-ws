@@ -96,7 +96,8 @@ export default class D3View {
       disableYAxisBtns: false,
       syncSelections: false,
       colSizeMin: 'col-sm-12 col-md-6',
-      colSizeMinCenter: 'col-sm-offset-1 col-sm-10 col-xl-offset-2 col-xl-8 col-xxl-offset-3 col-xxl-6',
+      colSizeMinCenter: 'col-sm-offset-1 col-sm-10 col-xl-offset-2 ' 
+            + 'col-xl-8 col-xxl-offset-3 col-xxl-6',
       colSizeMax: 'col-sm-12 col-xl-offset-1 col-xl-10 col-xxl-offset-2 col-xxl-8', 
       colSizeDefault: 'max',
       plotLowerPanel: false,
@@ -227,6 +228,8 @@ export default class D3View {
     *     Default: 10.
     */
     let plotOptions = {
+      gridLinewidth: 0.75,
+      gridLineColor: '#E0E0E0',
       labelFontSize: 16,
       legendLocation: 'topright',
       legendOffset: 5,
@@ -1267,7 +1270,7 @@ export default class D3View {
 
     if (this.options.addGridLineCheckBtn) {
       iconsD3.append('div')
-          .attr('class', 'grid-line-check glyphicon glyphicon-align-justify')
+          .attr('class', 'grid-line-check glyphicon glyphicon-th')
           .attr('data-toggle', 'tooltip')
           .attr('title', 'Click to toggle grid lines')
           .property('checked', true)
