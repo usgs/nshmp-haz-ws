@@ -4,6 +4,8 @@ import D3LinePlot from './lib/D3LinePlot.js';
 import GmmBeta from './lib/GmmBeta.js';
 import Constraints from './lib/Constraints.js';
 import Tools from './lib/Tools.js';
+import NshmpError from './lib/NshmpError.js';
+
 
 /** 
  * @fileoverview Class for spectra-plot.html, response spectra web app.
@@ -29,7 +31,7 @@ import Tools from './lib/Tools.js';
  *     parameters and plot ground motion vs. period. 
  *                                                                               
  * @class Spectra 
- * @extends Gmm
+ * @extends GmmBeta
  * @author bclayton@usgs.gov (Brandon Clayton)
  */
 export default class SpectraMulti extends GmmBeta {
@@ -280,19 +282,15 @@ export default class SpectraMulti extends GmmBeta {
    */ 
   updatePlot() {
     let urls = this.serializeGmmUrl();
-    let metadata = this.getMetadata();
+    let jsonCall = Tools.getJSONs(urls);
+    
+    this.spinner.on(jsonCall.reject, 'Calculating');
 
-    let promises = [];
-
-    for (let url of urls) {
-      promises.push($.getJSON(url));
-    }
-    this.spinner.on(promises, 'Calculating');
-
-    Promise.all(promises).then((responses) => {
+    Promise.all(jsonCall.promises).then((responses) => {
       this.spinner.off();
-      this.footer.setMetadata(responses[0].server);
+      NshmpError.checkResponses(responses, this.plot);
 
+      this.footer.setMetadata(responses[0].server);
       this.plot.setPlotTitle('Response Spectra');
       // Plot means
       this.plotGmm(responses);
@@ -307,7 +305,11 @@ export default class SpectraMulti extends GmmBeta {
           window.open(url);
         }
       });
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
+
   }
 
   /**

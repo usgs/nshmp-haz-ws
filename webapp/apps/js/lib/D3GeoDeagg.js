@@ -2,6 +2,8 @@
 
 import D3View from './D3View.js';
 import D3Tooltip from './D3Tooltip.js';
+import Tools from './Tools.js';
+import NshmpError from './NshmpError.js';
 
 /**
 * @class D3GeoDeagg
@@ -209,6 +211,21 @@ export default class D3GeoDeagg extends D3View {
           .classed('active', false)
     }
   
+  }
+
+  /**
+   * Clear the deagg data
+   * @param {PlotPanel} panel 
+   */
+  clearData(panel) {
+    console.log(panel.mapEl);
+    d3.select(panel.deaggEl)
+        .selectAll('rect')
+        .remove();
+    
+    d3.select(panel.siteEl)
+        .selectAll('circle')
+        .remove();
   }
 
   /**
@@ -554,14 +571,21 @@ export default class D3GeoDeagg extends D3View {
   *     array for projection: [lambda, phi, gamma].
   */
   plotData(panel, rotate = [0, 0, 0]) {
-    let mapBorderPromise = $.getJSON(this.mapBorderUrl);
-    let mapPromise = $.getJSON(this.mapUrl);
+    let jsonCall = Tools.getJSONs([this.mapUrl, this.mapBorderUrl]);
 
-    $.when(mapPromise, mapBorderPromise).done((map, mapBorders) => {
-      let usBorders = topojson.feature(mapBorders[0], 
-          mapBorders[0].objects.states).features; 
-      let americas = map[0].features; 
+    Promise.all(jsonCall.promises).then((maps) => {
+      let map = maps[0];
+      let mapBorders = maps[1];
+
+      let usBorders = topojson.feature(
+          mapBorders, 
+          mapBorders.objects.states)
+          .features; 
+
+      let americas = map.features; 
       this.plotMapAndBorders(panel, rotate, americas, usBorders);
+    }).catch((errorMessage) => {
+      NshmpError.throwError(errorMessage);
     });
   }
 

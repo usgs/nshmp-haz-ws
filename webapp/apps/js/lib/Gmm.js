@@ -5,6 +5,8 @@ import Footer from './Footer.js';
 import Header from './Header.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
+import Tools from './Tools.js';
+import NshmpError from './NshmpError.js';
 
 /** 
 * @fileoverview Parent class for ground motion model based web apps including:
@@ -361,16 +363,17 @@ export default class Gmm {
   getUsage(callback = () => {}) {
     this.callback = callback;
     let url = this.webServiceUrl;
-    let promise = $.getJSON(url);
-    this.spinner.on(promise);
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject);
 
-    promise.done((usage) => {
+    jsonCall.promise.then((usage) => {
+      NshmpError.checkResponse(usage);
       this.parameters = usage.parameters;
       this.buildInputs(usage);
       this.callback();
-    });
-    promise.fail((err) => {
-      console.log('JSON Error');
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
   

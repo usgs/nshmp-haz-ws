@@ -3,8 +3,10 @@
 import Footer from './Footer.js';
 import Header from './Header.js';
 import LeafletTestSitePicker from './LeafletTestSitePicker.js';
+import NshmpError from './NshmpError.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
+import Tools from './Tools.js';
 
 export default class Hazard{
 
@@ -78,77 +80,76 @@ export default class Hazard{
 
 
   //.................. Method: getHazardParameters .............................
-  static getHazardParameters(_this,callback){
-    
-    let dynamicPromise = $.getJSON(_this.dynamicUrl);
-    let staticPromise = $.getJSON(_this.staticUrl);
-    
-    _this.spinner.on([dynamicPromise, staticPromise]);
-    
-    $.when(dynamicPromise,staticPromise)
-        .done(function(dp,sp){
-          
-          let dynamicParameters = dp[0].parameters;
-          let staticParameters = sp[0].parameters;
-            
-          //................ Add Edition Type ..................................
-          var mainPars    = ["edition","region"];
-          var editionType = ["static","dynamic"];
+  static getHazardParameters(_this, callback) {
+    let jsonCall = Tools.getJSONs([_this.dynamicUrl, _this.staticUrl]); 
+    _this.spinner.on(jsonCall.reject, 'Calculating');
 
-          for (var jt in editionType){
-            var par = eval(editionType[jt]+"Parameters");
-            for (var jp in mainPars){
-              for (var jv in par[mainPars[jp]].values){
-                par[mainPars[jp]].values[jv].dataType = editionType[jt];
-              }
-            }
+    Promise.all(jsonCall.promises).then((responses) => {    
+      NshmpError.checkResponses(responses);
+      let dynamicParameters = responses[0].parameters;
+      let staticParameters = responses[1].parameters;
+
+      //................ Add Edition Type ..................................
+      var mainPars    = ["edition","region"];
+      var editionType = ["static","dynamic"];
+
+      for (var jt in editionType){
+        var par = eval(editionType[jt]+"Parameters");
+        for (var jp in mainPars){
+          for (var jv in par[mainPars[jp]].values){
+            par[mainPars[jp]].values[jv].dataType = editionType[jt];
           }
-          //--------------------------------------------------------------------
+        }
+      }
+      //--------------------------------------------------------------------
 
-         
-          //.................. Combine Static and Dynamic Parameters ...........
-          var editionValues = staticParameters.edition.values
-              .concat(dynamicParameters.edition.values);
-          var regionValues = staticParameters.region.values
-              .concat(dynamicParameters.region.values);
-          var imtValues = staticParameters.imt.values;
-          var vs30Values = staticParameters.vs30.values;
-          //--------------------------------------------------------------------
+      
+      //.................. Combine Static and Dynamic Parameters ...........
+      var editionValues = staticParameters.edition.values
+          .concat(dynamicParameters.edition.values);
+      var regionValues = staticParameters.region.values
+          .concat(dynamicParameters.region.values);
+      var imtValues = staticParameters.imt.values;
+      var vs30Values = staticParameters.vs30.values;
+      //--------------------------------------------------------------------
 
-          //........ Sort Combined Parameters by Display Order Parameter .......
-          editionValues.sort(Hazard.sortDisplayorder); 
-          regionValues.sort(Hazard.sortDisplayorder);
-          imtValues.sort(Hazard.sortDisplayorder);
-          vs30Values.sort(Hazard.sortDisplayorder);
-          //--------------------------------------------------------------------
+      //........ Sort Combined Parameters by Display Order Parameter .......
+      editionValues.sort(Hazard.sortDisplayorder); 
+      regionValues.sort(Hazard.sortDisplayorder);
+      imtValues.sort(Hazard.sortDisplayorder);
+      vs30Values.sort(Hazard.sortDisplayorder);
+      //--------------------------------------------------------------------
 
-          //....... Create a Single Parameter Object for Static and Dynamic ....
-          var combinedParameters = {
-            edition: {
-              label: dynamicParameters.edition.label,
-              type: dynamicParameters.edition.type,
-              values: editionValues
-            },
-            region: {
-              label: dynamicParameters.region.label,
-              type: dynamicParameters.region.type,
-              values: regionValues
-            },
-            imt: { 
-              label: dynamicParameters.imt.label,
-              type: dynamicParameters.imt.type,
-              values: imtValues
-            },
-            vs30: { 
-              label: dynamicParameters.vs30.label,
-              type: dynamicParameters.vs30.type,
-              values: vs30Values
-            }
-          };
-          //--------------------------------------------------------------------
-            
-          callback(combinedParameters); 
-        }); 
+      //....... Create a Single Parameter Object for Static and Dynamic ....
+      var combinedParameters = {
+        edition: {
+          label: dynamicParameters.edition.label,
+          type: dynamicParameters.edition.type,
+          values: editionValues
+        },
+        region: {
+          label: dynamicParameters.region.label,
+          type: dynamicParameters.region.type,
+          values: regionValues
+        },
+        imt: { 
+          label: dynamicParameters.imt.label,
+          type: dynamicParameters.imt.type,
+          values: imtValues
+        },
+        vs30: { 
+          label: dynamicParameters.vs30.label,
+          type: dynamicParameters.vs30.type,
+          values: vs30Values
+        }
+      };
+      //--------------------------------------------------------------------
+        
+      callback(combinedParameters); 
+    }).catch((errorMessage) => {
+      _this.spinner.off();
+      NshmpError.throwError(errorMessage);
+    }); 
   
   }
   //-------------------- End Method: getHazardParameters -----------------------
@@ -547,37 +548,37 @@ export default class Hazard{
     };
     _this.footer.setOptions(_this.footerOptions);
     
-    //........................... Call Code ....................................
-    var promises = [];
-    let nUrl = urlInfo.length;
+    let urls = [];
     for (var ju in urlInfo){
-      promises[ju] = $.getJSON(urlInfo[ju].url);
+      urls.push(urlInfo[ju].url);
     }
-    _this.spinner.on(promises, 'Calculating');
-    //--------------------------------------------------------------------------
+
+    let jsonCall = Tools.getJSONs(urls);
+    _this.spinner.on(jsonCall.reject, 'Calculating');
     
-    
-    //......................... Get Each JSON Response .........................
-    $.when.apply($,promises).done(function(){
+    Promise.all(jsonCall.promises).then((responses) => {
+      NshmpError.checkResponses(responses);
+
       let jsonResponse = [];
-      let responses = Array.from(arguments);
-      responses = nUrl == 1 ? [responses] : responses;
+      
       responses.forEach(function(jsonReturn,i){
-        jsonReturn[0].response.dataType = urlInfo[i].dataType;
-        jsonResponse.push(jsonReturn[0].response);
+        jsonReturn.response.dataType = urlInfo[i].dataType;
+        jsonResponse.push(jsonReturn.response);
       });
      
       let responseWithServer = responses.find((d, i) => {
-        return d[0].server;
+        return d.server;
       });
       
       let server = responseWithServer != undefined ?
-          responseWithServer[0].server : undefined;
+          responseWithServer.server : undefined;
       _this.footer.setMetadata(server);
 
-      callback(_this,jsonResponse); 
+      callback(_this, jsonResponse); 
+    }).catch((errorMessage) => {
+      _this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
-    //--------------------------------------------------------------------------
   
   }
   //------------------- End: Call nshmp-haz Code -------------------------------

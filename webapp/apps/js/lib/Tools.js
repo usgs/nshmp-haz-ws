@@ -1,13 +1,13 @@
 'use strict';
 
 /**
-* @class Tools
-*
-* @fileoverview This class contains static methods that can be used
-*     in any web app.
-*
-* @author bclayton@usgs.gov (Brandon Clayton)
-*/
+ * @class Tools
+ *
+ * @fileoverview This class contains static methods that can be used
+ *     in any web app.
+ *
+ * @author bclayton@usgs.gov (Brandon Clayton)
+ */
 export default class Tools {
 
   /**
@@ -30,6 +30,70 @@ export default class Tools {
     }
     
     return seriesArrays;
+  }
+
+  /**
+   * Convienice method for a HTTP request that returns an object
+   *    with a JavaScript Promise and the Promises's reject function.
+   * 
+   * This is simply a Promise wrapper for a jQuery
+   *    getJSON method that is resolved when getJSON is done
+   *    and rejected on getJSON fail.
+   * 
+   * @typedef {Object} GetJSONObject - The Promise and Promise reject function
+   * @property {Promise} promise - The Promise
+   * @property {Function} reject - The reject function from the Promise
+   * 
+   * @param {String} url The HTTP request URL
+   * @return {GetJSONObject} The Promise and Promise reject.
+   */
+  static getJSON(url) {
+    let jsonReject;
+
+    let promise = new Promise((resolve, reject) => {
+      jsonReject = reject;
+      
+      let jsonCall = $.getJSON(url);
+      jsonCall.done(resolve);
+      
+      let rejectMessage = 'Could not reach: ' + url;
+      jsonCall.fail((err) => {
+        reject(rejectMessage);
+      });
+    });
+
+    return {promise: promise, reject: jsonReject}; 
+  }
+
+  /**
+   * Convienice method for multiple HTTP request that returns an object
+   *    with the JavaScript Promises and the Promises's reject functions.
+   * 
+   * This is simply a Promise wrapper for a jQuery
+   *    getJSON method that is resolved when getJSON is done
+   *    and rejected on getJSON fail.
+   * 
+   * @typedef {Object} GetJSONsObject - The Promises and 
+   *    Promise reject functions
+   * @property {Array<Promise>} promise - The Promises
+   * @property {Array<Function>} rejects - The reject functions 
+   *    from the Promises
+   * @property {Function} reject - A single reject function
+   * 
+   * @param {Array<String>} urls The HTTP request URLs
+   * @return {GetJSONsObject} The Promises and Promise's rejects.
+   */
+  static getJSONs(urls) {
+    let promises = [];
+    let jsonRejects = [];
+
+    for (let url of urls) {
+      let jsonCall = Tools.getJSON(url);
+      promises.push(jsonCall.promise);
+      jsonRejects.push(jsonCall.reject);
+    }
+
+    return {promises: promises, rejects: jsonRejects, reject: jsonRejects[0]};
   }
 
  /**

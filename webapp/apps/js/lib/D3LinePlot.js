@@ -59,29 +59,36 @@ export default class D3LinePlot extends D3View {
   addGridLines(panel) {
     this.removeGridLines(panel);
 
+    /* X grid lines */
     let xGridLines = this.getXAxisLocation(panel);
     xGridLines.tickFormat('')
         .tickSize(-panel.plotHeight);
 
-    d3.select(panel.xAxisEl)
-        .select('.x-tick')
-        .append('g')
-        .attr('class', 'grid-lines')
-        .attr('stroke-width', 0.05)
-        .attr('stroke', '#f2f2f2')
+    let xGridD3 = d3.select(panel.xGridLinesEl)
+        .attr('transform', d3.select(panel.xAxisEl).attr('transform'))
         .call(xGridLines);
+
+    xGridD3.selectAll('*')
+        .attr('stroke', panel.options.gridLineColor)
+        .attr('stroke-width', panel.options.gridLinewidth);
+
+    xGridD3.selectAll('text')
+        .remove();
     
+    /* Y grid lines */
     let yGridLines = this.getYAxisLocation(panel);
     yGridLines.tickFormat('')
         .tickSize(-panel.plotWidth);
 
-    d3.select(panel.yAxisEl)
-        .select('.y-tick')
-        .append('g')
-        .attr('class', 'grid-lines')
-        .attr('stroke-width', 0.05)
-        .attr('stroke', '#f2f2f2')
+    let yGridD3 = d3.select(panel.yGridLinesEl)
         .call(yGridLines);
+
+    yGridD3.selectAll('*')
+        .attr('stroke', panel.options.gridLineColor)
+        .attr('stroke-width', panel.options.gridLinewidth);
+
+    yGridD3.selectAll('text')
+        .remove();
   }
 
   /**
@@ -97,6 +104,24 @@ export default class D3LinePlot extends D3View {
     panel.ids.unshift('return-period');
   }
 
+  clearData(panel) {
+    d3.select(panel.allDataEl)
+        .selectAll('.data')
+        .remove();
+
+    d3.select(panel.legendEl)
+        .selectAll('*')
+        .remove();
+
+    d3.select(this.tableEl)
+        .selectAll('.' + panel.panelId + '-tables')
+        .remove();
+  
+    d3.select(this.metadataTableEl)
+        .selectAll('table')
+        .remove();
+  }
+
   /**
   * @method createAxes
   *
@@ -110,15 +135,15 @@ export default class D3LinePlot extends D3View {
     let xAxisTranslate = panel.options.xAxisLocation == 'top' ? 
         0 : panel.plotHeight;
     d3.select(panel.xAxisEl)
-        .select('.x-tick')
         .attr('transform', 'translate(0, ' + xAxisTranslate + ')') 
         .style('font-size', options.tickFontSize)
+        .select('.x-tick')
         .call(this.getXAxisLocation(panel));
     
     // Y Tick marks
     d3.select(panel.yAxisEl)
-        .select('.y-tick')
         .style('font-size', options.tickFontSize)
+        .select('.y-tick')
         .call(this.getYAxisLocation(panel));
     
     // Set tick mark format
@@ -861,7 +886,6 @@ export default class D3LinePlot extends D3View {
          
     let seriesEnter = d3.select(panel.plotEl)
         .select('.return-period')
-        .lower()
         .selectAll('path')
         .data(data)
 
@@ -1081,12 +1105,12 @@ export default class D3LinePlot extends D3View {
    * @param {PlotPanel} panel The plot panel to remove the grid lines. 
    */
   removeGridLines(panel) {
-    d3.select(panel.xAxisEl)
-        .select('.grid-lines')
+    d3.select(panel.xGridLinesEl)
+        .selectAll('*')
         .remove();
     
-    d3.select(panel.yAxisEl)
-        .select('.grid-lines')
+    d3.select(panel.yGridLinesEl)
+        .selectAll('*')
         .remove();
   }
 
@@ -1147,6 +1171,7 @@ export default class D3LinePlot extends D3View {
     if (options[axis + 'AxisScale'] == 'log'){
       d3.select(panel.svgEl)
           .select('.' + axis + '-axis')
+          .select('.' + axis + '-tick')
           .selectAll('.tick text')
           .text(null)
           .filter((d) => {return Number.isInteger(Math.log10(d))} )
@@ -1230,10 +1255,12 @@ export default class D3LinePlot extends D3View {
       xAxisEl: panelEl.querySelector('.x-axis'),
       xBounds: undefined,
       xExtremes: undefined,
+      xGridLinesEl: panelEl.querySelector('.x-grid-lines'),
       xLabel: 'X',
       yAxisEl: panelEl.querySelector('.y-axis'),
       yBounds: undefined,
       yExtremes: undefined,
+      yGridLinesEl: panelEl.querySelector('.y-grid-lines'),
       yLabel: 'Y',
     };
     
@@ -1249,8 +1276,19 @@ export default class D3LinePlot extends D3View {
         .selectAll('svg')
         .attr('class', 'D3LinePlot')
         .selectAll('.plot');
+
+    let gridLinesD3 = svgD3.append('g')
+        .attr('class', 'grid-lines');
+    
+    /* X grid lines */
+    gridLinesD3.append('g')
+        .attr('class', 'x-grid-lines');
+
+    /* Y grid lines */
+    gridLinesD3.append('g')
+        .attr('class', 'y-grid-lines');
               
-    let dataD3 = svgD3.append('g')
+    svgD3.append('g')
         .attr('class', 'all-data');
     
     // X-axis

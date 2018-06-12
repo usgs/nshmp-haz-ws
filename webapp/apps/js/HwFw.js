@@ -3,6 +3,8 @@
 import D3LinePlot from './lib/D3LinePlot.js';
 import Constraints from './lib/Constraints.js';
 import Gmm from './lib/Gmm.js';
+import Tools from './lib/Tools.js';
+import NshmpError from './lib/NshmpError.js';
 
 /** 
 * @class HwFw
@@ -595,11 +597,13 @@ export default class HwFw extends Gmm {
   updatePlot() {
     let url = this.serializeGmmUrl(); 
     // Call ground motion hw-fw web service 
-    let promise = $.getJSON(url);
-    this.spinner.on(promise, 'Calculating');
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject, 'Calculating');
 
-    promise.done((response) => {
+    jsonCall.promise.then((response) => {
       this.spinner.off();
+      NshmpError.checkResponse(response, this.plot);
+
       this.footer.setMetadata(response.server);
 
       let selectedImt = $(':selected', this.imtEl);
@@ -616,6 +620,9 @@ export default class HwFw extends Gmm {
       $(this.footer.rawBtnEl).click((event) => {
         window.open(url);
       });
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
     });
   }
 

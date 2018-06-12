@@ -4,6 +4,7 @@ import Constraints from './Constraints.js';
 import ControlPanel from './ControlPanel.js';
 import Footer from './Footer.js';
 import Header from './Header.js';
+import NshmpError from './NshmpError.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
 import Tools from './Tools.js';
@@ -232,20 +233,19 @@ export default class GmmBeta {
    */
   getUsage(callback = () => {}) {
     this._callback = callback;
-    let dynamic = this.config.server.dynamic;
     let url = this.webServiceUrl;
-    let promise = $.getJSON(url);
-    this.spinner.on(promise);
+    let jsonCall = Tools.getJSON(url);
+    this.spinner.on(jsonCall.reject);
 
-    promise.done((usage) => {
+    jsonCall.promise.then((usage) => {
+      NshmpError.checkResponse(usage);
       this.parameters = usage.parameters;
       this.createControlPanel(usage);
       this._callback();
-    });
-
-    promise.fail((err) => {
-      console.log('JSON Error');
-    });
+    }).catch((errorMessage) => {
+      this.spinner.off();
+      NshmpError.throwError(errorMessage);
+    })
   }
   
   /**
