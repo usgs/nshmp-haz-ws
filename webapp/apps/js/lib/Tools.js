@@ -7,7 +7,6 @@
  *     in any web app.
  *
  * @author bclayton@usgs.gov (Brandon Clayton)
- *
  */
 export default class Tools {
 
@@ -41,12 +40,12 @@ export default class Tools {
    *    getJSON method that is resolved when getJSON is done
    *    and rejected on getJSON fail.
    * 
-   * @typedef {Object} GetJSONPObject - The Promise and Promise reject function
+   * @typedef {Object} GetJSONObject - The Promise and Promise reject function
    * @property {Promise} promise - The Promise
    * @property {Function} reject - The reject function from the Promise
    * 
    * @param {String} url The HTTP request URL
-   * @return {GetJSONPObject} The Promise and Promise reject.
+   * @return {GetJSONObject} The Promise and Promise reject.
    */
   static getJSON(url) {
     let jsonReject;
@@ -74,14 +73,15 @@ export default class Tools {
    *    getJSON method that is resolved when getJSON is done
    *    and rejected on getJSON fail.
    * 
-   * @typedef {Object} GetJSONPsObject - The Promises and 
+   * @typedef {Object} GetJSONsObject - The Promises and 
    *    Promise reject functions
    * @property {Array<Promise>} promise - The Promises
-   * @property {Arra<Function>} rejects - The reject functions from the Promises
+   * @property {Array<Function>} rejects - The reject functions 
+   *    from the Promises
    * @property {Function} reject - A single reject function
    * 
    * @param {Array<String>} urls The HTTP request URLs
-   * @return {GetJSONPsObject} The Promises and Promise's rejects.
+   * @return {GetJSONsObject} The Promises and Promise's rejects.
    */
   static getJSONs(urls) {
     let promises = [];
