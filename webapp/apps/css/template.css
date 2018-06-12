@@ -11,10 +11,8 @@
 
 /* Test Site View Class */
 
-/* Test Site View Class */
-
 .test-site-view.in {
-  display: grid !important;
+  display: flex !important;
 }
 
 .test-site-view .modal-body {
@@ -101,6 +99,10 @@ html, body{
 /*###################################################*/
 
 
+.vertical-center {
+  top: 50% !important;
+  transform: translate(0, -50%) !important;
+}
 
 
 /*###################################################*/
@@ -433,7 +435,7 @@ label.control-spacer {
 /*................... Spinner .......................*/
 
 .test-site-modal.in {
-  display: grid !important;
+  display: flex !important;
 }
 
 .test-site-modal .modal-dialog {
@@ -443,7 +445,7 @@ label.control-spacer {
 }
 
 .Spinner {
-  display: grid !important;
+  display: flex !important;
 }
 
 .Spinner .modal-dialog {
