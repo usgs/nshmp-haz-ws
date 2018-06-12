@@ -35,16 +35,13 @@ export default class Spinner{
   }
   
   /**
-  * @method on
-  *
-  * Create a loading spinner overlay. If cancel request button is
-  *     pressed, ajaxPromise.abort() is called to abort ajax call.
-  * @param {XMLHttpRequest || Array<XMLHttpRequest>} ajaxPromise - 
-  *     The ajax call promise.
-  * @param {String=} text - Optional text to put under the spinner. 
-  *     Default is 'Loading ...'
-  */
-  on(ajaxPromise, text = 'Loading') {
+   * Show the spinner
+   * 
+   * @param {Function} promiseReject The Promise reject function
+   * @param {String=} text The text to appear under the spinner.
+   *        Default is "Loading". 
+   */
+  on(promiseReject, text = 'Loading') {
     let spinnerOverlayD3 = d3.select(this.containerEl)
         .append('div')
         .attr('class', 'modal Spinner')
@@ -79,26 +76,19 @@ export default class Spinner{
     this.cancelRequestEl = this.spinnerEl.querySelector('.cancel-request');
 
     $(this.spinnerEl).modal({backdrop: 'static'});
-    this.onCancelRequest(ajaxPromise);
+
+    this._onCancelRequest(promiseReject);
   }
 
   /**
-  * @method onCancelRequest
-  *
-  * Listen for cancel request button to be pressed and abort ajax call.
-  * @param {XMLHttpRequest || Array<XMLHttpRequest>} ajaxPromise - 
-  *     The ajax call promise.
-  */
-  onCancelRequest(ajaxPromise) {
+   * Listen for a press on the "Cancel Request" button and 
+   *    call the reject function if button is pressed.
+   * 
+   * @param {Function} promiseReject The Promise reject function
+   */
+  _onCancelRequest(promiseReject) {
     $(this.cancelRequestEl).on('click', (event) => {
-      let isArray = Array.isArray(ajaxPromise);
-      if (isArray) {
-        ajaxPromise.forEach((promise) => {
-          promise.abort();
-        });
-      } else {
-        ajaxPromise.abort();
-      }
+      promiseReject('cancel');
       this.off();
     });
   }
