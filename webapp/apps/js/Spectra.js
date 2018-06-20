@@ -132,25 +132,24 @@ export default class Spectra extends Gmm {
 	}
  
   /**
-  * @method getMetadata
-  */
+   * @return {Map<String, Array<String>>} The metadata Map
+   */
   getMetadata() {
     let gmms = this.getCurrentGmms(); 
 
-    let metadata = {
-      'Ground Motion Models': gmms, 
-      'M<sub>W</sub>': this.MwEl.value,
-      'Rake (°)': this.rakeEl.value,
-      'Z<sub>Top</sub> (km)': this.zTopEl.value,
-      'Dip (°)': this.dipEl.value,
-      'Width (km)': this.widthEl.value,
-      'R<sub>X</sub> (km)': this.rXEl.value,
-      'R<sub>Rup</sub> (km)': this.rRupEl.value,
-      'R<sub>JB</sub> (km)': this.rJBEl.value,
-      'V<sub>s</sub>30 (m/s)': this.vs30El.value,
-      'Z<sub>1.0</sub> (km)': this.z1p0El.value,
-      'Z<sub>2.5</sub> (km)': this.z2p5El.value,
-    };
+    let metadata = new Map();
+    metadata.set('Ground Motion Model:', gmms);
+    metadata.set('M<sub>W</sub>:', [this.MwEl.value]);
+    metadata.set('Rake (°):', [this.rakeEl.value]);
+    metadata.set('Z<sub>Top</sub> (km):', [this.zTopEl.value]);
+    metadata.set('Dip (°):', [this.dipEl.value]);
+    metadata.set('Width (km):', [this.widthEl.value]);
+    metadata.set('R<sub>X</sub> (km):', [this.rXEl.value]);
+    metadata.set('R<sub>Rup</sub> (km):', [this.rRupEl.value]);
+    metadata.set('R<sub>JB</sub> (km):', [this.rJBEl.value]);
+    metadata.set('V<sub>s</sub>30 (m/s):', [this.vs30El.value]);
+    metadata.set('Z<sub>1.0</sub> (km):', [this.z1p0El.value]);
+    metadata.set('Z<sub>2.5</sub> (km):', [this.z2p5El.value]);
 
     return metadata;
   }
@@ -163,8 +162,8 @@ export default class Spectra extends Gmm {
   */
   plotGmm(response) {
     let metadata = this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.date = response.date;
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [response.date]);
 
     let mean = response.means;
     let meanData = mean.data;
@@ -209,6 +208,7 @@ export default class Spectra extends Gmm {
     let meanTooltipText = ['GMM:', 'Period (s):', 'MGM (g):'];
     let meanPlotOptions = {
       legendLocation: 'topright',
+      printMetadataColumns: 4,
       tooltipText: meanTooltipText,
       yAxisScale: 'linear',
     };
@@ -217,7 +217,7 @@ export default class Spectra extends Gmm {
     let sigmaPlotOptions = {
       plotHeight: 224,
       plotWidth: 896,
-      plotRatio: 4/1,
+      printMetadataColumns: 4,
       showLegend: false,
       tooltipText: sigmaTooltipText,
       yAxisScale: 'linear',
