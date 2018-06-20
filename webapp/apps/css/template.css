@@ -348,6 +348,13 @@ label.control-spacer {
   background-color: #337ab7
 }
 
+#control .btn-group>.btn.focus {
+  background-color: initial;
+}
+
+#control .btn-group>.btn.focus.active {
+  background-color: #d4d4d4;
+}
 /*----------- End: Control Panel  -------------------*/
 /**/
 /*###################################################*/
