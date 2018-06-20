@@ -427,7 +427,7 @@ export default class D3SaveFigure {
         if (nValues > maxColumnValues) {
           values = values.slice(0, maxColumnValues);
           let nMore = nValues - maxColumnValues
-          values.push(`... and ${nMore} more ...`);
+          values.push(`... and ${nMore} others ...`);
         }
         
         for (let value of values) {
