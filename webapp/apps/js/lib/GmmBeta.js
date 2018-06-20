@@ -287,10 +287,9 @@ export default class GmmBeta {
     let btnsAreSelected = multiSelectParam == 'gmms' ? gmmIsSelected :
         $(':checked', multiSelectableBtnGroupEl).length > 0;        
 
-    if (gmmIsSelected && btnsAreSelected) {
-      this.footerOptions.updateBtnDisable = hasError;
-      this.footer.setOptions(this.footerOptions);
-    }
+    hasError = hasError || !btnsAreSelected || !gmmIsSelected;
+    this.footerOptions.updateBtnDisable = hasError;
+    this.footer.setOptions(this.footerOptions);
   }
 
   /**
