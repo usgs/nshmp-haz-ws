@@ -1,6 +1,7 @@
 'use strict';
 
 import D3View from './D3View.js';
+import D3SaveFigure from './D3SaveFigure.js';
 import D3Tooltip from './D3Tooltip.js';
 import Tools from './Tools.js';
 import NshmpError from './NshmpError.js';
@@ -774,6 +775,21 @@ export default class D3GeoDeagg extends D3View {
         .attr('fill', 'none')
         .attr('stroke', this.options.mapBorderStroke)
         .attr('stroke-width', this.options.mapBorderStrokeWidth); 
+  }
+
+  saveFigure(panel, saveOptions, plotFormat) {
+    let svgCloneD3 = d3.select(panel.svgEl.cloneNode(true));
+    
+    D3SaveFigure.builder()
+        .currentSvgHeight(panel.svgHeight)
+        .currentSvgWidth(panel.svgWidth)
+        .filename(panel.plotFilename)
+        .options(saveOptions)
+        .metadata(this.metadata) 
+        .plotFormat(plotFormat)
+        .plotTitle(this.plotTitleEl.textContent)
+        .svgEl(svgCloneD3.node())
+        .build();
   }
 
   /**

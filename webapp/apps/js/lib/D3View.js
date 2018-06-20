@@ -251,14 +251,19 @@ export default class D3View {
       printTitle: true,
       printCenter: true,
       printFooter: true,
-      printFooterPadding: 20,
-      printFooterLineBreak: 20,
-      printFooterFontSize: 14,
+      printFooterPadding: 10,
+      printFooterLineBreak: 8,
+      printFooterFontSize: 8,
       printPageHeight: 8.5,
       printPageWidth: 11,
-      printDpi: 600,
-      printMarginTop: 1,
-      printMarginLeft: 0,
+      printDpi: 300,
+      printMarginTop: 0.5,
+      printMarginLeft: 1,
+      printMetadataFontSize: 10,
+      printMetadataMarginTop: 0,
+      printMetadataColumns: 3,
+      printMetadataMaxColumnValues: 5,
+      printMetadata: true,
       referenceLineStroke: '#9E9E9E',
       referenceLineStrokeWidth: 1,
       selectionIncrement: 2,
@@ -409,31 +414,24 @@ export default class D3View {
         .attr('class', 'table table-bordered table-condensed ')
         .append('tbody')
         .attr('class', 'metadata-table-body');
-    
-    for (let key in this.metadata) {
-      if (key == 'url' || key == 'time') break;
+   
+    for (let [key, value] of this.metadata) {
+      if (key == 'url' || key == 'date') continue;
 
-      let values = this.metadata[key];
-      let isArray = Array.isArray(values);
-      let tableRowD3 = tableBodyD3.append('tr');
+      let tableRowD3 = tableBodyD3.append('tr')
+          .style('border', '1px solid #ddd');
       
       tableRowD3.append('th')
           .attr('nowrap', true)
           .html(key);
       
-      if (isArray) {
-        tableRowD3.selectAll('tr')
-            .data(values)
-            .enter()
-            .append('tr')
-            .append('td')
-            .attr('nowrap', true)
-            .text((d) => { return d; });
-      } else {
-        tableRowD3.append('td')
-            .attr('nowrap', true)
-            .text(values);
-      }
+      tableRowD3.selectAll('tr')
+          .data(value)
+          .enter()
+          .append('tr')
+          .append('td')
+          .attr('nowrap', true)
+          .text((d) => { return d; });
     }
   }
 
@@ -827,38 +825,6 @@ export default class D3View {
   */
   onSaveMenuClick() {
     $(this.saveAsMenuEl).find('a').on('click', (event) => {
-      let lowerSaveOptions = {
-        footerFontSize: this.lowerPanel.options.printFooterFontSize,
-        footerLineBreak: this.lowerPanel.options.printFooterLineBreak,
-        footerPadding: this.lowerPanel.options.printFooterPadding,
-        marginLeft: this.lowerPanel.options.printMarginLeft,
-        marginTop: this.lowerPanel.options.printMarginTop,
-        pageHeight: this.lowerPanel.options.printPageHeight,
-        pageWidth: this.lowerPanel.options.printPageWidth,
-        printDpi: this.lowerPanel.options.printDpi,
-        printCenter: this.lowerPanel.options.printCenter,
-        printFooter: this.lowerPanel.options.printFooter,
-        printLegend: this.legendCheckEl.checked,
-        printTitle: this.lowerPanel.options.printTitle,
-        titleFontSize: this.lowerPanel.options.titleFontSize,
-      };
-      
-      let upperSaveOptions = {
-        footerFontSize: this.upperPanel.options.printFooterFontSize,
-        footerLineBreak: this.upperPanel.options.printFooterLineBreak,
-        footerPadding: this.upperPanel.options.printFooterPadding,
-        marginLeft: this.upperPanel.options.printMarginLeft,
-        marginTop: this.upperPanel.options.printMarginTop,
-        pageHeight: this.upperPanel.options.printPageHeight,
-        pageWidth: this.upperPanel.options.printPageWidth,
-        printDpi: this.upperPanel.options.printDpi,
-        printCenter: this.upperPanel.options.printCenter,
-        printFooter: this.upperPanel.options.printFooter,
-        printLegend: this.legendCheckEl.checked,
-        printTitle: this.upperPanel.options.printTitle,
-        titleFontSize: this.upperPanel.options.titleFontSize,
-      };
-      
       if ($(event.target).hasClass('data')) {
         let saveBuilder = new D3SaveData.Builder()
             .filename(this.upperPanel.plotFilename)
@@ -878,36 +844,49 @@ export default class D3View {
             .metadata(this.metadata)
             .build();
       } else {
-        new D3SaveFigure.Builder()
-            .filename(this.upperPanel.plotFilename)
-            .options(upperSaveOptions)
-            .metadata(this.metadata) 
-            .plotFormat(event.target.id)
-            .plotHeight(this.upperPanel.svgHeight)
-            .plotMarginLeft(this.upperPanel.options.marginLeft)
-            .plotMarginTop(this.upperPanel.options.marginTop)
-            .plotTitle(this.plotTitleEl.textContent)
-            .plotWidth(this.upperPanel.svgWidth)
-            .svgEl(this.upperPanel.svgEl)
-            .build();
+        this.saveFigure(
+            this.upperPanel, 
+            this._saveFigureOptions(this.upperPanel), 
+            event.target.id);
            
         if (this.options.plotLowerPanel &&
               this.options.printLowerPanel){
-          new D3SaveFigure.Builder()
-              .filename(this.lowerPanel.plotFilename)
-              .options(lowerSaveOptions)
-              .metadata(this.metadata) 
-              .plotFormat(event.target.id)
-              .plotHeight(this.lowerPanel.svgHeight)
-              .plotMarginLeft(this.lowerPanel.options.marginLeft)
-              .plotMarginTop(this.lowerPanel.options.marginTop)
-              .plotTitle(this.plotTitleEl.textContent)
-              .plotWidth(this.lowerPanel.svgWidth)
-              .svgEl(this.lowerPanel.svgEl)
-              .build();
+          this.saveFigure(
+              this.lowerPanel, 
+              this._saveFigureOptions(this.lowerPanel),
+              event.target.id);
         }
       }
     });
+  }
+
+  /**
+   * 
+   * @param {PlotPanel} panel The plot panel
+   * @return {D3SaveFigureOptions} The save options
+   */
+  _saveFigureOptions(panel) {
+    let saveOptions = {
+      footerFontSize: panel.options.printFooterFontSize,
+      footerLineBreak: panel.options.printFooterLineBreak,
+      footerPadding: panel.options.printFooterPadding,
+      marginLeft: panel.options.printMarginLeft,
+      marginTop: panel.options.printMarginTop,
+      metadataFontSize: panel.options.printMetadataFontSize, 
+      metadataMarginTop: panel.options.printMetadataMarginTop,
+      metadataColumns: panel.options.printMetadataColumns,
+      metadataMaxColumnValues: panel.options.printMetadataMaxColumnValues, 
+      printMetadata: panel.options.printMetadata,
+      pageHeight: panel.options.printPageHeight,
+      pageWidth: panel.options.printPageWidth,
+      printDpi: panel.options.printDpi,
+      printCenter: panel.options.printCenter,
+      printFooter: panel.options.printFooter,
+      printTitle: panel.options.printTitle,
+      titleFontSize: panel.options.titleFontSize,
+    };
+
+    return saveOptions;
   }
 
   /**
