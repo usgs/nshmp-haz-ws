@@ -397,8 +397,7 @@ export default class D3SaveFigure {
         .style('background', 'white');
 
     for (let data of tableInfo.metadataSet) {
-      let tableRowD3 = tableD3.append('tr')
-          .style('border', '1px solid black');
+      let tableRowD3 = tableD3.append('tr');
 
       for (let datum of data) {
         let key = datum[0];
@@ -416,7 +415,6 @@ export default class D3SaveFigure {
         let innerTableD3 = tableRowD3.append('td')
             .attr('rowspan', rowSpan)
             .style('padding', '4px 12px')
-            .style('border', '1px solid black')
             .append('table')
             .style('font-size', this.options.metadataFontSize + 'px')
             .style('line-height', '1.25')
