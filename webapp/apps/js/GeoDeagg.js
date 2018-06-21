@@ -281,23 +281,18 @@ export default class GeoDeagg {
   }
   
   /**
-  * @method getMetadata
-  *
-  * Get current chosen parameters.
-  * @return {{
-  *   key: value || Array<Values>
-  * }} Object - Metadata containing key and value pairs.
-  */
+   * Get current chosen parameters.
+   * @return Map<String, Array<String>> The metadata Map
+   */
   getMetadata() {
-    let metadata = {
-      'Edition': $(this.editionEl).find(':selected').text(),
-      'Region': $(this.regionEl).find(':selected').text(),
-      'Latitude (°)': this.latEl.value,
-      'Longitude (°)': this.lonEl.value,
-      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
-      'V<sub>s</sub>30': $(this.vs30El).find(':selected').text(),
-      'Return Period (years)': this.returnPeriodEl.value + ' years',
-    };
+    let metadata = new Map();
+    metadata.set('Edition:', [$(this.editionEl).find(':selected').text()]);
+    metadata.set('Region:', [$(this.regionEl).find(':selected').text()]);
+    metadata.set('Latitude (°):', [this.latEl.value]);
+    metadata.set('Longitude (°):', [this.lonEl.value]);
+    metadata.set('Intensity Measure Type:', [$(this.imtEl).find(':selected').text()]);
+    metadata.set('V<sub>s</sub>30:', [$(this.vs30El).find(':selected').text()]);
+    metadata.set('Return Period (years):', [this.returnPeriodEl.value + ' years']);
     
     return metadata;
   }
@@ -563,9 +558,9 @@ export default class GeoDeagg {
         seriesLabels.push(d.name);
         seriesIds.push(d.name.replace(/ /g, '_'));
       });
-      
-      metadata.url = window.location.href;
-      metadata.date = response.date;
+     
+      metadata.set('url', [window.location.href]);
+      metadata.set('date', [response.date]);
       
       let lat = response.response[0].metadata.latitude;
       let lon = response.response[0].metadata.longitude;

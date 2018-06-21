@@ -86,29 +86,24 @@ export default class GmmDistance extends Gmm {
   }
   
   /**
-  * @method getMetadata
-  *
-  * Get current chosen parameters.
-  * @return {{
-  *   key: value || Array<Values>
-  * }} Object - Metadata containing key and value pairs.
-  */
+   * Get current chosen parameters.
+   * @return {Map<String, Array<String>>} The metadata Map
+   */
   getMetadata() {
     let gmms = this.getCurrentGmms();
 
-    let metadata = {
-      'Ground Motion Models': gmms,
-      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
-      'M<sub>W</sub>': this.MwEl.value,
-      'Z<sub>Top</sub> (km)': this.zTopEl.value,
-      'Dip (°)': this.dipEl.value,
-      'Width (km)': this.widthEl.value,
-      'Minimum Rupture Distance (km)': this.rMin,
-      'Maximum Rupture Distance (km)': this.rMax,
-      'V<sub>S</sub>30 (m/s)': this.vs30El.value,
-      'Z<sub>1.0</sub> (km)': this.z1p0El.value,
-      'Z<sub>2.5</sub> (km)': this.z2p5El.value,
-    };
+    let metadata = new Map();
+    metadata.set('Ground Motion Model:', gmms);
+    metadata.set('Intensity Measure Type:', [$(this.imtEl).find(':selected').text()]);
+    metadata.set('M<sub>W</sub>:', [this.MwEl.value]);
+    metadata.set('Z<sub>Top</sub> (km):', [this.zTopEl.value]);
+    metadata.set('Dip (°):', [this.dipEl.value]);
+    metadata.set('Width (km):', [this.widthEl.value]);
+    metadata.set('Minimum Rupture Distance (km):', [this.rMin]);
+    metadata.set('Maximum Rupture Distance (km):', [this.rMax]);
+    metadata.set('V<sub>S</sub>30 (m/s):', [this.vs30El.value]);
+    metadata.set('Z<sub>1.0</sub> (km):', [this.z1p0El.value]);
+    metadata.set('Z<sub>2.5</sub> (km):', [this.z2p5El.value]);
     
     return metadata;
   }
@@ -119,8 +114,8 @@ export default class GmmDistance extends Gmm {
   */ 
   plotGmm(response) {
     let metadata = this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.date = response.date; 
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [response.date]);
     
     let mean = response.means;
     let meanData = mean.data;

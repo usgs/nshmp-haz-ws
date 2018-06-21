@@ -1,7 +1,8 @@
 'use strict';
 
-import D3View from './D3View.js';
+import D3SaveFigure from './D3SaveFigure.js';
 import D3Tooltip from './D3Tooltip.js';
+import D3View from './D3View.js';
 import Tools from './Tools.js';
 
 /**
@@ -625,7 +626,8 @@ export default class D3LinePlot extends D3View {
     d3.select(this.legendCheckEl)
         .style('color', isChecked ? 'black' : '#bfbfbf');
 
-    d3.select(panel.legendEl).classed('hidden', !isChecked);
+    let visiblity = isChecked ? 'initial' : 'hidden';
+    d3.select(panel.legendEl).style('visibility', visiblity);
     this.setLegendLocation(panel);
   }
 
@@ -1134,7 +1136,26 @@ export default class D3LinePlot extends D3View {
     
     return this;
   }
-  
+ 
+  saveFigure(panel, saveOptions, plotFormat) {
+    let svgCloneD3 = d3.select(panel.svgEl.cloneNode(true));
+    /* Remove legend drag symbol if there */
+    svgCloneD3.select('.drag').remove();
+    
+    D3SaveFigure.builder()
+        .centerSvgOnEl(panel.xAxisEl)
+        .centerTitleOnEl(panel.xAxisEl)
+        .currentSvgHeight(panel.svgHeight)
+        .currentSvgWidth(panel.svgWidth)
+        .filename(panel.plotFilename)
+        .options(saveOptions)
+        .metadata(this.metadata) 
+        .plotFormat(plotFormat)
+        .plotTitle(this.plotTitleEl.textContent)
+        .svgEl(svgCloneD3.node())
+        .build();
+  }
+
   /**
    * Set the legend location based on the options.legendLocation.
    *  

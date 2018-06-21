@@ -227,62 +227,44 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method getMetadataHazard
-  *
-  * Get the metadata, associated with the hazard plots,
-  *     about the selected parameters in the control panel.
-  * @return {{
-  *   'Models': {Array<String>} - Selected models,
-  *   'Latitude': {Number} - Latitude,
-  *   'Longitude': {Number} - Longitude,
-  *   'Intensity Measure Type': {String} - Selcted IMT,
-  *   'Vs30': {String} - Selected vs30,
-  * }} Object
-  */
+   * Get the metadata, associated with the hazard plots,
+   *     about the selected parameters in the control panel.
+   * @return {Map<String, Array<String>>} The metadata Map
+   */
   getMetadataHazard() {
     let models = [
       $(':selected', this.firstModelEl).text(),
       $(':selected', this.secondModelEl).text(),
     ];
-    
-    let metadata = {
-      'Models': models,  
-      'Latitude': this.latEl.value,
-      'Longitude': this.lonEl.value,
-      'Intensity Measure Type': $(':selected', this.imtEl).text(),
-      'V<sub>s</sub>30': $(':selected', this.vs30El).text(),
-    };
+   
+    let metadata = new Map();
+    metadata.set('Model:', models)  
+    metadata.set('Latitude:', [this.latEl.value]);
+    metadata.set('Longitude:', [this.lonEl.value]);
+    metadata.set('Intensity Measure Type:', [$(':selected', this.imtEl).text()]);
+    metadata.set('V<sub>s</sub>30:', [$(':selected', this.vs30El).text()]);
     
     return metadata;
   }
   
   /**
-  * @method getMetadataSpectra
-  *
-  * Get the metadata, associated with the response spectra plots,
-  *     about the selected parameters in the control panel.
-  * @return {{
-  *   'Models': {Array<String>} - Selected models,
-  *   'Latitude': {Number} - Latitude,
-  *   'Longitude': {Number} - Longitude,
-  *   'Vs30': {String} - Selected vs30,
-  *   'Return Period (years)': {Number} - Return period,
-  * }} Object
-  */
+   * Get the metadata, associated with the response spectra plots,
+   *     about the selected parameters in the control panel.
+   * @return {Map<String, Array<String>>} The metadata Map
+   */
   getMetadataSpectra() {
     let models = [
       $(':selected', this.firstModelEl).text(),
       $(':selected', this.secondModelEl).text(),
     ];
     
-    let metadata = {
-      'Models': models,  
-      'Latitude': this.latEl.value,
-      'Longitude': this.lonEl.value,
-      'V<sub>s</sub>30': $(':selected', this.vs30El).text(),
-      'Return Period (years)': this.returnPeriodEl.value,
-    };
-    
+    let metadata = new Map();
+    metadata.set('Model:', models)  
+    metadata.set('Latitude:', [this.latEl.value]);
+    metadata.set('Longitude:', [this.lonEl.value]);
+    metadata.set('V<sub>s</sub>30:', [$(':selected', this.vs30El).text()]);
+    metadata.set('Return Period (years):', [this.returnPeriodEl.value]);
+
     return metadata;
   }
 
@@ -455,8 +437,8 @@ export default class DynamicCompare extends Hazard {
   */
   plotHazardCurves(results) {
     let metadata = this.getMetadataHazard();
-    metadata.url = window.location.href;
-    metadata.date = results[0].date;
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [results[0].date]);
 
     let seriesData = [];
     let seriesIds = [];  
@@ -602,8 +584,8 @@ export default class DynamicCompare extends Hazard {
   */
   plotResponseSpectrum(results) {
     let metadata = this.getMetadataSpectra();
-    metadata.url = window.location.href;
-    metadata.date = results[0].date;
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [results[0].date]);
 
     let returnPeriod = 1 / this.returnPeriodEl.value; 
     let seriesData = [];

@@ -145,24 +145,24 @@ export default class ModelCompare extends Hazard{
   //------------------- End Method: buildInputs --------------------------------
 
   /**
-  * @method getMetadata
-  */
+   * Get the metadata
+   * @return {Map<String, Array<String>>} The metadata Map 
+   */
   getMetadata() {
     let editionVals = $(this.editionEl).val();
     let editions = [];
     editionVals.forEach((val) => {
       editions.push(d3.select('#' + val).text());
     });
-    
-    let metadata = {
-      'Region': $(this.regionEl).find(':selected').text(),
-      'Edition(s)': editions,
-      'Latitude (°)': this.latEl.value,
-      'Longitude (°)': this.lonEl.value,
-      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
-      'V<sub>S</sub>30': $(this.vs30El).find(':selected').text(),
-    }
 
+    let metadata = new Map();
+    metadata.set('Region:', [$(this.regionEl).find(':selected').text()]);
+    metadata.set('Edition:', editions);
+    metadata.set('Latitude (°):', [this.latEl.value]);
+    metadata.set('Longitude (°):', [this.lonEl.value]);
+    metadata.set('Intensity Measure Type:', [$(this.imtEl).find(':selected').text()]);
+    metadata.set('V<sub>S</sub>30:', [$(this.vs30El).find(':selected').text()]);
+    
     return metadata;
   }
 
@@ -187,8 +187,8 @@ export default class ModelCompare extends Hazard{
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
     let metadata = _this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.date = new Date();
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [new Date()]); 
     
     var selectedImtDisplay = _this.imtEl.querySelector(":checked").text; 
     var selectedImtValue   = _this.imtEl.value; 

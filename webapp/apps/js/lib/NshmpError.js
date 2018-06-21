@@ -11,7 +11,7 @@ export default class NshmpError extends Error {
   /**
    * Create a Boostrap modal with an error message.
    *  
-   * @param {String || HTML} errorMessage The error message to display.
+   * @param {String} errorMessage The error message to display.
    */
   constructor(errorMessage) {
     super(errorMessage);
@@ -30,6 +30,30 @@ export default class NshmpError extends Error {
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, NshmpError);
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression 
+   * @param {Boolean} expression Expression to check 
+   * @param {String} errorMessage The exception message to use if the
+   *    expression fails
+   */
+  static checkArgument(expression, errorMessage) {
+    if (!expression) {
+      throw new NshmpError(`IllegalArgumentException: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression 
+   * @param {Boolean} expression Expression to check 
+   * @param {String} errorMessage The exception message to use if the
+   *    expression fails
+   */
+  static checkState(expression, errorMessage) {
+    if (!expression) {
+      throw new NshmpError(`IllegalStateException: ${errorMessage}`);
     }
   }
 
@@ -89,18 +113,15 @@ export default class NshmpError extends Error {
   }
 
   /**
-   * Convience method to throw a new NshmpError
+   * Convience method to throw a new NshmpError.
+   * If the error message equals 'cancal' an error is not thrown,
+   *    useful when canceling a Promise.
    * 
-   * @param {String} errorMessage The error message to show
+   * @param {String} errorMessage The exception message to use
    */
   static throwError(errorMessage) {
     if (errorMessage == 'cancel') return;
-
-    try {
-      throw new NshmpError(errorMessage);
-    } catch (err) {
-      console.error(err);
-    }
+    throw new NshmpError(errorMessage);
   }
 
   /**

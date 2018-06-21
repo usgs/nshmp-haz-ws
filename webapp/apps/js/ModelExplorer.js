@@ -132,17 +132,17 @@ export default class ModelExplorer extends Hazard{
   //------------------- End Method: buildInputs --------------------------------
 
   /**
-  * @method getMetadata
-  */
+   * Get the metadata
+   * @return {Map<String, Array<String>>} The metadata Map
+   */
   getMetadata() {
-    let metadata = {
-      'Edition': $(this.editionEl).find(':selected').text(),
-      'Region': $(this.regionEl).find(':selected').text(),
-      'Latitude (°)': this.latEl.value,
-      'Longitude (°)': this.lonEl.value,
-      'Intensity Measure Type': $(this.imtEl).find(':selected').text(),
-      'V<sub>S</sub>30': $(this.vs30El).find(':selected').text(),
-    };
+    let metadata = new Map();
+    metadata.set('Edition:', [$(this.editionEl).find(':selected').text()]);
+    metadata.set('Region:', [$(this.regionEl).find(':selected').text()]);
+    metadata.set('Latitude (°):', [this.latEl.value]);
+    metadata.set('Longitude (°):', [this.lonEl.value]);
+    metadata.set('Intensity Measure Type:', [$(this.imtEl).find(':selected').text()]);
+    metadata.set('V<sub>S</sub>30:', [$(this.vs30El).find(':selected').text()]);
 
     return metadata;
   }
@@ -172,9 +172,9 @@ export default class ModelExplorer extends Hazard{
   static plotHazardCurves(_this,jsonResponse){
     _this.spinner.off();
     let metadata = _this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.date = new Date();
-    
+    metadata.set('url', [window.location.href]);
+    metadata.set('date' , [new Date()]);
+
     // Reset listeners
     $(_this.imtEl).off();
     $(_this.hazardPlot.legendEl).off();
@@ -294,8 +294,8 @@ export default class ModelExplorer extends Hazard{
 
   static plotComponentCurves(_this,hazardReturn){
     let metadata = _this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.time = new Date();
+    metadata.set('url', [window.location.href]);
+    metadata.set('date' , [new Date()]);
     
     let imtSelectedDisplay = _this.imtEl.querySelector(":checked").text; 
     

@@ -154,7 +154,7 @@ export default class GmmBeta {
           if (multiParam != 'gmms' || !Array.isArray(value)) value = [value];
 
           for (let gmm of value) {
-            $(this.gmmsEl).find('option[value="' + gmm + '"]')
+            $(this.gmmsEl).find(`option[value='${gmm}']`)
                 .prop('selected', true);
           }
           break;
@@ -174,14 +174,15 @@ export default class GmmBeta {
               .property('checked', false);
 
           for (let val of value) {
-            $(btnGroupEl).find('[value="' + val + '"]').click();
+            $(btnGroupEl).find(`[value='${val}']`).click();
           }
+          $(`#${key}`).trigger('change');
           break;
         default: 
-          $('input[name="' + key + '"]').val(value);
+          $(`input[name='${key}']`).val(value);
+          $(`#${key}`).trigger('input');
       }
 
-      $('#' + key).trigger('input');
     }
 
     if (this.currentWebApp != this.WebApps.SPECTRA){
@@ -190,11 +191,9 @@ export default class GmmBeta {
 
     let gmm = document.querySelector('#' + this.gmmsEl.value);
     gmm.scrollIntoView();
-    
-    this.footerOptions.rawBtnDisable = false;
-    this.footerOptions.updateBtnDisable = false;
-    this.footer.setOptions(this.footerOptions);
-    this.updatePlot();
+   
+    $(this.controlPanel.inputsEl).trigger('input');
+    $(this.footer.updateBtnEl).click();
   }
 
   /**
@@ -277,7 +276,7 @@ export default class GmmBeta {
         }
       }
     }
-    
+
     let hasError = $('*').hasClass('has-error');
     let gmmIsSelected = $(':selected', this.gmmsEl).length > 0;
 
@@ -287,10 +286,9 @@ export default class GmmBeta {
     let btnsAreSelected = multiSelectParam == 'gmms' ? gmmIsSelected :
         $(':checked', multiSelectableBtnGroupEl).length > 0;        
 
-    if (gmmIsSelected && btnsAreSelected) {
-      this.footerOptions.updateBtnDisable = hasError;
-      this.footer.setOptions(this.footerOptions);
-    }
+    hasError = hasError || !btnsAreSelected || !gmmIsSelected;
+    this.footerOptions.updateBtnDisable = hasError;
+    this.footer.setOptions(this.footerOptions);
   }
 
   /**

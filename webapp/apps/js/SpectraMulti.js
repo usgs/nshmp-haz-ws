@@ -152,25 +152,25 @@ export default class SpectraMulti extends GmmBeta {
   /**
    * Get metadata about all chosen parameters.
    * 
-   * @returns {Object} The metadata with all chosen parameters. 
+   * @return {Map<String, Array<String>} 
+   *    The metadata with all chosen parameters. 
    */
   getMetadata() {
     let gmms = this.getCurrentGmms(); 
 
-    let metadata = {
-      'Ground Motion Models': gmms, 
-      'M<sub>W</sub>': this.getParameterValues(this.MwEl), 
-      'Rake (°)': this.getParameterValues(this.rakeEl),
-      'Z<sub>Top</sub> (km)': this.getParameterValues(this.zTopEl),
-      'Dip (°)': this.getParameterValues(this.dipEl),  
-      'Width (km)': this.getParameterValues(this.widthEl),
-      'R<sub>X</sub> (km)': this.getParameterValues(this.rXEl),
-      'R<sub>Rup</sub> (km)': this.getParameterValues(this.rRupEl),
-      'R<sub>JB</sub> (km)': this.getParameterValues(this.rJBEl),
-      'V<sub>s</sub>30 (m/s)': this.getParameterValues(this.vs30El),
-      'Z<sub>1.0</sub> (km)': this.getParameterValues(this.z1p0El),
-      'Z<sub>2.5</sub> (km)': this.getParameterValues(this.z2p5El),
-    };
+    let metadata = new Map();
+    metadata.set('Ground Motion Model:', gmms);
+    metadata.set('M<sub>W</sub>:', this.getValues(this.MwEl));
+    metadata.set('Rake (°):', this.getValues(this.rakeEl));
+    metadata.set('Z<sub>Top</sub> (km):', this.getValues(this.zTopEl));
+    metadata.set('Dip (°):', this.getValues(this.dipEl));  
+    metadata.set('Width (km):', this.getValues(this.widthEl));
+    metadata.set('R<sub>X</sub> (km):', this.getValues(this.rXEl));
+    metadata.set('R<sub>Rup</sub> (km):', this.getValues(this.rRupEl));
+    metadata.set('R<sub>JB</sub> (km):', this.getValues(this.rJBEl));
+    metadata.set('V<sub>s</sub>30 (m/s):', this.getValues(this.vs30El));
+    metadata.set('Z<sub>1.0</sub> (km):', this.getValues(this.z1p0El));
+    metadata.set('Z<sub>2.5</sub> (km):', this.getValues(this.z2p5El));
 
     return metadata;
   }
@@ -181,16 +181,33 @@ export default class SpectraMulti extends GmmBeta {
    * @param {HTMLElement} el The parameter to get chosen values from. 
    * @returns {Array<Number> | Number} The parameter values.
    */
-  getParameterValues(el) {
+  getValues(el) {
     let multiSelectParam = this.multiSelectEl.value;
     let btnGroupEl = d3.select(this.multiSelectEl).data()[0];
 
     if (multiSelectParam == el.id) {
-      return $(':checked', btnGroupEl).map((i, d) => {
+      let tmpValues = $(':checked', btnGroupEl).map((i, d) => {
         return d.value;
       }).get();
+
+      let nValues = tmpValues.length;
+      let maxValues = 3;
+      let nLoops = Math.ceil( nValues / maxValues );
+      let values = [];
+
+      let iStart = 0;
+      let iEnd = 0;
+      for (let i = 0; i < nLoops; i++) {
+        iStart = iEnd;
+        iEnd = iStart + maxValues;
+
+        values.push(tmpValues.slice(iStart, iEnd).join(', '));
+        if (i < nLoops - 1) values[i] += ',';
+      }
+
+      return values;
     } else {
-      return el.value;
+      return [el.value];
     }
   }
 
@@ -202,9 +219,9 @@ export default class SpectraMulti extends GmmBeta {
    */
   plotGmm(responses) {
     let metadata = this.getMetadata();
-    metadata.url = window.location.href;
-    metadata.date = responses[0].date;
-  
+    metadata.set('url', [window.location.href]);
+    metadata.set('date', [responses[0].date]);
+
     let seriesInfo = this._responsesToData(responses, 'means');
 
     this.plot.setUpperData(seriesInfo.data)
@@ -236,6 +253,7 @@ export default class SpectraMulti extends GmmBeta {
     let meanTooltipText = ['GMM:', 'Period (s):', 'MGM (g):'];
     let meanPlotOptions = {
       legendLocation: 'topright',
+      printMetadataColumns: 4,
       tooltipText: meanTooltipText,
       yAxisScale: 'linear',
     };
@@ -244,6 +262,7 @@ export default class SpectraMulti extends GmmBeta {
     let sigmaPlotOptions = {
       plotHeight: 224,
       plotWidth: 896,
+      printMetadataColumns: 4,
       showLegend: false,
       tooltipText: sigmaTooltipText,
       yAxisScale: 'linear',
