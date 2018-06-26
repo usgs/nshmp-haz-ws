@@ -1081,8 +1081,14 @@ export default class D3LinePlot extends D3View {
     
     selectedD3.select('.line') 
         .attr('stroke-width', linewidthSelected);
+
     selectedD3.selectAll('.dot')                 
         .attr('r', pointRadiusSelected);
+
+    selectedD3.selectAll('.pga')
+        .attr('height', pointRadiusSelected * 2)
+        .attr('width', pointRadiusSelected * 2);
+
     selectedD3.raise();                          
         
     let legendExists = !d3.select(panel.legendEl)
@@ -1115,9 +1121,14 @@ export default class D3LinePlot extends D3View {
     let svgD3 = d3.select(panel.svgEl);
     
     svgD3.selectAll('.line')
-        .attr('stroke-width', panel.options.linewidth); 
+        .attr('stroke-width', panel.options.linewidth);
+
     svgD3.selectAll('.dot')
-        .attr('r', panel.options.pointRadius);       
+        .attr('r', panel.options.pointRadius);  
+    
+    svgD3.selectAll('.pga')
+        .attr('height', panel.options.pointRadius * 2)
+        .attr('width', panel.options.pointRadius * 2);
 
     if (panel.options.showLegend){
       let legendD3 = svgD3.select('.legend')
