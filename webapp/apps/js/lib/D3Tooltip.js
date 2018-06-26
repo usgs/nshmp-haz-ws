@@ -12,13 +12,16 @@ export default class D3Tooltip {
   */
   constructor(builder) {
     this.dataEl = builder.dataEl;
-    this.plotHeight = builder.plotHeight;
-    this.plotWidth = builder.plotWidth;
     this.tooltipEl = builder.tooltipEl;
     this.tooltipText = builder.tooltipText;
     this.tooltipX = builder.tooltipX;
     this.tooltipY = builder.tooltipY;
+    this.plotMarginLeft = builder._plotMarginLeft;
+    this.plotMarginTop = builder._plotMarginTop;
       
+    this.plotHeight = builder.plotHeight - this.plotMarginTop;
+    this.plotWidth = builder.plotWidth - this.plotMarginLeft;
+    
     this.options = {
       fontSize: 12,
       offsetX: 2,
@@ -29,13 +32,13 @@ export default class D3Tooltip {
     $.extend(this.options, builder.options || {});
 
     /** @type {Number} */
-    this.offsetX = this.options.offsetX;
+    this.offsetX = this.options.offsetX; 
     /** @type {Number} */
     this.offsetY = this.options.offsetY;
     /** @type {Number} */
     this.padding = this.options.padding; 
     
-    let tableD3 = d3.select(this.tooltipEl)
+    let tableD3 = d3.select(this.tooltipEl) 
         .append('foreignObject')
         .attr('height', '100%')
         .attr('width', '100%')
@@ -61,9 +64,11 @@ export default class D3Tooltip {
     this.tooltipWidth = parseFloat(
         d3.select(this.tooltipTableEl).style('width'));
     let tooltipTranslation = this.tooltipLocation();
-    
+   
     d3.select(this.tooltipEl)
         .select('foreignObject')
+        .attr('height', this.tooltipHeight)
+        .attr('width', this.tooltipWidth)
         .attr('transform', tooltipTranslation);
     
     d3.select(this.tooltipEl)
@@ -104,6 +109,16 @@ export default class D3Tooltip {
         return this;
       }
 
+      plotMarginLeft(_plotMarginLeft) {
+        this._plotMarginLeft = _plotMarginLeft;
+        return this;
+      }
+      
+      plotMarginTop(_plotMarginTop) {
+        this._plotMarginTop = _plotMarginTop;
+        return this;
+      }
+
       plotWidth(plotWidth) {
         this.plotWidth = plotWidth;
         return this;
@@ -128,10 +143,8 @@ export default class D3Tooltip {
   * @param {Panel} panel - Upper or lower panel object
   */
   destroy() {
-    d3.select(this.tooltipEl)
-        .selectAll("*")
-        .remove();
-    
+    this.remove();
+
     for( let obj in this) {
       this[obj] = null;
     }
@@ -180,7 +193,7 @@ export default class D3Tooltip {
   */
   remove() {
     d3.select(this.tooltipEl)
-        .selectAll("*")
+        .select('*')
         .remove();
   }
  
@@ -191,24 +204,17 @@ export default class D3Tooltip {
   * @return {String} - The translation needed for the tooltip. 
   */
   tooltipLocation() {
-    let xPer = this.tooltipX / this.plotWidth; 
-    let xRect;
-    
-    if (xPer > 0.65) {
-      xRect = (this.tooltipX - this.tooltipWidth - this.offsetX);
-    } else {
-      xRect = (this.tooltipX + this.offsetX);
-    }
+    let availableWidth = this.plotWidth - this.tooltipX;
+    let x = ( this.tooltipWidth + this.offsetX ) > availableWidth ? 
+        this.tooltipX - this.tooltipWidth - this.offsetX + availableWidth :
+        this.tooltipX + this.offsetX;
 
-    let yPer = this.tooltipY / this.plotHeight; 
-    let yRect;
-    if (yPer < 0.25) {
-      yRect = (this.tooltipY + this.offsetY);
-    } else {
-      yRect = (this.tooltipY - this.tooltipHeight - this.offsetY);
-    }
-    
-    return 'translate(' + xRect + ',' + yRect + ')'; 
+    let availableHeight = this.plotHeight - this.tooltipY;
+    let y = ( this.tooltipHeight + this.offsetY ) > availableHeight ?
+        this.tooltipY - this.tooltipHeight - this.offsetY : 
+        this.tooltipY + this.offsetY; 
+
+    return `translate(${x}, ${y})`; 
   }
 
 }

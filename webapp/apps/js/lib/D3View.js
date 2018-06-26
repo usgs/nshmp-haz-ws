@@ -274,7 +274,7 @@ export default class D3View {
       titleFontSize: 16,
       tooltipFontSize: 12,
       tooltipOffsetX: 2,
-      tooltipOffsetY: 8,
+      tooltipOffsetY: 10,
       tooltipPadding: 10,
       tooltipText: ['Label:', 'X value:', 'Y value'],
       tooltipXToExponent: false,
