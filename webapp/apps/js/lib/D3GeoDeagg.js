@@ -239,7 +239,7 @@ export default class D3GeoDeagg extends D3View {
     let tooltip;
     let tooltipOptions = {
       offsetX: this.options.deaggWidth,
-      offsetY: 0, 
+      offsetY: panel.options.tooltipOffsetY, 
       padding: panel.options.tooltipPadding,
       selectionIncrement: panel.options.selectionIncrement,
     };
@@ -268,6 +268,8 @@ export default class D3GeoDeagg extends D3View {
           .dataEl(els[i])
           .options(tooltipOptions)
           .plotHeight(panel.svgHeight)
+          .plotMarginLeft(panel.options.marginLeft)
+          .plotMarginTop(panel.options.marginTop)
           .plotWidth(panel.svgWidth)
           .tooltipText(tooltipText)
           .tooltipEl(panel.tooltipEl)
