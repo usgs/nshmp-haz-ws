@@ -343,45 +343,12 @@ export default class D3LinePlot extends D3View {
   * @param {Panel} panel - Upper or lower plot panel
   */
   createTooltip(panel) {
-    let tooltip;
     this.setPlotScale(panel);
-    let tooltipOptions = {
-      fontSize: panel.options.tooltipFontSize,
-      offsetX: panel.options.tooltipOffsetX,
-      offsetY: panel.options.tooltipOffsetY,
-      padding: panel.options.tooltipPadding,
-      selectionIncrement: panel.options.selectionIncrement, 
-    };
     
     d3.select(panel.allDataEl)
-        .selectAll('.dot')
-        .on('mouseover', (d, i, els) => {
-          let xVal = panel.options.tooltipXToExponent ?
-                  d[0].toExponential(4) : d[0];
-          let yVal = panel.options.tooltipYToExponent ?
-                  d[1].toExponential(4) : d[1];
-          let id = els[i].id;
-          let cx = d3.select(els[i]).attr('cx');
-          let cy = d3.select(els[i]).attr('cy'); 
-          let tooltipText = [
-            panel.options.tooltipText[0] + ' ' + this.idToLabel(panel, id),
-            panel.options.tooltipText[1] + ' ' + xVal,
-            panel.options.tooltipText[2] + ' ' + yVal,
-          ];
-          tooltip = new D3Tooltip.Builder()
-              .coordinates(cx, cy)
-              .dataEl(els[i])
-              .options(tooltipOptions)
-              .plotHeight(panel.svgHeight)
-              .plotWidth(panel.svgWidth)
-              .tooltipText(tooltipText)
-              .tooltipEl(panel.tooltipEl)
-              .build()
-              .changeSizeAttribute('r', true /* To increase */)
-        })
-        .on('mouseout', () => {
-          tooltip.changeSizeAttribute('r', false /* To increase */)
-              .destroy();
+        .selectAll('.data-point')
+        .on('mouseover', (d, i, els) => { 
+          this._onDataPointOver(d, els[i], panel); 
         });
   }
 
@@ -406,25 +373,26 @@ export default class D3LinePlot extends D3View {
         .enter()
         .append('g')
         .attr('class', 'data')
-        .attr('id', (d, i) => {return panel.ids[i]})
+        .attr('id', (d, i) => { return panel.ids[i]; })
         .style('cursor', 'pointer');
    
     // Plot lines
     seriesEnter.append('path')
         .attr('class', 'line')
         .attr('d', panel.line)
-        .attr('id', (d, i) => {return panel.ids[i]})
-        .attr('stroke', (d, i) => {return panel.color[i]} )
+        .attr('id', (d, i) => { return panel.ids[i]; })
+        .attr('stroke', (d, i) => { return panel.color[i]; })
         .attr('stroke-width', options.linewidth)
         .style('shape-rendering', 'geometricPrecision')
         .attr('fill', 'none');
+
     // Plot cirles
     seriesEnter.selectAll('circle')
-        .data((d,i) => {return d})
+        .data((d,i) => { return d; })
         .enter()
-        .filter((d,i) => {return d[1] != null})
+        .filter((d,i) => { return d[0] != 'PGA' && d[1] != null; })
         .append('circle')
-        .attr('class', 'dot')
+        .attr('class', 'dot data-point')
         .attr('id', (d, i, els) => {
           return d3.select(els[i].parentNode.firstChild).attr('id');
         })
@@ -434,6 +402,26 @@ export default class D3LinePlot extends D3View {
         .attr('fill', (d,i, els) => {
           return d3.select(els[i].parentNode.firstChild).style('stroke');
         });
+
+   
+    /* If PGA exists, add as rectangles instead of circles */
+    seriesEnter.selectAll('rect')
+        .data((d) => { return d; })
+        .enter()
+        .filter((d) => { return d[0] == 'PGA' && d[1] != null; })
+        .append('rect')
+        .attr('class', 'pga data-point')
+        .attr('x', -options.pointRadius)
+        .attr('y', panel.line.y())
+        .attr('height', options.pointRadius * 2)
+        .attr('width', options.pointRadius * 2)
+        .attr('id', (d, i, els) => {
+          return d3.select(els[i].parentNode.firstChild).attr('id');
+        })
+        .attr('fill', (d, i, els) => {
+          return d3.select(els[i].parentNode.firstChild).style('stroke');
+        });
+
   }
 
   /**
@@ -591,6 +579,74 @@ export default class D3LinePlot extends D3View {
   
     return 'translate(' + xTranslate + ',' + yTranslate + ')';
   } 
+
+  /**
+   * Handle mouse over a data point 
+   * @param {Array<Number>} data The data of the data point 
+   * @param {SVGElement} el The svg element of the data point
+   * @param {PlotPanel} panel The plot panel
+   */
+  _onDataPointOver(data, el, panel) {
+    let tooltipOptions = {
+      fontSize: panel.options.tooltipFontSize,
+      offsetX: panel.options.tooltipOffsetX,
+      offsetY: panel.options.tooltipOffsetY,
+      padding: panel.options.tooltipPadding,
+      selectionIncrement: panel.options.selectionIncrement, 
+    };
+
+    let xVal = panel.options.tooltipXToExponent ?
+            data[0].toExponential(4) : data[0];
+    let yVal = panel.options.tooltipYToExponent ?
+            data[1].toExponential(4) : data[1];
+
+    let elD3 = d3.select(el);
+    let id = elD3.attr('id'); 
+
+    let tooltipText = [
+      panel.options.tooltipText[0] + ' ' + this.idToLabel(panel, id),
+      panel.options.tooltipText[1] + ' ' + xVal,
+      panel.options.tooltipText[2] + ' ' + yVal,
+    ];
+
+    let coords = d3.mouse(el);
+    let tooltip = new D3Tooltip.Builder()
+        .coordinates(coords[0], coords[1])
+        .dataEl(el)
+        .options(tooltipOptions)
+        .plotHeight(panel.svgHeight)
+        .plotMarginLeft(panel.options.marginLeft)
+        .plotMarginTop(panel.options.marginTop)
+        .plotWidth(panel.svgWidth)
+        .tooltipText(tooltipText)
+        .tooltipEl(panel.tooltipEl)
+        .build();
+
+    if (el.tagName == 'circle') {
+      tooltip.changeSizeAttribute('r', true /* to increase */);
+    } else if (el.tagName == 'rect') {
+      tooltip.changeSizeAttribute('height', true /* to increase */);
+      tooltip.changeSizeAttribute('width', true /* to increase */);
+    }
+    
+    elD3.on('mouseout', () => { this._onDataPointOut(el, tooltip); });
+  }
+
+  /**
+   * Handle mouse out of the data point
+   * @param {SVGElement} el  The svg element of the data point
+   * @param {D3Tooltip} tooltip The tooltip 
+   */
+  _onDataPointOut(el, tooltip) {
+    if (el.tagName == 'circle') {
+      tooltip.changeSizeAttribute('r', false /* to increase */);
+    } else if (el.tagName == 'rect') {
+      tooltip.changeSizeAttribute('height', false /* to increase */);
+      tooltip.changeSizeAttribute('width', false /* to increase */);
+    }
+
+    tooltip.remove();
+  }
 
   /**
    * When the gridline glyphicon is clicked update the 
@@ -814,10 +870,12 @@ export default class D3LinePlot extends D3View {
     this.createDataTable(panel);
     
     panel.line = d3.line()                            
-      .defined((d,i) => { return d[1] != null })  
+      .defined((d,i) => { 
+        return d[1] != null && d[0] != 'PGA';
+      })  
       .x((d, i) => {
         if (d[0] == 'PGA') {
-          return panel.xBounds(Tools.imtToValue('PGA'));
+          return panel.xBounds(panel.xBounds.domain()[0]);
         } else {
           return panel.xBounds(d[0])
         }
@@ -1023,8 +1081,14 @@ export default class D3LinePlot extends D3View {
     
     selectedD3.select('.line') 
         .attr('stroke-width', linewidthSelected);
+
     selectedD3.selectAll('.dot')                 
         .attr('r', pointRadiusSelected);
+
+    selectedD3.selectAll('.pga')
+        .attr('height', pointRadiusSelected * 2)
+        .attr('width', pointRadiusSelected * 2);
+
     selectedD3.raise();                          
         
     let legendExists = !d3.select(panel.legendEl)
@@ -1057,9 +1121,14 @@ export default class D3LinePlot extends D3View {
     let svgD3 = d3.select(panel.svgEl);
     
     svgD3.selectAll('.line')
-        .attr('stroke-width', panel.options.linewidth); 
+        .attr('stroke-width', panel.options.linewidth);
+
     svgD3.selectAll('.dot')
-        .attr('r', panel.options.pointRadius);       
+        .attr('r', panel.options.pointRadius);  
+    
+    svgD3.selectAll('.pga')
+        .attr('height', panel.options.pointRadius * 2)
+        .attr('width', panel.options.pointRadius * 2);
 
     if (panel.options.showLegend){
       let legendD3 = svgD3.select('.legend')
@@ -1309,9 +1378,6 @@ export default class D3LinePlot extends D3View {
     gridLinesD3.append('g')
         .attr('class', 'y-grid-lines');
               
-    svgD3.append('g')
-        .attr('class', 'all-data');
-    
     // X-axis
     let xD3 = svgD3.append('g')
         .attr('class','x-axis');
@@ -1329,6 +1395,9 @@ export default class D3LinePlot extends D3View {
         .append('text')
         .attr('class', 'y-label')
         .attr('fill', 'black');
+    
+    svgD3.append('g')
+        .attr('class', 'all-data');
     
     svgD3.append('g')
         .attr('class', 'legend');

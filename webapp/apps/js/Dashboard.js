@@ -29,14 +29,11 @@ export default class Dashboard {
     /** @ type {Array{Object}} */
     this.webapps = [
       {
-        label: 'Response Spectra',
-        href: 'apps/spectra-plot.html',
-      }, {
         label: 'Dynamic Model Comparison',
         href: 'apps/dynamic-compare.html',
       }, {
-        label: 'Response Spectra: Multi Value Parameter Plots',
-        href: 'apps/spectra-plot-multi.html',
+        label: 'Response Spectra',
+        href: 'apps/spectra-plot.html',
       }, {
         label: 'Model Comparison',
         href: 'apps/model-compare.html',

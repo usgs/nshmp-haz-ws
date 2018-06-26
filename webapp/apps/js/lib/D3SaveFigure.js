@@ -429,6 +429,7 @@ export default class D3SaveFigure {
         }
         
         for (let value of values) {
+          value = Number.isNaN(value) || value == null ? '--' : value;
           innerTableD3.append('tr')
             .append('td')
             .attr('nowrap', true)

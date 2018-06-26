@@ -126,6 +126,9 @@ export default class DynamicCompare extends Hazard {
       
       this.testSitePicker.plotMap(model.region.value);
     });
+
+    /** X-axis domain for spectra plots - @type {Array<Number} */
+    this.spectraXDomain = [0.01, 10.0];
   }
 
   /**
@@ -666,7 +669,7 @@ export default class DynamicCompare extends Hazard {
         .setUpperPlotLabels(seriesLabels)
         .setUpperXLabel(xLabel)
         .setUpperYLabel(yLabel)
-        .plotData(this.spectraPlot.upperPanel, null, yDomain);
+        .plotData(this.spectraPlot.upperPanel, this.spectraXDomain, yDomain);
     
     this.plotResponseSpectrumDifference(seriesData);
 
@@ -714,7 +717,6 @@ export default class DynamicCompare extends Hazard {
     let selectedSecondModel = $(':selected', this.secondModelEl).text();
 
     let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
-    let xDomain = this.spectraPlot.upperPanel.xExtremes;
     let yDomain = [-maxVal, maxVal];
 
     let filename = 'dynamicCompareSpectraDiff-' + 
@@ -728,7 +730,7 @@ export default class DynamicCompare extends Hazard {
         .setLowerPlotLabels([label])
         .setLowerXLabel(this.spectraPlot.upperPanel.xLabel)
         .setLowerYLabel('% difference')
-        .plotData(this.spectraPlot.lowerPanel, xDomain, yDomain);
+        .plotData(this.spectraPlot.lowerPanel, this.spectraXDomain, yDomain);
     
     /* Update hazard curves on IMT click */
     this.onSpectraPlotImtClick(this.spectraPlot.lowerPanel);
@@ -835,7 +837,7 @@ export default class DynamicCompare extends Hazard {
       plotLowerPanel: true,
       syncXAxis: true,
       syncYAxis: false,
-      xAxisScale: 'linear',
+      xAxisScale: 'log',
     };
 
     let spectraTooltip = ['Model:', 'Period (s):', 'GM (g):'];

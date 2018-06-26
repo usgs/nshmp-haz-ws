@@ -1,390 +1,44 @@
-
-
 <!doctype html>
-
-
 <html lang="en">
 
-<!-- ......................... Head ........................................ -->
-<head>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"> 
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8"> 
+    <!-- Import Bootstrap CSS -->
+    <link rel="stylesheet" 
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
-  <!-- Bootstrap -->
-  <link rel="stylesheet" 
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/template.css" type="text/css">
+    <link rel="stylesheet" href="css/D3View.css" type="text/css">
+    <link rel="stylesheet" href="css/Gmm.css"  type="text/css">
+  </head>
 
-  <!-- CSS Files -->
-  <link rel="stylesheet" href="css/template.css" type="text/css">
-  <link rel="stylesheet" href="css/D3View.css" type="text/css">
-  <link rel="stylesheet" href="css/Gmm.css"  type="text/css">
- 
-</head>
-<!-- ......................... End: Head ................................... -->
+  <body>
+    <div id="content"></div> 
 
+    <!-- Import jQuery -->
+    <script 
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+    </script>
 
+    <!-- Import Bootstrap JavaScript -->
+    <script 
+        src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+    </script>
 
-<!-- ........................... Body ...................................... -->
-<body>
-
-
-  <!-- ...................... Control Panel ................................ -->
-  <div class='hidden' id="control">
-    <!--
-    The reponse spectra control panel contains form elements used as 
-    calculation parameters and controls that manipulate those parameters. 
-    The controls are typically radio-button style choices, however mixing 
-    radio buttons into the parameter form creates problems as we do not want 
-    the values of these controls submitted, but without the 'name' field, 
-    they do not behave properly. For the time being, such controls are 
-    implemented as regular button groups with added toggle 
-    (e.g. single-selction) behavior added that is reflected by the 'active'
-    CSS class.
-    -->
-  
-    <label for="gmms" class="control-group">Ground Motion Models:</label>
-   
-    <div id="gmm-sorter" class="btn-group btn-group-xs" data-toggle="buttons">
-      <label class="btn btn-default gmm-group active"
-             data-toggle="tooltip"
-             data-container="body"
-             title="Sort by Group"
-             for="gmm-sort-group">
-        <input type="radio"
-               value="group"
-               name="gmm-sort"
-               id="gmm-sort-group"
-               aria-label="Sort by Group"
-               checked="true" />
-        <span class="glyphicon glyphicon-list"
-              aria-hidden="true" />
-      </label>
-      <label class="btn btn-default gmm-alpha"
-             data-toggle="tooltip"
-             data-container="body"
-             title="Sort Alphabetically"
-             for="gmm-sort-alpha">
-        <input type="radio"
-               value="alpha"
-               name="gmm-sort"
-               id="gmm-sort-alpha"
-               aria-label="Sort Alphabetically" />
-          <span class="glyphicon glyphicon-sort-by-alphabet"
-                aria-hidden="true" />
-        </input>
-      </label>
-    </div>
-  
-    <form id="inputs">
-      <select class="form-control input-sm" 
-          name="gmm" 
-          id="gmms" 
-          size="16" 
-          multiple="true" 
-          autofocus>
-      </select>
+    <!-- Import D3 -->
+    <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
     
-      <div class="form-horizontal">
-        
-        <label class="control-spacer control-group">
-            Event Parameters:
-        </label>
-        <div class="form-group form-group-sm show-grid">
-          <label class="col-sm-2 control-label" for="Mw">
-              M<sub>W</sub>
-          </label>
-          <div class="col-sm-3">
-            <input type="text" class="form-control" id="Mw" name="Mw">
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rake">
-              Rake
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="rake" name="rake">
-              <span class="input-group-addon">°</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <div id="fault-style" 
-                class="btn-group btn-group-xs" 
-                data-toggle="buttons">
-              <button type="button" 
-                  id="fault-style-strike" 
-                  class="btn btn-default active" 
-                  title="Strike-Slip">
-                      Strike-Slip
-              </button>
-              <button type="button" 
-                  id="fault-style-normal" 
-                  class="btn btn-default" 
-                  title="Normal">
-                      Normal
-              </button>
-              <button type="button" 
-                  id="fault-style-reverse" 
-                  class="btn btn-default" 
-                  title="Normal">
-                      Reverse
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="zHyp">
-              Z<sub>HYP</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="zHyp" 
-                  name="zHyp">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <label for="z-check" class="control-label secondary-input">
-              <input id="z-check" type="checkbox" checked="true">
-              Centered down-dip
-            </label>
-          </div>
-        </div>
-    
-        <label class="control-spacer control-group">
-            Source Geometry:
-        </label>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="zTop">
-              Z<sub>TOP</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="zTop" name="zTop">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <label class="col-sm-1 control-label" for="dip">
-              Dip
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="number" 
-                  class="form-control" 
-                  id="dip" 
-                  name="dip" 
-                  min="0" 
-                  max="90">
-              <span class="input-group-addon">°</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="width">
-              Width
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="width" name="width">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-        </div>
-    
-        <label class="control-spacer control-group">
-            Path Parameters:
-        </label>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rX">
-              R<sub>X</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="rX" name="rX">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <label class="col-sm-1 control-label disabled" for="rY">
-              R<sub>Y</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  disabled="true" 
-                  id="rY" 
-                  name="rY">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rRup">
-              R<sub>RUP</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="rRup" 
-                  name="rRup">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-1"></div>
-          <div class="col-sm-6">
-            <label for="r-check" class="control-label secondary-input">
-              <input id="r-check" type="checkbox" checked="true">
-              Derive R<sub>JB</sub> and R<sub>RUP</sub>
-            </label>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="rJB">
-              R<sub>JB</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  readonly="true" 
-                  id="rJB" 
-                  name="rJB">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <div id="hw-fw" class="btn-group btn-group-xs">
-              <button type="button" 
-                  id="hw-fw-hw" 
-                  class="btn btn-default active" 
-                  title="Hanging Wall">
-                      Hanging
-              </button>
-              <button type="button" 
-                  id="hw-fw-fw" 
-                  class="btn btn-default" 
-                  title="Foot Wall">
-                      Foot Wall
-              </button>
-            </div>
-          </div>
-        </div>
-    
-        <label class="control-spacer control-group">
-            Site &amp; Basin:
-        </label>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="vs30">
-              V<sub>S</sub>30
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="vs30" name="vs30">
-              <span class="input-group-addon"><sup>m</sup>⁄<sub>s</sub></span>
-            </div>
-          </div>
-          <div class="col-sm-6 col-sm-offset-1">
-            <div id="vs-infer" 
-                class="btn-group btn-group-xs disabled" 
-                data-toggle="buttons">
-              <label class="btn btn-default" 
-                  title="Vs30 Measured" 
-                  for="vs-measured">
-                      Measured
-                <input type="radio" 
-                    value="measured" 
-                    id="vs-measured"
-                    name="vsInf">
-              </label>
-              <label class="btn btn-default active" 
-                  title="Vs30 Inferred" 
-                  for="vs-inferred">
-                      Inferred
-                <input type="radio" 
-                    value="inferred" 
-                    id="vs-inferred" 
-                    name="vsInf" 
-                    checked="true">
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="form-group form-group-sm">
-          <label class="col-sm-2 control-label" for="z1p0">
-              Z<sub>1.0</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control" 
-                  placeholder="default" 
-                  id="z1p0" 
-                  name="z1p0">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-          <label class="col-sm-1 control-label" for="z2p5">
-              Z<sub>2.5</sub>
-          </label>
-          <div class="col-sm-3">
-            <div class="input-group input-group-sm">
-              <input type="text" 
-                  class="form-control" 
-                  placeholder="default" 
-                  id="z2p5" 
-                  name="z2p5">
-              <span class="input-group-addon">km</span>
-            </div>
-          </div>
-        </div>
-    
-      </div>
-    </form>
+    <!-- Run main JavaScript -->
+    <script type='module'>
+      import Config from './js/lib/Config.js';
+      import Spectra from './js/Spectra.js';
+      
+      Config.getConfig(Spectra);
+    </script>
 
-  </div>
-  <!-- .................... End: Control Panel ............................. -->
-
-
-
-  <!-- .......................... Plots .................................... -->
-  <div id="content">
- 
-  </div> 
-  <!-- ..................... End: Plots .................................... -->
-
-
-
-  <!-- ..................... Import JavaScript ............................. -->
-
-  <!-- jQuery -->
-  <script 
-      src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
-  </script>
-
-  <!--  Bootstrap -->
-  <script 
-      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
-  </script>
-
-  <!-- Application Specific JavaScript -->
-  <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-  
-  <script type='module'>
-    import Config from './js/lib/Config.js';
-    import Spectra from './js/Spectra.js';
-     
-    Config.getConfig(Spectra);
-  </script>
-  <!-- ..................... End: Import JavaScript ........................ -->
-
-
-
-</body>
-<!-- ......................... End: Body ................................... -->
+  </body>
 
 </html>
