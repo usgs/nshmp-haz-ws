@@ -74,9 +74,10 @@ export default class D3SaveFigure {
     this.originalPlotHeight = builder._plotHeight;
     /** @type {Number} */
     this.originalPlotWidth = builder._plotWidth;
+    /** @type {Boolean} */
+    this.previewFigure = builder._previewFigure;
     /** @type {SVGElement} */
     this.svgEl = builder._svgEl;
-    
     /** @type {Number} */ 
     this.baseDpi = 96; 
 
@@ -102,7 +103,7 @@ export default class D3SaveFigure {
     $.extend(this.options, builder._options);
 
      /* Update DPI */
-    let dpi = this.plotFormat == 'pdf' || this.plotFormat == 'svg' ? 
+    let dpi = this.plotFormat == 'pdf' || this.plotFormat == 'svg' ?
         this.baseDpi : this.options.printDpi; 
     this.options.printDpi = dpi;
     
@@ -116,8 +117,12 @@ export default class D3SaveFigure {
     this.pageWidthPxBaseDpi = this.options.pageWidth * this.baseDpi;
     /** @type {Number} */ 
     this.footerHeightInInch = 0.5;
-    
-    this._saveFigure();
+  
+    if (this.previewFigure) {
+      this._previewFigure();
+    } else {
+      this._saveFigure();
+    }
   }
 
   /**
@@ -144,6 +149,7 @@ export default class D3SaveFigure {
    *    the metadata table and footer 
    * @property {Number} _plotHeight Original SVG plot height in px.
    * @property {Number} _plotWidth Original SVG plot width in px. 
+   * @property {Boolean} _previewFigure Whether to save or preview the figure.
    * @property {SVGElement} _svgEl SVG dom element to convert to image.
    */
   static get Builder() {
@@ -169,6 +175,8 @@ export default class D3SaveFigure {
         this._plotTitle = '';
         /** @type {Number} */
         this._plotWidth;
+        /** @type {Boolean} */
+        this._previewFigure = false;
         /** @type {SVGElement} */
         this._svgEl;
       }
@@ -318,6 +326,15 @@ export default class D3SaveFigure {
       }
 
       /**
+       * Whether to preview the figure in a new window 
+       *    instead of saving the figure
+       */
+      previewFigure() {
+        this._previewFigure = true;
+        return this;
+      }
+
+      /**
        * The SVG element to save as a figure
        * @param {SVGElement} svgEl The SVG element to turn into a figure 
        */
@@ -391,8 +408,7 @@ export default class D3SaveFigure {
     let tableD3 = foreignD3.append('xhtml:table')
         .attr('xmlns', 'http://www.w3.org/1999/xhtml')
         .style('font-family', '"Helvetica Neue",Helvetica,Arial,sans-serif')
-        .style('font-size', this.options.metadataFontSize + 'px')
-        .style('line-height', '1.25')
+        .style('font-size', `${this.options.metadataFontSize}px`)
         .style('border-collapse', 'collapse')
         .style('background', 'white');
 
@@ -408,16 +424,16 @@ export default class D3SaveFigure {
             .attr('nowrap', true)
             .attr('valign', 'top')
             .attr('rowspan', rowSpan)
-            .style('padding', '4px 12px')
+            .style('padding', '4px 4px 4px 8px')
             .style('text-align', 'right')
             .html(key);
 
         let innerTableD3 = tableRowD3.append('td')
             .attr('rowspan', rowSpan)
-            .style('padding', '4px 12px')
+            .attr('valign', 'top')
+            .style('padding', '4px 4px')
             .append('table')
-            .style('font-size', this.options.metadataFontSize + 'px')
-            .style('line-height', '1.25')
+            .style('font-size', `${this.options.metadataFontSize}px`)
             .style('border-collapse', 'collapse')
             .style('background', 'white');
 
@@ -491,8 +507,8 @@ export default class D3SaveFigure {
     let canvasD3 = canvasDivD3.append('canvas')
         .attr('height', this.pageHeightPxPrintDpi)
         .attr('width', this.pageWidthPxPrintDpi)
-        .style('height', this.options.pageHeight + 'in')
-        .style('width', this.options.pageWidth + 'in');
+        .style('height', `${this.options.pageHeight}in`)
+        .style('width', `${this.options.pageWidth}in`);
 
     let canvasEl = canvasD3.node();
     let canvasContext = canvasEl.getContext('2d');
@@ -503,10 +519,10 @@ export default class D3SaveFigure {
 
 
   /**
-   * Create the SVG image for Canvas
-   * @return {ImageData} The svg image
+   * Create the SVG element
+   * @return {SVGElement} The svg element
    */  
-  _createSvgImage() {
+  _createSvgElement() {
     let iframeD3 = d3.select('body')
         .append('iframe')
         .style('visibility', 'hidden');
@@ -517,8 +533,8 @@ export default class D3SaveFigure {
         .html(this.svgEl.outerHTML);
     
     let svgD3 = svgDivD3.select('svg')
-        .attr('preserveAspectRatio', null)
-        .attr('viewBox', null)
+      .attr('viewBox',  
+          `0 0 ${this.pageWidthPxPrintDpi} ${this.pageHeightPxPrintDpi}`)
         .style('font-family', '"helvetica neue",helvetica,arial,sans-serif')
         .attr('height', this.pageHeightPxPrintDpi)
         .attr('width', this.pageWidthPxPrintDpi);
@@ -531,12 +547,18 @@ export default class D3SaveFigure {
     this._addFooter(svgEl);
     this._addMetadataTable(svgEl, plotMargins);
    
-    let svgHtml = svgEl.outerHTML;
-    let svgImgSrc =  'data:image/svg+xml;base64,' + 
-        btoa(unescape(encodeURIComponent(svgHtml)));             
     iframeD3.remove();
    
-    return svgImgSrc;
+    return svgEl;
+  }
+
+  /**
+   * Create the SVG image soruce 
+   * @param {SVGElement} svgEl The SVg element for the figure
+   */
+  _createSvgImageSource(svgEl) {
+    return `data:image/svg+xml;base64, 
+        ${btoa(unescape(encodeURIComponent(svgEl.outerHTML)))}`;             
   }
 
   /**
@@ -674,16 +696,104 @@ export default class D3SaveFigure {
   }
 
   /**
+   * Open the figure in a new window to preview
+   */
+  _previewFigure() {
+    let svgImg = new Image();
+    let svgEl = this._createSvgElement();
+
+    d3.select(svgEl)
+        .attr('height', this.pageHeightPxBaseDpi * this.options.printDpi)
+        .attr('width', this.pageWidthPxBaseDpi * this.options.printDpi)
+        .style('background', 'white');
+    
+    let svgImgSrc = this._createSvgImageSource(svgEl); 
+    let canvas = this._createCanvas();
+    
+    svgImg.onload = () => {
+      this._drawCanvas(canvas, svgImg); 
+
+      try {
+        switch (this.plotFormat) {
+          /* SVG format */
+          case 'svg':
+            this._previewFigureNewWindow(svgImgSrc);
+            break;
+          /* JPEG or PNG format */
+          case 'png':
+          case 'jpeg':
+            canvas.canvasEl.toBlob((blob) => {
+              let canvasImage = URL.createObjectURL(blob);
+              this._previewFigureNewWindow(canvasImage);
+            }, 'image/' + this.plotFormat, 1.0);
+            break;
+        }
+      } catch (err) {
+        throw new NshmpError(err);
+      }
+    }  
+
+    svgImg.setAttribute('src', svgImgSrc);
+  }
+
+  /**
+   * Open the new window with specific image
+   * @param {ImageData} imageSrc The image source
+   */
+  _previewFigureNewWindow(imageSrc) {
+    let win = window.open('', '_blank')
+    win.document.title = this.filename;
+    win.focus();
+    
+    d3.select(win.document.body)
+        .style('margin', '0 5em')
+        .style('background', 'black')
+        .append('img')
+        .attr('src', imageSrc)
+        .style('height', 'auto')
+        .style('width', 'auto')
+        .style('max-height', '-webkit-fill-available')
+        .style('max-width', '100%')
+        .style('display', 'block')
+        .style('margin', 'auto')
+        .style('padding', '2em 0')
+        .style('top', '50%')
+        .style('transform', 'translate(0, -50%)')
+        .style('position', 'relative');
+
+    this._previewFigureDownloadButton(win, imageSrc);
+  }
+
+  /**
+   * Add a download button to the new window for the figure preview
+   * @param {Window} win The new window
+   */
+  _previewFigureDownloadButton(win, imageSrc) {
+    d3.select(win.document.body)
+        .append('button')
+        .style('background', 'white')
+        .style('position', 'absolute')
+        .style('bottom', '0.5em')
+        .style('left', '1em')
+        .style('padding', '0.5em')
+        .style('font-size', '1em')
+        .style('border-radius', '4px')
+        .attr('href', imageSrc)
+        .text('Download')
+        .on('click', () => { this._saveFigure(); });
+  }
+
+  /**
    * Put SVG image in iframe and print. 
    * @param {ImageData} svgImg The svg image
    */ 
   _saveAsPdf(svgImg) {
-    d3.selectAll('.save-figure-iframe-' + this.filename)
+    d3.selectAll(`.save-figure-iframe-${this.filename}`)
         .remove();
 
     let iframeD3 = d3.select('body')
         .append('iframe')
-        .attr('class', 'save-figure-iframe-' + this.filename)
+        .attr('class', `save-figure-iframe-${this.filename}`)
         .style('border-width', '0')
         .style('height', this.pageHeightPxBaseDpi)
         .style('width', this.pageWidthPxBaseDpi)
@@ -716,7 +826,8 @@ export default class D3SaveFigure {
    */
   _saveFigure() {
     let svgImg = new Image();
-    let svgImgSrc = this._createSvgImage();
+    let svgEl = this._createSvgElement();
+    let svgImgSrc = this._createSvgImageSource(svgEl); 
     let canvas = this._createCanvas();
     
     svgImg.onload = () => {
