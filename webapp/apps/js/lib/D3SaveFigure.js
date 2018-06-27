@@ -103,7 +103,7 @@ export default class D3SaveFigure {
     $.extend(this.options, builder._options);
 
      /* Update DPI */
-    let dpi = this.plotFormat == 'pdf' || this.plotFormat == 'svg' ?
+    let dpi = this.plotFormat == 'svg' ?
         this.baseDpi : this.options.printDpi; 
     this.options.printDpi = dpi;
     
@@ -784,41 +784,35 @@ export default class D3SaveFigure {
   }
 
   /**
-   * Put SVG image in iframe and print. 
-   * @param {ImageData} svgImg The svg image
-   */ 
-  _saveAsPdf(svgImg) {
-    d3.selectAll(`.save-figure-iframe-${this.filename}`)
-        .remove();
+   * Save the figure as PDF using jsPDF
+   * @param {CanvasObject} canvas Canvas element and context 
+   */
+  _saveAsPdf(canvas) {
+    let height = this.options.pageHeight;
+    let width = this.options.pageWidth;
+    let pdf = new jsPDF('landscape', 'in', [width, height]);
+    canvas.canvasEl.toBlob((blob) => {
+      pdf.addImage(
+        URL.createObjectURL(blob), 
+        'PNG', 
+        0, 0,
+        width, 
+        height);
 
-    let iframeD3 = d3.select('body')
-        .append('iframe')
-        .attr('class', `save-figure-iframe-${this.filename}`)
-        .style('border-width', '0')
-        .style('height', this.pageHeightPxBaseDpi)
-        .style('width', this.pageWidthPxBaseDpi)
-        .style('visibility', 'hidden');
+      pdf.save(this.filename);
+    }, 'image/png', 1.0);
+  }
 
-    let iframeEl = iframeD3.node();
-    
-    d3.select(iframeEl.contentWindow.document.head)
-        .append('link')
-        .attr('rel', 'stylesheet')
-        .attr('href', '/nshmp-haz-ws/apps/css/PrintFigure.css');
-        
-    iframeEl.contentWindow.document.title = this.filename;
-
-    d3.select(iframeEl.contentWindow.document.body)
-        .html(svgImg.outerHTML);
-    
-    $(iframeEl).ready(() => {
-      iframeEl.contentWindow.print();
-     
-      iframeEl.contentWindow.onafterprint = () => {
-        d3.select(iframeEl).remove();
-      };
-      
-    });
+  /**
+   * Save the figure as a PNG or JPEG
+   * @param {CanvasObject} canvas Canvas element and context
+   * @param {HTMLElement} aEl The HTML element of an anchor 
+   */
+  _saveAsPngJpeg(canvas, aEl) {
+    canvas.canvasEl.toBlob((blob) => {
+      aEl.href = URL.createObjectURL(blob);
+      aEl.click();
+    }, 'image/' + this.plotFormat, 1.0);
   }
 
   /**
@@ -846,14 +840,12 @@ export default class D3SaveFigure {
           /* JPEG or PNG format */
           case 'png':
           case 'jpeg':
-            canvas.canvasEl.toBlob((blob) => {
-              aEl.href = URL.createObjectURL(blob);
-              aEl.click();
-            }, 'image/' + this.plotFormat, 1.0);
+            this._saveAsPngJpeg(canvas, aEl);
             break;
           /* PDF format */
           case 'pdf':
-            this._saveAsPdf(svgImg)
+            this._saveAsPdf(canvas);
+            break;
         }
       } catch (err) {
         throw new NshmpError(err);

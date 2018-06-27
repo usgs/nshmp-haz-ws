@@ -331,6 +331,11 @@ export default class D3View {
   
     // Update SVG view box
     this.setSvgViewBox();
+
+    // TODO: Import jsPDF another way
+    d3.select('body')
+        .append('script')
+        .attr('src', 'https://unpkg.com/jspdf@latest/dist/jspdf.min.js');
   }
 
   /**
@@ -653,7 +658,7 @@ export default class D3View {
       { label: 'SVG', format: 'svg', type: 'preview' },
       { label: 'Save Figure As:', format: 'dropdown-header', type: 'plot' }, 
       { label: 'JPEG', format: 'jpeg', type: 'plot' }, 
-      { label: 'PDF/Print', format: 'pdf', type: 'plot' }, 
+      { label: 'PDF', format: 'pdf', type: 'plot' }, 
       { label: 'PNG', format: 'png', type: 'plot' },
       { label: 'SVG', format: 'svg', type: 'plot' },
       { label: 'Save Data As:', format: 'dropdown-header', type: 'data' },
