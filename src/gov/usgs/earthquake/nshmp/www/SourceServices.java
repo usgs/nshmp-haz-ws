@@ -24,7 +24,6 @@ import com.google.gson.JsonSerializer;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.www.meta.DoubleParameter;
-import gov.usgs.earthquake.nshmp.www.meta.Edition;
 import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
@@ -103,7 +102,6 @@ public class SourceServices extends HttpServlet {
   private static class SourceModel {
     int displayorder;
     int id;
-    String edition;
     Region region;
     String display;
     String path;
@@ -114,7 +112,6 @@ public class SourceServices extends HttpServlet {
     SourceModel(Model model) {
       this.display = model.name;
       this.displayorder = model.ordinal();
-      this.edition = Edition.valueOf("E" + model.year).name();
       this.id = model.ordinal();
       this.region = model.region;
       this.path = model.path;
@@ -298,7 +295,6 @@ public class SourceServices extends HttpServlet {
     VALUE,
     DISPLAY,
     DISPLAYORDER,
-    EDITION,
     YEAR,
     PATH,
     REGION,
@@ -357,7 +353,6 @@ public class SourceServices extends HttpServlet {
       json.addProperty(Attributes.DISPLAY.toLowerCase(), srcModel.display);
       json.addProperty(Attributes.DISPLAYORDER.toLowerCase(), srcModel.displayorder);
       json.addProperty(Attributes.YEAR.toLowerCase(), srcModel.year);
-      json.addProperty(Attributes.EDITION.toLowerCase(), srcModel.edition);
       json.addProperty(Attributes.PATH.toLowerCase(), srcModel.path);
       json.add(Attributes.REGION.toLowerCase(), regionToJson(srcModel.region));
       json.add(Attributes.SUPPORTS.toLowerCase(), context.serialize(srcModel.supports));
