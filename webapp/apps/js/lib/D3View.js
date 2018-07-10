@@ -3,6 +3,7 @@
 import D3SaveFigure from './D3SaveFigure.js';
 import D3SaveData from './D3SaveData.js';
 import D3SaveMetadata from './D3SaveMetadata.js';
+import NshmpError from './NshmpError.js';
 
 /**
 * @class D3View
@@ -330,6 +331,11 @@ export default class D3View {
   
     // Update SVG view box
     this.setSvgViewBox();
+
+    // TODO: Import jsPDF another way
+    d3.select('body')
+        .append('script')
+        .attr('src', 'https://unpkg.com/jspdf@latest/dist/jspdf.min.js');
   }
 
   /**
@@ -646,39 +652,48 @@ export default class D3View {
         .attr('aria-expanded', true);
     
     let saveMenu = [
-      { label: 'Save Figure As:', id: 'dropdown-header', class: 'plot' }, 
-      { label: 'JPEG', id: 'jpeg', class: 'plot' }, 
-      { label: 'PDF/Print', id: 'pdf', class: 'plot' }, 
-      { label: 'PNG', id: 'png', class: 'plot' },
-      { label: 'SVG', id: 'svg', class: 'plot' },
-      { label: 'Save Data As:', id: 'dropdown-header', class: 'data' },
-      { label: 'CSV', id: 'csv', class: 'data' },
-      { label: 'Save Metadata As:', id: 'dropdown-header', class: 'metadata' },
-      { label: 'PDF/Print', id: 'pdf', class: 'metadata' },
+      { label: 'Preview Figure as:', format: 'dropdown-header', type: 'preview' },
+      { label: 'JPEG', format: 'jpeg', type: 'preview' }, 
+      { label: 'PNG', format: 'png', type: 'preview' },
+      { label: 'SVG', format: 'svg', type: 'preview' },
+      { label: 'Save Figure As:', format: 'dropdown-header', type: 'plot' }, 
+      { label: 'JPEG', format: 'jpeg', type: 'plot' }, 
+      { label: 'PDF', format: 'pdf', type: 'plot' }, 
+      { label: 'PNG', format: 'png', type: 'plot' },
+      { label: 'SVG', format: 'svg', type: 'plot' },
+      { label: 'Save Data As:', format: 'dropdown-header', type: 'data' },
+      { label: 'CSV', format: 'csv', type: 'data' },
+      { label: 'Save Metadata As:', format: 'dropdown-header', type: 'metadata' },
+      { label: 'PDF/Print', format: 'pdf', type: 'metadata' },
     ];
 
     let saveListD3 = saveAsD3.append('ul')
         .attr('class', 'dropdown-menu dropdown-menu-right save-as-menu')
         .attr('aria-labelledby', 'save-as-menu')
         .style('min-width', 'auto');
-    saveListD3.selectAll('li')
+
+    let saveDataEnter = saveListD3.selectAll('li')
         .data(saveMenu)
         .enter()
-        .append('li')
-        .html((d,i) => {
-          if (d.id != 'dropdown-header') {
-            return '<a id=' + d.id + ' class=' + d.class + 
-                '>' +d.label + '</a>';
-          }
-          else return d.label;
+        .append('li');
+
+    saveDataEnter.filter((d) => { return d.format == 'dropdown-header'})
+        .text((d) => { return d.label; })
+        .attr('class', (d) => { return d.format; })
+        .style('cursor', 'initial');
+
+    saveDataEnter.filter((d) => { return d.format != 'dropdown-header'})
+        .html((d) => {
+          return `<a data-format=${d.format} data-type=${d.type}> ${d.label} </a>`; 
         })
-        .attr('class', (d,i) => {return d.id})
         .style('cursor', 'pointer');
     
     this.saveAsMenuEl = this.el.querySelector('.save-as-menu'); 
     
     this.onSaveMenuClick();
   }
+
+
   
   /**
   * @method hide
@@ -820,48 +835,82 @@ export default class D3View {
   }
   
   /**
-  * @method onSaveMenuClick
-  *
-  */
+   * Add event listener to the save menu
+   */
   onSaveMenuClick() {
     $(this.saveAsMenuEl).find('a').on('click', (event) => {
-      if ($(event.target).hasClass('data')) {
-        let saveBuilder = new D3SaveData.Builder()
-            .filename(this.upperPanel.plotFilename)
-            .fileFormat(event.target.id);
-
-        for (let panel of [this.upperPanel, this.lowerPanel]) {
-          if (!panel.options.showData) continue; 
-          saveBuilder.addData(panel.data)
-              .addDataRowLabels(panel.options.tooltipText)
-              .addDataSeriesLabels(panel.labels)
-        }
-        saveBuilder.build();
-      } else if ($(event.target).hasClass('metadata')) {
-        new D3SaveMetadata.Builder()
-            .filename('metadata')
-            .fileFormat(event.target.id)
-            .metadata(this.metadata)
-            .build();
-      } else {
-        this.saveFigure(
-            this.upperPanel, 
-            this._saveFigureOptions(this.upperPanel), 
-            event.target.id);
-           
-        if (this.options.plotLowerPanel &&
-              this.options.printLowerPanel){
-          this.saveFigure(
-              this.lowerPanel, 
-              this._saveFigureOptions(this.lowerPanel),
-              event.target.id);
-        }
-      }
+      let saveType = event.target.getAttribute('data-type');
+      let saveFormat = event.target.getAttribute('data-format');
+      this.onSaveMenuClickHandler(saveType, saveFormat);
     });
   }
 
   /**
+   * Handle the save menu click
+   * @param {String} saveType The save type: 'data' || 'plot' || 'preview'
+   * @param {String} saveFormat The save format: 'svg' || 'jpeg' ...
+   */
+  onSaveMenuClickHandler(saveType, saveFormat) {
+    switch (saveType) {
+      case 'data':
+        this.saveMenuDataHandler(saveFormat);
+        break;
+      case 'plot':
+        this.saveMenuFigureHandler(saveFormat);
+        break;
+      case 'preview':
+        this.saveMenuFigureHandler(saveFormat, true /* preview figure */);
+        break;
+      default:
+        throw new NshmpError(`IllegalStateException: 
+            Type [${saveType}] with format [${saveFormat}] not supported`);
+    }
+  }
+
+  /**
+   * Save the data
+   * @param {String} saveFormat The save format for the data: 'csv'
+   */
+  saveMenuDataHandler(saveFormat) {
+    let saveBuilder = new D3SaveData.Builder()
+        .filename(this.upperPanel.plotFilename)
+        .fileFormat(saveFormat);
+
+    for (let panel of [this.upperPanel, this.lowerPanel]) {
+      if (!panel.options.showData) continue; 
+      saveBuilder.addData(panel.data)
+          .addDataRowLabels(panel.options.tooltipText)
+          .addDataSeriesLabels(panel.labels);
+    }
+
+    saveBuilder.build();
+  }
+
+  /**
    * 
+   * @param {String} saveFormat The save format: 
+   *    'jpeg' || 'png' || 'svg' || 'pdf'
+   * @param {Boolean} previewFigure Whether to preview the figure 
+   *    instead of saving the figure
+   */
+  saveMenuFigureHandler(saveFormat, previewFigure) {
+    if (this.options.plotLowerPanel && this.options.printLowerPanel) {
+      this.saveFigure(
+          this.lowerPanel, 
+          this._saveFigureOptions(this.lowerPanel),
+          saveFormat,
+          previewFigure);
+    }
+    
+    this.saveFigure(
+        this.upperPanel, 
+        this._saveFigureOptions(this.upperPanel), 
+        saveFormat,
+        previewFigure);
+  }
+
+  /**
+   * The save options 
    * @param {PlotPanel} panel The plot panel
    * @return {D3SaveFigureOptions} The save options
    */

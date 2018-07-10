@@ -1205,13 +1205,20 @@ export default class D3LinePlot extends D3View {
     
     return this;
   }
- 
-  saveFigure(panel, saveOptions, plotFormat) {
+
+  /**
+   * Save the figure
+   * @param {PlotPanel} panel Plot panel to save
+   * @param {D3SaveFigureOptions} saveOptions The save options 
+   * @param {String} plotFormat The plot format to save
+   * @param {Boolean} previewFigure Whether to preview figure 
+   */
+  saveFigure(panel, saveOptions, plotFormat, previewFigure) {
     let svgCloneD3 = d3.select(panel.svgEl.cloneNode(true));
     /* Remove legend drag symbol if there */
     svgCloneD3.select('.drag').remove();
     
-    D3SaveFigure.builder()
+    let builder = D3SaveFigure.builder()
         .centerSvgOnEl(panel.xAxisEl)
         .centerTitleOnEl(panel.xAxisEl)
         .currentSvgHeight(panel.svgHeight)
@@ -1221,8 +1228,10 @@ export default class D3LinePlot extends D3View {
         .metadata(this.metadata) 
         .plotFormat(plotFormat)
         .plotTitle(this.plotTitleEl.textContent)
-        .svgEl(svgCloneD3.node())
-        .build();
+        .svgEl(svgCloneD3.node());
+
+      if (previewFigure) builder.previewFigure();
+      builder.build();
   }
 
   /**

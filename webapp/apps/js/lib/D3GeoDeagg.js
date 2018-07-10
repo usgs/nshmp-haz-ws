@@ -779,10 +779,17 @@ export default class D3GeoDeagg extends D3View {
         .attr('stroke-width', this.options.mapBorderStrokeWidth); 
   }
 
-  saveFigure(panel, saveOptions, plotFormat) {
+   /**
+   * Save the figure
+   * @param {PlotPanel} panel Plot panel to save
+   * @param {D3SaveFigureOptions} saveOptions The save options 
+   * @param {String} plotFormat The plot format to save
+   * @param {Boolean} previewFigure Whether to preview figure 
+   */
+  saveFigure(panel, saveOptions, plotFormat, previewFigure) {
     let svgCloneD3 = d3.select(panel.svgEl.cloneNode(true));
     
-    D3SaveFigure.builder()
+    let builder = D3SaveFigure.builder()
         .currentSvgHeight(panel.svgHeight)
         .currentSvgWidth(panel.svgWidth)
         .filename(panel.plotFilename)
@@ -790,8 +797,10 @@ export default class D3GeoDeagg extends D3View {
         .metadata(this.metadata) 
         .plotFormat(plotFormat)
         .plotTitle(this.plotTitleEl.textContent)
-        .svgEl(svgCloneD3.node())
-        .build();
+        .svgEl(svgCloneD3.node());
+
+      if(previewFigure) builder.previewFigure();
+      builder.build();
   }
 
   /**
