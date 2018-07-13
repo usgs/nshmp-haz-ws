@@ -1,5 +1,6 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
+@SuppressWarnings("javadoc")
 public enum ParamType {
   INTEGER,
   NUMBER,

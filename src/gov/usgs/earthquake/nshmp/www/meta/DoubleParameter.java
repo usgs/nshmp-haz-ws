@@ -1,6 +1,6 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({ "javadoc", "unused" })
 public final class DoubleParameter {
 
   private final String label;
