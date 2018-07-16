@@ -1,6 +1,8 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.FluentIterable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,8 +11,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
@@ -18,31 +20,16 @@ import gov.usgs.earthquake.nshmp.gmm.Imt;
 @SuppressWarnings("javadoc")
 public final class Util {
 
-  static <E extends Enum<E>> List<String> enumToString(Set<E> values,
-      Function<E, String> function) {
-    return FluentIterable.from(values).transform(function::apply).toList();
+  public static <E extends Enum<E>> List<String> enumsToNameList(
+      Collection<E> values) {
+    return enumsToStringList(values, Enum::name);
   }
 
-  static final Function<Region, String> REGION_TO_STR = new Function<Region, String>() {
-    @Override
-    public String apply(Region region) {
-      return region.name();
-    }
-  };
-
-  static final Function<Imt, String> IMT_TO_STR = new Function<Imt, String>() {
-    @Override
-    public String apply(Imt imt) {
-      return imt.name();
-    }
-  };
-
-  static final Function<Vs30, String> VS_TO_STR = new Function<Vs30, String>() {
-    @Override
-    public String apply(Vs30 vs30) {
-      return vs30.name().substring(3);
-    }
-  };
+  public static <E extends Enum<E>> List<String> enumsToStringList(
+      Collection<E> values,
+      Function<E, String> function) {
+    return values.stream().map(function).collect(Collectors.toList());
+  }
 
   public static final class EnumSerializer<E extends Enum<E>> implements JsonSerializer<E> {
 

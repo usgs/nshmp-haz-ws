@@ -15,7 +15,7 @@ class RegionConstraints implements Constraints {
   RegionConstraints(Set<Imt> imts, Set<Vs30> vs30s) {
     // converting to Strings here, otherwise EnumSerializer will be used
     // and we want a compact list of (possible modified) enum.name()s
-    this.imt = Util.enumToString(imts, Util.IMT_TO_STR);
-    this.vs30 = Util.enumToString(vs30s, Util.VS_TO_STR);
+    this.imt = Util.enumsToNameList(imts);
+    this.vs30 = Util.enumsToStringList(vs30s, vs30 -> vs30.name().substring(3));
   }
 }
