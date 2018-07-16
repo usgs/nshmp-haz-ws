@@ -7,10 +7,15 @@
  *      models/
  *         ak/
  *            2007/
- *         cous/
+ *         wus/
  *            2008/
  *            2014/
- 
+ *            2018/
+ *         ceus/
+ *            2008/
+ *            2014/
+ *            2018/
+ *
  * ...with each 'year' directory being an alias to the corresponding
  * git repository. One also must set Properties > Deployment Assembly
  * to include the nshmp-haz project and the 'webapp' directory. Other
@@ -46,28 +51,50 @@ ext {
     return cmd.execute().text.replace('\n', '') ?: 'unknown'
   }
   propsPath = '/classes/java/main/service.properties'
+  
+  /* Multi-model repository paths for version tracking */
+  repo_cous_2008 = '../nshm-cous-2008'
+  repo_cous_2014 = '../nshm-cous-2014'
+  repo_cous_2018 = '../nshm-cous-2018'
+  
+  /* Explicit model paths */
+  model_wus_2008 = '../nshm-cous-2008/Western US'
+  model_ceus_2008 = '../nshm-cous-2008/Central & Eastern US'
+  model_wus_2014 = '../nshm-cous-2014/Western US'
+  model_ceus_2014 = '../nshm-cous-2014/Central & Eastern US'
+  model_wus_2018 = '../nshm-cous-2018/Western US'
+  model_ceus_2018 = '../nshm-cous-2018/Central & Eastern US'
   model_ak_2007 = '../nshm-ak-2007'
-  model_cous_2008 = '../nshm-cous-2008'
-  model_cous_2014 = '../nshm-cous-2014'
+  
 }
 
 war {
   webAppDirName = 'webapp'
+  
+  /* 
+   * Exclude existing models directory with symlinks
+   * to support Eclipse deployments.
+   */
   exclude 'models'
   
   from(model_ak_2007) { into 'models/ak/2007' }
-  from(model_cous_2008) { into 'models/cous/2008' }
-  from(model_cous_2014) { into 'models/cous/2014' }
+  from(model_ceus_2008) { into 'models/ceus/2008' }
+  from(model_ceus_2014) { into 'models/ceus/2014' }
+  from(model_ceus_2018) { into 'models/ceus/2018' }
+  from(model_wus_2008) { into 'models/wus/2008' }
+  from(model_wus_2014) { into 'models/wus/2014' }
+  from(model_wus_2018) { into 'models/wus/2018' }
   
   doFirst {
-    /* record service and model versions */
+    /* Record service and model versions */
     def props = new Properties()
     def propsFile = new File(project.buildDir.toString() + propsPath)
     propsFile.createNewFile()
     props.setProperty('app.version', getGitTag('.'))
     props.setProperty('E2007.version', getGitTag(model_ak_2007))
-    props.setProperty('E2008.version', getGitTag(model_cous_2008))
-    props.setProperty('E2014.version', getGitTag(model_cous_2014))
+    props.setProperty('E2008.version', getGitTag(repo_cous_2008))
+    props.setProperty('E2014.version', getGitTag(repo_cous_2014))
+    props.setProperty('E2018.version', getGitTag(repo_cous_2018))
     props.store(propsFile.newWriter(), null)
   }
 }

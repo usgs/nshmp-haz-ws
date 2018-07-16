@@ -2,6 +2,7 @@ package gov.usgs.earthquake.nshmp.www.meta;
 
 import java.util.Set;
 
+@SuppressWarnings({ "javadoc", "unused" })
 public final class EnumParameter<E extends Enum<E>> {
 
   private final String label;

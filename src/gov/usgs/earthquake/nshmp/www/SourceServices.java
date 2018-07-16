@@ -1,12 +1,15 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import static gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,34 +27,29 @@ import com.google.gson.JsonSerializer;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.www.meta.DoubleParameter;
-import gov.usgs.earthquake.nshmp.www.meta.Edition;
 import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 import gov.usgs.earthquake.nshmp.www.meta.Util;
 
-import static gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData;
-
 /**
- * Web services for sources. Current source services: <ul> <li>
- * nshmp-haz-ws/source/model </li> </ul>
- * 
- * <p> Model service: The source model service obtains its model information
- * from {@link Model}. </p>
+ * Entry point for services related to source models. Current services:
+ * <ul><li>nshmp-haz-ws/source/</li></ul>
  * 
  * @author Brandon Clayton
+ * @author Peter Powers
  */
 @WebServlet(
-    name = "Source Model Services",
-    description = "Utilities for working with source models",
+    name = "Source Services",
+    description = "Utilities for querying earthquake source models",
     urlPatterns = {
         "/source",
         "/source/*" })
+@SuppressWarnings("unused")
 public class SourceServices extends HttpServlet {
   private static final long serialVersionUID = 1L;
   static final Gson GSON;
-  static Set<Imt> HAZARD_IMTS;
 
   static {
     GSON = new GsonBuilder()
@@ -64,14 +62,8 @@ public class SourceServices extends HttpServlet {
         .setPrettyPrinting()
         .create();
 
-    HAZARD_IMTS = SourceModel
-        .getModelContraints(Region.WUS, Edition.E2014).imtListToSet();
   }
 
-  /**
-   * Handle the GET request and return a JSON response for
-   * {@code SourceServices}.
-   */
   @Override
   protected void doGet(
       HttpServletRequest request,
@@ -79,13 +71,15 @@ public class SourceServices extends HttpServlet {
       throws ServletException, IOException {
 
     PrintWriter writer = response.getWriter();
-    String query = request.getQueryString();
-    String pathInfo = request.getPathInfo();
-    String host = request.getServerName();
+
+    // for future use...
+    // String query = request.getQueryString();
+    // String pathInfo = request.getPathInfo();
+    // String host = request.getServerName();
 
     ResponseData svcResponse = null;
     try {
-      svcResponse = sourceModelResult();
+      svcResponse = new ResponseData();
       String jsonString = GSON.toJson(svcResponse);
       writer.print(jsonString);
     } catch (Exception e) {
@@ -93,17 +87,81 @@ public class SourceServices extends HttpServlet {
     }
   }
 
-  /**
-   * Container structure for each {@code Model} with properties: <ul> <li>
-   * display: String </li> <li> displayorder: int </li> <li> id: int </li> <li>
-   * path: String </li> <li> region: Region </li> <li> value: String </li> <li>
-   * year: String </li> </ul>
-   * 
-   */
+  private static class ResponseData {
+    String name;
+    String status;
+    Object server;
+    Parameters parameters;
+
+    ResponseData() {
+      this.status = Status.USAGE.toString();
+      this.name = "Source Models";
+      this.server = serverData(ServletUtil.THREAD_COUNT, ServletUtil.timer());
+      this.parameters = new Parameters();
+    }
+  }
+
+  private static class Parameters {
+    SourceModelsParameter models;
+    DoubleParameter returnPeriod;
+    EnumParameter<Imt> imt;
+    EnumParameter<Vs30> vs30;
+
+    Parameters() {
+      this.models = new SourceModelsParameter(
+          "Source models",
+          ParamType.STRING,
+          Stream.of(Model.values())
+              .map(SourceModel::new)
+              .collect(Collectors.toList()));
+
+      this.returnPeriod = new DoubleParameter(
+          "Return period (in years)",
+          ParamType.NUMBER,
+          100.0,
+          1e6);
+
+      this.imt = new EnumParameter<>(
+          "Intensity measure type",
+          ParamType.STRING,
+          modelUnionImts());
+
+      this.vs30 = new EnumParameter<>(
+          "Site soil (Vs30)",
+          ParamType.STRING,
+          modelUnionVs30s());
+    }
+  }
+
+  private static class SourceModelsParameter {
+    private final String label;
+    private final ParamType type;
+    private final List<SourceModel> values;
+
+    SourceModelsParameter(String label, ParamType type, List<SourceModel> values) {
+      this.label = label;
+      this.type = type;
+      this.values = values;
+    }
+  }
+
+  /* Union of IMTs across all models. */
+  static Set<Imt> modelUnionImts() {
+    return EnumSet.copyOf(Stream.of(Model.values())
+        .flatMap(model -> model.imts.stream())
+        .collect(Collectors.toSet()));
+  }
+
+  /* Union of Vs30s across all models. */
+  static Set<Vs30> modelUnionVs30s() {
+    return EnumSet.copyOf(Stream.of(Model.values())
+        .flatMap(model -> model.vs30s.stream())
+        .collect(Collectors.toSet()));
+  }
+
   private static class SourceModel {
     int displayorder;
     int id;
-    String edition;
     Region region;
     String display;
     String path;
@@ -114,181 +172,26 @@ public class SourceServices extends HttpServlet {
     SourceModel(Model model) {
       this.display = model.name;
       this.displayorder = model.ordinal();
-      this.edition = Edition.valueOf("E" + model.year).name();
       this.id = model.ordinal();
       this.region = model.region;
       this.path = model.path;
-      this.supports = getModelContraints(model.region, Edition.valueOf("E" + model.year));
+      this.supports = new ModelConstraints(model);
       this.value = model.toString();
       this.year = model.year;
     }
+  }
 
-    /**
-     * Return common {@code ModelConstraints} associated with {@code Region} and
-     * {@code Edition}.
-     */
-    static ModelConstraints getModelContraints(Region region, Edition edition) {
-      JsonElement regionContraintsEl = GSON.toJsonTree(region.constraints());
-      ModelConstraints regionConstraints = GSON.fromJson(
-          regionContraintsEl,
-          ModelConstraints.class);
+  private static class ModelConstraints {
 
-      JsonElement editionConstraintsEl = GSON.toJsonTree(edition.constraints());
-      ModelConstraints editionConstraints = GSON.fromJson(
-          editionConstraintsEl,
-          ModelConstraints.class);
+    final List<String> imt;
+    final List<String> vs30;
 
-      /* Get common IMTs */
-      editionConstraints.imt.retainAll(regionConstraints.imt);
-      /* Get common vs30s */
-      editionConstraints.vs30.retainAll(regionConstraints.vs30);
-
-      return editionConstraints;
-    }
-
-    /**
-     * Container for constraints associated with {@code Region}.
-     */
-    static class ModelConstraints {
-      List<String> imt;
-      List<String> vs30;
-
-      /** Convert {@code List<String>} of {@code Imt}s to {@code Set<Imt>} */
-      Set<Imt> imtListToSet() {
-        Set<Imt> imt = new HashSet<>();
-
-        for (String imtStr : this.imt) {
-          imt.add(Imt.valueOf(imtStr));
-        }
-
-        return imt;
-      }
-
-      /** Convert {@code List<String>} of {@code Vs30}s to {@code Set<Vs30>} */
-      Set<Vs30> vs30ListToSet() {
-        Set<Vs30> vs30 = new HashSet<>();
-
-        for (String vs30Str : this.vs30) {
-          vs30.add(Vs30.fromValue(Double.parseDouble(vs30Str)));
-        }
-
-        return vs30;
-      }
+    ModelConstraints(Model model) {
+      this.imt = Util.enumsToNameList(model.imts);
+      this.vs30 = Util.enumsToNameList(model.vs30s);
     }
   }
 
-  /**
-   * Container structure for {@code SourceModel}s to match {@link EnumParameter}
-   */
-  private static class SourceModelParameter {
-    private final String label;
-    private final ParamType type;
-    private final Set<SourceModel> values;
-
-    SourceModelParameter(String label, ParamType type, Set<SourceModel> values) {
-      this.label = label;
-      this.type = type;
-      this.values = values;
-    }
-  }
-
-  /**
-   * Container structure for the {@ResponseData} parameters which include: <ul>
-   * <li> source models </li> <li> IMTs </li> <li> Return period </li> <li>
-   * Vs30s </li> </ul>
-   */
-  private static class Parameters {
-    SourceModelParameter models;
-    EnumParameter<Imt> imt;
-    DoubleParameter returnPeriod;
-    EnumParameter<Vs30> vs30;
-
-    Parameters(Set<SourceModel> models) {
-      this.models = new SourceModelParameter(
-          "Source models",
-          ParamType.STRING,
-          models);
-
-      this.imt = new EnumParameter<>(
-          "Intensity measure type",
-          ParamType.STRING,
-          HAZARD_IMTS);
-
-      this.returnPeriod = new DoubleParameter(
-          "Return period (in years)",
-          ParamType.NUMBER,
-          100.0,
-          1e6);
-
-      this.vs30 = new EnumParameter<>(
-          "Site soil (Vs30)",
-          ParamType.STRING,
-          EnumSet.allOf(Vs30.class));
-    }
-  }
-
-  /**
-   * Container structure for JSON response. Example:
-   * 
-   * <pre>
-   * 	{
-   * 		name: "Source models",
-   * 		status: "usage",
-   * 		server: {},
-   * 		parameters: {
-   * 			models: [
-   * 				{
-   * 					id: 4,
-   * 					value: "WUS_2014",
-   * 					display: "2014 NSHM Western US Hazard Model",
-   * 					displayorder: 4,
-   * 					year: "2014",
-   * 					region : {},
-   * 					imt: [],
-   * 					vs30: []
-   * 				}
-   * 			],
-   * 			imt: {},
-   * 			vs30: {}
-   * 	}
-   * </pre>
-   */
-  private static class ResponseData {
-    String name;
-    String status;
-    Object server;
-    Parameters parameters;
-
-    ResponseData(Parameters parameters) {
-      this.status = Status.USAGE.toString();
-      this.name = "Source Models";
-      this.parameters = parameters;
-      this.server = serverData(ServletUtil.THREAD_COUNT, ServletUtil.timer());
-    }
-  }
-
-  /**
-   * Returns new {@code ResponseData} instance with all models available in
-   * {@link Model}.
-   * 
-   * <p> Each {@code Model} is wrapped in the {@link SourceModel} container.
-   * </p>
-   */
-  private static ResponseData sourceModelResult() {
-    Set<SourceModel> models = new HashSet<>();
-
-    for (Model model : Model.values()) {
-      models.add(new SourceModel(model));
-    }
-
-    Parameters parameters = new Parameters(models);
-
-    return new ResponseData(parameters);
-  }
-
-  /**
-   * Enum source attributes for serialization
-   */
   enum Attributes {
     /* Source model service */
     MODEL,
@@ -298,7 +201,6 @@ public class SourceServices extends HttpServlet {
     VALUE,
     DISPLAY,
     DISPLAYORDER,
-    EDITION,
     YEAR,
     PATH,
     REGION,
@@ -325,21 +227,6 @@ public class SourceServices extends HttpServlet {
     }
   }
 
-  /**
-   * {@code Gson} {@code SourceModel} serializer for response. Example:
-   * 
-   * <pre>
-   * 	
-   * 	id: 4,
-   * 	value: "WUS_2014",
-   * 	display: "2014 NSHM Western US Hazard Model",
-   * 	displayorder: 4,
-   * 	year: "2014",
-   * 	region : {},
-   * 	imt: [],
-   * 	vs30: []
-   * </pre>
-   */
   private static final class SourceModelSerializer
       implements
       JsonSerializer<SourceModel> {
@@ -357,7 +244,6 @@ public class SourceServices extends HttpServlet {
       json.addProperty(Attributes.DISPLAY.toLowerCase(), srcModel.display);
       json.addProperty(Attributes.DISPLAYORDER.toLowerCase(), srcModel.displayorder);
       json.addProperty(Attributes.YEAR.toLowerCase(), srcModel.year);
-      json.addProperty(Attributes.EDITION.toLowerCase(), srcModel.edition);
       json.addProperty(Attributes.PATH.toLowerCase(), srcModel.path);
       json.add(Attributes.REGION.toLowerCase(), regionToJson(srcModel.region));
       json.add(Attributes.SUPPORTS.toLowerCase(), context.serialize(srcModel.supports));
@@ -366,12 +252,9 @@ public class SourceServices extends HttpServlet {
     }
   }
 
-  /**
-   * Return {@code JsonElement} to serialize {@code Region}.
-   * 
-   * <p> This is a simple {@code Region} serializer from
-   * {@link Util.EnumSerializer}. </p>
-   */
+  // TODO align with enum serializer if possible; consider service attribute
+  // enum
+  // TODO test removal of ui-min/max-lon/lat
   private static JsonElement regionToJson(Region region) {
     JsonObject json = new JsonObject();
 
