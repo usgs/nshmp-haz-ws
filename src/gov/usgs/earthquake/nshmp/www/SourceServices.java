@@ -188,7 +188,9 @@ public class SourceServices extends HttpServlet {
 
     ModelConstraints(Model model) {
       this.imt = Util.enumsToNameList(model.imts);
-      this.vs30 = Util.enumsToNameList(model.vs30s);
+      this.vs30 = Util.enumsToStringList(
+          model.vs30s,
+          vs30 -> vs30.name().substring(3));
     }
   }
 
