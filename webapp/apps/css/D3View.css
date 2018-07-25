@@ -29,7 +29,7 @@
   padding: 0;
 }
 
-.D3View .panel-lower {
+.D3View .panel-outer > .panel-body + .panel-body {
   border-top: 1px solid #ddd;
   position: relative;
 }
@@ -42,7 +42,7 @@
 }
 
 .D3View .footer-btn-toolbar {
-  margin: 0 1.25em;
+  margin: 0 1.25em 0 0;
 }
 
 .D3View .footer-btn-group {
