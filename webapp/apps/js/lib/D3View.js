@@ -2,7 +2,6 @@
 
 import D3SaveFigure from './D3SaveFigure.js';
 import D3SaveData from './D3SaveData.js';
-import D3SaveMetadata from './D3SaveMetadata.js';
 import NshmpError from './NshmpError.js';
 
 /**
@@ -663,8 +662,6 @@ export default class D3View {
       { label: 'SVG', format: 'svg', type: 'plot' },
       { label: 'Save Data As:', format: 'dropdown-header', type: 'data' },
       { label: 'CSV', format: 'csv', type: 'data' },
-      { label: 'Save Metadata As:', format: 'dropdown-header', type: 'metadata' },
-      { label: 'PDF/Print', format: 'pdf', type: 'metadata' },
     ];
 
     let saveListD3 = saveAsD3.append('ul')
