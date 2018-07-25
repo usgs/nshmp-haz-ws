@@ -57,11 +57,11 @@ public class SourceServices extends HttpServlet {
         .registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
         .registerTypeAdapter(SourceModel.class, new SourceModelSerializer())
         .registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
+        .registerTypeAdapter(Region.class, new RegionSerializer())
         .disableHtmlEscaping()
         .serializeNulls()
         .setPrettyPrinting()
         .create();
-
   }
 
   @Override
@@ -103,30 +103,36 @@ public class SourceServices extends HttpServlet {
 
   private static class Parameters {
     SourceModelsParameter models;
+    EnumParameter<Region> region;
     DoubleParameter returnPeriod;
     EnumParameter<Imt> imt;
     EnumParameter<Vs30> vs30;
 
     Parameters() {
-      this.models = new SourceModelsParameter(
+      models = new SourceModelsParameter(
           "Source models",
           ParamType.STRING,
           Stream.of(Model.values())
               .map(SourceModel::new)
               .collect(Collectors.toList()));
 
-      this.returnPeriod = new DoubleParameter(
+      region = new EnumParameter<>(
+          "Region",
+          ParamType.STRING,
+          EnumSet.allOf(Region.class));
+      
+      returnPeriod = new DoubleParameter(
           "Return period (in years)",
           ParamType.NUMBER,
           100.0,
           1e6);
 
-      this.imt = new EnumParameter<>(
+      imt = new EnumParameter<>(
           "Intensity measure type",
           ParamType.STRING,
           modelUnionImts());
 
-      this.vs30 = new EnumParameter<>(
+      vs30 = new EnumParameter<>(
           "Site soil (Vs30)",
           ParamType.STRING,
           modelUnionVs30s());
@@ -162,7 +168,7 @@ public class SourceServices extends HttpServlet {
   private static class SourceModel {
     int displayorder;
     int id;
-    Region region;
+    String region;
     String display;
     String path;
     String value;
@@ -173,7 +179,7 @@ public class SourceServices extends HttpServlet {
       this.display = model.name;
       this.displayorder = model.ordinal();
       this.id = model.ordinal();
-      this.region = model.region;
+      this.region = model.region.name();
       this.path = model.path;
       this.supports = new ModelConstraints(model);
       this.value = model.toString();
@@ -212,11 +218,7 @@ public class SourceServices extends HttpServlet {
     MINLATITUDE,
     MINLONGITUDE,
     MAXLATITUDE,
-    MAXLONGITUDE,
-    UIMINLATITUDE,
-    UIMINLONGITUDE,
-    UIMAXLATITUDE,
-    UIMAXLONGITUDE;
+    MAXLONGITUDE;
 
     /** Return upper case string */
     String toUpperCase() {
@@ -247,33 +249,32 @@ public class SourceServices extends HttpServlet {
       json.addProperty(Attributes.DISPLAYORDER.toLowerCase(), srcModel.displayorder);
       json.addProperty(Attributes.YEAR.toLowerCase(), srcModel.year);
       json.addProperty(Attributes.PATH.toLowerCase(), srcModel.path);
-      json.add(Attributes.REGION.toLowerCase(), regionToJson(srcModel.region));
+      json.addProperty(Attributes.REGION.toLowerCase(), srcModel.region);
       json.add(Attributes.SUPPORTS.toLowerCase(), context.serialize(srcModel.supports));
 
       return json;
     }
   }
-
+  
   // TODO align with enum serializer if possible; consider service attribute
   // enum
   // TODO test removal of ui-min/max-lon/lat
-  private static JsonElement regionToJson(Region region) {
-    JsonObject json = new JsonObject();
+  private static final class RegionSerializer implements JsonSerializer<Region> {
 
-    json.addProperty(Attributes.VALUE.toLowerCase(), region.name());
-    json.addProperty(Attributes.DISPLAY.toLowerCase(), region.toString());
+    @Override
+    public JsonElement serialize(Region region, Type typeOfSrc, JsonSerializationContext context) {
+      JsonObject json = new JsonObject();
 
-    json.addProperty(Attributes.MINLATITUDE.toLowerCase(), region.minlatitude);
-    json.addProperty(Attributes.MAXLATITUDE.toLowerCase(), region.maxlatitude);
-    json.addProperty(Attributes.MINLONGITUDE.toLowerCase(), region.minlongitude);
-    json.addProperty(Attributes.MAXLONGITUDE.toLowerCase(), region.maxlongitude);
+      json.addProperty(Attributes.VALUE.toLowerCase(), region.name());
+      json.addProperty(Attributes.DISPLAY.toLowerCase(), region.toString());
 
-    json.addProperty(Attributes.UIMINLATITUDE.toLowerCase(), region.uiminlatitude);
-    json.addProperty(Attributes.UIMAXLATITUDE.toLowerCase(), region.uimaxlatitude);
-    json.addProperty(Attributes.UIMINLONGITUDE.toLowerCase(), region.uiminlongitude);
-    json.addProperty(Attributes.UIMAXLONGITUDE.toLowerCase(), region.uimaxlongitude);
+      json.addProperty(Attributes.MINLATITUDE.toLowerCase(), region.minlatitude);
+      json.addProperty(Attributes.MAXLATITUDE.toLowerCase(), region.maxlatitude);
+      json.addProperty(Attributes.MINLONGITUDE.toLowerCase(), region.minlongitude);
+      json.addProperty(Attributes.MAXLONGITUDE.toLowerCase(), region.maxlongitude);
 
-    return json;
+      return json;
+    }
   }
 
 }
