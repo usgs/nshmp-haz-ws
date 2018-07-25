@@ -36,11 +36,13 @@ export default class Config {
 
       let config = $.extend({}, mainConfig, overrideConfig);
       new callback(config);
-    }).catch(() => {
+    }).catch((errorMessage) => {
+      if (errorMessage != 'Could not reach: /nshmp-haz-ws/config.json') return;
       console.clear();
       jsonCall.promises[0].then((config) => {
         new callback(config);
       }).catch((errorMessage) => {
+        if (errorMessage != 'Could not reach: /nshmp-haz-ws/apps/config.json') return;
         NshmpError.throwError(errorMessage);
       });
     });
