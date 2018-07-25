@@ -124,7 +124,7 @@ export default class DynamicCompare extends Hazard {
           this.parameters.models,
           this.firstModelEl.value);
       
-      this.testSitePicker.plotMap(model.region.value);
+      this.testSitePicker.plotMap(model.region);
     });
 
     /** X-axis domain for spectra plots - @type {Array<Number} */
@@ -141,7 +141,10 @@ export default class DynamicCompare extends Hazard {
     let model = Tools.stringToParameter(
         this.parameters.models,
         this.firstModelEl.value);
-    let region = model.region;
+
+    let region = this.parameters.region.values.find((region) => {
+      return region.value == model.region;
+    });
 
     Constraints.addTooltip(
         this.latEl,
@@ -458,8 +461,8 @@ export default class DynamicCompare extends Hazard {
       let edition = response.metadata.edition.value;
       let region = response.metadata.region.value;
       let model = this.parameters.models.values.find((model) => {
-        return model.edition == edition && 
-            model.region.value == region;
+        return `E${model.year}` == edition && 
+            model.region == region;
       });
 
       seriesData.push(d3.zip(xValues, yValues));
@@ -475,7 +478,7 @@ export default class DynamicCompare extends Hazard {
         this.parameters.models,
         this.firstModelEl.value);
     
-    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region.value);
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
 
     let selectedFirstModel = $(':selected', this.firstModelEl).val();
     let selectedSecondModel = $(':selected', this.secondModelEl).val();
@@ -633,9 +636,10 @@ export default class DynamicCompare extends Hazard {
       let edition = result.response[0].metadata.edition.value;
       let region = result.response[0].metadata.region.value;
       let model = this.parameters.models.values.find((model) => {
-        return model.edition == edition && 
-            model.region.value == region;
+        return `E${model.year}` == edition && 
+            model.region == region;
       });
+
       seriesData.push(d3.zip(spectraX, spectraY));
       seriesLabels.push(model.display);
       seriesIds.push(model.value);
@@ -646,7 +650,7 @@ export default class DynamicCompare extends Hazard {
         this.firstModelEl.value);
     
     let vs30 = $(':selected', this.vs30El).text();
-    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region.value);
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
     
     let title = 'Response Spectrum at ' + 
         this.returnPeriodEl.value + ' years, ' +
@@ -796,6 +800,7 @@ export default class DynamicCompare extends Hazard {
   */
   plotSetupHazard() {
     let plotOptions = {
+      colSizeDefault: 'min',
       plotLowerPanel: true,
       syncXAxis: true,
       syncYAxis: false,
@@ -826,7 +831,7 @@ export default class DynamicCompare extends Hazard {
         .withPlotHeader()
         .withPlotFooter();
   }
-  
+
   /**
   * @method plotSetupSpectra
   *
@@ -834,6 +839,7 @@ export default class DynamicCompare extends Hazard {
   */
   plotSetupSpectra() {
     let plotOptions = {
+      colSizeDefault: 'min',
       plotLowerPanel: true,
       syncXAxis: true,
       syncYAxis: false,
@@ -879,8 +885,8 @@ export default class DynamicCompare extends Hazard {
       let model = Tools.stringToParameter(
           this.parameters.models, 
           modelEl.value);
-      let edition = model.edition;
-      let region = model.region.value;
+      let edition = `E${model.year}`;
+      let region = model.region;
       urls.push(this.dynamicUrl + 
           '?edition=' + edition +
           '&region=' + region +
@@ -904,7 +910,7 @@ export default class DynamicCompare extends Hazard {
   setComparableModels() {
     this.comparableModels = this.parameters.models.values.filter((model) => {
       let regions = this.parameters.models.values.filter((modelCheck) => {
-        return model.region.value == modelCheck.region.value;
+        return model.region == modelCheck.region;
       });
       return regions.length > 1;
     });
@@ -965,7 +971,7 @@ export default class DynamicCompare extends Hazard {
         this.firstModelEl.value);
     
     let comparableModels = this.comparableModels.filter((model) => {
-      return selectedModel.region.value == model.region.value && 
+      return selectedModel.region == model.region && 
           selectedModel != model;
     });
     

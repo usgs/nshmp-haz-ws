@@ -10,4 +10,6 @@ webapp/models
 webapp/jsdocs
 Scratch*.java
 scratch*.html
+Scratch*.js
 webapp/config.json
+.vscode
