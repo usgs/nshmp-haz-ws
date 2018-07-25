@@ -46,6 +46,56 @@ export default class NshmpError extends Error {
   }
 
   /**
+   * Check whether an argument is a string.
+   * 
+   * @param {String} str The string to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentString(str, errorMessage = 'Must be a string') {
+    NshmpError.checkArgument(typeof str == 'string', errorMessage);
+  }
+
+  /**
+   * Check whether an argument is a number.
+   * 
+   * @param {Number} num The number to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentNumber(num, errorMessage = 'Must be a number') {
+    NshmpError.checkArgument(typeof num == 'number', errorMessage);
+  }
+
+  /**
+   * Check whether an argument is a boolean.
+   * 
+   * @param {Boolean} bool The boolean to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentBoolean(bool, errorMessage = 'Must be a boolean') {
+    NshmpError.checkArgument(typeof bool == 'boolean', errorMessage);
+  }
+
+  /**
+   * Check whether an argument is a object.
+   * 
+   * @param {Object} obj The object to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentObject(obj, errorMessage = 'Must be an object') {
+    NshmpError.checkArgument(typeof obj == 'object', errorMessage);
+  }
+
+  /**
+   * Check whether an argument is a integer.
+   * 
+   * @param {Number} int The number to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentInteger(int, errorMessage = 'Must be an integer') {
+    NshmpError.checkArgument(Number.isInteger(int), errorMessage);
+  }
+
+  /**
    * Ensures the truth of an expression 
    * @param {Boolean} expression Expression to check 
    * @param {String} errorMessage The exception message to use if the
