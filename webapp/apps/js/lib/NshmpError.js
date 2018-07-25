@@ -46,13 +46,23 @@ export default class NshmpError extends Error {
   }
 
   /**
-   * Check whether an argument is a string.
+   * Check whether an argument is a boolean.
    * 
-   * @param {String} str The string to test 
+   * @param {Boolean} bool The boolean to test 
    * @param {String=} errorMessage An optional error message to show
    */
-  static checkArgumentString(str, errorMessage = 'Must be a string') {
-    NshmpError.checkArgument(typeof str == 'string', errorMessage);
+  static checkArgumentBoolean(bool, errorMessage = 'Must be a boolean') {
+    NshmpError.checkArgument(typeof bool == 'boolean', errorMessage);
+  }
+
+  /**
+   * Check whether an argument is a integer.
+   * 
+   * @param {Number} int The number to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentInteger(int, errorMessage = 'Must be an integer') {
+    NshmpError.checkArgument(Number.isInteger(int), errorMessage);
   }
 
   /**
@@ -66,16 +76,6 @@ export default class NshmpError extends Error {
   }
 
   /**
-   * Check whether an argument is a boolean.
-   * 
-   * @param {Boolean} bool The boolean to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentBoolean(bool, errorMessage = 'Must be a boolean') {
-    NshmpError.checkArgument(typeof bool == 'boolean', errorMessage);
-  }
-
-  /**
    * Check whether an argument is a object.
    * 
    * @param {Object} obj The object to test 
@@ -86,13 +86,13 @@ export default class NshmpError extends Error {
   }
 
   /**
-   * Check whether an argument is a integer.
+   * Check whether an argument is a string.
    * 
-   * @param {Number} int The number to test 
+   * @param {String} str The string to test 
    * @param {String=} errorMessage An optional error message to show
    */
-  static checkArgumentInteger(int, errorMessage = 'Must be an integer') {
-    NshmpError.checkArgument(Number.isInteger(int), errorMessage);
+  static checkArgumentString(str, errorMessage = 'Must be a string') {
+    NshmpError.checkArgument(typeof str == 'string', errorMessage);
   }
 
   /**
