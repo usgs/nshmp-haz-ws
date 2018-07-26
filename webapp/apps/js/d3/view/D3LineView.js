@@ -2,6 +2,7 @@
 import D3BaseView from './D3BaseView.js';
 import D3LineSubView from './D3LineSubView.js';
 import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
+import D3LineViewBuilder from './D3LineViewBuilder.js';
 import D3LineViewOptions from '../options/D3LineViewOptions.js';
 import NshmpError from '../../lib/NshmpError.js';
 
@@ -10,8 +11,8 @@ import NshmpError from '../../lib/NshmpError.js';
  *    contain an upper and lower D3LineSubView for multiple SVG
  *    plots in a single D3LineView.
  * 
- * Must use D3LineView.Builder to create a D3LineView instance.
- * See Builder.
+ * Must use D3LineView.builder() to create a D3LineView instance.
+ * See D3LineViewBuilder.
  * 
  * @class D3LineView
  * @extends D3BaseView
@@ -21,9 +22,9 @@ export default class D3LineView extends D3BaseView {
 
   /**
    * @private
-   * Must use D3LineVIew.Builder to create new instance of D3LineView
+   * Must use D3LineView.builder() to create new instance of D3LineView
    * 
-   * @param {D3LineView.Builder} builder 
+   * @param {D3LineViewBuilder} builder The builder
    */
   constructor(builder) {
     super(builder);
@@ -41,50 +42,12 @@ export default class D3LineView extends D3BaseView {
 
   /**
    * @override
-   * Return a new D3LineView.Builder
+   * Return a new D3LineViewBuilder
    * 
-   * @returns {D3LineView.Builder} new Builder
+   * @returns {D3LineViewBuilder} new Builder
    */
   static builder() {
-    return new D3LineView.Builder();
-  }
-
-  /**
-   * @override
-   * Build a new D3LineView.
-   * See D3BaseView.Builder. 
-   */
-  static get Builder() {
-    return class D3ViewBuilder extends D3BaseView.Builder {
-
-      /** @private */
-      constructor() {
-        super();
-      }
-
-      /**
-       * Returns a new D3LineView instance
-       */
-      build() {
-        return new D3LineView(this);
-      }
-
-      /**
-       * @override
-       * @private
-       * Set the default line view options
-       */
-      _setDefaultViewOptions() {
-        /** @type {D3LineViewOptions} */
-        this._viewOptions = D3LineViewOptions.withDefaults();
-        /** @type {D3LineSubViewOptions} */
-        this._upperSubViewOptions = D3LineSubViewOptions.upperWithDefaults();
-        /** @type {D3LineSubViewOptions} */
-        this._lowerSubViewOptions = D3LineSubViewOptions.lowerWithDefaults();
-      }
-
-    }
-
+    return new D3LineViewBuilder();
   }
 
   /**
@@ -154,7 +117,6 @@ export default class D3LineView extends D3BaseView {
     };
     return els;
   }
-
 
   /**
    * @override

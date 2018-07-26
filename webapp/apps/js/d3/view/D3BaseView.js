@@ -1,6 +1,7 @@
 
 import D3BaseSubView from './D3BaseSubView.js';
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
+import D3BaseViewBuilder from './D3BaseViewBuilder.js';
 import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
 import NshmpError from '../../lib/NshmpError.js';
 
@@ -9,8 +10,8 @@ import NshmpError from '../../lib/NshmpError.js';
  *    can contain an upper and lower D3BaseSubView for multiple SVG
  *    plots in a single D3BaseView.
  * 
- * Must use D3BaseView.Builder to create a D3BaseView.
- * See Builder.
+ * Must use D3BaseView.builder() to create a D3BaseView.
+ * See D3BaseViewBuilder.
  * 
  * @class D3BaseView
  * @author Brandon Clayton
@@ -19,15 +20,14 @@ export default class D3BaseView {
 
   /**
    * @private 
-   * Must use D3BaseView.Builder to create new instance of D3BaseView.
+   * Must use D3BaseView.builder() to create new instance of D3BaseView.
    * 
-   * @param {D3BaseView.Builder} builder The D3BaseView.Builder 
+   * @param {D3BaseViewBuilder} builder The builder 
    */
   constructor(builder) {
     NshmpError.checkArgument(
-      builder.constructor.name == 'D3ViewBuilder',
-      'Must use Builder'
-    );
+        builder instanceof D3BaseViewBuilder,
+      'Must be an instance of D3BaseViewBuilder');
 
     /** @type {Boolean} Whether to add a footer in the view */
     this.addFooter = builder._addFooter;
@@ -85,6 +85,15 @@ export default class D3BaseView {
     this.viewFooter = this._createViewFooter();
 
     this._addEventListeners();
+  }
+
+  /**
+   * Return a new D3BaseViewBuilder
+   * 
+   * @return {D3BaseViewBuilder} new Builder
+   */
+  static builder() {
+    return new D3BaseViewBuilder();
   }
 
   /**
@@ -161,177 +170,6 @@ export default class D3BaseView {
       default:
         NshmpError.throwError(`View size [${viewSize}] not supported`);
     }
-  }
-
-  /**
-   * Return a new D3BaseView.Builder
-   * 
-   * @return {D3BaseView.Builder} new Builder
-   */
-  static builder() {
-    return new D3BaseView.Builder();
-  }
-
-  /**
-   * Build a D3BaseView.
-   * Must set the container element.
-   */
-  static get Builder() {
-    return class D3ViewBuilder {
-
-      /** @private */
-      constructor() {
-        this._setDefaultViewOptions();
-
-        this._defaultHeaderOptions = {
-          addGridLineToggle: true,
-          addLegendToggle: true,
-        };
-
-        this._defaultFooterOptions = {
-          addSaveMenu: true,
-        };
-
-        /** @type {HTMLElement} */
-        this._containerEl = undefined;
-        /** @type {Boolean} */
-        this._addHeader = false;
-        /** @type {Boolean} */
-        this._addFooter = false;
-        /** @type {Boolean} */
-        this._addLowerSubView = false;
-
-        this._headerOptions = undefined;
-        this._footerOptions = undefined;
-      }
-
-      /**
-       * Return a new D3BaseView 
-       */
-      build() {
-        NshmpError.checkState(
-            this._containerEl != undefined, 
-            'Container element not set');
-        return new D3BaseView(this);
-      }
-
-      /**
-       * Add a lower sub view; adds the ability to have an upper and lower 
-       *    plot in a single view.
-       * 
-       * Default D3BaseSubViewOptions are applied from
-       *    D3BaseSubViewOptions.lowerWithDefaults().
-       * 
-       * Use Builder.setLowerSubViewOptions to set custom settings.
-       */
-      addLowerSubView() {
-        this._addLowerSubView = true;
-        return this;
-      }
-
-      /**
-       * Add a footer to the view. Default footer consists of a:
-       *    - button group to switch between a plot, data, and 
-       *        metadata view
-       *    - save menu to save the data and figures
-       *  
-       * @param {Object} options The footer options. 
-       */
-      addViewFooter(options = {}) {
-        this._footerOptions = Object.assign(
-            {}, 
-            this._defaultFooterOptions, 
-            options);
-        this._addFooter = true;
-        return this;
-      }
-
-      /**
-       * Add a header to the view. Default header consists of a:
-       *    - title
-       *    - resize toggle to resize the view
-       * 
-       * Use D3BaseView.setTitle to set the title for the panel header
-       *    and plot title.
-       *  
-       * @param {Object} options The header options.
-       */
-      addViewHeader(options = {}) {
-        this._headerOptions = Object.assign(
-            {}, 
-            this._defaultHeaderOptions, 
-            options);
-        this._addHeader = true;
-        return this;
-      }
-
-      /**
-       * Set the container element, where the view will be appended to.
-       * 
-       * @param {HTMLElement} el The container element to put the view. 
-       */
-      setContainerEl(el) {
-        NshmpError.checkArgument(
-          el instanceof HTMLElement,
-          'containerEl must be a HTMLElement');
-        this._containerEl = el;
-        return this;
-      }
-
-      /**
-       * Set the lower sub view options.
-       * 
-       * @param {D3BaseSubViewOptions} options The lower sub view options. 
-       */
-      setLowerSubViewOptions(options) {
-        NshmpError.checkArgument(
-            options instanceof D3BaseSubViewOptions,
-            'Must be of type D3BaseSubViewOptions');
-        this._lowerSubViewOptions = options;
-        return this;
-      }
-
-      /**
-       * Set the upper sub view options.
-       * 
-       * @param {D3BaseSubViewOptions} options The upper sub view options.
-       */
-      setUpperSubViewOptions(options) {
-        NshmpError.checkArgument(
-            options instanceof D3BaseSubViewOptions,
-            'Must be of type D3BaseSubViewOptions');
-        this._upperSubViewOptions = options;
-        return this;
-      }
-
-      /**
-       * Set the view options.
-       * 
-       * @param {D3BaseViewOptions} options The view options.
-       */
-      setViewOptions(options) {
-        NshmpError.checkArgument(
-            options instanceof D3BaseViewOptions,
-            'Must be of type D3BaseViewOptions');
-        this._viewOptions = options;
-        return this;
-      }
-
-      /**
-       * @private
-       * Set the default view options
-       */
-      _setDefaultViewOptions() {
-        /** @type {D3BaseViewOptions} */
-        this._viewOptions = D3BaseViewOptions.withDefaults();
-        /** @type {D3BaseSubViewOptions} */
-        this._upperSubViewOptions = D3BaseSubViewOptions.upperWithDefaults();
-        /** @type {D3BaseSubViewOptions} */
-        this._lowerSubViewOptions = D3BaseSubViewOptions.lowerWithDefaults();
-      }
-
-    }
-
   }
 
   /**
