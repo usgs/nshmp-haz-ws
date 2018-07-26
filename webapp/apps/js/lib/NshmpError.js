@@ -16,6 +16,11 @@ export default class NshmpError extends Error {
   constructor(errorMessage) {
     super(errorMessage);
 
+    if (errorMessage instanceof NshmpError) {
+      console.error(errorMessage);
+      return;
+    }
+
     this.message = errorMessage;
     let els = this._createErrorModal();
     this.el =  els.get('el');
@@ -42,6 +47,32 @@ export default class NshmpError extends Error {
   static checkArgument(expression, errorMessage) {
     if (!expression) {
       throw new NshmpError(`IllegalArgumentException: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Check whether an argument is an arrray.
+   * 
+   * @param {Array} arr The array to test 
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentArray(arr, errorMessage = 'Must be an array') {
+    NshmpError.checkArgument(Array.isArray(arr), errorMessage);
+  }
+
+  /**
+   * Check whether an argument is an array and all elements inside the
+   *    array are of a specificed type.
+   * 
+   * @param {Array} arr The array to test 
+   * @param {String} typeOf The type of data inside the array
+   * @param {String=} errorMessage An optional error message to show
+   */
+  static checkArgumentArrayOf(arr, typeOf, errorMessage = 'Must be an array') {
+    NshmpError.checkArgument(Array.isArray(arr), errorMessage);
+
+    for (let data of arr) {
+      NshmpError.checkArgument(typeof(data) == typeOf, `Must be a [${typeOf}]`);
     }
   }
 
@@ -170,7 +201,13 @@ export default class NshmpError extends Error {
    * @param {String} errorMessage The exception message to use
    */
   static throwError(errorMessage) {
+    if (errorMessage instanceof NshmpError) {
+      console.error(errorMessage);
+      return
+    }
+    
     if (errorMessage == 'cancel') return;
+    
     throw new NshmpError(errorMessage);
   }
 
