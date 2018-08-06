@@ -1,5 +1,6 @@
 
 import D3LineDataBuilder from './D3LineDataBuilder.js';
+import D3LineSubView from './view/D3LineSubView.js';
 import D3LineOptions from './options/D3LineOptions.js';
 import D3LineSeriesData from './D3LineSeriesData.js';
 import NshmpError from '../lib/NshmpError.js';
@@ -23,9 +24,7 @@ export default class D3LineData {
    * @param {D3LineDataBuilder} builder The builder
    */
   constructor(builder) {
-    NshmpError.checkArgument(
-        builder instanceof D3LineDataBuilder,
-        'Must be instance of D3LineDataBuilder');
+    NshmpError.checkArgumentInstanceOf(builder, D3LineDataBuilder);
 
     /** 
      * The color scheme for plotting.
@@ -43,9 +42,8 @@ export default class D3LineData {
     this.series = builder._series;
 
     /** 
-     * Which sub view to plot on: 'lower' || 'upper'
-     * Default: 'upper'
-     * @type {Boolean}
+     * Which line sub view to plot.
+     * @type {D3LineSubView}
      */
     this.subView = builder._subView;
     
@@ -70,7 +68,7 @@ export default class D3LineData {
      */
     this.yAxisReverse = builder._yAxisReverse;
 
-    // this._updateLineOptions();
+    this._updateLineOptions();
     
     /* Make immutable */
     Object.freeze(this);
@@ -84,6 +82,16 @@ export default class D3LineData {
    */
   static builder() {
     return new D3LineDataBuilder(); 
+  }
+
+  /**
+   * Create a new D3LineData from multiple D3LineData.
+   * 
+   * @param {...D3LineData} lineData 
+   */
+  static of (...lineData) {
+    let builder = D3LineData.builder().of(...lineData);
+    return builder.build();
   }
 
   /**
@@ -115,6 +123,36 @@ export default class D3LineData {
   }
 
   /**
+   * Get the X limits for the X axis, either from the set xLimit in
+   *    the builder or from the min and max values in the data.
+   * 
+   * @returns {Array<Number>} The [ min, max ] X values
+   */
+  getXLimit() {
+    if (this.xLimit) return this.xLimit;
+
+    let max = this._getXLimitMax();
+    let min = this._getXLimitMin();
+
+    return [ min, max ];
+  }
+
+  /**
+   * Get the Y limits for the Y axis, either from the set yLimit in
+   *    the builder or from the min and max values in the data.
+   * 
+   * @returns {Array<Number>} The [ min, max ] Y values
+   */
+  getYLimit() {
+    if (this.yLimit) return this.yLimit;
+
+    let max = this._getYLimitMax();
+    let min = this._getYLimitMin();
+
+    return [ min, max ];
+  }
+
+  /**
    * Convert a D3LineSeriesData into an
    *    Array<D3LineSeriesData> where each D3LineSeriesData is a single
    *    XY data point.
@@ -123,9 +161,7 @@ export default class D3LineData {
    * @returns {Array<D3LineSeriesData>} The new array of D3SeriesData
    */
   toMarkerSeries(series) {
-    NshmpError.checkArgument(
-        series instanceof D3LineSeriesData,
-        'Must be an instance of D3LineSeriesData');
+    NshmpError.checkArgumentInstanceOf(series, D3LineSeriesData);
 
     let markerSeries = [];
     for (let data of series.data) {
@@ -133,6 +169,62 @@ export default class D3LineData {
     }
     
     return markerSeries;
+  }
+
+  /**
+   * @private
+   * Get the max X value.
+   */
+  _getXLimitMax() {
+    let max = d3.max(this.series, (/** @type {D3LineSeriesData} */ series) => {
+      return d3.max(series.data, (/** @type {Array<Number> */ data) => {
+        return data[0];
+      });
+    });
+
+    return max;
+  }
+
+  /**
+   * @private
+   * Get the min X value.
+   */
+  _getXLimitMin() {
+    let min = d3.min(this.series, (/** @type {D3LineSeriesData} */ series) => {
+      return d3.min(series.data, (/** @type {Array<Number> */ data) => {
+        return data[0];
+      });
+    });
+
+    return min;
+  }
+
+  /**
+   * @private
+   * Get the max Y value.
+   */
+  _getYLimitMax() {
+    let max = d3.max(this.series, (/** @type {D3LineSeriesData} */ series) => {
+      return d3.max(series.data, (/** @type {Array<Number> */ data) => {
+        return data[1];
+      });
+    });
+
+    return max;
+  }
+
+  /**
+   * @private
+   * Get the min Y value.
+   */
+  _getYLimitMin() {
+    let min = d3.min(this.series, (/** @type {D3LineSeriesData} */ series) => {
+      return d3.min(series.data, (/** @type {Array<Number> */ data) => {
+        return data[1];
+      });
+    });
+
+    return min;
   }
 
   /** @private */
@@ -151,9 +243,8 @@ export default class D3LineData {
           .id(id)
           .label(label)
           .markerColor(markerColor)
+          .markerEdgeColor(markerColor)
           .build();
-      
-      Object.freeze(data);
     }
 
   }
