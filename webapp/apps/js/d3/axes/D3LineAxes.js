@@ -74,6 +74,8 @@ export default class D3LineAxes {
         .style(subView.options.tickFontSize);
   
     d3.select(subView.svg.yTickMarksEl)
+        .transition()
+        .duration(lineData.subView.options.translationDuration)
         .call(this._getYAxis(lineData, scale))
         .on('end', () => {
           this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
