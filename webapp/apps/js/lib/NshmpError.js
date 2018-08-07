@@ -97,6 +97,17 @@ export default class NshmpError extends Error {
   }
 
   /**
+   * 
+   * @param {Object} instance 
+   * @param {Object} type 
+   */
+  static checkArgumentInstanceOf(instance, type) {
+    NshmpError.checkArgument(
+        instance instanceof type,
+        `Must be instance of ${type.name}`);
+  }
+
+  /**
    * Check whether an argument is a number.
    * 
    * @param {Number} num The number to test 
