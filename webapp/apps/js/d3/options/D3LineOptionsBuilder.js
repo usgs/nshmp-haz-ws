@@ -23,13 +23,17 @@ export default class D3LineOptionsBuilder {
     /** @type {String} */
     this._lineStyle = '-';
     /** @type {Number} */
-    this._lineWidth = 2;
+    this._lineWidth = 2.5;
     /** @type {String} */
     this._markerStyle = 'o';
     /** @type {String} */
     this._markerColor = undefined;
+    /** @type {String} */
+    this._markerEdgeColor = undefined;
     /** @type {Number} */
-    this._markerSize = 2;
+    this._markerEdgeWidth = 0.5;
+    /** @type {Number} */
+    this._markerSize = 3.5;
     /** @type {Boolean} */
     this._showInLegend = true;
   }
@@ -49,17 +53,17 @@ export default class D3LineOptionsBuilder {
    * @param {D3LineOptions} options The options to copy
    */
   fromCopy(options) {
-    NshmpError.checkArgument(
-        options instanceof D3LineOptions,
-        'Must be instance of D3LineOptions');
+    NshmpError.checkArgumentInstanceOf(options, D3LineOptions);
     
     this._color = options.color;
     this._id = options.id;
     this._label = options.label;
     this._lineStyle = options.lineStyle;
     this._lineWidth = options.lineWidth;
-    this._markerStyle = options.markerStyle;
     this._markerColor = options.markerColor;
+    this._markerEdgeColor = options.markerEdgeColor;
+    this._markerEdgeWidth = options.markerEdgeWidth;
+    this._markerStyle = options.markerStyle;
     this._markerSize = options.markerSize;
     this._showInLegend = options.showInLegend;
 
@@ -120,28 +124,13 @@ export default class D3LineOptionsBuilder {
 
   /**
    * Set the line width.
-   * Default: 2.0
+   * Default: 2.5
    * 
    * @param {Number} width The line width 
    */
   lineWidth(width) {
     NshmpError.checkArgumentNumber(width);
     this._lineWidth = width;
-    return this;
-  }
-
-  /**
-   * Set the marker style:
-   *    - 's' || 'square': Square markers
-   *    - 'o' || 'circle': Circle markers
-   * 
-   * Default: 'circle'
-   * 
-   * @param {String} marker 
-   */
-  markerStyle(marker) {
-    NshmpError.checkArgumentString(marker);
-    this._marker = marker.toLowerCase();
     return this;
   }
 
@@ -158,15 +147,61 @@ export default class D3LineOptionsBuilder {
     return this;
   }
 
+  /**
+   * Set the marker edge color.
+   * The default color is set based on the current color scheme
+   *    in D3LineData.colorScheme
+   * 
+   * @param {String} color The marker edge color 
+   */
+  markerEdgeColor(color) {
+    NshmpError.checkArgumentString(color);
+    this._markerEdgeColor = color;
+    return this;
+  }
+
+  /**
+   * Set the marker edge width.
+   * Default: 0.5
+   * 
+   * @param {Number} width The marker edge width 
+   */
+  markerEdgeWidth(width) {
+    NshmpError.checkArgumentNumber(width);
+    this._markerEdgeWidth = width;
+    return this;
+  }
 
   /**
    * The marker size.
-   * Default: 2.0
+   * Default: 3.5
    * @type {Number}
    */
   markerSize(size) {
     NshmpError.checkArgumentNumber(size);
     this._markerSize = size;
+    return this;
+  }
+
+  /**
+   * Set the marker style:
+   *    - 's' || 'square': Square markers
+   *    - 'o' || 'circle': Circle markers
+   *    - '+' || 'plus-sign': Plus sign markers
+   *    - 'x' || 'cross': Cross sign markers
+   *    - '^' || 'up-triangle': Up-pointing triangle
+   *    - 'v' || 'down-triangle': Down-pointing triangle
+   *    - '<' || 'left-triangle': Left-pointing triangle
+   *    - '>' || 'right-triangle': Right-pointing triangle
+   *    - 'd' || 'diamond': Diamond markers
+   *    - '*' || 'star': Star markers
+   * Default: 'circle'
+   * 
+   * @param {String} marker 
+   */
+  markerStyle(marker) {
+    NshmpError.checkArgumentString(marker);
+    this._markerStyle = marker.toLowerCase();
     return this;
   }
 
