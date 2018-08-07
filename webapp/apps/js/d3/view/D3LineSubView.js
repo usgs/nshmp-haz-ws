@@ -41,7 +41,8 @@ export default class D3LineSubView extends D3BaseSubView {
    * @property {SVGElement} dataContainerEl The data container group element
    * @property {SVGElement} gridLinesEl The grid lines group element 
    * @property {SVGElement} legendEl The legend group element
-   * @property {SVGElement} plotGroupEl The plot group element
+   * @property {SVGElement} innerPlotEl The inner plot group element
+   * @property {SVGElement} outerPlotEl The outer plot group element
    * @property {SVGElement} svgEl The main SVG element
    * @property {SVGElement} tooltipEl The tooltip group element
    * @property {SVGElement} xAxisEl The X axis group element
@@ -56,10 +57,11 @@ export default class D3LineSubView extends D3BaseSubView {
   _createSVGStructrue() {
     let svg = super._createSVGStructrue();
     let svgEl = svg.svgEl;
-    let plotGroupEl = svg.plotGroupEL;
+    let outerPlotEl = svg.outerPlotEl; 
+    let innerPlotEl = svg.innerPlotEl;
 
     /* Grid Lines */
-    let gridLinesD3 = d3.select(plotGroupEl)
+    let gridLinesD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('class', 'grid-lines');
     let xGridLinesD3 = gridLinesD3.append('g')
@@ -68,37 +70,38 @@ export default class D3LineSubView extends D3BaseSubView {
         .attr('class', 'y-grid-lines');
 
     /* X Axis */
-    let xAxisD3 = d3.select(plotGroupEl)
+    let xAxisD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('class', 'x-axis');
     let xTickMarksD3 = xAxisD3.append('g')
         .attr('class', 'x-tick-marks');
-    let xLabelD3 = xTickMarksD3.append('text')
+    let xLabelD3 = xAxisD3.append('text')
         .attr('class', 'x-label')
         .attr('fill', 'black');
     
     /* Y Axis */
-    let yAxisD3 = d3.select(plotGroupEl)
+    let yAxisD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('class', 'y-axis');
-    let yTickMarksD3 = xAxisD3.append('g')
+    let yTickMarksD3 = yAxisD3.append('g')
         .attr('class', 'y-tick-marks');
-    let yLabelD3 = xTickMarksD3.append('text')
+    let yLabelD3 = yAxisD3.append('text')
         .attr('class', 'y-label')
-        .attr('fill', 'black');
+        .attr('fill', 'black')
+        .attr('transform', 'rotate(-90)');
 
     /* Data Container Group */
-    let dataContainerD3 = d3.select(plotGroupEl)
+    let dataContainerD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('class', 'data-container-group');
 
     /* Legend Group */
-    let legendD3 = d3.select(plotGroupEl)
+    let legendD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('clas', 'legend'); 
 
     /* Tooltip Group */
-    let tooltipD3 = d3.select(plotGroupEl)
+    let tooltipD3 = d3.select(innerPlotEl)
         .append('g')
         .attr('class', 'd3-tooltip');
 
@@ -106,7 +109,8 @@ export default class D3LineSubView extends D3BaseSubView {
       dataContainerEl: dataContainerD3.node(),
       gridLinesEl: gridLinesD3.node(),
       legendEl: legendD3.node(),
-      plotGroupEL: plotGroupEl,
+      innerPlotEl: innerPlotEl,
+      outerPlotEl: outerPlotEl,
       svgEl: svgEl,
       tooltipEl: tooltipD3.node(),
       xAxisEl: xAxisD3.node(),

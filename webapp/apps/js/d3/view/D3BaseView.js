@@ -79,9 +79,9 @@ export default class D3BaseView {
         builder._lowerSubViewOptions);
     }
 
-    /** @type {D3BaseView~ViewHeaderEls} Elements of the view header */
+    /** @type {ViewHeaderEls} Elements of the view header */
     this.viewHeader = this._createViewHeader();
-    /** @type {D3BaseView~ViewFooterEls} Elements of the view footer */
+    /** @type {ViewFooterEls} Elements of the view footer */
     this.viewFooter = this._createViewFooter();
 
     this._addEventListeners();
@@ -209,7 +209,7 @@ export default class D3BaseView {
    * 
    * @returns {ViewFooterEls} The HTMLElements associated with
    *    the footer
-   * @typedef {Object} D3BaseView~ViewFooterEls - The view footer elements
+   * @typedef {Object} ViewFooterEls - The view footer elements
    * @property {HTMLElement} btnToolbarEl The footer button toolbar element 
    * @property {HTMLElement} dataBtnEl The 'Data' button element
    * @property {HTMLElement} footerEl The view footer element
@@ -245,16 +245,17 @@ export default class D3BaseView {
         .attr('role', 'group');
    
     footerBtnsD3.selectAll('label')                                                   
-        .data((d, i) => {return d.btns})
+        .data((d) => { return d.btns; })
         .enter()
         .append('label')
         .attr('class',(d, i) => {
-          return 'btn btn-xs btn-default footer-button ' + d.class;
+          return `btn btn-xs btn-default footer-button ${d.class}`;
         })
-        .attr('for', (d, i) => {return d.name})
+        .attr('value', (d) => { return d.value; })
+        .attr('for', (d) => { return d.name })
         .html((d, i) => {
-          return '<input type="radio" name="' + d.name + '"' +
-             ' value="' + d.value + '"/> ' + d.text;
+          return `<input type='radio' name='${d.name}'` +
+             ` value='${d.value}' class='check-box'/>  ${d.text}`;
         });
   
     let saveMenuEl = undefined;
@@ -288,8 +289,8 @@ export default class D3BaseView {
    *    grid lines toggle, and resize toggle.
    * 
    * @returns {ViewHeaderEls} The HTMLElements associated with
-   *    the footer
-   * @typedef {Object} D3BaseView~ViewHeaderEls - The view header elements
+   *    the header
+   * @typedef {Object} ViewHeaderEls - The view header elements
    * @property {HTMLElement} gridLinesCheckEl The grid lines check element
    * @property {HTMLElement} headerEl The view's header element
    * @property {HTMLElement} iconsEl The header icons element
@@ -333,6 +334,7 @@ export default class D3BaseView {
           .style('margin-right', '2em');
      
       $(gridLinesCheckD3.node()).tooltip({container: 'body'});
+      gridLinesCheckD3.node().setAttribute('checked', true); 
     }
 
     let legendCheckD3 = undefined;

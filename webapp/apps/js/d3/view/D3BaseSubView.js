@@ -32,17 +32,19 @@ export default class D3BaseSubView {
     /** @type {D3BaseSubViewOptions} Sub view options */
     this.options = options;
 
-    /** @type {Number} Plot height in px */
-    this.plotHeight = this.options.plotHeight - 
+    /** @type {Number} The SVG view box height in px */
+    this.svgHeight = this.options.plotHeight - 
         this.options.marginTop - this.options.marginBottom;
-    /** @type {Number} Plot width in px */
-    this.plotWidth = this.options.plotWidth - 
+    /** @type {Number} The SVG view box width in px */
+    this.svgWidth = this.options.plotWidth - 
         this.options.marginLeft - this.options.marginRight;
     
-    /** @type {Number} The SVG view box height in px */
-    this.svgHeight = this.options.plotHeight;
-    /** @type {Number} The SVG view box width in px */
-    this.svgWidth = this.options.plotWidth;
+    /** @type {Number} Plot height in px */
+    this.plotHeight = this.svgHeight - 
+        this.options.paddingBottom - this.options.paddingTop;
+    /** @type {Number} Plot width in px */
+    this.plotWidth = this.svgWidth - 
+        this.options.paddingLeft - this.options.paddingRight;
       
     /** @type {HTMLElement}  The sub view element */
     this.subViewBodyEl = this._createSubView();
@@ -57,7 +59,8 @@ export default class D3BaseSubView {
    * @returns {BaseSubViewSVGEls} The SVG elements.
    * 
    * @typedef {Object} D3BaseSubView~BaseSubViewSVGEls - The base SVG elements
-   * @property {SVGElement} plotGroupEl The plot group element
+   * @property {SVGElement} innerPlotEl The inner plot group element
+   * @property {SVGElement} outerPlotEl The outer plot group element
    * @property {SVGElement} svgEl The main SVG element
    */
   _createSVGStructrue() {
@@ -66,15 +69,34 @@ export default class D3BaseSubView {
         .attr('version', 1.1)
         .attr('xmlns', 'http://www.w3.org/2000/svg')
         .attr('preserveAspectRatio', 'xMinYMin meet')
-        .attr('viewBox', `0 0 ${this.svgWidth} ${this.svgHeight}`);
+        .attr('viewBox', `0 0 ` +
+            `${this.options.plotWidth} ${this.options.plotHeight}`);
     
-    let plotD3 = svgD3.append('g')
-        .attr('class', 'plot')
+    let outerPlotD3 = svgD3.append('g')
+        .attr('class', 'outer-plot')
         .attr('transform', `translate(` + 
-            `${this.options.marginLeft}, ${this.options.marginRight})`);
+            `${this.options.marginLeft}, ${this.options.marginTop})`);
+    
+    let outerFrameD3 = outerPlotD3.append('rect')
+        .attr('height', this.svgHeight)
+        .attr('width', this.svgWidth)
+        .attr('fill', 'none');
+    
+    let innerPlotD3 = outerPlotD3.append('g')
+        .attr('class', 'inner-plot')
+        .attr('transform', `translate(` + 
+            `${this.options.paddingLeft}, ${this.options.paddingTop})`);
+    
+    let innerFrameD3 = innerPlotD3.append('rect')
+        .attr('height', this.plotHeight)
+        .attr('width', this.plotWidth)
+        .attr('fill', 'none');
     
     let els = {
-      plotGroupEL: plotD3.node(),
+      innerPlotEl: innerPlotD3.node(),
+      innerFrameEl: innerFrameD3.node(),
+      outerPlotEl: outerPlotD3.node(),
+      outerFrameEl: outerFrameD3.node(),
       svgEl: svgD3.node(),
     };
 
