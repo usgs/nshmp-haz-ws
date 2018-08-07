@@ -48,9 +48,9 @@ export default class D3LineAxes {
         .call(this._getXAxis(lineData, scale))
         .on('end', () => {
           this._setExponentTickMarks(subView, subView.svg.xTickMarksEl, scale);
-          this.createXGridLines(lineData, scale);
         });
     
+    this.createXGridLines(lineData, scale);
     this._addXLabel(subView);
   }
 
@@ -74,11 +74,13 @@ export default class D3LineAxes {
         .style(subView.options.tickFontSize);
   
     d3.select(subView.svg.yTickMarksEl)
-        .call(this._getYAxis(lineData, scale));
+        .call(this._getYAxis(lineData, scale))
+        .on('end', () => {
+          this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
+        });
     
-    this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
-    this._addYLabel(subView);
     this.createYGridLines(lineData, scale);
+    this._addYLabel(subView);
   }
 
   /**
@@ -101,6 +103,8 @@ export default class D3LineAxes {
         .tickSize(-subView.plotHeight);
 
     let xGridD3 = d3.select(subView.svg.xGridLinesEl)
+        .transition()
+        .duration(subView.options.translationDuration)
         .attr('transform', d3.select(subView.svg.xAxisEl).attr('transform'))
         .call(xGridLines);
 
@@ -132,6 +136,8 @@ export default class D3LineAxes {
         .tickSize(-subView.plotWidth);
 
     let yGridD3 = d3.select(subView.svg.yGridLinesEl)
+        .transition()
+        .duration(subView.options.translationDuration)
         .attr('transform', d3.select(subView.svg.yAxisEl).attr('transform'))
         .call(yGridLines);
 
