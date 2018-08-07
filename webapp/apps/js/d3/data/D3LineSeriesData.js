@@ -1,5 +1,5 @@
 
-import D3LineOptions from './options/D3LineOptions.js';
+import D3LineOptions from '../options/D3LineOptions.js';
 
 /**
  * @fileoverview Container class to hold XY values and assoiciated 

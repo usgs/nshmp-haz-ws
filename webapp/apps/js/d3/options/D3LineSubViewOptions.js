@@ -30,6 +30,27 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
   constructor(builder) {
     super(builder);
 
+    /**
+     * The font weight for the X and Y axis labels.
+     * Default: 500
+     * @type {Number}
+     */
+    this.axisLabelFontWeight = builder._axisLabelFontWeight;
+
+    /**
+     * The default X limit when the D3LineView is shown with no data. 
+     * Default: [ 0.01, 10 ] 
+     * @type {Array<Number>} 
+     */
+    this.defaultXLimit = builder._defaultXLimit;
+    
+    /**
+     * The default X limit when the D3LineView is shown with no data. 
+     * Default: [ 0.01, 1 ] 
+     * @type {Array<Number>} 
+     */
+    this.defaultYLimit = builder._defaultYLimit;
+    
     /** 
      * Color of axes grid lines.
      * Default: '#E0E0E0' 
@@ -66,8 +87,8 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.legendLineBreak = builder._legendLineBreak;
     
     /**
-     * Legend location: 'bottomLeft' || 'bottomRight' || 
-     *    'topLeft' || 'topRight'
+     * Legend location: 'bottom-left' || 'bottom-right' || 
+     *    'top-left' || 'top-right'
      * Default: 'topRight'
      * @type {String}
      */
@@ -153,6 +174,13 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.xAxisScale = builder._xAxisScale;
 
     /**
+     * The X axis label; can be an HTML string.
+     * Default: ''
+     * @type {String}
+     */
+    this.xLabel = builder._xLabel;
+
+    /**
      * Padding around the X label in px.
      * Default: 8
      * @type {Number}
@@ -190,6 +218,13 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.yAxisScale = builder._yAxisScale;
 
     /**
+     * The Y axis label; can be an HTML string.
+     * Default: ''
+     * @type {String}
+     */
+    this.yLabel = builder._yLabel;
+    
+    /**
      * Padding around the Y label in px.
      * Default: 10
      * @type {Number}
@@ -215,7 +250,9 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
    */
   static lowerBuilder() {
     const LOWER_PLOT_HEIGHT = 224;
-    return new D3LineSubViewOptionsBuilder().plotHeight(LOWER_PLOT_HEIGHT);
+    return new D3LineSubViewOptionsBuilder()
+        ._type('lower')
+        .plotHeight(LOWER_PLOT_HEIGHT);
   }
 
   /** 
@@ -229,7 +266,8 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
    * Return new D3LineSubViewOptionsBuilder for upper sub view 
    */
   static upperBuilder() {
-    return new D3LineSubViewOptionsBuilder();
+    return new D3LineSubViewOptionsBuilder()
+        ._type('upper');
   }
 
   /** 

@@ -1,8 +1,9 @@
 
 import D3LineData from './D3LineData.js';
-import D3LineOptions from './options/D3LineOptions.js';
+import D3LineSubView from '../view/D3LineSubView.js';
+import D3LineOptions from '../options/D3LineOptions.js';
 import D3LineSeriesData from './D3LineSeriesData.js'; 
-import NshmpError from '../lib/NshmpError.js';
+import NshmpError from '../../lib/NshmpError.js';
 
 /**
  * @fileoverview Builder for D3LineData
@@ -20,8 +21,8 @@ export default class D3LineDataBuilder {
     this._colorScheme = undefined;
     /** @type {Array<D3LineSeriesData>} */
     this._series = []; 
-    /** @type {String} */
-    this._subView = 'upper';
+    /** @type {D3LineSubView} */
+    this._subView = undefined;
     /** @type {Array<Number>} */
     this._xLimit = undefined;
     /** @type {Boolean} */
@@ -36,7 +37,12 @@ export default class D3LineDataBuilder {
    * @return {D3LineData} new D3Data
    */
   build() {
+    NshmpError.checkArgument(
+      this._subView != undefined && this._subView != null,
+      'Must set sub view');
+
     this._colorScheme = this._updateColorScheme();
+
     return new D3LineData(this);
   }
 
@@ -67,10 +73,8 @@ export default class D3LineDataBuilder {
     NshmpError.checkArgument(
         xValues.length == yValues.length, 
         'Arrays must have same length');
-    
-    NshmpError.checkArgument(
-        lineOptions instanceof D3LineOptions,
-        'Must be instance of D3LineOptions');
+   
+    NshmpError.checkArgumentInstanceOf(lineOptions, D3LineOptions);
 
     let xyValues = d3.zip(xValues, yValues);
     let seriesData = new D3LineSeriesData(xyValues, lineOptions);
@@ -79,20 +83,51 @@ export default class D3LineDataBuilder {
   }
 
   /**
-   * Whether to plot in the upper sub view
-   * Default: 'upper'
+   * Create a D3LineDataBuilder from multiple D3LineData.
+   * 
+   * @param {...D3LineData} lineData 
    */
-  plotUpper() {
-    this._subView = 'upper';
+  of(...lineData) {
+    let color = [];
+    let xLims = [];
+    let yLims = [];
+    let subViewType = lineData[0].subView.options.subViewType;
+
+    for (let data of lineData) {
+      NshmpError.checkArgumentInstanceOf(data, D3LineData);
+      NshmpError.checkArgument(
+          data.subView.options.subViewType == subViewType,
+          'Must all be same sub view type');
+
+      this._series.push(...data.series);
+      color = color.concat(data.colorScheme);
+      xLims.push(data.getXLimit());
+      yLims.push(data.getYLimit());
+    }
+
+    let xMin = d3.min(xLims, (x) => { return x[0]; });
+    let xMax = d3.max(xLims, (x) => { return x[1]; });
+
+    let yMin = d3.min(yLims, (y) => { return y[0]; });
+    let yMax = d3.max(yLims, (y) => { return y[1]; });
+
+    this.colorScheme(color);
+    this.subView(lineData[0].subView);
+    this.xLimit([ xMin, xMax ]);
+    this.yAxisReverse(lineData[0].yAxisReverse);
+    this.yLimit([ yMin, yMax ]);
+
     return this;
   }
 
   /**
-   * Whether to plot in the lower sub view
-   * Default: 'upper'
+   * Set the line sub view for which to plot the data.
+   * 
+   * @param {D3LineSubView} view The sub view to plot the data 
    */
-  plotLower() {
-    this._subView = 'lower';
+  subView(view) {
+    NshmpError.checkArgumentInstanceOf(view, D3LineSubView);
+    this._subView = view;
     return this;
   }
 
@@ -100,14 +135,14 @@ export default class D3LineDataBuilder {
    * Set the X limits for the X axis.
    * Default: 'auto'
    * 
-   * @param {Number} xMin The starting X axis value
-   * @param {Number} xMax The ending X axis value
+   * @param {Array<Number>} lim The X axis limits: [ xMin, xMax ]
    */
-  xLimit(xMin, xMax) {
-    NshmpError.checkArgumentNumber(xMin);
-    NshmpError.checkArgumentNumber(xMax);
-    NshmpError.checkArVygument(xMax > xMin, 'xMax must be greater than xMin');
-    this._xLimit = [ xMin, xMax ];
+  xLimit(lim) {
+    NshmpError.checkArgumentArrayOf(lim, 'number');
+    NshmpError.checkArgument(lim.length == 2, 'Must contain 2 numbers');
+    NshmpError.checkArgument(lim[1] > lim[0], 'xMax must be greater than xMin');
+
+    this._xLimit = lim; 
     return this;
   }
 
@@ -127,19 +162,20 @@ export default class D3LineDataBuilder {
    * Set the Y limits for the Y axis.
    * Default: 'auto'
    * 
-   * @param {Number} yMin The starting Y axis value
-   * @param {Number} yMax The ending Y axis value
+   * @param {Array<Number>} lim The Y axis limits: [ yMin, yMax ]
    */
-  yLimit(yMin, yMax) {
-    NshmpError.checkArgumentNumber(yMin);
-    NshmpError.checkArgumentNumber(yMax);
-    NshmpError.checkArVygument(yMax > yMin, 'yMax must be greater than yMin');
-    this._yLimit = [ yMin, yMax ];
+  yLimit(lim) {
+    NshmpError.checkArgumentArrayOf(lim, 'number');
+    NshmpError.checkArgument(lim.length == 2, 'Must contain 2 numbers');
+    NshmpError.checkArgument(lim[1] > lim[0], 'yMax must be greater than yMin');
+
+    this._yLimit = lim; 
     return this;
   }
 
   /** @private */
   _updateColorScheme() {
+    let nSeries = this._series.length;
     let colors = this._colorScheme || d3.schemeCategory10;
     let nColors = colors.length;
     let nCat = Math.ceil( this._series.length / nColors );
@@ -148,9 +184,7 @@ export default class D3LineDataBuilder {
       colors.concat(colors);
     }
 
-    return colors;
+    return colors.length > nSeries ? colors.slice(0, nSeries) : colors;
   }
 
 }
-
-

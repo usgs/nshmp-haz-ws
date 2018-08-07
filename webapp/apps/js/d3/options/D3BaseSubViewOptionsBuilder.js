@@ -16,17 +16,28 @@ export default class D3BaseSubViewOptionsBuilder {
   /** @private */
   constructor() {
     /** @type {Number} */
-    this._marginBottom = 50;
+    this._marginBottom = 15;
     /** @type {Number} */
-    this._marginLeft = 70;
+    this._marginLeft = 20;
     /** @type {Number} */
-    this._marginRight = 20;
+    this._marginRight = 10;
     /** @type {Number} */
-    this._marginTop = 20;
+    this._marginTop = 10;
+    /** @type {Number} */
+    this._paddingBottom = 35;
+    /** @type {Number} */
+    this._paddingLeft = 40;
+    /** @type {Number} */
+    this._paddingRight = 20;
+    /** @type {Number} */
+    this._paddingTop = 10;
     /** @type {Number} */
     this._plotHeight = 504;
     /** @type {Number} */
     this._plotWidth = 896;
+
+    /** @type {String} */
+    this._subViewType = 'upper';
   }
 
   /**
@@ -40,7 +51,7 @@ export default class D3BaseSubViewOptionsBuilder {
 
   /**
    * Set the bottom margin for the SVG plot in px.
-   * Default: 50
+   * Default: 15
    * 
    * @param {Number} margin The bottom margin 
    */
@@ -52,7 +63,7 @@ export default class D3BaseSubViewOptionsBuilder {
 
   /**
    * Set the left margin for the SVG plot in px.
-   * Default: 70
+   * Default: 20
    * 
    * @param {Number} margin The left margin 
    */
@@ -64,7 +75,7 @@ export default class D3BaseSubViewOptionsBuilder {
 
   /**
    * Set the right margin for the SVG plot in px.
-   * Default: 20
+   * Default: 10
    * 
    * @param {Number} margin The right margin 
    */
@@ -76,13 +87,61 @@ export default class D3BaseSubViewOptionsBuilder {
 
   /**
    * Set the top margin for the SVG plot in px.
-   * Default: 20
+   * Default: 10
    * 
    * @param {Number} margin The top margin 
    */
   marginTop(margin) {
     NshmpError.checkArgumentInteger(margin);
     this._marginTop = margin;
+    return this;
+  }
+
+  /**
+   * Set the bottom padding for the SVG plot in px.
+   * Default: 35
+   * 
+   * @param {Number} margin The bottom margin 
+   */
+  paddingBottom(padding) {
+    NshmpError.checkArgumentInteger(padding);
+    this._paddingBottom = padding; 
+    return this;
+  }
+
+  /**
+   * Set the left padding for the SVG plot in px.
+   * Default: 40
+   * 
+   * @param {Number} margin The left margin 
+   */
+  paddingLeft(padding) {
+    NshmpError.checkArgumentInteger(padding);
+    this._paddingLeft = padding; 
+    return this;
+  }
+
+  /**
+   * Set the right padding for the SVG plot in px.
+   * Default: 20
+   * 
+   * @param {Number} margin The right margin 
+   */
+  paddingRight(padding) {
+    NshmpError.checkArgumentInteger(padding);
+    this._paddingRight = padding; 
+    return this;
+  }
+
+  /**
+   * Set the top padding for the SVG plot in px.
+   * Default: 10
+   * 
+   * @param {Number} margin The top margin 
+   */
+  paddingTop(padding) {
+    NshmpError.checkArgumentInteger(padding);
+    this._paddingTop = padding; 
     return this;
   }
 
@@ -110,6 +169,9 @@ export default class D3BaseSubViewOptionsBuilder {
     return this;
   }
 
+  /**
+   * Check if plot height is good.
+   */
   _checkHeight() {
     let heightCheck = this._plotHeight - 
         this._marginBottom - this._marginTop;
@@ -119,6 +181,9 @@ export default class D3BaseSubViewOptionsBuilder {
       'Height must be greater than (marginTop + marginBottom)');
   }
 
+  /**
+   * Check if plot width is good
+   */
   _checkWidth() {
     let widthCheck = this._plotWidth - 
         this._marginLeft - this._marginRight;
@@ -126,6 +191,19 @@ export default class D3BaseSubViewOptionsBuilder {
     NshmpError.checkState(
       widthCheck > 0,
       'Width must be greater than (marginLeft + marginRight)');
+  }
+
+  /**
+   * @param {String} type 
+   */
+  _type(type) {
+    type = type.toLowerCase();
+    NshmpError.checkArgument(
+        type == 'lower' || type == 'upper',
+        `Sub view type [${type}] not supported`);
+
+    this._subViewType = type;
+    return this; 
   }
 
 }

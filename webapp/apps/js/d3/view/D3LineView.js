@@ -41,6 +41,33 @@ export default class D3LineView extends D3BaseView {
   }
 
   /**
+   *  Get the X axis scale based on the D3LineViewOptions.synXAxisScale 
+   *    and D3LineSubViewOptions.xAxisScale.
+   * 
+   * @param {D3LineSubView} subView 
+   * @returns {String} The X axis scale: 'log' || 'linear'
+   */
+  getXAxisScale(subView) {
+    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    return this.viewOptions.syncXAxisScale ? this.viewOptions.xAxisScale :
+        subView.options.xAxisScale;
+  }
+  /**
+   *  Get the Y axis scale based on the D3LineViewOptions.synYAxisScale 
+   *    and D3LineSubViewOptions.yAxisScale.
+   * 
+   * @param {D3LineSubView} subView 
+   * @returns {String} The Y axis scale: 'log' || 'linear'
+   */
+  getYAxisScale(subView) {
+    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    return this.viewOptions.syncYAxisScale ? this.viewOptions.yAxisScale :
+        subView.options.yAxisScale;
+  }
+
+  /**
    * @override
    * Return a new D3LineViewBuilder
    * 

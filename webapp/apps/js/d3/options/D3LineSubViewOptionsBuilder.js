@@ -20,6 +20,12 @@ export default class D3LineSubViewOptionsBuilder
   constructor() {
     super();
 
+    /** @type {Number} */
+    this._axisLabelFontWeight = 500;
+    /** @type {Array<Number>} */
+    this._defaultXLimit = [ 0.01, 10 ];
+    /** @type {Array<Number>} */
+    this._defaultYLimit = [ 0.01, 1 ];
     /** @type {String} */
     this._gridLineColor = '#E0E0E0';
     /** @type {Number} */
@@ -31,7 +37,7 @@ export default class D3LineSubViewOptionsBuilder
     /** @type {Number} */
     this._legendLineBreak = 20;
     /** @type {String} */
-    this._legendLocation = 'topRight';
+    this._legendLocation = 'top-right';
     /** @type {Number} */
     this._legendOffset = 5;
     /** @type {Number} */
@@ -54,6 +60,8 @@ export default class D3LineSubViewOptionsBuilder
     this._xAxisNice = true;
     /** @type {String} */
     this._xAxisScale = 'log';
+    /** @type {String} */
+    this._xLabel = '';
     /** @type {Number} */
     this._xLabelPadding = 8;
     /** @type {Number} */
@@ -64,6 +72,8 @@ export default class D3LineSubViewOptionsBuilder
     this._yAxisNice = true;
     /** @type {String} */
     this._yAxisScale = 'log';
+    /** @type {String} */
+    this._yLabel = '';
     /** @type {Number} */
     this._yLabelPadding = 10;
     /** @type {Number} */
@@ -78,6 +88,41 @@ export default class D3LineSubViewOptionsBuilder
     this._checkHeight();
     this._checkWidth();
     return new D3LineSubViewOptions(this);
+  }
+
+  /**
+   * Set the font weight for the X and Y axis labels.
+   * Default: 500
+   * @param {Number} weight The font weight 
+   */
+  axisLabelFontWeight(weight) {
+    NshmpError.checkArgumentInteger(weight);
+    this._axisLabelFontWeight = weight;
+    return this;
+  }
+
+  /**
+   * Set the default X limit when the D3LineView is shown with no data. 
+   * Default: [ 0.01, 10 ] 
+   * @param {Array<Number>} xLimit The [ min, max] for the X axis
+   */
+  defaultXLimit(xLimit) {
+    NshmpError.checkArgumentArrayOf(xLimit, 'number');
+    NshmpError.checkArgument(xLimit.length, 'Array must be length 2');
+    this._defaultXLimit = xLimit;
+    return this;
+  }
+
+  /**
+   * Set the default Y limit when the D3LineView is shown with no data. 
+   * Default: [ 0.01, 1 ] 
+   * @param {Array<Number>} yLimit The [ min, max ] for the Y axis
+   */
+  defaultXLimit(xLimit) {
+    NshmpError.checkArgumentArrayOf(xLimit, 'number');
+    NshmpError.checkArgument(xLimit.length, 'Array must be length 2');
+    this._defaultXLimit = xLimit;
+    return this;
   }
 
   /**
@@ -138,14 +183,14 @@ export default class D3LineSubViewOptionsBuilder
   /**
    * Set the legend location: 'bottomLeft || 'bottomRight' ||
    *    'topLeft' || 'topRight'
-   * Default: 'topRight'
+   * Default: 'top-right'
    * @param {String} loc The location
    */
   legendLocation(loc) {
     loc = loc.toLowerCase();
     NshmpError.checkArgument(
-        loc == 'bottomleft' || loc == 'bottomright' || 
-            loc == 'topleft' || loc == 'topright',
+        loc == 'bottom-left' || loc == 'bottom-right' || 
+            loc == 'top-left' || loc == 'top-right',
         `Legend location [${loc}] not supported`);
 
     this._legendLocation = loc;
@@ -282,6 +327,17 @@ export default class D3LineSubViewOptionsBuilder
     this._xAxisScale = scale;
     return this; 
   } 
+
+  /**
+   * Set the X axis label; can be an HTML string.
+   * Default: ''
+   * @param {String} label The X axis label 
+   */
+  xLabel(label) {
+    NshmpError.checkArgumentString(label);
+    this._xLabel = label;
+    return this;
+  }
   
   /**
    * Set the X label padding in px.
@@ -347,6 +403,17 @@ export default class D3LineSubViewOptionsBuilder
     this._yAxisScale = scale;
     return this; 
   } 
+  
+  /**
+   * Set the Y axis label; can be an HTML string.
+   * Default: ''
+   * @param {String} label The Y axis label 
+   */
+  yLabel(label) {
+    NshmpError.checkArgumentString(label);
+    this._yLabel = label;
+    return this;
+  }
   
   /**
    * Set the Y label padding in px.

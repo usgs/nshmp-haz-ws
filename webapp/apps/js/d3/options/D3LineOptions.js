@@ -21,9 +21,7 @@ export default class D3LineOptions {
    * @param {D3LineOptionsBuilder} builder The builder 
    */
   constructor(builder) {
-    NshmpError.checkArgument(
-        builder instanceof D3LineOptionsBuilder,
-        'Must use D3LineOptionsBuilder');
+    NshmpError.checkArgumentInstanceOf(builder, D3LineOptionsBuilder);
 
     /**
      * The line color.
@@ -52,7 +50,6 @@ export default class D3LineOptions {
      *    - ':' || 'dotted': Dotted line
      *    - '-:' || 'dash-dot': Dahsed-dotted
      *    - 'none': No line
-     * 
      * Default: 'solid'
      * @type {String}
      */
@@ -60,20 +57,10 @@ export default class D3LineOptions {
 
     /**
      * The line width.
-     * Default: 2.0
+     * Default: 2.5
      * @type {Number}
      */
     this.lineWidth = builder._lineWidth;
-
-    /**
-     * The marker style:
-     *    - 's' || 'square': Square markers
-     *    - 'o' || 'circle': Circle markers
-     * 
-     * Default: 'circle'
-     * @type {String}
-     */
-    this.markerStyle = builder._markerStyle;
 
     /**
      * The marker color.
@@ -84,11 +71,43 @@ export default class D3LineOptions {
     this.markerColor = builder._markerColor;
 
     /**
+     * The marker edge color.
+     * The default color is set based on the current color scheme
+     *    in D3LineData.colorScheme
+     * @type {String}
+     */
+    this.markerEdgeColor = builder._markerEdgeColor;
+
+    /**
+     * The marker edge width.
+     * Default: 0.5
+     * @type {Number} 
+     */
+    this.markerEdgeWidth = builder._markerEdgeWidth;
+
+    /**
      * The marker size.
-     * Default: 2.0
+     * Default: 3.5
      * @type {Number}
      */
     this.markerSize = builder._markerSize;
+
+    /**
+     * The marker style:
+     *    - 's' || 'square': Square markers
+     *    - 'o' || 'circle': Circle markers
+     *    - '+' || 'plus-sign': Plus sign markers
+     *    - 'x' || 'cross': Cross sign markers
+     *    - '^' || 'up-triangle': Up-pointing triangle
+     *    - 'v' || 'down-triangle': Down-pointing triangle
+     *    - '<' || 'left-triangle': Left-pointing triangle
+     *    - '>' || 'right-triangle': Right-pointing triangle
+     *    - 'd' || 'diamond': Diamond markers
+     *    - '*' || 'star': Star markers
+     * Default: 'circle'
+     * @type {String}
+     */
+    this.markerStyle = builder._markerStyle;
 
     /**
      * Whether to show the data in the legend.
@@ -104,10 +123,16 @@ export default class D3LineOptions {
     this.svgDashArray = this._getDashArray();
 
     /**
-     * The SVG marker style base on markerStyle
-     * @type {String}
+     * The D3 symbol associated with the marker style.
+     * @type {Object}
      */
-    this.svgMarkerStyle = this._getMarkerStyle();
+    this.d3Symbol = this._getD3Symbol();
+
+    /**
+     * The D3 symbol rotate.
+     * @type {Number}
+     */
+    this.d3SymbolRotate = this._getD3SymbolRotate();
 
     /* Make immutable */
     Object.freeze(this);
@@ -161,24 +186,68 @@ export default class D3LineOptions {
   /**
    * @private 
    */
-  _getMarkerStyle() {
-    let marker;
+  _getD3Symbol() {
+    let symbol;
 
     switch(this.markerStyle) {
+      case '+' || 'plus-sign':
+      case 'x' || 'cross':
+        symbol = d3.symbolCross;
+        break;
+      case 'd' || 'diamond':
+        symbol = d3.symbolDiamond;
+        break;
+      case '*' || 'star':
+        symbol = d3.symbolStar;
+        break;
+      case '^' || 'up-triangle': 
+      case 'v' || 'down-triangle':
+      case '<' || 'left-triangle': 
+      case '>' || 'right-triangle':
+        symbol = d3.symbolTriangle;
+        break;
       case 'o' || 'circle':
-        marker = 'circle';
+        symbol = d3.symbolCircle;
         break;
       case 's' || 'square':
-        marker = 'square';
+        symbol = d3.symbolSquare;
         break;
       case 'none':
-        marker = 'none';
+        symbol = null;
         break;
       default:
         NshmpError.throwError(`Marker [${this.markerStyle}] not supported`);
     }
 
-    return marker;
+    NshmpError.checkState(symbol != undefined, 'D3 symbol not found');
+
+    return symbol;
+  }
+
+  /**
+   * @private
+   */
+  _getD3SymbolRotate() {
+    let rotate;
+
+    switch(this.markerStyle) {
+      case 'x' || 'cross':
+        rotate = 45; 
+        break;
+      case 'v' || 'down-triangle':
+        rotate = 180;
+        break;
+      case '<' || 'left-triangle':
+        rotate = -90;
+        break;
+      case '>' || 'right-triangle':
+        rotate = 90;
+        break;
+      default:
+        rotate = 0;
+    }
+
+    return rotate;
   }
 
 }
