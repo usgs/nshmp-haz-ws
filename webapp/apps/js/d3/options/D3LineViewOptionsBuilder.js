@@ -1,7 +1,7 @@
 
 import D3BaseViewOptionsBuilder from './D3BaseViewOptionsBuilder.js';
 import D3LineViewOptions from './D3LineViewOptions.js';
-import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3LineViewOptions.
@@ -48,7 +48,7 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
    * @param {Boolean} bool Whether to disable X axis buttons
    */
   disableXAxisBtns(bool) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._disableXAxisBtns = bool;
     return this;
   }
@@ -60,7 +60,7 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
    * @param {Boolean} bool Whether to disable Y axis buttons
    */
   disableYAxisBtns(bool) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._disableYAxisBtns = bool;
     return this;
   }
@@ -75,7 +75,7 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
    * @param {Boolean} bool Whether to sync sub views selections 
    */
   syncSubViewsSelections(bool) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._syncSubViewsSelections = bool;
     return this;
   }
@@ -88,13 +88,13 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
    * @param {String} scale What X axis scale to start with
    */
   syncXAxisScale(bool, scale) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._syncXAxisScale = bool;
 
     if (bool) {
-      NshmpError.checkArgumentString(scale);
+      Preconditions.checkArgumentString(scale);
       scale = scale.toLowerCase();
-      NshmpError.checkArgument(
+      Preconditions.checkArgument(
           scale == 'log' || scale == 'linear',
           `X axis scale [${scale}] not supported`);
       this._xAxisScale = scale;
@@ -111,13 +111,13 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
    * @param {String} scale What Y axis scale to start with
    */
   syncYAxisScale(bool, scale) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._syncYAxisScale = bool;
     
     if (bool) {
-      NshmpError.checkArgumentString(scale);
+      Preconditions.checkArgumentString(scale);
       scale = scale.toLowerCase();
-      NshmpError.checkArgument(
+      Preconditions.checkArgument(
           scale == 'log' || scale == 'linear',
           `Y axis scale [${scale}] not supported`);
       this._yAxisScale = scale;

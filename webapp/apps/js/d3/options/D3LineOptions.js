@@ -1,6 +1,7 @@
 
 import D3LineOptionsBuilder from './D3LineOptionsBuilder.js';
 import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Options for customizing a line in a line plot.
@@ -21,7 +22,7 @@ export default class D3LineOptions {
    * @param {D3LineOptionsBuilder} builder The builder 
    */
   constructor(builder) {
-    NshmpError.checkArgumentInstanceOf(builder, D3LineOptionsBuilder);
+    Preconditions.checkArgumentInstanceOf(builder, D3LineOptionsBuilder);
 
     /**
      * The line color.
@@ -219,7 +220,7 @@ export default class D3LineOptions {
         NshmpError.throwError(`Marker [${this.markerStyle}] not supported`);
     }
 
-    NshmpError.checkState(symbol != undefined, 'D3 symbol not found');
+    Preconditions.checkNotUndefined(symbol, 'D3 symbol not found');
 
     return symbol;
   }

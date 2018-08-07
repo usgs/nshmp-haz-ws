@@ -1,7 +1,7 @@
 
 import D3BaseViewOptionsBuilder from './D3BaseSubViewOptionsBuilder.js';
 import D3LineSubViewOptions from './D3LineSubViewOptions.js';
-import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3LineSubViewOptions.
@@ -96,7 +96,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} weight The font weight 
    */
   axisLabelFontWeight(weight) {
-    NshmpError.checkArgumentInteger(weight);
+    Preconditions.checkArgumentInteger(weight);
     this._axisLabelFontWeight = weight;
     return this;
   }
@@ -107,8 +107,8 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Array<Number>} xLimit The [ min, max] for the X axis
    */
   defaultXLimit(xLimit) {
-    NshmpError.checkArgumentArrayOf(xLimit, 'number');
-    NshmpError.checkArgument(xLimit.length, 'Array must be length 2');
+    Preconditions.checkArgumentArrayLength(xLimit, 2);
+    Preconditions.checkArgumentArrayOf(xLimit, 'number');
     this._defaultXLimit = xLimit;
     return this;
   }
@@ -118,10 +118,10 @@ export default class D3LineSubViewOptionsBuilder
    * Default: [ 0.01, 1 ] 
    * @param {Array<Number>} yLimit The [ min, max ] for the Y axis
    */
-  defaultXLimit(xLimit) {
-    NshmpError.checkArgumentArrayOf(xLimit, 'number');
-    NshmpError.checkArgument(xLimit.length, 'Array must be length 2');
-    this._defaultXLimit = xLimit;
+  defaultYLimit(yLimit) {
+    Preconditions.checkArgumentArrayLength(yLimit, 2);
+    Preconditions.checkArgumentArrayOf(yLimit, 'number');
+    this._defaultYLimit = yLimit;
     return this;
   }
 
@@ -131,7 +131,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {String} color The grid line color
    */
   gridLineColor(color) {
-    NshmpError.checkArgumentString(color);
+    Preconditions.checkArgumentString(color);
     this._gridLineColor = color;
     return this;
   }
@@ -142,7 +142,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} width The grid line width
    */
   gridLineWidth(width) {
-    NshmpError.checkArgumentNumber(width);
+    Preconditions.checkArgumentNumber(width);
     this._gridLineWidth = width;
     return this;
   }
@@ -153,7 +153,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} size The font size
    */
   labelFontSize(size) {
-    NshmpError.checkArgumentInteger(size);
+    Preconditions.checkArgumentInteger(size);
     this._labelFontSize = size;
     return this;
   }
@@ -164,7 +164,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} size The font size
    */
   legendFontSize(size) {
-    NshmpError.checkArgumentInteger(size);
+    Preconditions.checkArgumentInteger(size);
     this._legendFontSize = size;
     return this;
   }
@@ -175,7 +175,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} lineBreak The line break
    */
   legendLineBreak(lineBreak) {
-    NshmpError.checkArgumentInteger(lineBreak);
+    Preconditions.checkArgumentInteger(lineBreak);
     this._legendLineBreak = lineBreak;
     return this;
   }
@@ -188,7 +188,7 @@ export default class D3LineSubViewOptionsBuilder
    */
   legendLocation(loc) {
     loc = loc.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         loc == 'bottom-left' || loc == 'bottom-right' || 
             loc == 'top-left' || loc == 'top-right',
         `Legend location [${loc}] not supported`);
@@ -203,7 +203,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} offset The offset
    */
   legendOffset(offset) {
-    NshmpError.checkArgumentInteger(offset);
+    Preconditions.checkArgumentInteger(offset);
     this._legendOffset = offset;
     return this;
   }
@@ -214,7 +214,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} pad The padding
    */
   legendPaddingX(pad) {
-    NshmpError.checkArgumentInteger(pad);
+    Preconditions.checkArgumentInteger(pad);
     this._legendPaddingX = pad;
     return this;
   }
@@ -225,7 +225,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} pad The padding
    */
   legendPaddingY(pad) {
-    NshmpError.checkArgumentInteger(pad);
+    Preconditions.checkArgumentInteger(pad);
     this._legendPaddingY = pad;
     return this;
   }
@@ -236,7 +236,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {String} color The color
    */
   referenceLineColor(color) {
-    NshmpError.checkArgumentString(color);
+    Preconditions.checkArgumentString(color);
     this._referenceLineColor = color;
     return this;
   }
@@ -247,7 +247,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} width The width
    */
   referenceLineWidth(width) {
-    NshmpError.checkArgumentNumber(width);
+    Preconditions.checkArgumentNumber(width);
     this._referenceLineWidth = width;
     return this;
   }
@@ -259,7 +259,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} size The font size
    */
   tickExponentFontSize(size) { 
-    NshmpError.checkArgumentInteger(size);
+    Preconditions.checkArgumentInteger(size);
     this._tickExponentFontSize = size;
     return this; 
   } 
@@ -270,7 +270,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} size 
    */
   tickFontSize(size) {
-    NshmpError.checkArgumentInteger(size);
+    Preconditions.checkArgumentInteger(size);
     this._tickFontSize = size;
     return this; 
   }
@@ -282,7 +282,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} time The duration
    */
   translationDuration(time) { 
-    NshmpError.checkArgumentInteger(time);
+    Preconditions.checkArgumentInteger(time);
     this._translationDuration = time;
     return this; 
   } 
@@ -294,7 +294,7 @@ export default class D3LineSubViewOptionsBuilder
    */
   xAxisLocation(loc) { 
     loc = loc.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         loc == 'bottom' || loc == 'top',
         `X axis location [${loc}] not supported`);
     
@@ -308,7 +308,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Boolean} bool Whether to have a nice domain
    */
   xAxisNice(bool) { 
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._xAxisNice = bool;
     return this; 
   } 
@@ -320,7 +320,7 @@ export default class D3LineSubViewOptionsBuilder
    */
   xAxisScale(scale) { 
     scale = scale.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         scale == 'log' || scale == 'linear',
         `X axis scale [${scale}] not supported`);
 
@@ -334,7 +334,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {String} label The X axis label 
    */
   xLabel(label) {
-    NshmpError.checkArgumentString(label);
+    Preconditions.checkArgumentString(label);
     this._xLabel = label;
     return this;
   }
@@ -345,7 +345,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} pad The padding
    */
   xLabelPadding(pad) { 
-    NshmpError.checkArgumentInteger(pad);
+    Preconditions.checkArgumentInteger(pad);
     this._xLabelPadding = pad;
     return this; 
   } 
@@ -358,7 +358,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} count Number of tick marks
    */
   xTickMarks(count) { 
-    NshmpError.checkArgumentInteger(count);
+    Preconditions.checkArgumentInteger(count);
     this._xTickMarks = count;
     return this; 
   } 
@@ -370,7 +370,7 @@ export default class D3LineSubViewOptionsBuilder
    */
   yAxisLocation(loc) { 
     loc = loc.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         loc == 'left' || loc == 'right',
         `Y axis location [${loc}] not supported`);
     
@@ -384,7 +384,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Boolean} bool Whether to have a nice domain
    */
   yAxisNice(bool) { 
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._yAxisNice = bool;
     return this; 
   } 
@@ -396,7 +396,7 @@ export default class D3LineSubViewOptionsBuilder
    */
   yAxisScale(scale) { 
     scale = scale.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         scale == 'log' || scale == 'linear',
         `Y axis scale [${scale}] not supported`);
 
@@ -410,7 +410,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {String} label The Y axis label 
    */
   yLabel(label) {
-    NshmpError.checkArgumentString(label);
+    Preconditions.checkArgumentString(label);
     this._yLabel = label;
     return this;
   }
@@ -421,7 +421,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} pad The padding
    */
   yLabelPadding(pad) { 
-    NshmpError.checkArgumentInteger(pad);
+    Preconditions.checkArgumentInteger(pad);
     this._yLabelPadding = pad;
     return this; 
   } 
@@ -434,7 +434,7 @@ export default class D3LineSubViewOptionsBuilder
    * @param {Number} count Number of tick marks
    */
   yTickMarks(count) { 
-    NshmpError.checkArgumentInteger(count);
+    Preconditions.checkArgumentInteger(count);
     this._yTickMarks = count;
     return this; 
   } 

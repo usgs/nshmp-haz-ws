@@ -1,6 +1,6 @@
 
 import D3BaseSubViewOptionsBuilder from './D3BaseSubViewOptionsBuilder.js';
-import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseSubView.
@@ -28,9 +28,7 @@ export default class D3BaseSubViewOptions {
    * @param {D3BaseSubViewOptionsBuilder} builder The builder 
    */
   constructor(builder) {
-    NshmpError.checkArgument(
-        builder instanceof D3BaseSubViewOptionsBuilder,
-        'Must be instance of D3BaseSubViewOptionsBuilder');
+    Preconditions.checkArgumentInstanceOf(builder, D3BaseSubViewOptionsBuilder);
 
     /** 
      * Margin bottom for the SVG plot in px.

@@ -1,6 +1,6 @@
 
 import D3BaseViewOptionsBuilder from './D3BaseViewOptionsBuilder.js';
-import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseView. 
@@ -20,9 +20,7 @@ export default class D3BaseViewOptions {
    * @param {D3BaseViewOptionsBuilder} builder The builder
    */
   constructor(builder) {
-    NshmpError.checkArgument(
-        builder instanceof D3BaseViewOptionsBuilder,
-        'Must be an instance of D3BaseViewOptionsBuilder');
+    Preconditions.checkArgumentInstanceOf(builder, D3BaseViewOptionsBuilder);
 
     /** 
      * The D3BaseView view size to start with, either:

@@ -2,7 +2,7 @@
 import D3LineData from '../data/D3LineData.js';
 import D3LineSubView from '../view/D3LineSubView.js';
 import D3LineView from '../view/D3LineView.js';
-import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Add X and Y axes, axes labels, and gridlines to
@@ -31,7 +31,7 @@ export default class D3LineAxes {
    * @param {String} scale The scale: 'log' || 'linear'
    */
   createXAxis(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
     
     let subView = lineData.subView;
@@ -62,7 +62,7 @@ export default class D3LineAxes {
    * @param {String} scale The scale: 'log' || 'linear'
    */
   createYAxis(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
    
     let subView = lineData.subView;
@@ -92,7 +92,7 @@ export default class D3LineAxes {
    * @param {String} scale The scale: 'log' || 'linear' 
    */
   createXGridLines(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
    
     if (!this.view.viewHeader.gridLinesCheckEl.getAttribute('checked')) return; 
@@ -125,7 +125,7 @@ export default class D3LineAxes {
    * @param {String} scale The scale: 'log' || 'linear' 
    */
   createYGridLines(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
     
     if (!this.view.viewHeader.gridLinesCheckEl.getAttribute('checked')) return; 
@@ -160,7 +160,7 @@ export default class D3LineAxes {
    * @returns {Function} The line generator
    */
   line(lineData, xScale, yScale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(xScale);
     this._checkScale(yScale);
 
@@ -178,7 +178,7 @@ export default class D3LineAxes {
    * @param {D3LineSubView} subView The sub view to remove them from
    */
   removeXGridLines(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     d3.select(subView.svg.xGridLinesEl)
         .selectAll('*')
         .remove();
@@ -190,7 +190,7 @@ export default class D3LineAxes {
    * @param {D3LineSubView} subView The sub view to remove them from
    */
   removeYGridLines(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     d3.select(subView.svg.yGridLinesEl)
         .selectAll('*')
         .remove();
@@ -206,9 +206,10 @@ export default class D3LineAxes {
    * @returns {Number} The plotting X coordinate of the X data point
    */
   x(lineData, scale, dataPoint) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    NshmpError.checkArgumentArrayOf(dataPoint, 'number');
+    Preconditions.checkArgumentArrayOf(dataPoint, 'number');
+    Preconditions.checkArgumentArrayLength(dataPoint, 2);
     
     let d3Scale = this._getXAxisScale(lineData, scale);
     return d3Scale(dataPoint[0]);
@@ -224,9 +225,10 @@ export default class D3LineAxes {
    * @returns {Number} The plotting Y coordinate of the Y data point
    */
   y(lineData, scale, dataPoint) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    NshmpError.checkArgumentArrayOf(dataPoint, 'number');
+    Preconditions.checkArgumentArrayOf(dataPoint, 'number');
+    Preconditions.checkArgumentArrayLength(dataPoint, 2);
     
     let d3Scale = this._getYAxisScale(lineData, scale);
     return d3Scale(dataPoint[1]);
@@ -239,7 +241,7 @@ export default class D3LineAxes {
    * @param {D3LineSubView} subView Sub view to add X label
    */
   _addXLabel(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     
     let y = subView.options.xAxisLocation == 'top' ? 
         -subView.options.paddingTop : subView.options.paddingBottom;
@@ -260,7 +262,7 @@ export default class D3LineAxes {
    * @param {D3LineSubView} subView Sub view to add Y label
    */
   _addYLabel(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     
     let y = subView.options.yAxisLocation == 'right' ? 
         subView.options.paddingRight : -subView.options.paddingLeft;
@@ -281,7 +283,7 @@ export default class D3LineAxes {
    * @param {String} scale The scale 
    */
   _checkScale(scale) {
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         scale == 'log' || scale == 'linear',
         `Axis scale [${scale}] not supported`);
   }
@@ -305,7 +307,7 @@ export default class D3LineAxes {
    * @param {String} scale The axis scale: 'log' || 'linear'
    */
   _getXAxis(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
     
     let d3Scale = this._getXAxisScale(lineData, scale);
@@ -325,7 +327,7 @@ export default class D3LineAxes {
    * @param {String} scale The axis scale
    */
   _getXAxisScale(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
     
     let d3Scale = this._getD3AxisScale(scale);
@@ -347,7 +349,7 @@ export default class D3LineAxes {
    * @param {String} scale The axis scale
    */
   _getYAxis(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
 
     let d3Scale = this._getYAxisScale(lineData, scale);
@@ -367,7 +369,7 @@ export default class D3LineAxes {
    * @param {String} scale The axis scale
    */
   _getYAxisScale(lineData, scale) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
     
     let d3Scale = this._getD3AxisScale(scale);
@@ -390,8 +392,8 @@ export default class D3LineAxes {
    * @param {String} scale The axis scale
    */
   _setExponentTickMarks(subView, tickMarksEl, scale) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
-    NshmpError.checkArgumentInstanceOf(tickMarksEl, SVGElement);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOfSVGElement(tickMarksEl);
     this._checkScale(scale);
 
     if (scale != 'log') return;

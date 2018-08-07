@@ -4,7 +4,7 @@ import D3LineSubView from './view/D3LineSubView.js';
 import D3LineData from './data/D3LineData.js';
 import D3LineSeriesData from './data/D3LineSeriesData.js';
 import D3LineAxes from './axes/D3LineAxes.js';
-import NshmpError from '../error/NshmpError.js';
+import Preconditions from '../error/Preconditions.js';
 
 /**
  * @fileoverview Plot D3LineData
@@ -20,7 +20,7 @@ export default class D3LinePlot {
    * @param {D3LineView} view The line view 
    */
   constructor(view) {
-    NshmpError.checkArgumentInstanceOf(view, D3LineView);
+    Preconditions.checkArgumentInstanceOf(view, D3LineView);
 
     /** @type {D3LineView} */
     this.view = view;
@@ -45,7 +45,7 @@ export default class D3LinePlot {
    * @param {D3LineSubView} subView The sub view to clear the plots
    */
   clear(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
 
     d3.select(subView.svg.dataContainerEl)
         .selectAll('*')
@@ -113,7 +113,7 @@ export default class D3LinePlot {
    * @param {D3LineData} lineData The data
    */
   _dataEnter(lineData) {
-    NshmpError.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
 
     /** @type {Array<D3LineData>} */
     let currentLineData = d3.select(lineData.subView.svg.dataContainerEl)
