@@ -4,7 +4,7 @@ import D3LinePlot from './lib/D3LinePlot.js';
 import Constraints from './lib/Constraints.js';
 import Gmm from './lib/Gmm.js';
 import Tools from './lib/Tools.js';
-import NshmpError from './lib/NshmpError.js';
+import NshmpError from './error/NshmpError.js';
 
 /** 
 * @class HwFw

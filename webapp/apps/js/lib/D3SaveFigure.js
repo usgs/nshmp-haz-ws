@@ -1,5 +1,5 @@
 
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /**
  * @fileoverview This class will save a SVG element as a figure. 

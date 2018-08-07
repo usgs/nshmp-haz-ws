@@ -4,7 +4,7 @@ import D3LinePlot from './lib/D3LinePlot.js';
 import GmmBeta from './lib/GmmBeta.js';
 import Constraints from './lib/Constraints.js';
 import Tools from './lib/Tools.js';
-import NshmpError from './lib/NshmpError.js';
+import NshmpError from './error/NshmpError.js';
 
 
 /** 

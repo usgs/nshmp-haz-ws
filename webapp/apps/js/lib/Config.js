@@ -1,7 +1,7 @@
 'use strict';
 
 import Tools from './Tools.js';
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /**
 * @fileoverview Static method to read two possible config files:

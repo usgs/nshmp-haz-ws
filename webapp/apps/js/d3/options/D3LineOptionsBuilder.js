@@ -1,6 +1,6 @@
 
 import D3LineOptions from'./D3LineOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Builder for D3LineOptions

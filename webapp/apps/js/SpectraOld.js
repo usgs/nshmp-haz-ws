@@ -2,7 +2,7 @@
 
 import D3LinePlot from './lib/D3LinePlot.js';
 import Gmm from './lib/Gmm.js';
-import NshmpError from './lib/NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 import Tools from './lib/Tools.js';
 
 /** 

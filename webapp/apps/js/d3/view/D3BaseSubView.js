@@ -1,6 +1,6 @@
 
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @package

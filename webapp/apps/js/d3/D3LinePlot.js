@@ -4,7 +4,7 @@ import D3LineSubView from './view/D3LineSubView.js';
 import D3LineData from './data/D3LineData.js';
 import D3LineSeriesData from './data/D3LineSeriesData.js';
 import D3LineAxes from './axes/D3LineAxes.js';
-import NshmpError from '../lib/NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /**
  * @fileoverview Plot D3LineData

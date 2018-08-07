@@ -4,7 +4,7 @@ import D3View from './D3View.js';
 import D3SaveFigure from './D3SaveFigure.js';
 import D3Tooltip from './D3Tooltip.js';
 import Tools from './Tools.js';
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /**
 * @class D3GeoDeagg

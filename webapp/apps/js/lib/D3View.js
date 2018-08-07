@@ -2,7 +2,7 @@
 
 import D3SaveFigure from './D3SaveFigure.js';
 import D3SaveData from './D3SaveData.js';
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /**
 * @class D3View

@@ -1,7 +1,7 @@
 
 import D3BaseViewOptionsBuilder from './D3BaseViewOptionsBuilder.js';
 import D3LineViewOptions from './D3LineViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Builder for D3LineViewOptions.

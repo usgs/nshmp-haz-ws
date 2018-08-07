@@ -5,7 +5,7 @@ import D3GeoDeagg from './lib/D3GeoDeagg.js';
 import Footer from './lib/Footer.js';
 import Header from './lib/Header.js';
 import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
-import NshmpError from './lib/NshmpError.js';
+import NshmpError from './error/NshmpError.js';
 import Spinner from './lib/Spinner.js';
 import Tools from './lib/Tools.js';
 

@@ -4,7 +4,7 @@ import D3LineSubView from './D3LineSubView.js';
 import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
 import D3LineViewBuilder from './D3LineViewBuilder.js';
 import D3LineViewOptions from '../options/D3LineViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Create a view for line plots. The view can 

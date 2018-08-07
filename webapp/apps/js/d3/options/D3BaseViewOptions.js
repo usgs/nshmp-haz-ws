@@ -1,6 +1,6 @@
 
 import D3BaseViewOptionsBuilder from './D3BaseViewOptionsBuilder.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Create options for D3BaseView. 

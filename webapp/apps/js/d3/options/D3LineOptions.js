@@ -1,6 +1,6 @@
 
 import D3LineOptionsBuilder from './D3LineOptionsBuilder.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Options for customizing a line in a line plot.

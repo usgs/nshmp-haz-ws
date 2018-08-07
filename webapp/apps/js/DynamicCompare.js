@@ -4,7 +4,7 @@ import Constraints from './lib/Constraints.js';
 import D3LinePlot from './lib/D3LinePlot.js';
 import Hazard from './lib/HazardNew.js';
 import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
-import NshmpError from './lib/NshmpError.js';
+import NshmpError from './error/NshmpError.js';
 import Tools from './lib/Tools.js';
 
 /**

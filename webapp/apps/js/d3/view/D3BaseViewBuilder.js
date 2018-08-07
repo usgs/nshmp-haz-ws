@@ -2,7 +2,7 @@
 import D3BaseView from './D3BaseView.js';
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
 import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Builder for D3BaseView.

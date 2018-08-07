@@ -3,7 +3,7 @@ import D3LineDataBuilder from './D3LineDataBuilder.js';
 import D3LineSubView from '../view/D3LineSubView.js';
 import D3LineOptions from '../options/D3LineOptions.js';
 import D3LineSeriesData from './D3LineSeriesData.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Create the data series for line plots.

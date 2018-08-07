@@ -2,7 +2,7 @@
 import D3LineData from '../data/D3LineData.js';
 import D3LineSubView from '../view/D3LineSubView.js';
 import D3LineView from '../view/D3LineView.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
 
 /**
  * @fileoverview Add X and Y axes, axes labels, and gridlines to
