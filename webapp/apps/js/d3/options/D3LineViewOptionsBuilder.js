@@ -92,6 +92,7 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
     this._syncXAxisScale = bool;
 
     if (bool) {
+      NshmpError.checkArgumentString(scale);
       scale = scale.toLowerCase();
       NshmpError.checkArgument(
           scale == 'log' || scale == 'linear',
@@ -114,6 +115,8 @@ export default class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
     this._syncYAxisScale = bool;
     
     if (bool) {
+      NshmpError.checkArgumentString(scale);
+      scale = scale.toLowerCase();
       NshmpError.checkArgument(
           scale == 'log' || scale == 'linear',
           `Y axis scale [${scale}] not supported`);
