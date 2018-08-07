@@ -3,7 +3,7 @@ import D3LineDataBuilder from './D3LineDataBuilder.js';
 import D3LineSubView from '../view/D3LineSubView.js';
 import D3LineOptions from '../options/D3LineOptions.js';
 import D3LineSeriesData from './D3LineSeriesData.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create the data series for line plots.
@@ -24,7 +24,7 @@ export default class D3LineData {
    * @param {D3LineDataBuilder} builder The builder
    */
   constructor(builder) {
-    NshmpError.checkArgumentInstanceOf(builder, D3LineDataBuilder);
+    Preconditions.checkArgumentInstanceOf(builder, D3LineDataBuilder);
 
     /** 
      * The color scheme for plotting.
@@ -161,7 +161,7 @@ export default class D3LineData {
    * @returns {Array<D3LineSeriesData>} The new array of D3SeriesData
    */
   toMarkerSeries(series) {
-    NshmpError.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
 
     let markerSeries = [];
     for (let data of series.data) {

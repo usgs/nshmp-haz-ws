@@ -1,6 +1,6 @@
 
 import D3LineOptions from'./D3LineOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3LineOptions
@@ -53,7 +53,7 @@ export default class D3LineOptionsBuilder {
    * @param {D3LineOptions} options The options to copy
    */
   fromCopy(options) {
-    NshmpError.checkArgumentInstanceOf(options, D3LineOptions);
+    Preconditions.checkArgumentInstanceOf(options, D3LineOptions);
     
     this._color = options.color;
     this._id = options.id;
@@ -78,7 +78,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} color The line color 
    */
   color(color) {
-    NshmpError.checkArgumentString(color);
+    Preconditions.checkArgumentString(color);
     this._color = color;
     return this;
   }
@@ -89,7 +89,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} id The id of the line 
    */
   id(id) {
-    NshmpError.checkArgumentString(id);
+    Preconditions.checkArgumentString(id);
     this._id = id;
     return this;
   }
@@ -100,7 +100,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} label The label for the line 
    */
   label(label) {
-    NshmpError.checkArgumentString(label);
+    Preconditions.checkArgumentString(label);
     this._label = label;
     return this;
   }
@@ -117,7 +117,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} style 
    */
   lineStyle(style) {
-    NshmpError.checkArgumentString(style);
+    Preconditions.checkArgumentString(style);
     this._lineStyle = style.toLowerCase();
     return this;
   }
@@ -129,7 +129,7 @@ export default class D3LineOptionsBuilder {
    * @param {Number} width The line width 
    */
   lineWidth(width) {
-    NshmpError.checkArgumentNumber(width);
+    Preconditions.checkArgumentNumber(width);
     this._lineWidth = width;
     return this;
   }
@@ -142,7 +142,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} color 
    */
   markerColor(color) {
-    NshmpError.checkArgumentString(color);
+    Preconditions.checkArgumentString(color);
     this._markerColor = color;
     return this;
   }
@@ -155,7 +155,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} color The marker edge color 
    */
   markerEdgeColor(color) {
-    NshmpError.checkArgumentString(color);
+    Preconditions.checkArgumentString(color);
     this._markerEdgeColor = color;
     return this;
   }
@@ -167,7 +167,7 @@ export default class D3LineOptionsBuilder {
    * @param {Number} width The marker edge width 
    */
   markerEdgeWidth(width) {
-    NshmpError.checkArgumentNumber(width);
+    Preconditions.checkArgumentNumber(width);
     this._markerEdgeWidth = width;
     return this;
   }
@@ -178,7 +178,7 @@ export default class D3LineOptionsBuilder {
    * @type {Number}
    */
   markerSize(size) {
-    NshmpError.checkArgumentNumber(size);
+    Preconditions.checkArgumentNumber(size);
     this._markerSize = size;
     return this;
   }
@@ -200,7 +200,7 @@ export default class D3LineOptionsBuilder {
    * @param {String} marker 
    */
   markerStyle(marker) {
-    NshmpError.checkArgumentString(marker);
+    Preconditions.checkArgumentString(marker);
     this._markerStyle = marker.toLowerCase();
     return this;
   }
@@ -211,7 +211,7 @@ export default class D3LineOptionsBuilder {
    * @type {Boolean}
    */
   showInLegend(bool) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._showInLegend = bool;
     return this;
   }

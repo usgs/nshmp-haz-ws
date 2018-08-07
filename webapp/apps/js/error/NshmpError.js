@@ -22,16 +22,21 @@ export default class NshmpError extends Error {
     }
 
     this.message = errorMessage;
-    let els = this._createErrorModal();
-    this.el =  els.get('el');
-    this.headerEl = els.get('headerEl');
-    this.bodyEl = els.get('bodyEl');
+    try {
+      let els = this._createErrorModal();
+      this.el =  els.get('el');
+      this.headerEl = els.get('headerEl');
+      this.bodyEl = els.get('bodyEl');
+      this.footerEl = els.get('footerEl');
 
-    $(this.el).modal({backdrop: 'static'});
+      $(this.el).modal({backdrop: 'static'});
 
-    $(this.el).on('hidden.bs.modal', (event) => {
-      d3.select(this.el).remove();
-    });
+      $(this.el).on('hidden.bs.modal', (event) => {
+        d3.select(this.el).remove();
+      });
+    } catch (err) {
+      alert(`${err} \n ${this.message}`);
+    }
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, NshmpError);
@@ -39,122 +44,10 @@ export default class NshmpError extends Error {
   }
 
   /**
-   * Ensures the truth of an expression 
-   * @param {Boolean} expression Expression to check 
-   * @param {String} errorMessage The exception message to use if the
-   *    expression fails
-   */
-  static checkArgument(expression, errorMessage) {
-    if (!expression) {
-      throw new NshmpError(`IllegalArgumentException: ${errorMessage}`);
-    }
-  }
-
-  /**
-   * Check whether an argument is an arrray.
-   * 
-   * @param {Array} arr The array to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentArray(arr, errorMessage = 'Must be an array') {
-    NshmpError.checkArgument(Array.isArray(arr), errorMessage);
-  }
-
-  /**
-   * Check whether an argument is an array and all elements inside the
-   *    array are of a specificed type.
-   * 
-   * @param {Array} arr The array to test 
-   * @param {String} typeOf The type of data inside the array
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentArrayOf(arr, typeOf, errorMessage = 'Must be an array') {
-    NshmpError.checkArgument(Array.isArray(arr), errorMessage);
-
-    for (let data of arr) {
-      NshmpError.checkArgument(typeof(data) == typeOf, `Must be a [${typeOf}]`);
-    }
-  }
-
-  /**
-   * Check whether an argument is a boolean.
-   * 
-   * @param {Boolean} bool The boolean to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentBoolean(bool, errorMessage = 'Must be a boolean') {
-    NshmpError.checkArgument(typeof bool == 'boolean', errorMessage);
-  }
-
-  /**
-   * Check whether an argument is a integer.
-   * 
-   * @param {Number} int The number to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentInteger(int, errorMessage = 'Must be an integer') {
-    NshmpError.checkArgument(Number.isInteger(int), errorMessage);
-  }
-
-  /**
-   * 
-   * @param {Object} instance 
-   * @param {Object} type 
-   */
-  static checkArgumentInstanceOf(instance, type) {
-    NshmpError.checkArgument(
-        instance instanceof type,
-        `Must be instance of ${type.name}`);
-  }
-
-  /**
-   * Check whether an argument is a number.
-   * 
-   * @param {Number} num The number to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentNumber(num, errorMessage = 'Must be a number') {
-    NshmpError.checkArgument(typeof num == 'number', errorMessage);
-  }
-
-  /**
-   * Check whether an argument is a object.
-   * 
-   * @param {Object} obj The object to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentObject(obj, errorMessage = 'Must be an object') {
-    NshmpError.checkArgument(typeof obj == 'object', errorMessage);
-  }
-
-  /**
-   * Check whether an argument is a string.
-   * 
-   * @param {String} str The string to test 
-   * @param {String=} errorMessage An optional error message to show
-   */
-  static checkArgumentString(str, errorMessage = 'Must be a string') {
-    NshmpError.checkArgument(typeof str == 'string', errorMessage);
-  }
-
-  /**
-   * Ensures the truth of an expression 
-   * @param {Boolean} expression Expression to check 
-   * @param {String} errorMessage The exception message to use if the
-   *    expression fails
-   */
-  static checkState(expression, errorMessage) {
-    if (!expression) {
-      throw new NshmpError(`IllegalStateException: ${errorMessage}`);
-    }
-  }
-
-  /**
    * Check an array of web service responses to see if any web service
    *    response has "status" = "error".
    * 
-   * If a web service has an error, a native JavaScript 
-   *    Error is thrown to allow a catch method to catch it.
+   * If a web service has an error a NshmpError is thrown
    * 
    * If a web service response has status error and the 
    *    supplied plot has a method clearData, it will be invoked
@@ -171,7 +64,7 @@ export default class NshmpError extends Error {
       let status = response.status;
       if (status == 'error') {
         hasError = true;
-        errorMessage += '<p>' + response.message + '</p> \n';
+        errorMessage += `<p> ${response.message} </p> \n`;
       }
     }
 
@@ -183,7 +76,7 @@ export default class NshmpError extends Error {
         }
       }
       
-      throw new Error(errorMessage);
+      throw new NshmpError(errorMessage);
     }
   }
 
@@ -230,6 +123,7 @@ export default class NshmpError extends Error {
     let overlayD3 = d3.select('body')
         .append('div')
         .attr('class', 'modal error-modal')
+        .attr('id', 'error-modal')
         .attr('tabindex', '-1')
         .attr('role', 'dialog');
 
@@ -248,13 +142,73 @@ export default class NshmpError extends Error {
 
     let headerEl = this._createModalHeader(contentEl);
     let bodyEl = this._createModalBody(contentEl);
+    let footerEl = this._createModalFooter(contentEl);
 
     let els = new Map();
     els.set('el', el);
     els.set('headerEl', headerEl);
     els.set('bodyEl', bodyEl);
+    els.set('footerEl', footerEl);
 
     return els;
+  }
+
+  /**
+   * Add modal footer with collapsible panel with stack trace
+   * @param {HTMLElement} modalEl 
+   */
+  _createModalFooter(modalEl) {
+    let footerD3 = d3.select(modalEl)
+        .append('div')
+        .attr('class', 'panel-footer');
+
+    let footerTextD3 = footerD3.append('div')
+        .attr('role', 'button')
+        .attr('data-toggle', 'collapse')
+        .attr('data-parent', '#error-modal')
+        .attr('href', '#stack-trace')
+        .attr('aria-expanded', 'false')
+        .attr('aria-controls', 'stack-trace')
+        .text('Stack trace');
+
+    let chevronD3 = footerTextD3.append('span')
+        .attr('class', 'pull-right glyphicon glyphicon-chevron-down');
+
+    let collapseD3 = d3.select(modalEl)
+        .append('div')
+        .attr('class', 'panel-collapse collapse')
+        .attr('id', 'stack-trace')
+        .attr('role', 'tabpanel');
+    
+    collapseD3.append('div')
+        .attr('class', 'panel-body')
+        .text(this.stack);
+
+    let collapseEl = collapseD3.node();
+    let chevronEl = chevronD3.node();
+    this._collapseStackTraceListener(collapseEl, chevronEl);
+
+    return footerD3.node();    
+  }
+
+  /**
+   * Set event listeners for the collapsing panel
+   * @param {HTMLElement} collapseEl
+   * @param {HTMLElement} chevronEl 
+   */
+  _collapseStackTraceListener(collapseEl, chevronEl) {
+    let chevronDown = 'glyphicon-chevron-down';
+    let chevronUp = 'glyphicon-chevron-up';
+
+    $(collapseEl).on('show.bs.collapse', () => {
+      chevronEl.classList.remove(chevronDown);
+      chevronEl.classList.add(chevronUp);
+    });
+
+    $(collapseEl).on('hide.bs.collapse', () => {
+      chevronEl.classList.remove(chevronUp);
+      chevronEl.classList.add(chevronDown);
+    });
   }
 
   /**

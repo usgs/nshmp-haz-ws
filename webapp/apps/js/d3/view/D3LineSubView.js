@@ -1,7 +1,7 @@
 
 import D3BaseSubView from './D3BaseSubView.js';
 import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @package
@@ -124,9 +124,8 @@ export default class D3LineSubView extends D3BaseSubView {
     };
 
     for (let el of Object.values(els)) {
-      NshmpError.checkState(
-        el instanceof SVGElement && el != undefined && el != null,
-        `SVG element [${el}] not defined`);
+      Preconditions.checkStateInstanceOfSVGElement(el);
+      Preconditions.checkNotUndefined(el);
     }
 
     return els;

@@ -6,7 +6,7 @@ import Header from './Header.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
 import Tools from './Tools.js';
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 
 /** 
 * @fileoverview Parent class for ground motion model based web apps including:

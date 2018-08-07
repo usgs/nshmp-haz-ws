@@ -1,5 +1,6 @@
 
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
+import Preconditions from '../error/Preconditions.js';
 
 /**
  * @fileoverview This class will save a SVG element as a figure. 
@@ -54,7 +55,7 @@ export default class D3SaveFigure {
    * @property {Number} titleFontSize Title font size in px. 
    */ 
   constructor(builder) {
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
       builder.constructor.name == 'Builder',
       'Must use D3SaveFigure.Builder');
 
@@ -186,10 +187,10 @@ export default class D3SaveFigure {
        * @return Save the SVG element as a figure.
        */
       build() {
-        NshmpError.checkState(this._plotHeight, 'Current SVG height not set');
-        NshmpError.checkState(this._plotWidth, 'Current SVG width not set');
-        NshmpError.checkState(this._svgEl, 'SVG element not set');
-        NshmpError.checkState(
+        Preconditions.checkState(this._plotHeight, 'Current SVG height not set');
+        Preconditions.checkState(this._plotWidth, 'Current SVG width not set');
+        Preconditions.checkState(this._svgEl, 'SVG element not set');
+        Preconditions.checkState(
             this._options.printMetadata && this._metadata != null,
             'Metadata not set');
 
@@ -201,10 +202,7 @@ export default class D3SaveFigure {
        * @param {SVGElement} centerEl The SVG element 
        */
       centerSvgOnEl(centerEl) {
-        NshmpError.checkArgument(
-            centerEl instanceof SVGElement, 
-            'centerEl must be a SVG element');
-
+        Preconditions.checkArgumentInstanceOfSVGElement(centerEl);
         this._centerSvgOnEl = centerEl.cloneNode(true);
         return this;
       }
@@ -214,10 +212,7 @@ export default class D3SaveFigure {
        * @param {SVGElement} centerEl The SVG element 
        */
       centerTitleOnEl(centerEl) {
-        NshmpError.checkArgument(
-            centerEl instanceof SVGElement, 
-            'centerEl must be a SVG eLement');
-
+        Preconditions.checkArgumentInstanceOfSVGElement(centerEl);
         this._centerTitleOnEl = centerEl.cloneNode(true);
         return this;
       }
@@ -227,10 +222,7 @@ export default class D3SaveFigure {
        * @param {Number} width The width in pixels 
        */
       currentSvgWidth(width) {
-        NshmpError.checkArgument(
-            typeof width == 'number',
-            'width must be a number');
-
+        Preconditions.checkArgumentNumber(width);
         this._plotWidth = width;
         return this;
       }
@@ -240,10 +232,7 @@ export default class D3SaveFigure {
        * @param {Number} height The height in pixels 
        */
       currentSvgHeight(height) {
-        NshmpError.checkArgument(
-            typeof height == 'number',
-            'height must be a number');
-
+        Preconditions.checkArgumentNumber(width);
         this._plotHeight = height;
         return this;
       }
@@ -253,10 +242,7 @@ export default class D3SaveFigure {
        * @param {String} filename The download filename 
        */
       filename(filename) {
-        NshmpError.checkArgument( 
-            typeof filename === 'string',
-            'filename must be a string');
-
+        Preconditions.checkArgumentString(filename);
         this._filename = filename;
         return this;
       }
@@ -275,18 +261,11 @@ export default class D3SaveFigure {
        * @param {Map<String, Array<String>} metadata The metadata 
        */
       metadata(metadata) {
-        NshmpError.checkArgument(
-            metadata instanceof Map,
-            'metadata must be a Map');
+        Preconditions.checkArgumentInstanceOfMap(metadata);
         
         for (let [key, value] of metadata) {
-          NshmpError.checkArgument(
-              typeof key == 'string', 
-              'Metadata keys must be strings');
-          
-          NshmpError.checkArgument(
-              Array.isArray(value), 
-              'Metadata value must be an array of strings')
+          Preconditions.checkArgumentString(key);
+          Preconditions.checkArgumentArray(value);          
         }
         
         this._metadata = metadata;
@@ -299,11 +278,9 @@ export default class D3SaveFigure {
        * @param {String} format The download format 
        */
       plotFormat(format) {
-        NshmpError.checkArgument( 
-            typeof format == 'string',
-            'plotformat must be a string');
+        Preconditions.checkArgumentString(format);
 
-        NshmpError.checkArgument(
+        Preconditions.checkArgument(
           format == 'jpeg' || format == 'pdf' || 
               format == 'png' || format == 'svg',
           `[${format}] not supported`);
@@ -317,10 +294,7 @@ export default class D3SaveFigure {
        * @param {String} title The plot title 
        */
       plotTitle(title) {
-        NshmpError.checkArgument( 
-            typeof title == 'string',
-            'title must be a string');
-
+        Preconditions.checkArgumentString(title);
         this._plotTitle = title;
         return this;
       }
@@ -339,10 +313,7 @@ export default class D3SaveFigure {
        * @param {SVGElement} svgEl The SVG element to turn into a figure 
        */
       svgEl(svgEl) {
-        NshmpError.checkArgument(
-            svgEl instanceof SVGElement, 
-            'svgEl must be a SVG element');
-
+        Preconditions.checkArgumentInstanceOfSVGElement(svgEl);
         this._svgEl = svgEl.cloneNode(true);
         return this;
       }
@@ -357,11 +328,11 @@ export default class D3SaveFigure {
   _addFooter(svgEl) {
     if (!this.options.printFooter) return;
    
-    NshmpError.checkState(
+    Preconditions.checkState(
         this.metadata.has('url'), 
         'URL not found in metadata');
 
-    NshmpError.checkState(
+    Preconditions.checkState(
       this.metadata.has('date'), 
       'Date not found in metadata');
     

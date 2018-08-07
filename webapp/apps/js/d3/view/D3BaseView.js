@@ -3,7 +3,8 @@ import D3BaseSubView from './D3BaseSubView.js';
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
 import D3BaseViewBuilder from './D3BaseViewBuilder.js';
 import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import NshmpError from '../../error/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create a base view for plots to reside. The view 
@@ -25,9 +26,7 @@ export default class D3BaseView {
    * @param {D3BaseViewBuilder} builder The builder 
    */
   constructor(builder) {
-    NshmpError.checkArgument(
-        builder instanceof D3BaseViewBuilder,
-      'Must be an instance of D3BaseViewBuilder');
+    Preconditions.checkArgumentInstanceOf(builder, D3BaseViewBuilder);
 
     /** @type {Boolean} Whether to add a footer in the view */
     this.addFooter = builder._addFooter;

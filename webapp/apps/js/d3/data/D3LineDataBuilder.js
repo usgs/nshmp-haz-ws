@@ -3,7 +3,7 @@ import D3LineData from './D3LineData.js';
 import D3LineSubView from '../view/D3LineSubView.js';
 import D3LineOptions from '../options/D3LineOptions.js';
 import D3LineSeriesData from './D3LineSeriesData.js'; 
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3LineData
@@ -37,9 +37,8 @@ export default class D3LineDataBuilder {
    * @return {D3LineData} new D3Data
    */
   build() {
-    NshmpError.checkArgument(
-      this._subView != undefined && this._subView != null,
-      'Must set sub view');
+    Preconditions.checkNotNull(this._subView, 'Must set subView');
+    Preconditions.checkNotUndefined(this._subView, 'Must set subView');
 
     this._colorScheme = this._updateColorScheme();
 
@@ -54,7 +53,7 @@ export default class D3LineDataBuilder {
    * @param {Array<String>} scheme Array of colors 
    */
   colorScheme(scheme) {
-    NshmpError.checkArgumentArrayOf(scheme, 'string');
+    Preconditions.checkArgumentArrayOf(scheme, 'string');
     this._colorScheme = scheme;
     return this;
   }
@@ -68,13 +67,13 @@ export default class D3LineDataBuilder {
    *    The line options for the data
    */
   data(xValues, yValues, lineOptions = D3LineOptions.withDefaults()) {
-    NshmpError.checkArgumentArray(xValues);
-    NshmpError.checkArgumentArray(yValues);
-    NshmpError.checkArgument(
+    Preconditions.checkArgumentArrayOf(xValues, 'number');
+    Preconditions.checkArgumentArrayOf(yValues, 'number');
+    Preconditions.checkArgument(
         xValues.length == yValues.length, 
         'Arrays must have same length');
    
-    NshmpError.checkArgumentInstanceOf(lineOptions, D3LineOptions);
+    Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
 
     let xyValues = d3.zip(xValues, yValues);
     let seriesData = new D3LineSeriesData(xyValues, lineOptions);
@@ -94,8 +93,8 @@ export default class D3LineDataBuilder {
     let subViewType = lineData[0].subView.options.subViewType;
 
     for (let data of lineData) {
-      NshmpError.checkArgumentInstanceOf(data, D3LineData);
-      NshmpError.checkArgument(
+      Preconditions.checkArgumentInstanceOf(data, D3LineData);
+      Preconditions.checkState(
           data.subView.options.subViewType == subViewType,
           'Must all be same sub view type');
 
@@ -126,7 +125,7 @@ export default class D3LineDataBuilder {
    * @param {D3LineSubView} view The sub view to plot the data 
    */
   subView(view) {
-    NshmpError.checkArgumentInstanceOf(view, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(view, D3LineSubView);
     this._subView = view;
     return this;
   }
@@ -138,9 +137,9 @@ export default class D3LineDataBuilder {
    * @param {Array<Number>} lim The X axis limits: [ xMin, xMax ]
    */
   xLimit(lim) {
-    NshmpError.checkArgumentArrayOf(lim, 'number');
-    NshmpError.checkArgument(lim.length == 2, 'Must contain 2 numbers');
-    NshmpError.checkArgument(lim[1] > lim[0], 'xMax must be greater than xMin');
+    Preconditions.checkArgumentArrayLength(lim, 2);
+    Preconditions.checkArgumentArrayOf(lim, 'number');
+    Preconditions.checkArgument(lim[1] > lim[0], 'xMax must be greater than xMin');
 
     this._xLimit = lim; 
     return this;
@@ -153,7 +152,7 @@ export default class D3LineDataBuilder {
    * @param {Boolean} bool To reverse Y axis
    */
   yAxisReverse(bool) {
-    NshmpError.checkArgumentBoolean(bool);
+    Preconditions.checkArgumentBoolean(bool);
     this._yAxisReverse = bool;
     return this;
   }
@@ -165,9 +164,9 @@ export default class D3LineDataBuilder {
    * @param {Array<Number>} lim The Y axis limits: [ yMin, yMax ]
    */
   yLimit(lim) {
-    NshmpError.checkArgumentArrayOf(lim, 'number');
-    NshmpError.checkArgument(lim.length == 2, 'Must contain 2 numbers');
-    NshmpError.checkArgument(lim[1] > lim[0], 'yMax must be greater than yMin');
+    Preconditions.checkArgumentArrayLength(lim, 2);
+    Preconditions.checkArgumentArrayOf(lim, 'number');
+    Preconditions.checkArgument(lim[1] > lim[0], 'yMax must be greater than yMin');
 
     this._yLimit = lim; 
     return this;

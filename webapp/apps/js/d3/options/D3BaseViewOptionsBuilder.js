@@ -1,6 +1,6 @@
 
 import D3BaseViewOptions from './D3BaseViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3BaseViewOptions
@@ -36,7 +36,7 @@ export default class D3BaseViewOptionsBuilder {
    *    'min' || 'minCenter' || 'max' 
    */
   viewSize(size) {
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         size == 'min' || size == 'minCenter' || size == 'max',
         `View size [${size}] not supported`);
     this._viewSizeDefault = size;
@@ -50,7 +50,7 @@ export default class D3BaseViewOptionsBuilder {
    *    viewSize is 'min'
    */
   viewSizeMin(size) {
-    NshmpError.checkArgumentString(size);
+    Preconditions.checkArgumentString(size);
     this._viewSizeMin = size;
     return this;
   }
@@ -62,7 +62,7 @@ export default class D3BaseViewOptionsBuilder {
    *    viewSize is 'minCenter'
    */
   viewSizeMinCenter(size) {
-    NshmpError.checkArgumentString(size);
+    Preconditions.checkArgumentString(size);
     this._viewSizeMinCenter = size;
     return this;
   }
@@ -74,7 +74,7 @@ export default class D3BaseViewOptionsBuilder {
    *    viewSize is 'max'
    */
   viewSizeMax(size) {
-    NshmpError.checkArgumentString(size);
+    Preconditions.checkArgumentString(size);
     this._viewSizeMax = size;
     return this;
   }

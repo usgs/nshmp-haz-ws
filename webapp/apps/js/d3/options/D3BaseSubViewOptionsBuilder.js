@@ -1,6 +1,6 @@
 
 import D3BaseSubViewOptions from './D3BaseSubViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3BaseSubViewOptions
@@ -56,7 +56,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The bottom margin 
    */
   marginBottom(margin) {
-    NshmpError.checkArgumentInteger(margin);
+    Preconditions.checkArgumentInteger(margin);
     this._marginBottom = margin; 
     return this;
   }
@@ -68,7 +68,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The left margin 
    */
   marginLeft(margin) {
-    NshmpError.checkArgumentInteger(margin);
+    Preconditions.checkArgumentInteger(margin);
     this._marginLeft = margin;
     return this;
   }
@@ -80,7 +80,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The right margin 
    */
   marginRight(margin) {
-    NshmpError.checkArgumentInteger(margin);
+    Preconditions.checkArgumentInteger(margin);
     this._marginRight = margin;
     return this;
   }
@@ -92,7 +92,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The top margin 
    */
   marginTop(margin) {
-    NshmpError.checkArgumentInteger(margin);
+    Preconditions.checkArgumentInteger(margin);
     this._marginTop = margin;
     return this;
   }
@@ -104,7 +104,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The bottom margin 
    */
   paddingBottom(padding) {
-    NshmpError.checkArgumentInteger(padding);
+    Preconditions.checkArgumentInteger(padding);
     this._paddingBottom = padding; 
     return this;
   }
@@ -116,7 +116,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The left margin 
    */
   paddingLeft(padding) {
-    NshmpError.checkArgumentInteger(padding);
+    Preconditions.checkArgumentInteger(padding);
     this._paddingLeft = padding; 
     return this;
   }
@@ -128,7 +128,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The right margin 
    */
   paddingRight(padding) {
-    NshmpError.checkArgumentInteger(padding);
+    Preconditions.checkArgumentInteger(padding);
     this._paddingRight = padding; 
     return this;
   }
@@ -140,7 +140,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {Number} margin The top margin 
    */
   paddingTop(padding) {
-    NshmpError.checkArgumentInteger(padding);
+    Preconditions.checkArgumentInteger(padding);
     this._paddingTop = padding; 
     return this;
   }
@@ -152,7 +152,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {number} height The plot height
    */
   plotHeight(height) {
-    NshmpError.checkArgumentInteger(height);
+    Preconditions.checkArgumentInteger(height);
     this._plotHeight = height;
     return this;
   }
@@ -164,7 +164,7 @@ export default class D3BaseSubViewOptionsBuilder {
    * @param {number} width The plot width
    */
   plotWidth(width) {
-    NshmpError.checkArgumentInteger(width);
+    Preconditions.checkArgumentInteger(width);
     this._plotWidth = width;
     return this;
   }
@@ -176,7 +176,7 @@ export default class D3BaseSubViewOptionsBuilder {
     let heightCheck = this._plotHeight - 
         this._marginBottom - this._marginTop;
 
-    NshmpError.checkState(
+    Preconditions.checkState(
       heightCheck > 0,
       'Height must be greater than (marginTop + marginBottom)');
   }
@@ -188,7 +188,7 @@ export default class D3BaseSubViewOptionsBuilder {
     let widthCheck = this._plotWidth - 
         this._marginLeft - this._marginRight;
 
-    NshmpError.checkState(
+    Preconditions.checkState(
       widthCheck > 0,
       'Width must be greater than (marginLeft + marginRight)');
   }
@@ -198,7 +198,7 @@ export default class D3BaseSubViewOptionsBuilder {
    */
   _type(type) {
     type = type.toLowerCase();
-    NshmpError.checkArgument(
+    Preconditions.checkArgument(
         type == 'lower' || type == 'upper',
         `Sub view type [${type}] not supported`);
 

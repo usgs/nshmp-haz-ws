@@ -4,7 +4,7 @@ import D3LineSubView from './D3LineSubView.js';
 import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
 import D3LineViewBuilder from './D3LineViewBuilder.js';
 import D3LineViewOptions from '../options/D3LineViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create a view for line plots. The view can 
@@ -48,7 +48,7 @@ export default class D3LineView extends D3BaseView {
    * @returns {String} The X axis scale: 'log' || 'linear'
    */
   getXAxisScale(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
 
     return this.viewOptions.syncXAxisScale ? this.viewOptions.xAxisScale :
         subView.options.xAxisScale;
@@ -61,7 +61,7 @@ export default class D3LineView extends D3BaseView {
    * @returns {String} The Y axis scale: 'log' || 'linear'
    */
   getYAxisScale(subView) {
-    NshmpError.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
 
     return this.viewOptions.syncYAxisScale ? this.viewOptions.yAxisScale :
         subView.options.yAxisScale;
@@ -194,9 +194,8 @@ export default class D3LineView extends D3BaseView {
     footer.yLogBtnEl = yAxisEls.yLogBtnEl;
 
     for (let el of Object.values(footer)) {
-      NshmpError.checkState(
-        el instanceof HTMLElement && el != undefined && el != null,
-        `HTML element [${el}] not defined`);
+      Preconditions.checkStateInstanceOfHTMLElement(el);
+      Preconditions.checkNotUndefined(el);
     }
 
     return footer;

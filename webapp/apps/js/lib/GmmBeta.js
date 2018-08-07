@@ -4,7 +4,7 @@ import Constraints from './Constraints.js';
 import ControlPanel from './ControlPanel.js';
 import Footer from './Footer.js';
 import Header from './Header.js';
-import NshmpError from './NshmpError.js';
+import NshmpError from '../error/NshmpError.js';
 import Settings from './Settings.js';
 import Spinner from './Spinner.js';
 import Tools from './Tools.js';

@@ -2,7 +2,7 @@
 import D3BaseView from './D3BaseView.js';
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
 import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Builder for D3BaseView.
@@ -44,8 +44,8 @@ export default class D3BaseViewBuilder {
    * Return a new D3BaseView 
    */
   build() {
-    NshmpError.checkState(
-        this._containerEl != undefined, 
+    Preconditions.checkNotUndefined(
+        this._containerEl,
         'Container element not set');
     return new D3BaseView(this);
   }
@@ -106,9 +106,7 @@ export default class D3BaseViewBuilder {
    * @param {HTMLElement} el The container element to put the view. 
    */
   setContainerEl(el) {
-    NshmpError.checkArgument(
-      el instanceof HTMLElement,
-      'containerEl must be a HTMLElement');
+    Preconditions.checkArgumentInstanceOfHTMLElement(el);
     this._containerEl = el;
     return this;
   }
@@ -119,9 +117,7 @@ export default class D3BaseViewBuilder {
    * @param {D3BaseSubViewOptions} options The lower sub view options. 
    */
   setLowerSubViewOptions(options) {
-    NshmpError.checkArgument(
-        options instanceof D3BaseSubViewOptions,
-        'Must be of type D3BaseSubViewOptions');
+    Preconditions.checkArgumentInstanceOf(options, D3BaseSubViewOptions);
     this._lowerSubViewOptions = options;
     return this;
   }
@@ -132,9 +128,7 @@ export default class D3BaseViewBuilder {
    * @param {D3BaseSubViewOptions} options The upper sub view options.
    */
   setUpperSubViewOptions(options) {
-    NshmpError.checkArgument(
-        options instanceof D3BaseSubViewOptions,
-        'Must be of type D3BaseSubViewOptions');
+    Preconditions.checkArgumentInstanceOf(options, D3BaseSubViewOptions);
     this._upperSubViewOptions = options;
     return this;
   }
@@ -145,9 +139,7 @@ export default class D3BaseViewBuilder {
    * @param {D3BaseViewOptions} options The view options.
    */
   setViewOptions(options) {
-    NshmpError.checkArgument(
-        options instanceof D3BaseViewOptions,
-        'Must be of type D3BaseViewOptions');
+    Preconditions.checkArgumentInstanceOf(options, D3BaseViewOptions);
     this._viewOptions = options;
     return this;
   }

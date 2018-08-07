@@ -1,6 +1,6 @@
 
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
-import NshmpError from '../../lib/NshmpError.js';
+import Preconditions from '../../error/Preconditions.js';
 
 /**
  * @package
@@ -19,13 +19,8 @@ export default class D3BaseSubView {
    * @param {D3BaseSubViewOptions} options The sub view options
    */
   constructor(containerEl, options) {
-    NshmpError.checkArgument(
-        containerEl instanceof HTMLElement, 
-        'containerEl must be HTMLElement');
-
-    NshmpError.checkArgument(
-        options instanceof D3BaseSubViewOptions,
-        'Options must be instance of D3BaseSubViewOptions');
+    Preconditions.checkArgumentInstanceOfHTMLElement(containerEl);
+    Preconditions.checkArgumentInstanceOf(options, D3BaseSubViewOptions);
 
     /** @type {HTMLElement} Container element to append sub view */
     this.containerEl = containerEl;
