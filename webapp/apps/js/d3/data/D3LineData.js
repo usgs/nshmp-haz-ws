@@ -175,6 +175,22 @@ export default class D3LineData {
   }
 
   /**
+   * Return an Array<D3LineSeriesData> with only
+   *    D3LineOptions.showLegend as true.
+   * 
+   * @returns {Array<D3LineSeriesData>}
+   */
+  toLegendSeries() {
+    let legendSeries = [];
+    for (let series of this.series) {
+      if (!series.lineOptions.showInLegend) continue;
+      legendSeries.push(series);
+    }
+
+    return legendSeries;
+  }
+
+  /**
    * @private
    * Get the max X value.
    */
@@ -233,13 +249,15 @@ export default class D3LineData {
   /** @private */
   _updateLineOptions() {
     let index = -1;
+    let colorIndex = -1;
 
     for (let data of this.series) {
       index++;
-      let color = data.lineOptions.color || this.colorScheme[index];
+      let color = data.lineOptions.color || this.colorScheme[++colorIndex];
       let id = data.lineOptions.id || `id${index}`;
       let label = data.lineOptions.label || `Line ${index}`;
-      let markerColor = data.lineOptions.markerColor || this.colorScheme[index];
+      let markerColor = data.lineOptions.markerColor || this.colorScheme[colorIndex];
+      markerColor = markerColor == undefined ? color : markerColor;
 
       data.lineOptions = D3LineOptions.builder().fromCopy(data.lineOptions)
           .color(color)
