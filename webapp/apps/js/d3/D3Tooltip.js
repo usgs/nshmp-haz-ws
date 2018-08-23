@@ -87,6 +87,7 @@ export default class D3Tooltip {
         .enter()
         .append('tr')
         .append('td')
+        .attr('nowrap', true)
         .text((/** @type {String} */ text) => { return text; });
     
     d3.select(subView.svg.tooltipEl).raise();
