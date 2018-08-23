@@ -43,7 +43,7 @@ export default class D3BaseSubView {
       
     /** @type {HTMLElement}  The sub view element */
     this.subViewBodyEl = this._createSubView();
-    /** @type {D3BaseSubView~BaseSubViewSVGEls} SVG elements */
+    /** @type {BaseSubViewSVGEls} SVG elements */
     this.svg = this._createSVGStructrue();
   }
 
@@ -53,10 +53,13 @@ export default class D3BaseSubView {
    * 
    * @returns {BaseSubViewSVGEls} The SVG elements.
    * 
-   * @typedef {Object} D3BaseSubView~BaseSubViewSVGEls - The base SVG elements
+   * @typedef {Object} BaseSubViewSVGEls - The base SVG elements
    * @property {SVGElement} innerPlotEl The inner plot group element
    * @property {SVGElement} outerPlotEl The outer plot group element
    * @property {SVGElement} svgEl The main SVG element
+   * @property {SVGElement} tooltipEl The tooltip group element
+   * @property {SVGElement} tooltipForeignObjectEl The tooltip foreign object
+   * @property {SVGElement} tooltipTableEl The tooltip entries
    */
   _createSVGStructrue() {
     let svgD3 = d3.select(this.subViewBodyEl) 
@@ -87,13 +90,30 @@ export default class D3BaseSubView {
         .attr('width', this.plotWidth)
         .attr('fill', 'none');
     
+    /* Tooltip Group */
+    let tooltipD3 = innerPlotD3.append('g')
+        .attr('class', 'd3-tooltip');
+
+    let tooltipForeignObjectD3 = tooltipD3.append('foreignObject');
+    let tooltipTableD3 = tooltipForeignObjectD3.append('xhtml:table');
+
     let els = {
       innerPlotEl: innerPlotD3.node(),
       innerFrameEl: innerFrameD3.node(),
       outerPlotEl: outerPlotD3.node(),
       outerFrameEl: outerFrameD3.node(),
       svgEl: svgD3.node(),
+      tooltipEl: tooltipD3.node(),
+      tooltipForeignObjectEl: tooltipForeignObjectD3.node(),
+      tooltipTableEl: tooltipTableD3.node(),
     };
+
+    for (let el of Object.values(els)) {
+      Preconditions.checkNotUndefined(el);
+      Preconditions.checkState(
+        el instanceof HTMLElement || el instanceof SVGElement,
+        'Element not defined');
+    }
 
     return els;
   }

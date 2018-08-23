@@ -24,7 +24,7 @@ export default class D3LineSubView extends D3BaseSubView {
     super(containerEl, options);
 
     /* Update types */
-    /** @type {D3LineSubView~D3LineSubViewSVGEls} Line plot SVG elements */
+    /** @type {D3LineSubViewSVGEls} Line plot SVG elements */
     this.svg;
     /** @type {D3LineSubViewOptions} Sub view options for line plot */
     this.options;
@@ -37,14 +37,18 @@ export default class D3LineSubView extends D3BaseSubView {
    * 
    * @returns {D3LineSubViewSVGEls} The SVG elements
    * 
-   * @typedef {Object} D3LineSubView~D3LineSubViewSVGEls - The line plot SVG elements
+   * @typedef {Object} D3LineSubViewSVGEls - The line plot SVG elements
    * @property {SVGElement} dataContainerEl The data container group element
    * @property {SVGElement} gridLinesEl The grid lines group element 
    * @property {SVGElement} legendEl The legend group element
+   * @property {SVGElement} legendForeignObjectEl The legend foreign object
+   * @property {SVGElement} legendTableEl The legend table for entries
    * @property {SVGElement} innerPlotEl The inner plot group element
    * @property {SVGElement} outerPlotEl The outer plot group element
    * @property {SVGElement} svgEl The main SVG element
    * @property {SVGElement} tooltipEl The tooltip group element
+   * @property {SVGElement} tooltipForeignObjectEl The tooltip foreign object
+   * @property {SVGElement} tooltipTableEl The tooltip entries
    * @property {SVGElement} xAxisEl The X axis group element
    * @property {SVGElement} xGridLinesEl The X axis grid lines group element
    * @property {SVGElement} xLabelEl The X label group element
@@ -59,6 +63,7 @@ export default class D3LineSubView extends D3BaseSubView {
     let svgEl = svg.svgEl;
     let outerPlotEl = svg.outerPlotEl; 
     let innerPlotEl = svg.innerPlotEl;
+    let tooltipEl = svg.tooltipEl;
 
     /* Grid Lines */
     let gridLinesD3 = d3.select(innerPlotEl)
@@ -98,21 +103,25 @@ export default class D3LineSubView extends D3BaseSubView {
     /* Legend Group */
     let legendD3 = d3.select(innerPlotEl)
         .append('g')
-        .attr('clas', 'legend'); 
+        .attr('class', 'legend'); 
 
-    /* Tooltip Group */
-    let tooltipD3 = d3.select(innerPlotEl)
-        .append('g')
-        .attr('class', 'd3-tooltip');
+    let legendForeignObjectD3 = legendD3.append('foreignObject');
+    let legendTableD3 = legendForeignObjectD3.append('xhtml:table');
+
+    d3.select(tooltipEl).raise();
 
     let els = {
       dataContainerEl: dataContainerD3.node(),
       gridLinesEl: gridLinesD3.node(),
       legendEl: legendD3.node(),
+      legendForeignObjectEl: legendForeignObjectD3.node(),
+      legendTableEl: legendTableD3.node(),
       innerPlotEl: innerPlotEl,
       outerPlotEl: outerPlotEl,
       svgEl: svgEl,
-      tooltipEl: tooltipD3.node(),
+      tooltipEl: tooltipEl, 
+      tooltipForeignObjectEl: svg.tooltipForeignObjectEl,
+      tooltipTableEl: svg.tooltipTableEl,
       xAxisEl: xAxisD3.node(),
       xGridLinesEl: xGridLinesD3.node(),
       xLabelEl: xLabelD3.node(),
@@ -124,8 +133,10 @@ export default class D3LineSubView extends D3BaseSubView {
     };
 
     for (let el of Object.values(els)) {
-      Preconditions.checkStateInstanceOfSVGElement(el);
       Preconditions.checkNotUndefined(el);
+      Preconditions.checkState(
+        el instanceof HTMLElement || el instanceof SVGElement,
+        'Element not defined');
     }
 
     return els;
