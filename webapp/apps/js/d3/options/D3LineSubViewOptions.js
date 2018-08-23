@@ -1,7 +1,7 @@
 
 import D3BaseSubViewOptions from './D3BaseSubViewOptions.js';
 import { D3BaseSubViewOptionsBuilder } from './D3BaseSubViewOptions.js';
-import D3LineLegendOptions from './D3LineLegendOptions.js';
+import { D3LineLegendOptions } from './D3LineLegendOptions.js';
 import Preconditions from '../../error/Preconditions.js';
 
 /**
@@ -225,7 +225,8 @@ export default class D3LineSubViewOptions extends D3BaseSubViewOptions {
     const LOWER_PLOT_HEIGHT = 224;
     return new D3LineSubViewOptionsBuilder()
         ._type('lower')
-        .plotHeight(LOWER_PLOT_HEIGHT);
+        .plotHeight(LOWER_PLOT_HEIGHT)
+        .legendOptions(D3LineLegendOptions.lowerWithDefaults());
   }
 
   /** 
@@ -282,7 +283,7 @@ export class D3LineSubViewOptionsBuilder
     /** @type {Number} */
     this._labelFontSize = 16;
     /** @type {D3LineLegendOptions} */
-    this._legendOptions = D3LineLegendOptions.withDefaults(); 
+    this._legendOptions = D3LineLegendOptions.upperWithDefaults();
     /** @type {String} */
     this._referenceLineColor = '#9E9E9E';
     /** @type {Number} */

@@ -87,7 +87,7 @@ export default class D3LineOptions {
 
     /**
      * The marker size.
-     * Default: 3.5
+     * Default: 6
      * @type {Number}
      */
     this.markerSize = builder._markerSize;
@@ -127,6 +127,12 @@ export default class D3LineOptions {
      * @type {Object}
      */
     this.d3Symbol = this._getD3Symbol();
+
+    /**
+     * The D3 symbol sizes are are, square pixels.
+     * @type {Number}
+     */
+    this.d3SymbolSize = Math.pow(this.markerSize, 2);
 
     /**
      * The D3 symbol rotate.
@@ -283,7 +289,7 @@ export class D3LineOptionsBuilder {
     /** @type {Number} */
     this._markerEdgeWidth = 0.5;
     /** @type {Number} */
-    this._markerSize = 3.5;
+    this._markerSize = 6.0;
     /** @type {Boolean} */
     this._showInLegend = true;
   }
@@ -424,7 +430,7 @@ export class D3LineOptionsBuilder {
 
   /**
    * The marker size.
-   * Default: 3.5
+   * Default: 6
    * @type {Number}
    */
   markerSize(size) {
