@@ -4,6 +4,8 @@ import D3LineSubView from './view/D3LineSubView.js';
 import D3LineData from './data/D3LineData.js';
 import D3LineSeriesData from './data/D3LineSeriesData.js';
 import D3LineAxes from './axes/D3LineAxes.js';
+import { D3LineLegend } from './legend/D3LineLegend.js';
+import D3Tooltip from './D3Tooltip.js';
 import Preconditions from '../error/Preconditions.js';
 
 /**
@@ -18,6 +20,17 @@ export default class D3LinePlot {
    * New D3LinePlot instance.
    * 
    * @param {D3LineView} view The line view 
+   * 
+   * @todo Add a D3View.legendIsChecked and D3View.gridlinesIsChecked method
+   * @todo Add gridlines check and legend check color options
+   * @todo Add plot selection ability
+   * @todo Add ability to sync upper and lower sub view selections
+   * @todo Add data view table and metadata view table
+   * @todo Add ablity to plot a reference line at zero
+   * @todo Add ability to reverse the Y axis
+   * @todo Add method to get a certain data element in the plot
+   * @todo Add method to remove small values from the data
+   * @todo How to deal with PGA values?
    */
   constructor(view) {
     Preconditions.checkArgumentInstanceOf(view, D3LineView);
@@ -35,6 +48,11 @@ export default class D3LinePlot {
     this.lowerLineData = undefined;
     this._setLineData(this._getDefaultLowerLineData());
 
+    /** @type {D3Tooltip} */
+    this.tooltip = new D3Tooltip();
+    /** @type {D3LineLegend} */
+    this.legend = new D3LineLegend();
+
     this._addDefaultAxes();
     this._addEventListeners();
   }
@@ -42,12 +60,14 @@ export default class D3LinePlot {
   /**
    * Clear all plots off a D3LineSubView.
    * 
-   * @param {D3LineSubView} subView The sub view to clear the plots
+   * @param {D3LineData} lineData 
    */
-  clear(subView) {
-    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+  clear(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
 
-    d3.select(subView.svg.dataContainerEl)
+    this.legend.remove(lineData);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('*')
         .remove();
   }
@@ -64,6 +84,7 @@ export default class D3LinePlot {
     let yScale = this._getCurrentYScale(lineData.subView);
     this.axes.createXAxis(lineData, xScale);
     this.axes.createYAxis(lineData, yScale);
+    this.legend.create(lineData);
   }
 
   /**
@@ -96,14 +117,21 @@ export default class D3LinePlot {
    * Add all event listeners
    */
   _addEventListeners() {
-    this.view.viewFooter.xAxisBtnEl
-        .addEventListener('click', () => { this._onXAxisClick(event); });
+    this.view.viewFooter.xAxisBtnEl.addEventListener('click', () => { 
+      this._onXAxisClick(event); 
+    });
     
-    this.view.viewFooter.yAxisBtnEl
-        .addEventListener('click', () => { this._onYAxisClick(event); });
+    this.view.viewFooter.yAxisBtnEl.addEventListener('click', () => { 
+      this._onYAxisClick(event); 
+    });
 
-    this.view.viewHeader.gridLinesCheckEl
-        .addEventListener('click', () => { this._onGridLineIconClick(); });
+    this.view.viewHeader.gridLinesCheckEl.addEventListener('click', () => { 
+      this._onGridLineIconClick(); 
+    });
+
+    this.view.viewHeader.legendCheckEl.addEventListener('click', () => {
+      this._onLegendIconClick();
+    });
   }
 
   /**
@@ -140,9 +168,10 @@ export default class D3LinePlot {
 
     /* Update upperLineData or lowerLineData */
     this._setLineData(updatedLineData);
-
-    this._plotLine(updatedLineData, seriesDataEnter);
-    this._plotSymbol(updatedLineData, seriesDataEnter);
+    
+    let seriesDataEnterEls = seriesDataEnter.nodes();
+    this._plotLine(updatedLineData, seriesDataEnterEls);
+    this._plotSymbol(updatedLineData, seriesDataEnterEls);
   }
 
   /**
@@ -241,6 +270,40 @@ export default class D3LinePlot {
   }
 
   /**
+   * 
+   * @param {D3LineData} lineData 
+   * @param {D3LineSeriesData} series 
+   */
+  _onDataSymbolMouseover(lineData, series) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
+    
+    let xyPair = series.data[0];
+    let tooltipX = this.axes.x(lineData, xScale, xyPair);
+    let tooltipY = this.axes.y(lineData, yScale, xyPair);
+
+    let tooltipText = [ 
+      series.lineOptions.label,
+      `${lineData.subView.options.xLabel}: ${xyPair.x}`,
+      `${lineData.subView.options.yLabel}: ${xyPair.y}`,
+    ];
+    
+    this.tooltip.create(lineData.subView, tooltipText, tooltipX, tooltipY);
+  }
+
+  /**
+   * 
+   * @param {D3LineData} lineData 
+   */
+  _onDataSymbolMouseout(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    this.tooltip.remove(lineData.subView);
+  }
+
+  /**
    * Event handler to add or remove the grid lines when the grid lines
    *    icon is clicked.
    */
@@ -254,6 +317,30 @@ export default class D3LinePlot {
       this._onRemoveGridLines();
     } else {
       this._onAddGridLines();
+    }
+  }
+
+  /**
+   * 
+   * @param {D3LineData} lineData 
+   */
+  _onLegendIconClick() {
+    let isChecked = this.view.viewHeader.legendCheckEl.getAttribute('checked');
+
+    if (isChecked) {
+      this.view.viewHeader.legendCheckEl.removeAttribute('checked');
+      this.legend.hide(this.upperLineData);
+
+      if (this.view.addLowerSubView) {
+        this.legend.hide(this.lowerLineData);
+      }
+    } else {
+      this.view.viewHeader.legendCheckEl.setAttribute('checked', 'true');
+      this.legend.show(this.upperLineData);
+
+      if (this.view.addLowerSubView) {
+        this.legend.show(this.lowerLineData);
+      }
     }
   }
 
@@ -313,14 +400,15 @@ export default class D3LinePlot {
    * Plot the lines.
    *  
    * @param {D3LineData} lineData The line data  
-   * @param {Object} seriesEnter The D3 series enter selection object
+   * @param {Array<SVGElement>} seriesEnter
    */
-  _plotLine(lineData, seriesEnter) {
+  _plotLine(lineData, seriesEnterEls) {
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     let line = this.axes.line(lineData, xScale, yScale);
 
-    seriesEnter.append('path')
+    d3.selectAll(seriesEnterEls)
+        .append('path')
         .attr('class', 'data-line')
         .attr('d', (/** @type {D3LineSeriesData */ series) => { 
           return line(series.data);
@@ -344,13 +432,14 @@ export default class D3LinePlot {
   /**
    * 
    * @param {D3LineData} lineData 
-   * @param {Object} seriesEnter 
+   * @param {Array<SVGElement>} seriesEnter 
    */
-  _plotSymbol(lineData, seriesEnter) {
+  _plotSymbol(lineData, seriesEnterEls) {
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     
-    seriesEnter.selectAll('.data-symbol')
+    d3.selectAll(seriesEnterEls)
+        .selectAll('.data-symbol')
         .data((/** @type {D3LineSeriesData} */ series) =>  { 
           return lineData.toMarkerSeries(series); 
         })
@@ -358,12 +447,12 @@ export default class D3LinePlot {
         .append('path')
         .attr('class', 'data-symbol')
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
-          let size = Math.pow(2 * series.lineOptions.markerSize, 2);
+          let size = series.lineOptions.d3SymbolSize; 
           return d3.symbol().type(series.lineOptions.d3Symbol).size(size)();
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
-          let x = this.axes.x(lineData, xScale, series.data);
-          let y = this.axes.y(lineData, yScale, series.data);
+          let x = this.axes.x(lineData, xScale, series.data[0]);
+          let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
           return `translate(${x}, ${y}) rotate(${rotate})`;
         })
@@ -377,6 +466,12 @@ export default class D3LinePlot {
           return series.lineOptions.markerEdgeWidth; 
         })
         .style('shape-rendering', 'geometricPrecision')
+        .on('mouseover', (/** @type {D3LineSeriesData} */series) => {
+          this._onDataSymbolMouseover(lineData, series);
+        })
+        .on('mouseout', () => {
+          this._onDataSymbolMouseout(lineData);
+        });
   }
 
   /**
@@ -403,12 +498,12 @@ export default class D3LinePlot {
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
-          let size = Math.pow(2 * series.lineOptions.markerSize, 2);
+          let size = series.lineOptions.d3SymbolSize; 
           return d3.symbol().type(series.lineOptions.d3Symbol).size(size)();
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
-          let x = this.axes.x(lineData, xScale, series.data);
-          let y = this.axes.y(lineData, yScale, series.data);
+          let x = this.axes.x(lineData, xScale, series.data[0]);
+          let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
           return `translate(${x}, ${y}) rotate(${rotate})`;
         });
