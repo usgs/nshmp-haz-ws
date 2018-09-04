@@ -95,6 +95,47 @@ export default class D3BaseView {
   }
 
   /**
+   * 
+   * @param {Map<String, Array<String | Number>>} metadata 
+   */
+  createMetadataTable(metadata) {
+    Preconditions.checkArgumentInstanceOfMap(metadata);
+    for (let [key, values] of metadata) {
+      Preconditions.checkStateString(key);
+      for (let val of values) {
+        Preconditions.checkState(
+          typeof(val) == 'number' || typeof(val) == 'string',
+          'Map values must be array or string or numbers');
+      }
+    }
+
+    d3.select(this.metadataTableEl)
+        .selectAll('*')
+        .remove();
+
+    let tableRowsD3 = d3.select(this.metadataTableEl)
+        .append('table')
+        .attr('class', 'table table-bordered table-hover')
+        .append('tbody')
+        .selectAll('tr')
+        .data([ ...metadata.keys() ])
+        .enter()
+        .append('tr');
+
+    tableRowsD3.append('th')
+        .text((/** @type {String} */ key) => {
+          return key;
+        });
+
+    tableRowsD3.append('td')
+        .selectAll('p')
+        .data((/** @type {String} */ key) => { return metadata.get(key); })
+        .enter()
+        .append('p')
+        .text((/** @type {String | Number} */ val) => { return val; });
+  }
+
+  /**
    * Return the plot title HTML text
    */
   getTitle() {
