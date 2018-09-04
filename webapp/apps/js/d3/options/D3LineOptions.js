@@ -80,7 +80,7 @@ export default class D3LineOptions {
 
     /**
      * The marker edge width.
-     * Default: 0.5
+     * Default: 1.0
      * @type {Number} 
      */
     this.markerEdgeWidth = builder._markerEdgeWidth;
@@ -108,6 +108,15 @@ export default class D3LineOptions {
      * @type {String}
      */
     this.markerStyle = builder._markerStyle;
+
+    /**
+     * The plot selection multiplier to be applied to the 
+     *    line width, marker size, and marker edge size, when a line
+     *    or marker is selected.
+     * Default: 2.0
+     * @type{Number}
+     */
+    this.selectionMultiplier = builder._selectionMultiplier;
 
     /**
      * Whether to show the data in the legend.
@@ -287,9 +296,11 @@ export class D3LineOptionsBuilder {
     /** @type {String} */
     this._markerEdgeColor = undefined;
     /** @type {Number} */
-    this._markerEdgeWidth = 0.5;
+    this._markerEdgeWidth = 1.0;
     /** @type {Number} */
     this._markerSize = 6.0;
+    /** @type {Number} */
+    this._selectionMultiplier = 2;
     /** @type {Boolean} */
     this._showInLegend = true;
   }
@@ -418,7 +429,7 @@ export class D3LineOptionsBuilder {
 
   /**
    * Set the marker edge width.
-   * Default: 0.5
+   * Default: 1.0
    * 
    * @param {Number} width The marker edge width 
    */
@@ -458,6 +469,20 @@ export class D3LineOptionsBuilder {
   markerStyle(marker) {
     Preconditions.checkArgumentString(marker);
     this._markerStyle = marker.toLowerCase();
+    return this;
+  }
+
+  /**
+   * Set the plot selection multiplier to be applied to the 
+   *    line width, marker size, and marker edge size, when a line
+   *    or marker is selected.
+   * Default: 2.0
+   * 
+   * @param {Number} mult The multiplier
+   */
+  selectionMultiplier(mult) {
+    Preconditions.checkArgumentNumber(mult);
+    this._selectionMultiplier = mult;
     return this;
   }
 

@@ -11,7 +11,7 @@ import Preconditions from '../error/Preconditions.js';
  * @class D3Tooltip
  * @author Brandon Clayton
  */
-export default class D3Tooltip {
+export class D3Tooltip {
 
   constructor() {}
 

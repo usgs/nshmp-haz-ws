@@ -40,6 +40,11 @@ export default class D3LineSeriesData {
     for (let xy of d3.zip(xValues, yValues)) {
       this.data.push(new D3XYPair(xy[0], xy[1]));
     }
+
+    /**
+     * The D3 symbol generator.
+     */
+    this.d3Symbol = d3.symbol().type(options.d3Symbol).size(options.d3SymbolSize);
   }
 
 }
