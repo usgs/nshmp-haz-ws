@@ -674,7 +674,7 @@ export class D3LinePlot {
 
     /* Update symbols */
     d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('.polt-symbol')
+        .selectAll('.plot-symbol')
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
