@@ -89,7 +89,7 @@ export default class D3LineData {
    * 
    * @param {...D3LineData} lineData 
    */
-  static of (...lineData) {
+  static of(...lineData) {
     let builder = D3LineData.builder().of(...lineData);
     return builder.build();
   }
@@ -258,13 +258,16 @@ export default class D3LineData {
       let label = data.lineOptions.label || `Line ${index}`;
       let markerColor = data.lineOptions.markerColor || this.colorScheme[colorIndex];
       markerColor = markerColor == undefined ? color : markerColor;
+      let markerEdgeColor = data.lineOptions.markerEdgeColor || 
+          this.colorScheme[colorIndex];
+      markerEdgeColor = markerEdgeColor == undefined ? color : markerEdgeColor;
 
       data.lineOptions = D3LineOptions.builder().fromCopy(data.lineOptions)
           .color(color)
           .id(id)
           .label(label)
           .markerColor(markerColor)
-          .markerEdgeColor(markerColor)
+          .markerEdgeColor(markerEdgeColor)
           .build();
     }
 
