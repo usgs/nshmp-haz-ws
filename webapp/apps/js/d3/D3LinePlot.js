@@ -5,7 +5,8 @@ import D3LineData from './data/D3LineData.js';
 import D3LineSeriesData from './data/D3LineSeriesData.js';
 import D3LineAxes from './axes/D3LineAxes.js';
 import { D3LineLegend } from './legend/D3LineLegend.js';
-import D3Tooltip from './D3Tooltip.js';
+import { D3Tooltip } from './D3Tooltip.js';
+import { D3Utils } from './D3Utils.js';
 import Preconditions from '../error/Preconditions.js';
 
 /**
@@ -14,7 +15,7 @@ import Preconditions from '../error/Preconditions.js';
  * @class D3LinePlot
  * @author Brandon Clayton
  */
-export default class D3LinePlot {
+export class D3LinePlot {
 
   /**
    * New D3LinePlot instance.
@@ -23,14 +24,11 @@ export default class D3LinePlot {
    * 
    * @todo Add a D3View.legendIsChecked and D3View.gridlinesIsChecked method
    * @todo Add gridlines check and legend check color options
-   * @todo Add plot selection ability
-   * @todo Add ability to sync upper and lower sub view selections
    * @todo Add data view table and metadata view table
    * @todo Add ablity to plot a reference line at zero
    * @todo Add ability to reverse the Y axis
    * @todo Add method to get a certain data element in the plot
    * @todo Add method to remove small values from the data
-   * @todo How to deal with PGA values?
    */
   constructor(view) {
     Preconditions.checkArgumentInstanceOf(view, D3LineView);
@@ -46,15 +44,68 @@ export default class D3LinePlot {
     
     /** @type {D3LineData} */
     this.lowerLineData = undefined;
-    this._setLineData(this._getDefaultLowerLineData());
-
+    if (this.view.addLowerSubView) {
+      this._setLineData(this._getDefaultLowerLineData());
+    }
     /** @type {D3Tooltip} */
     this.tooltip = new D3Tooltip();
     /** @type {D3LineLegend} */
-    this.legend = new D3LineLegend();
+    this.legend = new D3LineLegend(this);
 
     this._addDefaultAxes();
     this._addEventListeners();
+  }
+
+  /**
+   * Select lines on multiple sub views that have the same id. 
+   * 
+   * @param {String} id The id of the lines to select
+   * @param {Array<D3LinePlot>} linePlots The line plots
+   * @param {Array<D3LineData>} lineDatas The line data
+   */
+  static selectLineOnSubViews(id, linePlots, lineDatas) {
+    Preconditions.checkArgumentString(id);
+    Preconditions.checkArgumentArrayInstanceOf(linePlots, D3LinePlot);
+    Preconditions.checkArgumentArrayInstanceOf(lineDatas, D3LineData);
+    Preconditions.checkState(
+        linePlots.length == lineDatas.length,
+        'Number of line plots and line datas must be the same');
+
+    for (let i = 0; i < linePlots.length; i++) {
+      let linePlot = linePlots[i];
+      let lineData = lineDatas[i]; 
+      
+      Preconditions.checkStateInstanceOf(linePlot, D3LinePlot);
+      Preconditions.checkStateInstanceOf(lineData, D3LineData);
+
+      linePlot.selectLine(id, lineData); 
+    }
+  }
+
+  /**
+   * Sync selections between multiple sub views.
+   *  
+   * @param  {Array<D3LinePlot>} linePlots The line plots
+   * @param {Array<D3LineData>} lineDatas The line data
+   */
+  static syncSubViews(linePlots, lineDatas) {
+    Preconditions.checkArgumentArrayInstanceOf(linePlots, D3LinePlot);
+    Preconditions.checkArgumentArrayInstanceOf(lineDatas, D3LineData);
+    Preconditions.checkState(
+        linePlots.length == lineDatas.length,
+        'Number of line plots and line datas must be the same');
+
+    for (let lineData of lineDatas) {
+      d3.select(lineData.subView.svg.dataContainerEl)
+          .selectAll('.data-enter')
+          .on('click', (/** @type {D3LineSeriesData} */ series) => {
+            Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+            D3LinePlot.selectLineOnSubViews(
+                series.lineOptions.id,
+                linePlots,
+                lineDatas);
+          });
+    }
   }
 
   /**
@@ -73,21 +124,87 @@ export default class D3LinePlot {
   }
 
   /**
+   * Fire a custom function when a line or symbol is selected.
+   * Arguments passed to the callback function:
+   *    - D3LineData: The line data passed into onPlotSelection
+   *    - D3LineSeriesData: The series data from the plot selection
+   * 
+   * @param {D3LineData} lineData The line data
+   * @param {Function} callback Function to call when plot is selected
+   */
+  onPlotSelection(lineData, callback) {
+    lineData.subView.svg.dataContainerEl.addEventListener('plotSelection', (e) => {
+      let series = e.detail;
+      Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+      callback(lineData, series);
+    });
+  }
+
+  /**
    * Creates a 2-D line plot from D3LineData.
    *  
    * @param {D3LineData} lineData The line data to plot
    */
   plot(lineData) {
-    this._dataEnter(lineData);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
 
+    lineData = this._dataEnter(lineData);
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     this.axes.createXAxis(lineData, xScale);
     this.axes.createYAxis(lineData, yScale);
     this.legend.create(lineData);
+
+    this._plotSelectionEventListener(lineData);
   }
 
   /**
+   * Select lines of multiple line data given an id.
+   *  
+   * @param {String} id of line to select
+   * @param {...D3LineData} lineDatas The line data
+   */
+  selectLine(id, ...lineDatas) {
+    Preconditions.checkArgumentString(id);
+
+    this.legend.selectLegendEntry(id, ...lineDatas);
+
+    for (let lineData of lineDatas) {
+      Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+      this._resetPlotSelection(lineData);
+
+      d3.select(lineData.subView.svg.dataContainerEl)
+          .selectAll(`#${id}`)
+          .each((
+              /** @type {D3LineSeriesData} */ series,
+              /** @type {Number} */ i,
+              /** @type {NodeList} */ els) => {
+            Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+            Preconditions.checkStateInstanceOfSVGElement(els[i]);
+            this._plotSelection(lineData, series, els[i]);
+          });
+    }
+  }
+
+  /**
+   * Sync the plot selections between the upper and lower sub views.
+   */
+  syncSubViews() {
+    for (let lineData of [this.upperLineData, this.lowerLineData]) {
+      d3.select(lineData.subView.svg.dataContainerEl)
+          .selectAll('.data-enter')
+          .on('click', (/** @type {D3LineSeriesData} */ series) => {
+            Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+            this.selectLine(
+                series.lineOptions.id,
+                this.upperLineData,
+                this.lowerLineData);
+          });
+    }
+  }
+
+  /**
+   * @private
    * Add the default X and Y axes.
    * 
    * Based on D3LineSubViewOptions.defaultXLimit and 
@@ -114,6 +231,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Add all event listeners
    */
   _addEventListeners() {
@@ -135,6 +253,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Enter all data from D3LineData.series and any existing data
    *    into new SVG elements.
    * 
@@ -172,9 +291,12 @@ export default class D3LinePlot {
     let seriesDataEnterEls = seriesDataEnter.nodes();
     this._plotLine(updatedLineData, seriesDataEnterEls);
     this._plotSymbol(updatedLineData, seriesDataEnterEls);
+
+    return updatedLineData;
   }
 
   /**
+   * @private
    * Returns a default D3LineData for the lower sub view to 
    *    show a empty plot on startup.
    * 
@@ -194,6 +316,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Returns a default D3LineData for the upper sub view to 
    *    show a empty plot on startup.
    * 
@@ -213,6 +336,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Get the current X scale of a D3LineSubView, either: 'log' || 'linear'
    * 
    * @param {D3LineSubView} subView The sub view to get X scale
@@ -229,6 +353,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Get the current Y scale of a D3LineSubView, either: 'log' || 'linear'
    * 
    * @param {D3LineSubView} subView The sub view to get Y scale
@@ -245,6 +370,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Handler to add the grid lines when the grid lines icon is checked.
    */
   _onAddGridLines() {
@@ -270,9 +396,11 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
+   * Event handler for mouse over plot symbols; add tooltip.
    * 
-   * @param {D3LineData} lineData 
-   * @param {D3LineSeriesData} series 
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The data series
    */
   _onDataSymbolMouseover(lineData, series) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
@@ -295,8 +423,10 @@ export default class D3LinePlot {
   }
 
   /**
-   * 
-   * @param {D3LineData} lineData 
+   * @private
+   * Event handler for mouse out of plot symols; remove toolip.
+   *  
+   * @param {D3LineData} lineData The line data
    */
   _onDataSymbolMouseout(lineData) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
@@ -304,6 +434,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Event handler to add or remove the grid lines when the grid lines
    *    icon is clicked.
    */
@@ -321,8 +452,10 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
+   * Event handler for legend icon click; add/remove legend.
    * 
-   * @param {D3LineData} lineData 
+   * @param {D3LineData} lineData The line data
    */
   _onLegendIconClick() {
     let isChecked = this.view.viewHeader.legendCheckEl.getAttribute('checked');
@@ -345,6 +478,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Handler to remove the grid lines when the grid lines icon is 
    *    not checked
    */
@@ -361,6 +495,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Update the plot when the X axis buttons are clicked.
    *  
    * @param {Event} event The click event
@@ -379,6 +514,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Update the plot when the Y axus buttons are clicked.
    *  
    * @param {Event} event The click event 
@@ -397,6 +533,7 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
    * Plot the lines.
    *  
    * @param {D3LineData} lineData The line data  
@@ -409,12 +546,9 @@ export default class D3LinePlot {
 
     d3.selectAll(seriesEnterEls)
         .append('path')
-        .attr('class', 'data-line')
+        .attr('class', 'plot-line')
         .attr('d', (/** @type {D3LineSeriesData */ series) => { 
           return line(series.data);
-        })
-        .attr('id', (/** @type {D3LineSeriesData} */ series) => { 
-          return series.lineOptions.id; 
         })
         .attr('stroke-dasharray', (/** @type {D3LineSeriesData} */ series) => { 
           return series.lineOptions.svgDashArray; 
@@ -430,25 +564,69 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
+   * Select the line and symbol.
    * 
-   * @param {D3LineData} lineData 
-   * @param {Array<SVGElement>} seriesEnter 
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The data series
+   * @param {SVGElement} dataEl The data SVG element
+   */
+  _plotSelection(lineData, series, dataEl) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+
+    d3.select(dataEl).raise();
+    let isActive = dataEl.classList.toggle('active');
+    let lineEls = dataEl.querySelectorAll('.plot-line');
+    let symbolEls = dataEl.querySelectorAll('.plot-symbol');
+
+    D3Utils.linePlotSelection(lineData, series, lineEls, symbolEls, isActive);
+
+    let selectionEvent = new CustomEvent(
+        'plotSelection', 
+        { detail: series });
+    lineData.subView.svg.dataContainerEl.dispatchEvent(selectionEvent);
+  }
+
+  /**
+   * @private
+   * Plot selection event listner.
+   * 
+   * @param {D3LineData} lineData The line data
+   */
+  _plotSelectionEventListener(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
+        .on('click', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          this.selectLine(series.lineOptions.id, lineData);
+        });
+  }
+
+  /**
+   * @private
+   * Plot the symbols.
+   * 
+   * @param {D3LineData} lineData The line data
+   * @param {Array<SVGElement>} seriesEnter The SVG elements
    */
   _plotSymbol(lineData, seriesEnterEls) {
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     
     d3.selectAll(seriesEnterEls)
-        .selectAll('.data-symbol')
+        .selectAll('.plot-symbol')
         .data((/** @type {D3LineSeriesData} */ series) =>  { 
           return lineData.toMarkerSeries(series); 
         })
         .enter()
         .append('path')
-        .attr('class', 'data-symbol')
+        .attr('class', 'plot-symbol')
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
-          let size = series.lineOptions.d3SymbolSize; 
-          return d3.symbol().type(series.lineOptions.d3Symbol).size(size)();
+          return series.d3Symbol(); 
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
           let x = this.axes.x(lineData, xScale, series.data[0]);
@@ -475,17 +653,19 @@ export default class D3LinePlot {
   }
 
   /**
-   * 
-   * @param {D3LineData} lineData 
-   * @param {String} xScale 
-   * @param {String} yScale 
+   * @private
+   * Update the plot
+   *  
+   * @param {D3LineData} lineData The line data
+   * @param {String} xScale The current X scale
+   * @param {String} yScale The current Y scale
    */
   _plotUpdate(lineData, xScale, yScale) {
 
     /* Update lines */
     let line = this.axes.line(lineData, xScale, yScale);
     d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('.data-line')
+        .selectAll('.plot-line')
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => { 
@@ -494,12 +674,11 @@ export default class D3LinePlot {
 
     /* Update symbols */
     d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('.data-symbol')
+        .selectAll('.polt-symbol')
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
-          let size = series.lineOptions.d3SymbolSize; 
-          return d3.symbol().type(series.lineOptions.d3Symbol).size(size)();
+          return series.d3Symbol(); 
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
           let x = this.axes.x(lineData, xScale, series.data[0]);
@@ -510,8 +689,37 @@ export default class D3LinePlot {
   }
 
   /**
+   * @private
+   * Reset all plot selections
    * 
-   * @param {D3LineData} lineData 
+   * @param {D3LineData} lineData The line data 
+   */
+  _resetPlotSelection(lineData) {
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.plot-line')
+        .transition()
+        .duration(lineData.subView.options.translationDuration)
+        .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
+          return series.lineOptions.lineWidth;
+        });
+
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.plot-symbol')
+        .transition()
+        .duration(lineData.subView.options.translationDuration)
+        .attr('d', (/** @type {D3LineSeriesData}*/ series) => {
+          return series.d3Symbol.size(series.lineOptions.d3SymbolSize)();
+        })
+        .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
+          return series.lineOptions.markerEdgeWidth;
+        });
+  }
+
+  /**
+   * @private
+   * Set the current line data.
+   * 
+   * @param {D3LineData} lineData The line data to set
    */
   _setLineData(lineData) {
     if (lineData.subView.options.subViewType == 'lower') {
