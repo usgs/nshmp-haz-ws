@@ -232,7 +232,7 @@ export default class D3SaveFigure {
        * @param {Number} height The height in pixels 
        */
       currentSvgHeight(height) {
-        Preconditions.checkArgumentNumber(width);
+        Preconditions.checkArgumentNumber(height);
         this._plotHeight = height;
         return this;
       }
