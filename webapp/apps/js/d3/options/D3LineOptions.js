@@ -119,6 +119,13 @@ export default class D3LineOptions {
     this.selectionMultiplier = builder._selectionMultiplier;
 
     /**
+     * Whether to show the data in the data table view. 
+     * Default: true
+     * @type {Boolean}
+     */
+    this.showInDataTable = builder._showInDataTable;
+
+    /**
      * Whether to show the data in the legend.
      * Default: true
      * @type {Boolean}
@@ -302,6 +309,8 @@ export class D3LineOptionsBuilder {
     /** @type {Number} */
     this._selectionMultiplier = 2;
     /** @type {Boolean} */
+    this._showInDataTable = true;
+    /** @type {Boolean} */
     this._showInLegend = true;
   }
 
@@ -332,6 +341,7 @@ export class D3LineOptionsBuilder {
     this._markerEdgeWidth = options.markerEdgeWidth;
     this._markerStyle = options.markerStyle;
     this._markerSize = options.markerSize;
+    this._showInDataTable = options.showInDataTable;
     this._showInLegend = options.showInLegend;
 
     return this;
@@ -483,6 +493,17 @@ export class D3LineOptionsBuilder {
   selectionMultiplier(mult) {
     Preconditions.checkArgumentNumber(mult);
     this._selectionMultiplier = mult;
+    return this;
+  }
+
+  /**
+   * Whether to show the data in the data table view. 
+   * Default: true
+   * @type {Boolean}
+   */
+  showInDataTable(bool) {
+    Preconditions.checkArgumentBoolean(bool);
+    this._showInDataTable = bool;
     return this;
   }
 

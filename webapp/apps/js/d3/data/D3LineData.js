@@ -36,6 +36,13 @@ export default class D3LineData {
     this.colorScheme = builder._colorScheme;
 
     /**
+     * The label for the line data
+     * Default: 'upper line data' || 'lower line data'
+     * @type {String}
+     */
+    this.label = builder._label;
+
+    /**
      * The series XY values and line options.
      * @type {Array<D3LineSeriesData>}
      */
@@ -289,6 +296,8 @@ export class D3LineDataBuilder {
   constructor() {
     /** @type {Array<String>} */
     this._colorScheme = undefined;
+    /** @type {String} */
+    this._label = undefined;
     /** @type {Array<D3LineSeriesData>} */
     this._series = []; 
     /** @type {D3LineSubView} */
@@ -309,6 +318,9 @@ export class D3LineDataBuilder {
   build() {
     Preconditions.checkNotNull(this._subView, 'Must set subView');
     Preconditions.checkNotUndefined(this._subView, 'Must set subView');
+
+    this._label = this._label == undefined ? 
+        `${this._subView.options.subViewType} line data` : this._label;
 
     this._colorScheme = this._updateColorScheme();
 
@@ -347,6 +359,17 @@ export class D3LineDataBuilder {
 
     let seriesData = new D3LineSeriesData(xValues, yValues, lineOptions);
     this._series.push(seriesData); 
+    return this;
+  }
+
+  /**
+   * Set the label for the line data.
+   * 
+   * @param {String} label The label
+   */
+  label(label) {
+    Preconditions.checkArgumentString(label);
+    this._label = label;
     return this;
   }
 
