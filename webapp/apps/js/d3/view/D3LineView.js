@@ -1,10 +1,13 @@
 
 import D3BaseView from './D3BaseView.js';
 import { D3BaseViewBuilder } from './D3BaseView.js';
+import D3LineData from '../data/D3LineData.js';
 import D3LineSubView from './D3LineSubView.js';
 import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
 import D3LineViewOptions from '../options/D3LineViewOptions.js';
 import Preconditions from '../../error/Preconditions.js';
+import D3LineSeriesData from '../data/D3LineSeriesData.js';
+import D3XYPair from '../data/D3XYPair.js';
 
 /**
  * @fileoverview Create a view for line plots. The view can 
@@ -41,6 +44,55 @@ export default class D3LineView extends D3BaseView {
   }
 
   /**
+   * @override
+   * Return a new D3LineViewBuilder
+   * 
+   * @returns {D3LineViewBuilder} new Builder
+   */
+  static builder() {
+    return new D3LineViewBuilder();
+  }
+
+  /**
+   * Create the data table in the 'Data' view. 
+   * 
+   * @param {...D3LineData} lineDatas The line datas
+   */
+  createDataTable(...lineDatas) {
+    Preconditions.checkArgumentArrayInstanceOf(lineDatas, D3LineData);
+    this.viewFooter.dataBtnEl.removeAttribute('disabled');
+
+    d3.select(this.dataTableSVGEl)
+        .selectAll('*')
+        .remove();
+
+    let foreignObjectD3 = d3.select(this.dataTableSVGEl)
+        .append('foreignObject')
+        .attr('height', '100%')
+        .attr('width', '100%')
+        .style('overflow', 'scroll')
+        .style('padding', '5px');
+
+    for (let lineData of lineDatas) {
+      let divD3 = foreignObjectD3.append('xhtml:div');
+      
+      divD3.append('h3').text(lineData.label);
+
+      let tableD3 = divD3.append('table')
+          .attr('class', 'table table-bordered table-condensed')
+          .append('tbody');
+
+      let tableEl = tableD3.node();
+
+      for (let series of lineData.series) {
+        this._addSeriesToDataTable(tableEl, lineData, series);
+      }
+
+    }
+        
+  }
+
+  /**
    *  Get the X axis scale based on the D3LineViewOptions.synXAxisScale 
    *    and D3LineSubViewOptions.xAxisScale.
    * 
@@ -68,13 +120,64 @@ export default class D3LineView extends D3BaseView {
   }
 
   /**
-   * @override
-   * Return a new D3LineViewBuilder
+   * Add the Array<D3XYPair> to the data table.
    * 
-   * @returns {D3LineViewBuilder} new Builder
+   * @param {HTMLElement} tableEl The table element
+   * @param {D3LineSeriesData} series The series data
+   * @param {String} label The X/Y label
+   * @param {String} axis The axis: 'x' || 'y'
    */
-  static builder() {
-    return new D3LineViewBuilder();
+  _addDataToDataTable(tableEl, series, label, axis) {
+    Preconditions.checkArgumentInstanceOfHTMLElement(tableEl);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentString(label);
+    Preconditions.checkArgument(
+        axis == 'x' || axis == 'y',
+        `Axis [${axis}] not supported for data table`);
+
+    let rowD3 = d3.select(tableEl).append('tr');
+    rowD3.append('th')
+        .attr('nowrap', true)
+        .text(label);
+
+    rowD3.selectAll('td')
+        .data(series.data)
+        .enter()
+        .append('td')
+        .text((/** @type {D3XYPair} */ xyPair) => {
+          Preconditions.checkStateInstanceOf(xyPair, D3XYPair);
+          return xyPair[axis];
+        });
+  }
+
+  /**
+   * Add the D3LineSeriesData to the data table.
+   *  
+   * @param {HTMLElement} tableEl The table element
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The series data
+   */
+  _addSeriesToDataTable(tableEl, lineData, series) {
+    Preconditions.checkArgumentInstanceOfHTMLElement(tableEl);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+
+    if (!series.lineOptions.showInDataTable) return;
+
+    d3.select(tableEl)
+        .append('tr')
+        .append('th')
+        .attr('nowrap', true)
+        .attr('colspan', series.data.length + 1)
+        .append('h4')
+        .style('margin', '0')
+        .text(series.lineOptions.label);
+
+    let xLabel = lineData.subView.options.xLabel;
+    this._addDataToDataTable(tableEl, series, xLabel, 'x');
+    
+    let yLabel = lineData.subView.options.yLabel;
+    this._addDataToDataTable(tableEl, series, yLabel, 'y');
   }
 
   /**
@@ -86,11 +189,6 @@ export default class D3LineView extends D3BaseView {
     let xLinearBtnEl = xAxisBtnEl.querySelector('.x-linear-btn');
     let xLogBtnEl = xAxisBtnEl.querySelector('.x-log-btn');
     
-    if (this.viewOptions.disableXAxisBtns) {
-      xLinearBtnEl.setAttribute('disabled', 'disabled');
-      xLogBtnEl.setAttribute('disabled', 'disabled'); 
-    }
-
     if (this.viewOptions.syncXAxisScale) {
       let xScaleEl = this.viewOptions.xAxisScale == 'log' ?
           xLogBtnEl : xLinearBtnEl;
@@ -120,11 +218,6 @@ export default class D3LineView extends D3BaseView {
     let yLinearBtnEl = yAxisBtnEl.querySelector('.y-linear-btn');
     let yLogBtnEl = yAxisBtnEl.querySelector('.y-log-btn');
     
-    if (this.viewOptions.disableYAxisBtns) {
-      yLinearBtnEl.setAttribute('disabled', 'disabled');
-      yLogBtnEl.setAttribute('disabled', 'disabled'); 
-    }
-
     if (this.viewOptions.syncYAxisScale) {
       let yScaleEl = this.viewOptions.yAxisScale == 'log' ?
           yLogBtnEl : yLinearBtnEl;
@@ -217,11 +310,13 @@ export default class D3LineView extends D3BaseView {
             value: 'linear',
             text: 'X: Linear',
             class: 'x-linear-btn',
+            disabled: this.viewOptions.disableXAxisBtns,
           }, {
             name: 'x-axis-y',
             value: 'log',
             text: 'X: Log',
             class: 'x-log-btn',
+            disabled: this.viewOptions.disableXAxisBtns,
           }
         ]
       }, {
@@ -234,11 +329,13 @@ export default class D3LineView extends D3BaseView {
             value: 'linear',
             text: 'Y: Linear',
             class: 'y-linear-btn',
+            disabled: this.viewOptions.disableYAxisBtns,
           }, {
             name: 'y-axis-y',
             value: 'log',
             text: 'Y: Log',
             class: 'y-log-btn',
+            disabled: this.viewOptions.disableYAxisBtns,
           }
         ]
       }, {
@@ -251,16 +348,19 @@ export default class D3LineView extends D3BaseView {
             value: 'plot',
             text: 'Plot',
             class: 'plot-btn',
+            disabled: false, 
           }, {
             name: 'data',
             value: 'data',
             text: 'Data',
             class: 'data-btn',
+            disabled: true, 
           }, {
             name: 'metadata',
             value: 'metadata',
             text: 'Metadata',
             class: 'metadata-btn',
+            disabled: true, 
           }
         ]
       } 

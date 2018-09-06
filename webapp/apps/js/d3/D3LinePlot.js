@@ -501,6 +501,8 @@ export class D3LinePlot {
    * @param {Event} event The click event
    */
   _onXAxisClick(event) {
+    if (event.target.hasAttribute('disabled')) return;
+
     let xScale = event.target.getAttribute('value');
     let yScale = this._getCurrentYScale(this.view.upperSubView);
 
@@ -520,6 +522,8 @@ export class D3LinePlot {
    * @param {Event} event The click event 
    */
   _onYAxisClick(event) {
+    if (event.target.hasAttribute('disabled')) return;
+
     let xScale = this._getCurrentXScale(this.view.upperSubView);
     let yScale = event.target.getAttribute('value');
     
@@ -674,7 +678,7 @@ export class D3LinePlot {
 
     /* Update symbols */
     d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('.polt-symbol')
+        .selectAll('.plot-symbol')
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {

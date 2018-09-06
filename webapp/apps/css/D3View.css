@@ -27,6 +27,7 @@
 /* Plot panel body */
 .D3View .panel-body {
   padding: 0;
+  line-height: 0.1;
 }
 
 .D3View .panel-outer > .panel-body + .panel-body {

@@ -82,6 +82,11 @@ export default class D3BaseView {
     /** @type {ViewFooterEls} Elements of the view footer */
     this.viewFooter = this._createViewFooter();
 
+    /** @type {SVGElement} The SVG element in the data table view */
+    this.dataTableSVGEl = this._updateDataMetadata(this.dataTableEl);
+    /** @type {SVGElement} The SVG element in the metadata view */
+    this.metadataTableSVGEl = this._updateDataMetadata(this.metadataTableEl);
+
     this._addEventListeners();
   }
 
@@ -92,6 +97,55 @@ export default class D3BaseView {
    */
   static builder() {
     return new D3BaseViewBuilder();
+  }
+
+  /**
+   * Create the metadata table in the 'Metadata' view.
+   *  
+   * @param {Map<String, Array<String | Number>>} metadata The metadata
+   */
+  createMetadataTable(metadata) {
+    Preconditions.checkArgumentInstanceOfMap(metadata);
+    for (let [key, values] of metadata) {
+      Preconditions.checkStateString(key);
+      for (let val of values) {
+        Preconditions.checkState(
+          typeof(val) == 'number' || typeof(val) == 'string',
+          'Map values must be array of strings or numbers');
+      }
+    }
+
+    this.viewFooter.metadataBtnEl.removeAttribute('disabled');
+
+    d3.select(this.metadataTableSVGEl)
+        .selectAll('*')
+        .remove();
+
+    let foreignObjectD3 = d3.select(this.metadataTableSVGEl)
+        .append('foreignObject')
+        .attr('height', '100%')
+        .attr('width', '100%')
+        .style('overflow', 'scroll');
+
+    let tableRowsD3 = foreignObjectD3.append('xhtml:table')
+        .attr('class', 'table table-bordered table-hover')
+        .append('tbody')
+        .selectAll('tr')
+        .data([ ...metadata.keys() ])
+        .enter()
+        .append('tr');
+
+    tableRowsD3.append('th')
+        .text((/** @type {String} */ key) => {
+          return key;
+        });
+
+    tableRowsD3.append('td')
+        .selectAll('p')
+        .data((/** @type {String} */ key) => { return metadata.get(key); })
+        .enter()
+        .append('p')
+        .text((/** @type {String | Number} */ val) => { return val; });
   }
 
   /**
@@ -250,11 +304,16 @@ export default class D3BaseView {
           return `btn btn-xs btn-default footer-button ${d.class}`;
         })
         .attr('value', (d) => { return d.value; })
-        .attr('for', (d) => { return d.name })
+        .attr('for', (d) => { return d.name; })
         .html((d, i) => {
           return `<input type='radio' name='${d.name}'` +
              ` value='${d.value}' class='check-box'/>  ${d.text}`;
-        });
+        })
+        .each((d, i, els) => {
+          if (d.disabled) {
+            els[i].setAttribute('disabled', 'true');
+          }
+        })
   
     let saveMenuEl = undefined;
     if (this.footerOptions.addSaveMenu) {
@@ -404,7 +463,7 @@ export default class D3BaseView {
     
     let dataTableD3 = viewBodyD3.append('div')
         .attr('class', 'data-table panel-table hidden');
-    
+
     let metadataTableD3 = viewBodyD3.append('div')
         .attr('class', 'metadata-table panel-table hidden');
 
@@ -466,41 +525,32 @@ export default class D3BaseView {
    * Switch between the Plot, Data, and Metadata view.
    */
   _onPlotViewSwitch() {
-    let selectedView = $(event.target).find('input').val();
-    let viewDim = this.viewPanelBodyEl.getBoundingClientRect();
+    if (event.target.hasAttribute('disabled')) return;
 
-    d3.select(this.dataTableEl).classed('hidden', true);
-    d3.select(this.metadataTableEl).classed('hidden', true);
-    d3.select(this.upperSubView.subViewBodyEl).classed('hidden', true);
+    let selectedView = event.target.getAttribute('value');
+
+    Preconditions.checkState(
+        selectedView == 'data' ||
+        selectedView == 'metadata' ||
+        selectedView == 'plot',
+        `Selected view [${selectedView}] is not supported`);
+
+    this.dataTableEl.classList.toggle(
+        'hidden',
+        selectedView != 'data');
+
+    this.metadataTableEl.classList.toggle(
+        'hidden',
+        selectedView != 'metadata');
+
+    this.upperSubView.subViewBodyEl.classList.toggle(
+        'hidden',
+        selectedView != 'plot');
 
     if (this.addLowerSubView) {
-      d3.select(this.lowerSubView.subViewBodyEl).classed('hidden', true);
-    }
-    
-    switch(selectedView) {
-      case 'plot':
-        d3.select(this.upperSubView.subViewBodyEl).classed('hidden', false);
-
-        if (this.addLowerSubView) {
-          d3.select(this.lowerSubView.subViewBodyEl).classed('hidden', false);
-        }
-        break;
-      case 'data':
-        d3.select(this.dataTableEl)
-            .classed('hidden', false)
-            .style('height', `${viewDim.height}px`)
-            .style('width', `${viewDim.width}px`);
-        
-        break;
-      case 'metadata':
-        d3.select(this.metadataTableEl)
-            .classed('hidden', false)
-            .style('height', `${viewDim.height}px`)
-            .style('width', `${viewDim.width}px`);
-        
-        break;
-      default:
-        NshmpError.throwError(`[${selectedView}] not supported`);
+      this.lowerSubView.subViewBodyEl.classList.toggle(
+          'hidden',
+          selectedView != 'plot');
     }
   }
 
@@ -565,6 +615,35 @@ export default class D3BaseView {
   }
 
   /**
+   * @private
+   * Add SVG element to the data and metadata view to match the 
+   *    SVG element in the plot view.
+   *  
+   * @param {HTMLElement} el The data or metadata element
+   */
+  _updateDataMetadata(el) {
+    Preconditions.checkArgumentInstanceOfHTMLElement(el);
+
+    let plotHeight = this.addLowerSubView ? 
+        this.upperSubView.options.plotHeight + this.lowerSubView.options.plotHeight + 1:
+        this.upperSubView.options.plotHeight;
+    
+    let plotWidth = this.upperSubView.options.plotWidth;
+    
+    let svgD3 = d3.select(el)
+        .append('svg')
+        .attr('version', 1.1)
+        .attr('xmlns', 'http://www.w3.org/2000/svg')
+        .attr('preserveAspectRatio', 'xMinYMin meet')
+        .attr('viewBox', `0 0 ` +
+            `${plotWidth} ${plotHeight}`);
+
+    let svgEl = svgD3.node();
+    Preconditions.checkStateInstanceOfSVGElement(svgEl);
+    return svgEl;
+  }
+
+  /**
    * @package
    * The D3BaseView footer buttons: Plot, Data, and Metadata.
    * 
@@ -582,16 +661,19 @@ export default class D3BaseView {
             value: 'plot',
             text: 'Plot',
             class: 'plot-btn',
+            disabled: false,
           }, {
             name: 'data',
             value: 'data',
             text: 'Data',
             class: 'data-btn',
+            disabled: true,
           }, {
             name: 'metadata',
             value: 'metadata',
             text: 'Metadata',
             class: 'metadata-btn',
+            disabled: true,
           }
         ]
       }
