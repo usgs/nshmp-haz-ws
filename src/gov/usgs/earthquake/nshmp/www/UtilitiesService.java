@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
-import gov.usgs.earthquake.nshmp.json.FeatureCollection;
-import gov.usgs.earthquake.nshmp.json.Properties;
+import gov.usgs.earthquake.nshmp.geo.json.FeatureCollection;
+import gov.usgs.earthquake.nshmp.geo.json.Properties;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 @WebServlet(
