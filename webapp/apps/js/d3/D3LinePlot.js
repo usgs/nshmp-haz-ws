@@ -5,9 +5,11 @@ import D3LineData from './data/D3LineData.js';
 import D3LineSeriesData from './data/D3LineSeriesData.js';
 import D3LineAxes from './axes/D3LineAxes.js';
 import { D3LineLegend } from './legend/D3LineLegend.js';
+import { D3SaveFigure} from './D3SaveFigure.js';
 import { D3Tooltip } from './D3Tooltip.js';
 import { D3Utils } from './D3Utils.js';
 import Preconditions from '../error/Preconditions.js';
+import { D3SaveLineData } from './D3SaveLineData.js';
 
 /**
  * @fileoverview Plot D3LineData
@@ -235,6 +237,12 @@ export class D3LinePlot {
    * Add all event listeners
    */
   _addEventListeners() {
+    this.view.viewFooter.saveMenuEl.querySelectorAll('a').forEach((el) => {
+      el.addEventListener('click', (e) => { 
+        this._onSaveMenu(e);
+      });
+    });
+
     this.view.viewFooter.xAxisBtnEl.addEventListener('click', () => { 
       this._onXAxisClick(event); 
     });
@@ -491,6 +499,33 @@ export class D3LinePlot {
     if (this.view.addLowerSubView) {
       this.axes.removeXGridLines(this.view.lowerSubView);
       this.axes.removeYGridLines(this.view.lowerSubView);
+    }
+  }
+
+  /**
+   * Save/preview figure or data
+   * 
+   * @param {Event} event The event
+   */
+  _onSaveMenu(event) {
+    let saveType = event.target.getAttribute('data-type');
+    let saveFormat = event.target.getAttribute('data-format');
+    let imageOnly = this.view.viewFooter.imageOnlyEl.checked;
+
+    switch(saveType) {
+      case 'save-figure':
+        if (imageOnly) D3SaveFigure.saveImageOnly(this.view, saveFormat);
+        else D3SaveFigure.save(this.view, saveFormat);
+        break;
+      case 'preview-figure':
+        if (imageOnly) D3SaveFigure.previewImageOnly(this.view, saveFormat);
+        else D3SaveFigure.preview(this.view, saveFormat);
+        break;
+      case 'save-data':
+        D3SaveLineData.saveCSV(this.upperLineData, this.lowerLineData); 
+        break;
+      default: 
+        throw new NshmpError(`Save type [${saveType}] not supported`);
     }
   }
 

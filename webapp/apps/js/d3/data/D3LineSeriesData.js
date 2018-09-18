@@ -26,6 +26,18 @@ export default class D3LineSeriesData {
     Preconditions.checkArgumentInstanceOf(options, D3LineOptions);
 
     /**
+     * The X values
+     * @type {Array<Number>}
+     */
+    this.xValues = xValues;
+    
+    /**
+     * The Y values
+     * @type {Array<Number>}
+     */
+    this.yValues = yValues;
+
+    /**
      * The D3LineOptions associated with XY values
      * @type {D3LineOptions}
      */

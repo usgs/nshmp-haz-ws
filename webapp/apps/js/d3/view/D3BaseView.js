@@ -241,12 +241,6 @@ export default class D3BaseView {
     this.viewFooter.viewSwitchBtnEls
         .addEventListener('click', () => { this._onPlotViewSwitch(); });
 
-    this.viewFooter.saveMenuEl.querySelectorAll('a').forEach((el) => {
-      el.addEventListener('click', (e) => { 
-        this._onSaveMenu(e);
-      });
-    });
-
     this.viewHeader.viewResizeEl
         .addEventListener('click', () => { this._onViewResize(); });
     
@@ -571,29 +565,6 @@ export default class D3BaseView {
       this.lowerSubView.subViewBodyEl.classList.toggle(
           'hidden',
           selectedView != 'plot');
-    }
-  }
-
-  /**
-   * 
-   * @param {Event} event 
-   */
-  _onSaveMenu(event) {
-    let saveType = event.target.getAttribute('data-type');
-    let saveFormat = event.target.getAttribute('data-format');
-    let imageOnly = this.viewFooter.imageOnlyEl.checked;
-
-    switch(saveType) {
-      case 'save-figure':
-        if (imageOnly) D3SaveFigure.saveImageOnly(this, saveFormat);
-        else D3SaveFigure.save(this, saveFormat);
-        break;
-      case 'preview-figure':
-        if (imageOnly) D3SaveFigure.previewImageOnly(this, saveFormat);
-        else D3SaveFigure.preview(this, saveFormat);
-        break;
-      default: 
-        throw new NshmpError(`Save type [${saveType}] not supported`);
     }
   }
 
