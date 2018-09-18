@@ -103,10 +103,14 @@ export default class D3LineSubView extends D3BaseSubView {
     /* Legend Group */
     let legendD3 = d3.select(innerPlotEl)
         .append('g')
-        .attr('class', 'legend'); 
+        .attr('class', 'legend')
+        .style('line-height', '1.5');
 
     let legendForeignObjectD3 = legendD3.append('foreignObject');
-    let legendTableD3 = legendForeignObjectD3.append('xhtml:table');
+
+    let legendTableD3 = legendForeignObjectD3
+        .append('xhtml:table')
+        .attr('xmlns', 'http://www.w3.org/1999/xhtml');
 
     d3.select(tooltipEl).raise();
 

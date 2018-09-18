@@ -329,6 +329,8 @@ export class D3LineLegend {
         .style('padding', padding)
         .style('background', legendOptions.backgroundColor)
         .style('cursor', 'move')
+        .style('border-spacing', '0')
+        .style('line-height', 'inherit');
   }
 
   /**
@@ -361,10 +363,10 @@ export class D3LineLegend {
     let loc = this._legendLocation(lineData.subView, legendHeight, legendWidth);
 
     d3.select(lineData.subView.svg.legendForeignObjectEl)
-        .attr('height', `${legendHeight}px`)
-        .attr('width', `${legendWidth}px`)
+        .style('height', `${ legendHeight }px`)
+        .style('width', `${ legendWidth }px`)
         .attr('x', loc.x)
-        .attr('y', loc.y)
+        .attr('y', loc.y);
   }
 
   /**

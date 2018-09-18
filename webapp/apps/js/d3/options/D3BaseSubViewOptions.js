@@ -1,5 +1,6 @@
 
 import D3TooltipOptions from './D3TooltipOptions.js';
+import { D3SaveFigureOptions } from './D3SaveFigureOptions.js';
 import Preconditions from '../../error/Preconditions.js';
 
 /**
@@ -29,6 +30,13 @@ export default class D3BaseSubViewOptions {
    */
   constructor(builder) {
     Preconditions.checkArgumentInstanceOf(builder, D3BaseSubViewOptionsBuilder);
+
+    /**
+     * The filename for downloading
+     * Default: 'file'
+     * @type {String}
+     */
+    this.filename = builder._filename;
 
     /** 
      * Margin bottom for the SVG plot in px.
@@ -107,6 +115,13 @@ export default class D3BaseSubViewOptions {
     this.subViewType = builder._subViewType;
 
     /**
+     * The save figure options.
+     * Default: D3SaveFigureOptions.withDefaults()
+     * @type {D3SaveFigureOptions}
+     */
+    this.saveFigureOptions = builder._saveFigureOptions;
+
+    /**
      * The tooltip options.
      * Default: D3TooltipOptions.withDefaults()
      * @type {D3TooltipOptions}
@@ -173,6 +188,8 @@ export class D3BaseSubViewOptionsBuilder {
 
   /** @private */
   constructor() {
+    /** @type {String} */
+    this._filename = 'file';
     /** @type {Number} */
     this._marginBottom = 15;
     /** @type {Number} */
@@ -193,6 +210,8 @@ export class D3BaseSubViewOptionsBuilder {
     this._plotHeight = 504;
     /** @type {Number} */
     this._plotWidth = 896;
+    /** @type {D3SaveFigureOptions} */
+    this._saveFigureOptions = D3SaveFigureOptions.withDefaults();
     /** @type {D3TooltipOptions} */
     this._tooltipOptions = D3TooltipOptions.withDefaults();
 
@@ -207,6 +226,18 @@ export class D3BaseSubViewOptionsBuilder {
     this._checkHeight();
     this._checkWidth();
     return new D3BaseSubViewOptions(this);
+  }
+
+  /**
+   * Set the filename for downloading.
+   * Default: 'file'
+   * 
+   * @param {String} name The filename
+   */
+  filename(name) {
+    Preconditions.checkArgumentString(name);
+    this._filename = name;
+    return this;
   }
 
   /**
@@ -330,11 +361,27 @@ export class D3BaseSubViewOptionsBuilder {
   }
 
   /**
+   * Set the save figure options.
+   * Default: D3SaveFigureOptions.withDefaults()
    * 
-   * @param {D3TooltipOptions} options 
+   * @param {D3SaveFigureOptions} options The save figure options
+   */
+  saveFigureOptions(options) {
+    Preconditions.checkArgumentInstanceOf(options, D3SaveFigureOptions);
+    this._saveFigureOptions = options;
+    return this;
+  }
+
+  /**
+   * Set the tooltip options.
+   * Default: D3TooltipOptions.withDefaults()
+   *  
+   * @param {D3TooltipOptions} options The tooltip options
    */
   tooltipOptions(options) {
-    Preconditions.checkArgumentInstanceOf()
+    Preconditions.checkArgumentInstanceOf(options, D3TooltipOptions);
+    this._tooltipOptions = options;
+    return this;
   }
 
   /**
