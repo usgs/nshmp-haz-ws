@@ -76,6 +76,7 @@ export default class D3BaseSubView {
             `${this.options.marginLeft}, ${this.options.marginTop})`);
     
     let outerFrameD3 = outerPlotD3.append('rect')
+        .attr('class', 'outer-frame')
         .attr('height', this.svgHeight)
         .attr('width', this.svgWidth)
         .attr('fill', 'none');
@@ -86,16 +87,20 @@ export default class D3BaseSubView {
             `${this.options.paddingLeft}, ${this.options.paddingTop})`);
     
     let innerFrameD3 = innerPlotD3.append('rect')
+        .attr('class', 'inner-frame')
         .attr('height', this.plotHeight)
         .attr('width', this.plotWidth)
         .attr('fill', 'none');
     
     /* Tooltip Group */
     let tooltipD3 = innerPlotD3.append('g')
-        .attr('class', 'd3-tooltip');
+        .attr('class', 'd3-tooltip')
+        .style('line-height', '1.5');
 
     let tooltipForeignObjectD3 = tooltipD3.append('foreignObject');
-    let tooltipTableD3 = tooltipForeignObjectD3.append('xhtml:table');
+    let tooltipTableD3 = tooltipForeignObjectD3.append('xhtml:table')
+        .attr('xmlns', 'http://www.w3.org/1999/xhtml');
+
 
     let els = {
       innerPlotEl: innerPlotD3.node(),

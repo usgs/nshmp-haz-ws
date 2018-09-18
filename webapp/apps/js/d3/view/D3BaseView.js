@@ -2,6 +2,7 @@
 import D3BaseSubView from './D3BaseSubView.js';
 import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
 import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
+import { D3SaveFigure } from '../D3SaveFigure.js';
 import NshmpError from '../../error/NshmpError.js';
 import Preconditions from '../../error/Preconditions.js';
 
@@ -27,17 +28,11 @@ export default class D3BaseView {
   constructor(builder) {
     Preconditions.checkArgumentInstanceOf(builder, D3BaseViewBuilder);
 
-    /** @type {Boolean} Whether to add a footer in the view */
-    this.addFooter = builder._addFooter;
-    /** @type {Boolean} Whether to add a header in the view */
-    this.addHeader = builder._addHeader;
     /** @type {Boolean} Whether to add a lower sub view */
     this.addLowerSubView = builder._addLowerSubView;
     
     /** @type {HTMLElement} Container element to append view */
     this.containerEl = builder._containerEl;
-    /** @type {Object} View footer options */
-    this.footerOptions = builder._footerOptions;
     /** @type {Object} View header options */
     this.headerOptions = builder._headerOptions;
     /** @type {D3BaseViewOptions} View options */
@@ -51,6 +46,8 @@ export default class D3BaseView {
     this.resizeSmallIcon = 'resize glyphicon glyphicon-resize-small';
     /** @type {String} The plot title text */
     this._titleText = '';
+    /** @type {Map<String, Array<String | Number>>} The metadata */
+    this._metadata = new Map();
 
     let viewEls = this._createView();
     /** @type {HTMLElement} Data view, data table element */
@@ -104,17 +101,8 @@ export default class D3BaseView {
    *  
    * @param {Map<String, Array<String | Number>>} metadata The metadata
    */
-  createMetadataTable(metadata) {
-    Preconditions.checkArgumentInstanceOfMap(metadata);
-    for (let [key, values] of metadata) {
-      Preconditions.checkStateString(key);
-      for (let val of values) {
-        Preconditions.checkState(
-          typeof(val) == 'number' || typeof(val) == 'string',
-          'Map values must be array of strings or numbers');
-      }
-    }
-
+  createMetadataTable() {
+    let metadata = this.getMetadata();
     this.viewFooter.metadataBtnEl.removeAttribute('disabled');
 
     d3.select(this.metadataTableSVGEl)
@@ -149,10 +137,19 @@ export default class D3BaseView {
   }
 
   /**
+   * Return the metadata.
+   * 
+   * @returns {Map<String, Array<String | Number>>}
+   */
+  getMetadata() {
+    return new Map(this._metadata);
+  }
+
+  /**
    * Return the plot title HTML text
    */
   getTitle() {
-    return this._titleText;
+    return new String(this._titleText);
   }
 
   /**
@@ -177,16 +174,28 @@ export default class D3BaseView {
   }
 
   /**
+   * 
+   * @param {Map<String, Array<String | Number>>} metadata 
+   */
+  setMetadata(metadata) {
+    Preconditions.checkArgumentInstanceOfMap(metadata);
+    for (let [key, value] of metadata) {
+      Preconditions.checkArgumentString(key);
+      Preconditions.checkArgumentArray(value);
+    }
+
+    this._metadata = metadata;
+  }
+
+  /**
    * Set the plot title. Shows the title in the view header if present.
    * 
    * @param {String} title The plot title
    */
   setTitle(title) {
+    Preconditions.checkArgumentString(title);
     this._titleText = title;
-
-    if (this.addHeader) {
-      this.viewHeader.titleEl.innerHTML = title;
-    }
+    this.viewHeader.titleEl.innerHTML = title;
   }
 
   /**
@@ -229,18 +238,20 @@ export default class D3BaseView {
    * Add the D3BaseView event listeners.
    */
   _addEventListeners() {
-    if (this.addFooter) {
-      this.viewFooter.viewSwitchBtnEls
-          .addEventListener('click', () => { this._onPlotViewSwitch(); });
-    }
+    this.viewFooter.viewSwitchBtnEls
+        .addEventListener('click', () => { this._onPlotViewSwitch(); });
 
-    if (this.addHeader) {
-      this.viewHeader.viewResizeEl
-          .addEventListener('click', () => { this._onViewResize(); });
-      
-      this.viewHeader.titleEl
-          .addEventListener('input', () => { this._onTitleEntry(); });
-    }
+    this.viewFooter.saveMenuEl.querySelectorAll('a').forEach((el) => {
+      el.addEventListener('click', (e) => { 
+        this._onSaveMenu(e);
+      });
+    });
+
+    this.viewHeader.viewResizeEl
+        .addEventListener('click', () => { this._onViewResize(); });
+    
+    this.viewHeader.titleEl
+        .addEventListener('input', () => { this._onTitleEntry(); });
   }
 
   /**
@@ -265,6 +276,7 @@ export default class D3BaseView {
    * @property {HTMLElement} btnToolbarEl The footer button toolbar element 
    * @property {HTMLElement} dataBtnEl The 'Data' button element
    * @property {HTMLElement} footerEl The view footer element
+   * @property {HTMLElement} imageOnlyEl The image only check box in the save menu
    * @property {HTMLElement} metadataBtnEl The 'Metadata' button element
    * @property {HTMLElement} plotBtnEl The 'Plot' button element
    * @property {HTMLElement} saveMenuEl The save menu element
@@ -272,8 +284,6 @@ export default class D3BaseView {
    *    group element
    */
   _createViewFooter() {
-    if (!this.addFooter) return;
-
     let viewFooterD3 = d3.select(this.viewPanelEl)
        .append('div')
        .attr('class', 'panel-footer');
@@ -315,11 +325,8 @@ export default class D3BaseView {
           }
         })
   
-    let saveMenuEl = undefined;
-    if (this.footerOptions.addSaveMenu) {
-      saveMenuEl = this._createSaveMenu(viewFooterD3.node());
-    }
-
+    let saveMenuEl = this._createSaveMenu(viewFooterD3.node());
+    let imageOnlyEl = saveMenuEl.querySelector('#image-only');
     let toolbarEl = footerToolbarD3.node();
     let plotBtnEl = toolbarEl.querySelector('.plot-btn');
     let dataBtnEl = toolbarEl.querySelector('.data-btn');
@@ -329,6 +336,7 @@ export default class D3BaseView {
       btnToolbarEl: toolbarEl,
       dataBtnEl: dataBtnEl,
       footerEl: viewFooterD3.node(),
+      imageOnlyEl: imageOnlyEl,
       metadataBtnEl: metadataBtnEl,
       plotBtnEl: plotBtnEl,
       saveMenuEl: saveMenuEl != undefined ? saveMenuEl : undefined,
@@ -357,8 +365,6 @@ export default class D3BaseView {
    * @property {HTMLElement} viewResizeEl The resize element
    */
   _createViewHeader() {
-    if (!this.addHeader) return;
-
     let viewHeaderD3 = d3.select(this.viewPanelEl)
         .append('div')
         .attr('class', 'panel-heading')
@@ -512,10 +518,24 @@ export default class D3BaseView {
         .style('cursor', 'initial');
 
     saveDataEnter.filter((d) => { return d.format != 'dropdown-header'})
+        .style('padding-left', '10px')
         .html((d) => {
           return `<a data-format=${d.format} data-type=${d.type}> ${d.label} </a>`; 
         })
         .style('cursor', 'pointer');
+
+    saveListD3.append('li')
+          .attr('role', 'seperator')
+          .attr('class', 'divider');
+
+    saveListD3.append('li')
+        .attr('class', 'dropdown-header')
+        .attr('data-type', 'image-only')
+        .html('Save/Preview Image Only: ' + 
+            '<input type="checkbox" name="image-only" id="image-only">')
+
+    let saveListEl = saveListD3.node();
+    Preconditions.checkStateInstanceOfHTMLElement(saveListEl);
     
     return saveListD3.node();
   }
@@ -551,6 +571,29 @@ export default class D3BaseView {
       this.lowerSubView.subViewBodyEl.classList.toggle(
           'hidden',
           selectedView != 'plot');
+    }
+  }
+
+  /**
+   * 
+   * @param {Event} event 
+   */
+  _onSaveMenu(event) {
+    let saveType = event.target.getAttribute('data-type');
+    let saveFormat = event.target.getAttribute('data-format');
+    let imageOnly = this.viewFooter.imageOnlyEl.checked;
+
+    switch(saveType) {
+      case 'save-figure':
+        if (imageOnly) D3SaveFigure.saveImageOnly(this, saveFormat);
+        else D3SaveFigure.save(this, saveFormat);
+        break;
+      case 'preview-figure':
+        if (imageOnly) D3SaveFigure.previewImageOnly(this, saveFormat);
+        else D3SaveFigure.preview(this, saveFormat);
+        break;
+      default: 
+        throw new NshmpError(`Save type [${saveType}] not supported`);
     }
   }
 
@@ -598,17 +641,16 @@ export default class D3BaseView {
    */
   _saveMenuButtons() {
     let buttons = [
-      { label: 'Preview Figure as:', format: 'dropdown-header', type: 'preview' },
-      { label: 'JPEG', format: 'jpeg', type: 'preview' }, 
-      { label: 'PNG', format: 'png', type: 'preview' },
-      { label: 'SVG', format: 'svg', type: 'preview' },
-      { label: 'Save Figure As:', format: 'dropdown-header', type: 'plot' }, 
-      { label: 'JPEG', format: 'jpeg', type: 'plot' }, 
-      { label: 'PDF', format: 'pdf', type: 'plot' }, 
-      { label: 'PNG', format: 'png', type: 'plot' },
-      { label: 'SVG', format: 'svg', type: 'plot' },
-      { label: 'Save Data As:', format: 'dropdown-header', type: 'data' },
-      { label: 'CSV', format: 'csv', type: 'data' },
+      { label: 'Preview Figure as:', format: 'dropdown-header', type: 'preview-figure' },
+      { label: 'JPEG', format: 'jpeg', type: 'preview-figure' }, 
+      { label: 'PNG', format: 'png', type: 'preview-figure' },
+      { label: 'SVG', format: 'svg', type: 'preview-figure' },
+      { label: 'Save Figure As:', format: 'dropdown-header', type: 'save-figure' }, 
+      { label: 'JPEG', format: 'jpeg', type: 'save-figure' }, 
+      { label: 'PNG', format: 'png', type: 'save-figure' },
+      { label: 'SVG', format: 'svg', type: 'save-figure' },
+      { label: 'Save Data As:', format: 'dropdown-header', type: 'save-data' },
+      { label: 'CSV', format: 'csv', type: 'save-data' },
     ];
 
     return buttons;
@@ -703,21 +745,12 @@ export class D3BaseViewBuilder {
       addLegendToggle: true,
     };
 
-    this._defaultFooterOptions = {
-      addSaveMenu: true,
-    };
-
     /** @type {HTMLElement} */
     this._containerEl = undefined;
     /** @type {Boolean} */
-    this._addHeader = false;
-    /** @type {Boolean} */
-    this._addFooter = false;
-    /** @type {Boolean} */
     this._addLowerSubView = false;
 
-    this._headerOptions = undefined;
-    this._footerOptions = undefined;
+    this._headerOptions = this._defaultHeaderOptions;
   }
 
   /**
@@ -745,47 +778,11 @@ export class D3BaseViewBuilder {
   }
 
   /**
-   * Add a footer to the view. Default footer consists of a:
-   *    - button group to switch between a plot, data, and 
-   *        metadata view
-   *    - save menu to save the data and figures
-   *  
-   * @param {Object} options The footer options. 
-   */
-  addViewFooter(options = {}) {
-    this._footerOptions = Object.assign(
-        {}, 
-        this._defaultFooterOptions, 
-        options);
-    this._addFooter = true;
-    return this;
-  }
-
-  /**
-   * Add a header to the view. Default header consists of a:
-   *    - title
-   *    - resize toggle to resize the view
-   * 
-   * Use D3BaseView.setTitle to set the title for the panel header
-   *    and plot title.
-   *  
-   * @param {Object} options The header options.
-   */
-  addViewHeader(options = {}) {
-    this._headerOptions = Object.assign(
-        {}, 
-        this._defaultHeaderOptions, 
-        options);
-    this._addHeader = true;
-    return this;
-  }
-
-  /**
    * Set the container element, where the view will be appended to.
    * 
    * @param {HTMLElement} el The container element to put the view. 
    */
-  setContainerEl(el) {
+  containerEl(el) {
     Preconditions.checkArgumentInstanceOfHTMLElement(el);
     this._containerEl = el;
     return this;
@@ -796,7 +793,7 @@ export class D3BaseViewBuilder {
    * 
    * @param {D3BaseSubViewOptions} options The lower sub view options. 
    */
-  setLowerSubViewOptions(options) {
+  lowerSubViewOptions(options) {
     Preconditions.checkArgumentInstanceOf(options, D3BaseSubViewOptions);
     this._lowerSubViewOptions = options;
     return this;
@@ -807,7 +804,7 @@ export class D3BaseViewBuilder {
    * 
    * @param {D3BaseSubViewOptions} options The upper sub view options.
    */
-  setUpperSubViewOptions(options) {
+  upperSubViewOptions(options) {
     Preconditions.checkArgumentInstanceOf(options, D3BaseSubViewOptions);
     this._upperSubViewOptions = options;
     return this;
@@ -818,7 +815,7 @@ export class D3BaseViewBuilder {
    * 
    * @param {D3BaseViewOptions} options The view options.
    */
-  setViewOptions(options) {
+  viewOptions(options) {
     Preconditions.checkArgumentInstanceOf(options, D3BaseViewOptions);
     this._viewOptions = options;
     return this;
