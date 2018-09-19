@@ -176,36 +176,52 @@ export class D3SaveFigureOptionsBuilder {
   constructor() {
     /** @type {Boolean} */
     this._addFooter = true;
+
     /** @type {Boolean} */
     this._addMetadata = true;
+    
     /** @type {Boolean} */
     this._addTitle = true;
+    
     /** @type {Number} */
     this._dpi = 300;
+    
     /** @type {Number} */
     this._footerFontSize = 10;
+    
     /** @type {Number} */
     this._footerLineBreak = 14;
+    
     /** @type {Number} */
     this._footerPadding = 10;
+    
     /** @type {String} */
     this._marginLeft = 'center';
+    
     /** @type {Number} */
     this._marginTop = 0.5;
+    
     /** @type {Number} */
     this._metadataColumns = 3;
+    
     /** @type {Number} */
     this._metadataFontSize = 10;
+    
     /** @type {Number} */
     this._metadataMarginTop = 0.5;
+    
     /** @type {Number} */
     this._metadataMaxColumnValues = 5;
+    
     /** @type {Number} */
     this._pageHeight = 8.5;
+    
     /** @type {Number} */
     this._pageWidth = 11;
+    
     /** @type {Number} */
     this._titleFontSize = 14;
+    
     /** @type {String} */
     this._titleLocation = 'center';
   }

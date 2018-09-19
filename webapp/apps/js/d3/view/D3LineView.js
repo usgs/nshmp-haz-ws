@@ -1,5 +1,5 @@
 
-import { D3BaseView } from './D3BaseView.js';
+import { D3BaseView, D3BaseViewFooterElements } from './D3BaseView.js';
 import { D3BaseViewBuilder } from './D3BaseView.js';
 import { D3LineData } from '../data/D3LineData.js';
 import { D3LineSeriesData } from '../data/D3LineSeriesData.js';
@@ -36,10 +36,13 @@ export class D3LineView extends D3BaseView {
     /* Update types */
     /** @type {D3LineSubView} Lower sub view */
     this.lowerSubView;
+
     /** @type {D3LineSubView} Upper sub view */
     this.upperSubView;
-    /** @type {D3LineView~LineViewFooterEls} */
+    
+    /** @type {D3LineViewFooterElements}  The Footer elements */
     this.viewFooter;
+    
     /** @type {D3LineViewOptions} */
     this.viewOptions;
   }
@@ -257,42 +260,33 @@ export class D3LineView extends D3BaseView {
    * @package
    * Create the D3LineView footer.
    * 
-   * @return {LineViewFooterEls} The elements associated with the footer
-   * @typedef {Object} D3LineView~LineViewFooterEls - The view footer elements
-   * @property {HTMLElement} btnToolbarEl The footer button toolbar element 
-   * @property {HTMLElement} dataBtnEl The 'Data' button element
-   * @property {HTMLElement} footerEl The view footer element
-   * @property {HTMLElement} metadataBtnEl The 'Metadata' button element
-   * @property {HTMLElement} plotBtnEl The 'Plot' button element
-   * @property {HTMLElement} saveMenuEl The save menu element
-   * @property {HTMLElement} viewSwitchBtnEls The plot, data, metadata button
-   *    group element
-   * @property {HTMLElement} xAxisBtnEl The X axis button element
-   * @property {HTMLElement} xLinearBtnEl The X axis linear button
-   * @property {HTMLElement} xLogBtnEl The X axis log button
-   * @property {HTMLElement} yAxisBtnEl The Y axis button element
-   * @property {HTMLElement} yLinearBtnEl The Y axis linear button
-   * @property {HTMLElement} yLogBtnEl The Y axis log button
+   * @return {D3LineViewFooterElements} The elements associated with the footer
    */
   _createViewFooter() {
     let footer = super._createViewFooter();
 
     let xAxisEls = this._addXAxisBtns(footer);
-    footer.xAxisBtnEl = xAxisEls.xAxisBtnEl;
-    footer.xLinearBtnEl = xAxisEls.xLinearBtnEl;
-    footer.xLogBtnEl = xAxisEls.xLogBtnEl;
-
     let yAxisEls = this._addYAxisBtns(footer);
-    footer.yAxisBtnEl = yAxisEls.yAxisBtnEl;
-    footer.yLinearBtnEl = yAxisEls.yLinearBtnEl;
-    footer.yLogBtnEl = yAxisEls.yLogBtnEl;
 
-    for (let el of Object.values(footer)) {
-      Preconditions.checkStateInstanceOfHTMLElement(el);
-      Preconditions.checkNotUndefined(el);
-    }
+    let els = new D3LineViewFooterElements();
+    els.btnToolbarEl = footer.btnToolbarEl;
+    els.dataBtnEl = footer.dataBtnEl;
+    els.footerEl = footer.footerEl;
+    els.imageOnlyEl = footer.imageOnlyEl;
+    els.metadataBtnEl = footer.metadataBtnEl;
+    els.plotBtnEl = footer.plotBtnEl;
+    els.saveMenuEl = footer.saveMenuEl;
+    els.viewSwitchBtnEl = footer.viewSwitchBtnEl;
 
-    return footer;
+    els.xAxisBtnEl = xAxisEls.xAxisBtnEl;
+    els.xLinearBtnEl = xAxisEls.xLinearBtnEl;
+    els.xLogBtnEl = xAxisEls.xLogBtnEl;
+    els.yAxisBtnEl = yAxisEls.yAxisBtnEl;
+    els.yLinearBtnEl = yAxisEls.yLinearBtnEl;
+    els.yLogBtnEl = yAxisEls.yLogBtnEl;
+    
+    
+    return els.checkElements();
   }
 
   /**
@@ -403,10 +397,62 @@ export class D3LineViewBuilder extends D3BaseViewBuilder {
   _setDefaultViewOptions() {
     /** @type {D3LineViewOptions} */
     this._viewOptions = D3LineViewOptions.withDefaults();
+
     /** @type {D3LineSubViewOptions} */
     this._upperSubViewOptions = D3LineSubViewOptions.upperWithDefaults();
+    
     /** @type {D3LineSubViewOptions} */
     this._lowerSubViewOptions = D3LineSubViewOptions.lowerWithDefaults();
+  }
+
+}
+
+/**
+ * @fileoverview Container class for D3LineView footer elements
+ * 
+ * @class D3LineViewFooterElements
+ * @extends D3BaseViewFooterElements
+ * @author Brandon Clayton
+ */
+export class D3LineViewFooterElements extends D3BaseViewFooterElements {
+
+  constructor() {
+    super();
+
+    /** @type {HTMLElement} The X axis button element */
+    this.xAxisBtnEl = undefined;
+
+    /** @type {HTMLElement} The X axis linear button element */
+    this.xLinearBtnEl = undefined;
+    
+    /** @type {HTMLElement} The X axis log button element */
+    this.xLogBtnEl = undefined;
+    
+    /** @type {HTMLElement} The Y axis button element */
+    this.yAxisBtnEl = undefined;
+    
+    /** @type {HTMLElement} The Y axis linear button element */
+    this.yLinearBtnEl = undefined;
+    
+    /** @type {HTMLElement} The Y axis log button element */
+    this.yLogBtnEl = undefined;
+  }
+
+  /**
+   * @override
+   * Check that the elements are set
+   */
+  checkElements() {
+    super.checkElements();
+
+    Preconditions.checkStateInstanceOfHTMLElement(this.xAxisBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.xLinearBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.xLogBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.yAxisBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.yLinearBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.yLogBtnEl);
+
+    return this;
   }
 
 }

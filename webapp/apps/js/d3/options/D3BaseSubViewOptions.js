@@ -191,28 +191,40 @@ export class D3BaseSubViewOptionsBuilder {
   constructor() {
     /** @type {String} */
     this._filename = 'file';
+    
     /** @type {Number} */
     this._marginBottom = 15;
+    
     /** @type {Number} */
     this._marginLeft = 20;
+    
     /** @type {Number} */
     this._marginRight = 10;
+    
     /** @type {Number} */
     this._marginTop = 10;
+    
     /** @type {Number} */
     this._paddingBottom = 35;
+    
     /** @type {Number} */
     this._paddingLeft = 40;
+    
     /** @type {Number} */
     this._paddingRight = 20;
+    
     /** @type {Number} */
     this._paddingTop = 10;
+    
     /** @type {Number} */
     this._plotHeight = 504;
+    
     /** @type {Number} */
     this._plotWidth = 896;
+    
     /** @type {D3SaveFigureOptions} */
     this._saveFigureOptions = D3SaveFigureOptions.withDefaults();
+    
     /** @type {D3TooltipOptions} */
     this._tooltipOptions = D3TooltipOptions.withDefaults();
 

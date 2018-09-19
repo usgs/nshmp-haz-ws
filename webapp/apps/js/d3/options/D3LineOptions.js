@@ -288,28 +288,40 @@ export class D3LineOptionsBuilder {
   constructor() {
     /** @type {String} */
     this._color = undefined;
+
     /** @type {String} */
     this._id = undefined;
+    
     /** @type {String} */
     this._label = undefined;
+    
     /** @type {String} */
     this._lineStyle = '-';
+    
     /** @type {Number} */
     this._lineWidth = 2.5;
+    
     /** @type {String} */
     this._markerStyle = 'o';
+    
     /** @type {String} */
     this._markerColor = undefined;
+    
     /** @type {String} */
     this._markerEdgeColor = undefined;
+    
     /** @type {Number} */
     this._markerEdgeWidth = 1.0;
+    
     /** @type {Number} */
     this._markerSize = 6.0;
+    
     /** @type {Number} */
     this._selectionMultiplier = 2;
+    
     /** @type {Boolean} */
     this._showInDataTable = true;
+    
     /** @type {Boolean} */
     this._showInLegend = true;
   }

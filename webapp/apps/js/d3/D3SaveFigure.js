@@ -45,19 +45,25 @@ export class D3SaveFigure {
 
     /** @type {D3BaseView} */
     this.view = view;
+
     /** @type {D3BaseSubView} */
     this.subView = subView; 
+    
     /** @type {Boolean} */
     this.imageOnly = imageOnly;
+    
     /** @type {String} */
     this.saveFormat = format;
+    
     /** @type {D3SaveFigureOptions} */
     this.options = this.subView.options.saveFigureOptions;
+    
     /** @type {String} */
     this.filename = this.subView.options.filename;
 
     /** @type {Number} */
     this.baseDPI = 96;
+    
     /** @type {Number} */
     this.printDPI = format == 'svg' ? this.baseDPI : this.options.dpi; 
 
@@ -68,6 +74,7 @@ export class D3SaveFigure {
     this.pageHeightPxPrintDPI = this.imageOnly ? 
         ( this.subView.options.plotHeight + marginTopBasePx ) * dpiRatio:
         this.options.pageHeight * this.printDPI;
+    
     /** @type {Number} */
     this.pageWidthPxPrintDPI = this.imageOnly ?
         this.subView.options.plotWidth * dpiRatio :    
@@ -77,6 +84,7 @@ export class D3SaveFigure {
     this.pageHeightPxBaseDPI = this.imageOnly ? 
         this.subView.options.plotHeight + marginTopBasePx :    
         this.options.pageHeight * this.baseDPI;
+    
     /** @type {Number} */
     this.pageWidthPxBaseDPI = this.imageOnly ? 
         this.subView.options.plotWidth :
@@ -84,12 +92,16 @@ export class D3SaveFigure {
    
     /** @type {SVGElement} */
     this.svgEl = this.subView.svg.svgEl.cloneNode(true);
+    
     /** @type {SVGElement} */
     this.svgOuterPlotEl = this.svgEl.querySelector('.outer-plot');
+    
     /** @type {SVGElement} */
     this.svgOuterPlotFrameEl = this.svgOuterPlotEl.querySelector('.outer-frame');
+    
     /** @type {SVGElement} */
     this.svgInnerPlotEl = this.svgEl.querySelector('.inner-plot');
+    
     /** @type {SVGElement} */
     this.svgInnerPlotFrameEl = this.svgInnerPlotEl.querySelector('.inner-frame');
 

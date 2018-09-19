@@ -273,52 +273,76 @@ export class D3LineSubViewOptionsBuilder
 
     /** @type {Number} */
     this._axisLabelFontWeight = 500;
+    
     /** @type {Array<Number>} */
     this._defaultXLimit = [ 0.01, 10 ];
+    
     /** @type {Array<Number>} */
     this._defaultYLimit = [ 0.01, 1 ];
+    
     /** @type {String} */
     this._gridLineColor = '#E0E0E0';
+    
     /** @type {Number} */
     this._gridLineWidth = 0.75;
+    
     /** @type {Number} */
     this._labelFontSize = 16;
+    
     /** @type {D3LineLegendOptions} */
     this._legendOptions = D3LineLegendOptions.upperWithDefaults();
+    
     /** @type {String} */
     this._referenceLineColor = '#9E9E9E';
+    
     /** @type {Number} */
     this._referenceLineWidth = 1;
+    
     /** @type {Boolean} */
     this._showLegend = true;
+    
     /** @type {Number} */
     this._tickExponentFontSize = 8;
+    
     /** @type {Number} */
     this._tickFontSize = 12
+    
     /** @type {Number} */
     this._translationDuration = 500;
+    
     /** @type {String} */
     this._xAxisLocation = 'bottom';
+    
     /** @type {Boolean} */
     this._xAxisNice = true;
+    
     /** @type {String} */
     this._xAxisScale = 'log';
+    
     /** @type {String} */
     this._xLabel = '';
+    
     /** @type {Number} */
     this._xLabelPadding = 8;
+    
     /** @type {Number} */
     this._xTickMarks = 8;
+    
     /** @type {String} */
     this._yAxisLocation = 'left';
+    
     /** @type {Boolean} */
     this._yAxisNice = true;
+    
     /** @type {String} */
     this._yAxisScale = 'log';
+    
     /** @type {String} */
     this._yLabel = '';
+    
     /** @type {Number} */
     this._yLabelPadding = 10;
+    
     /** @type {Number} */
     this._yTickMarks = 6;
   }
