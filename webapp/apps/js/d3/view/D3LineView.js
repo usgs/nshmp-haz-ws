@@ -397,8 +397,10 @@ export class D3LineViewBuilder extends D3BaseViewBuilder {
   _setDefaultViewOptions() {
     /** @type {D3LineViewOptions} */
     this._viewOptions = D3LineViewOptions.withDefaults();
+
     /** @type {D3LineSubViewOptions} */
     this._upperSubViewOptions = D3LineSubViewOptions.upperWithDefaults();
+    
     /** @type {D3LineSubViewOptions} */
     this._lowerSubViewOptions = D3LineSubViewOptions.lowerWithDefaults();
   }

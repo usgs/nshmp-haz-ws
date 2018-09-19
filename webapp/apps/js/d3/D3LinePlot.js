@@ -38,6 +38,7 @@ export class D3LinePlot {
 
     /** @type {D3LineView} */
     this.view = view;
+
     /** @type {D3LineAxes} */
     this.axes = new D3LineAxes(this.view);
     
@@ -50,8 +51,10 @@ export class D3LinePlot {
     if (this.view.addLowerSubView) {
       this._setLineData(this._getDefaultLowerLineData());
     }
+    
     /** @type {D3Tooltip} */
     this.tooltip = new D3Tooltip();
+    
     /** @type {D3LineLegend} */
     this.legend = new D3LineLegend(this);
 

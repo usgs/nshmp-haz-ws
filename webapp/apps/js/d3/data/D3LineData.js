@@ -297,16 +297,22 @@ export class D3LineDataBuilder {
   constructor() {
     /** @type {Array<String>} */
     this._colorScheme = undefined;
+
     /** @type {String} */
     this._label = undefined;
+    
     /** @type {Array<D3LineSeriesData>} */
     this._series = []; 
+    
     /** @type {D3LineSubView} */
     this._subView = undefined;
+    
     /** @type {Array<Number>} */
     this._xLimit = undefined;
+    
     /** @type {Boolean} */
     this._yAxisReverse = false;
+    
     /** @type {Array<Number>} */
     this._yLimit = undefined;
   }

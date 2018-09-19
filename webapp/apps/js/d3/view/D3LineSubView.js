@@ -27,6 +27,7 @@ export class D3LineSubView extends D3BaseSubView {
     /* Update types */
     /** @type {D3LineSubViewSVGElements} Line plot SVG elements */
     this.svg;
+
     /** @type {D3LineSubViewOptions} Sub view options for line plot */
     this.options;
 
@@ -137,28 +138,40 @@ export class D3LineSubViewSVGElements extends D3BaseSubViewSVGElements {
 
     /** @type {SVGElement} The data group element */
     this.dataContainerEl = undefined; 
+    
     /** @type {SVGElement} The grid lines group element */
     this.gridLinesEl = undefined;
+    
     /** @type {SVGElement} The legend group element*/
     this.legendEl = undefined;
+    
     /** @type {SVGElement} The legend foreign object element */
     this.legendForeignObjectEl = undefined;
+    
     /** @type {HTMLElement} The table element*/
     this.legendTableEl = undefined;
+    
     /** @type {SVGElement} The X axis group element */
     this.xAxisEl = undefined;
+    
     /** @type {SVGElement} The X axis grid lines group element */
     this.xGridLinesEl = undefined;
+    
     /** @type {SVGElement} The X label text element */
     this.xLabelEl = undefined;
+    
     /** @type {SVGElement} The X axis tick marks group element */
     this.xTickMarksEl = undefined;
+    
     /** @type {SVGElement} The Y axis group element */
     this.yAxisEl = undefined;
+    
     /** @type {SVGElement} The Y axis grid lines group element */
     this.yGridLinesEl = undefined;
+    
     /** @type {SVGElement} The Y label text element */
     this.yLabelEl = undefined;
+    
     /** @type {SVGElement} The Y axis tick marks group element */
     this.yTickMarksEl = undefined;
   }

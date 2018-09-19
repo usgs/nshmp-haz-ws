@@ -216,38 +216,55 @@ export class D3LineLegendOptionsBuilder {
   constructor() {
     /** @type {String} */
     this._backgroundColor = 'white';
+
     /** @type {String} */
     this._borderColor = 'gray';
+    
     /** @type {Number} */
     this._borderLineWidth = 1;
+    
     /** @type {Number} */
     this._borderRadius = 4;
+    
     /** @type {String} */
     this._borderStyle = 'solid';
+    
     /** @type {Number} */
     this._fontSize = 12;
+    
     /** @type {Number} */
     this._lineLength = 40;
+    
     /** @type {String} */
     this._location = 'top-right';
+    
     /** @type {Number} */
     this._marginBottom = 10;
+    
     /** @type {Number} */
     this._marginLeft = 10;
+    
     /** @type {Number} */
     this._marginRight = 10;
+    
     /** @type {Number} */
     this._marginTop = 10;
+    
     /** @type {Number} */
     this._maxRows = 20;
+    
     /** @type {Number} */
     this._numberOfColumns = 1;
+    
     /** @type {Number} */
     this._paddingBottom = 10;
+    
     /** @type {Number} */
     this._paddingLeft = 10;
+    
     /** @type {Number} */
     this._paddingRight = 10;
+    
     /** @type {Number} */
     this._paddingTop = 10;
   }

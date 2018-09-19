@@ -709,10 +709,13 @@ export class D3BaseViewBuilder {
 
     /** @type {Boolean} */
     this._addGridLineToggle = true;
+
     /** @type {Boolean} */
     this._addLegendToggle = true;
+    
     /** @type {Boolean} */
     this._addLowerSubView = false;
+    
     /** @type {HTMLElement} */
     this._containerEl = undefined;
   }
@@ -819,8 +822,10 @@ export class D3BaseViewBuilder {
   _setDefaultViewOptions() {
     /** @type {D3BaseViewOptions} */
     this._viewOptions = D3BaseViewOptions.withDefaults();
+
     /** @type {D3BaseSubViewOptions} */
     this._upperSubViewOptions = D3BaseSubViewOptions.upperWithDefaults();
+    
     /** @type {D3BaseSubViewOptions} */
     this._lowerSubViewOptions = D3BaseSubViewOptions.lowerWithDefaults();
   }

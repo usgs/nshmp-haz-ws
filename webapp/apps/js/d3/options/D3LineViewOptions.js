@@ -120,16 +120,22 @@ export class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
 
     /** @type {Boolean} */
     this._disableXAxisBtns = false;
+
     /** @type {Boolean} */
     this._disableYAxisBtns= false;
+    
     /** @type {Boolean} */
     this._syncSubViewsSelections = false;
+    
     /** @type {Boolean} */
     this._syncXAxisScale = false;
+    
     /** @type {Boolean} */
     this._syncYAxisScale = false;
+    
     /** @type {String} */
     this._xAxisScale = 'log';
+    
     /** @type {String} */
     this._yAxisScale = 'log';
   }
