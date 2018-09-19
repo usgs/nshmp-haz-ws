@@ -1,6 +1,7 @@
 
-import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3BaseSubViewOptions } from '../options/D3BaseSubViewOptions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @package
@@ -10,7 +11,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseSubView
  * @author Brandon Clayton
  */
-export default class D3BaseSubView {
+export class D3BaseSubView {
 
   /**
    * Create new sub view.

@@ -1,10 +1,10 @@
 
-import D3BaseSubView from './D3BaseSubView.js';
-import D3BaseSubViewOptions from '../options/D3BaseSubViewOptions.js';
-import D3BaseViewOptions from '../options/D3BaseViewOptions.js';
-import { D3SaveFigure } from '../D3SaveFigure.js';
+import { D3BaseSubView } from './D3BaseSubView.js';
+import { D3BaseSubViewOptions } from '../options/D3BaseSubViewOptions.js';
+import { D3BaseViewOptions } from '../options/D3BaseViewOptions.js';
+
 import NshmpError from '../../error/NshmpError.js';
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create a base view for plots to reside. The view 
@@ -17,7 +17,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseView
  * @author Brandon Clayton
  */
-export default class D3BaseView {
+export class D3BaseView {
 
   /**
    * @private 

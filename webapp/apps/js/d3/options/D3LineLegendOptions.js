@@ -1,5 +1,5 @@
 
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview The options for D3LineLegend

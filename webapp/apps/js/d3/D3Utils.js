@@ -1,7 +1,8 @@
 
-import Preconditions from '../error/Preconditions.js';
-import D3LineData from './data/D3LineData.js';
-import D3LineSeriesData from './data/D3LineSeriesData.js';
+import { D3LineData } from './data/D3LineData.js';
+import { D3LineSeriesData } from './data/D3LineSeriesData.js';
+
+import { Preconditions } from '../error/Preconditions.js';
 
 /**
  * @fileoverview D3 Utilities

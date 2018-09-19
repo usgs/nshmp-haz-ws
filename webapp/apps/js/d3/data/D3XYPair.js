@@ -1,5 +1,5 @@
 
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Container class to hold a X and Y pair 
@@ -7,7 +7,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3LineSeriesData
  * @author Brandon Clayton
  */
-export default class D3XYPair {
+export class D3XYPair {
   
   /**
    * @param {Number} x The X value 

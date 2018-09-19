@@ -1,6 +1,7 @@
 
-import D3BaseSubView from './view/D3BaseSubView.js';
-import Preconditions from '../error/Preconditions.js';
+import { D3BaseSubView }  from './view/D3BaseSubView.js';
+
+import { Preconditions } from '../error/Preconditions.js';
 
 /**
  * @fileoverview Create a tooltip on a D3BaseSubView.

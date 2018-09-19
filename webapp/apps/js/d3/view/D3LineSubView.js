@@ -1,7 +1,8 @@
 
-import D3BaseSubView from './D3BaseSubView.js';
-import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3BaseSubView } from './D3BaseSubView.js';
+import { D3LineSubViewOptions } from '../options/D3LineSubViewOptions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @package
@@ -12,7 +13,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @extends D3BaseSubView
  * @author Brandon Clayton 
  */
-export default class D3LineSubView extends D3BaseSubView {
+export class D3LineSubView extends D3BaseSubView {
 
   /**
    * Create a new sub view for D3LineView

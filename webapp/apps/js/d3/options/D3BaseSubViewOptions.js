@@ -1,7 +1,8 @@
 
-import D3TooltipOptions from './D3TooltipOptions.js';
 import { D3SaveFigureOptions } from './D3SaveFigureOptions.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3TooltipOptions } from './D3TooltipOptions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseSubView.
@@ -19,7 +20,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseSubViewOptions
  * @author Brandon Clayton
  */
-export default class D3BaseSubViewOptions {
+export class D3BaseSubViewOptions {
 
   /** 
    * @private

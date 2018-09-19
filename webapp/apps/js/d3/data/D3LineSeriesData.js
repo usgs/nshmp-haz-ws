@@ -1,7 +1,8 @@
 
-import D3LineOptions from '../options/D3LineOptions.js';
-import D3XYPair from './D3XYPair.js'; 
-import Preconditions from '../../error/Preconditions.js';
+import { D3LineOptions } from '../options/D3LineOptions.js';
+import { D3XYPair } from './D3XYPair.js'; 
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Container class to hold XY values and assoiciated 
@@ -10,7 +11,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3LineSeriesData
  * @author Brandon Clayton
  */
-export default class D3LineSeriesData {
+export class D3LineSeriesData {
 
   /**
    * @param {Array<Number>} xValues The X values

@@ -1,5 +1,5 @@
 
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseView. 
@@ -10,7 +10,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseViewOptions
  * @author Brandon Clayton
  */
-export default class D3BaseViewOptions {
+export class D3BaseViewOptions {
 
   /**
    * @private 

@@ -1,13 +1,14 @@
 
-import D3LineData from '../data/D3LineData.js';
+import { D3LineData } from '../data/D3LineData.js';
 import { D3LineLegendOptions } from '../options/D3LineLegendOptions.js';
-import D3LineSeriesData from '../data/D3LineSeriesData.js';
-import D3LineSubView from '../view/D3LineSubView.js';
-import { D3Utils } from '../D3Utils.js';
-import D3XYPair from '../data/D3XYPair.js';
-import NshmpError from '../../error/NshmpError.js';
-import Preconditions from '../../error/Preconditions.js';
 import { D3LinePlot } from '../D3LinePlot.js';
+import { D3LineSeriesData } from '../data/D3LineSeriesData.js';
+import { D3LineSubView } from '../view/D3LineSubView.js';
+import { D3Utils } from '../D3Utils.js';
+import { D3XYPair } from '../data/D3XYPair.js';
+
+import NshmpError from '../../error/NshmpError.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create a legend for a D3LinePlot.

@@ -10,7 +10,7 @@ import NshmpError from './NshmpError.js';
  * @class Preconditions
  * @author Brandon Clayton
  */
-export default class Preconditions {
+export class Preconditions {
 
   /** @private */
   constructor() {}
