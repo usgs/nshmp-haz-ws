@@ -1,5 +1,5 @@
 
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview The options for D3Tooltip
@@ -10,7 +10,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3TooltipOptions
  * @author Brandon Clayton 
  */
-export default class D3TooltipOptions {
+export class D3TooltipOptions {
 
   /**
    * 

@@ -1,10 +1,11 @@
 
-import D3BaseSubView from './view/D3BaseSubView.js';
-import D3BaseView from './view/D3BaseView.js';
+import { D3BaseSubView } from './view/D3BaseSubView.js';
+import { D3BaseView } from './view/D3BaseView.js';
 import { D3SaveFigureOptions } from './options/D3SaveFigureOptions.js';
-import D3XYPair from './data/D3XYPair.js';
-import Preconditions from '../error/Preconditions.js';
+import { D3XYPair } from './data/D3XYPair.js';
+
 import NshmpError from '../error/NshmpError.js';
+import { Preconditions } from '../error/Preconditions.js';
 
 /**
  * @fileoverview Preview and/or save a view's figures to:

@@ -1,6 +1,6 @@
 
 import NshmpError from '../../error/NshmpError.js';
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Options for customizing a line in a line plot.
@@ -12,7 +12,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3LineOptions
  * @author Brandon Clayton
  */
-export default class D3LineOptions {
+export class D3LineOptions {
 
   /**
    * @private

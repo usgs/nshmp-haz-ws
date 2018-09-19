@@ -1,13 +1,14 @@
 
-import D3BaseView from './D3BaseView.js';
+import { D3BaseView } from './D3BaseView.js';
 import { D3BaseViewBuilder } from './D3BaseView.js';
-import D3LineData from '../data/D3LineData.js';
-import D3LineSubView from './D3LineSubView.js';
-import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
-import D3LineViewOptions from '../options/D3LineViewOptions.js';
-import Preconditions from '../../error/Preconditions.js';
-import D3LineSeriesData from '../data/D3LineSeriesData.js';
-import D3XYPair from '../data/D3XYPair.js';
+import { D3LineData } from '../data/D3LineData.js';
+import { D3LineSeriesData } from '../data/D3LineSeriesData.js';
+import { D3LineSubView } from './D3LineSubView.js';
+import { D3LineSubViewOptions } from '../options/D3LineSubViewOptions.js';
+import { D3LineViewOptions } from '../options/D3LineViewOptions.js';
+import { D3XYPair } from '../data/D3XYPair.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create a view for line plots. The view can 
@@ -21,7 +22,7 @@ import D3XYPair from '../data/D3XYPair.js';
  * @extends D3BaseView
  * @author Brandon Clayton
  */
-export default class D3LineView extends D3BaseView {
+export class D3LineView extends D3BaseView {
 
   /**
    * @private

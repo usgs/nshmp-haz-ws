@@ -1,6 +1,7 @@
 
-import D3LineData from './data/D3LineData.js';
-import Preconditions from '../error/Preconditions.js';
+import { D3LineData } from './data/D3LineData.js';
+
+import { Preconditions } from '../error/Preconditions.js';
 
 /**
  * @fileoverview Save D3LineData to a CSV file

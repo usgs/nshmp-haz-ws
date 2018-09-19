@@ -1,9 +1,10 @@
 
-import D3LineSubView from '../view/D3LineSubView.js';
-import D3LineOptions from '../options/D3LineOptions.js';
-import D3LineSeriesData from './D3LineSeriesData.js';
-import D3XYPair from './D3XYPair.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3LineOptions } from '../options/D3LineOptions.js';
+import { D3LineSeriesData } from './D3LineSeriesData.js';
+import { D3LineSubView } from '../view/D3LineSubView.js';
+import { D3XYPair }from './D3XYPair.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create the data series for line plots.
@@ -15,7 +16,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3LineData
  * @author Brandon Clayton
  */
-export default class D3LineData {
+export class D3LineData {
 
   /**
    * @private

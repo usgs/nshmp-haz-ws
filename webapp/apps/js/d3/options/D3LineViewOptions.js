@@ -1,7 +1,8 @@
 
-import D3BaseViewOptions from './D3BaseViewOptions.js';
+import { D3BaseViewOptions } from './D3BaseViewOptions.js';
 import { D3BaseViewOptionsBuilder } from './D3BaseViewOptions.js';
-import Preconditions from '../../error/Preconditions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3LineView
@@ -13,7 +14,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @extends D3BaseViewOptions
  * @author Brandon Clayton
  */
-export default class D3LineViewOptions extends D3BaseViewOptions {
+export class D3LineViewOptions extends D3BaseViewOptions {
 
   /** 
    * @private 
