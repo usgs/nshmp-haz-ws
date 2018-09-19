@@ -28,36 +28,50 @@ export class D3BaseView {
   constructor(builder) {
     Preconditions.checkArgumentInstanceOf(builder, D3BaseViewBuilder);
 
+    /** @type {Boolean} Whether to add a grid line toogle to the header */
+    this.addGridLineToggle = builder._addGridLineToggle;
+
+    /** @type {Boolean} Whether to add a legend toggle to the header */
+    this.addLegendToggle = builder._addLegendToggle;
+    
     /** @type {Boolean} Whether to add a lower sub view */
     this.addLowerSubView = builder._addLowerSubView;
     
     /** @type {HTMLElement} Container element to append view */
     this.containerEl = builder._containerEl;
-    /** @type {Object} View header options */
-    this.headerOptions = builder._headerOptions;
+    
     /** @type {D3BaseViewOptions} View options */
     this.viewOptions = builder._viewOptions;
+    
     /** @type {String} Track the size: 'min' || 'minCenter' || 'max' */
     this._currentViewSize = this.viewOptions.viewSizeDefault;
    
     /** @type {String} */
     this.resizeFullIcon = 'resize glyphicon glyphicon-resize-full';
+    
     /** @type {String} */
     this.resizeSmallIcon = 'resize glyphicon glyphicon-resize-small';
+    
     /** @type {String} The plot title text */
     this._titleText = '';
+    
     /** @type {Map<String, Array<String | Number>>} The metadata */
     this._metadata = new Map();
 
     let viewEls = this._createView();
+    
     /** @type {HTMLElement} Data view, data table element */
     this.dataTableEl = viewEls.dataTableEl;
+    
     /** @type {HTMLElement} Metadata view element */
     this.metadataTableEl = viewEls.metadataTableEl;
+    
     /** @type {HTMLElement} Bootstrap panel body element */
     this.viewPanelBodyEl = viewEls.viewPanelBodyEl;
+    
     /** @type {HTMLElement} Bootstrap panel element */
     this.viewPanelEl = viewEls.viewPanelEl;
+    
     /** @type {HTMLElement} Main view element */
     this.viewEl = viewEls.viewEl;
 
@@ -74,13 +88,15 @@ export class D3BaseView {
         builder._lowerSubViewOptions);
     }
 
-    /** @type {ViewHeaderEls} Elements of the view header */
+    /** @type {D3BaseViewHeaderElements} Elements of the view header */
     this.viewHeader = this._createViewHeader();
-    /** @type {ViewFooterEls} Elements of the view footer */
+
+    /** @type {D3BaseViewFooterElements} Elements of the view footer */
     this.viewFooter = this._createViewFooter();
 
     /** @type {SVGElement} The SVG element in the data table view */
     this.dataTableSVGEl = this._updateDataMetadata(this.dataTableEl);
+    
     /** @type {SVGElement} The SVG element in the metadata view */
     this.metadataTableSVGEl = this._updateDataMetadata(this.metadataTableEl);
 
@@ -238,7 +254,7 @@ export class D3BaseView {
    * Add the D3BaseView event listeners.
    */
   _addEventListeners() {
-    this.viewFooter.viewSwitchBtnEls
+    this.viewFooter.viewSwitchBtnEl
         .addEventListener('click', () => { this._onPlotViewSwitch(); });
 
     this.viewHeader.viewResizeEl
@@ -264,18 +280,8 @@ export class D3BaseView {
    * Create the D3BaseView footer with 'Plot', 'Data', and 
    *    'Metadata' buttons and the save menu.
    * 
-   * @returns {ViewFooterEls} The HTMLElements associated with
+   * @returns {D3BaseViewFooterElements} The HTMLElements associated with
    *    the footer
-   * @typedef {Object} ViewFooterEls - The view footer elements
-   * @property {HTMLElement} btnToolbarEl The footer button toolbar element 
-   * @property {HTMLElement} dataBtnEl The 'Data' button element
-   * @property {HTMLElement} footerEl The view footer element
-   * @property {HTMLElement} imageOnlyEl The image only check box in the save menu
-   * @property {HTMLElement} metadataBtnEl The 'Metadata' button element
-   * @property {HTMLElement} plotBtnEl The 'Plot' button element
-   * @property {HTMLElement} saveMenuEl The save menu element
-   * @property {HTMLElement} viewSwitchBtnEls The plot, data, metadata button
-   *    group element
    */
   _createViewFooter() {
     let viewFooterD3 = d3.select(this.viewPanelEl)
@@ -326,20 +332,19 @@ export class D3BaseView {
     let dataBtnEl = toolbarEl.querySelector('.data-btn');
     let metadataBtnEl = toolbarEl.querySelector('.metadata-btn');
 
-    let els = {
-      btnToolbarEl: toolbarEl,
-      dataBtnEl: dataBtnEl,
-      footerEl: viewFooterD3.node(),
-      imageOnlyEl: imageOnlyEl,
-      metadataBtnEl: metadataBtnEl,
-      plotBtnEl: plotBtnEl,
-      saveMenuEl: saveMenuEl != undefined ? saveMenuEl : undefined,
-      viewSwitchBtnEls: toolbarEl.querySelector('.plot-data-btns'),
-    };
+    let els = new D3BaseViewFooterElements(); 
+    els.btnToolbarEl = toolbarEl;
+    els.dataBtnEl = dataBtnEl;
+    els.footerEl = viewFooterD3.node();
+    els.imageOnlyEl = imageOnlyEl;
+    els.metadataBtnEl = metadataBtnEl;
+    els.plotBtnEl = plotBtnEl;
+    els.saveMenuEl = saveMenuEl; 
+    els.viewSwitchBtnEl = toolbarEl.querySelector('.plot-data-btns');
 
     d3.select(plotBtnEl).classed('active', true);
 
-    return els;
+    return els.checkElements();
   }
 
   /**
@@ -347,16 +352,8 @@ export class D3BaseView {
    * Create the D3BaseView header with plot title, legend toggle,
    *    grid lines toggle, and resize toggle.
    * 
-   * @returns {ViewHeaderEls} The HTMLElements associated with
+   * @returns {D3BaseViewHeaderElements} The HTMLElements associated with
    *    the header
-   * @typedef {Object} ViewHeaderEls - The view header elements
-   * @property {HTMLElement} gridLinesCheckEl The grid lines check element
-   * @property {HTMLElement} headerEl The view's header element
-   * @property {HTMLElement} iconsEl The header icons element
-   * @property {HTMLElement} legendCheckEl The legend check element
-   * @property {HTMLElement} titleContainerEl The title container element
-   * @property {HTMLElement} titleEl The title element
-   * @property {HTMLElement} viewResizeEl The resize element
    */
   _createViewHeader() {
     let viewHeaderD3 = d3.select(this.viewPanelEl)
@@ -367,10 +364,10 @@ export class D3BaseView {
     let viewTitleD3 = viewHeaderD3.append('h2')
         .attr('class', 'panel-title')
     
-    let viewTitleWidth = this.headerOptions.addLegendToggle &&
-        this.headerOptions.addGridLineToggle ? 'calc(100% - 8em)' :
-        this.headerOptions.addLegendToggle || 
-        this.headerOptions.addGridLineToggle ? 'calc(100% - 5em)' :
+    let viewTitleWidth = this.addLegendToggle &&
+        this.addGridLineToggle ? 'calc(100% - 8em)' :
+        this.addLegendToggle || 
+        this.addGridLineToggle ? 'calc(100% - 5em)' :
         'calc(100% - 2em)';
 
     let plotTitleD3 = viewTitleD3.append('div')
@@ -382,7 +379,7 @@ export class D3BaseView {
         .attr('class', 'icon');
 
     let gridLinesCheckD3 = undefined;
-    if (this.headerOptions.addGridLineToggle) {
+    if (this.addGridLineToggle) {
       gridLinesCheckD3 = iconsD3.append('div')
           .attr('class', 'grid-line-check glyphicon glyphicon-th')
           .attr('data-toggle', 'tooltip')
@@ -395,7 +392,7 @@ export class D3BaseView {
     }
 
     let legendCheckD3 = undefined;
-    if (this.headerOptions.addLegendToggle) {
+    if (this.addLegendToggle) {
       legendCheckD3 = iconsD3.append('div')
           .attr('class', 'legend-check glyphicon glyphicon-th-list')
           .attr('data-toggle', 'tooltip')
@@ -423,17 +420,16 @@ export class D3BaseView {
     let legendCheckEl = legendCheckD3 != undefined ?  
         legendCheckD3.node() : undefined;
 
-    let els = {
-      gridLinesCheckEl: gridLinesCheckEl,
-      headerEl: viewHeaderD3.node(),
-      iconsEl: iconsD3.node(),
-      legendCheckEl: legendCheckEl, 
-      titleContainerEl: viewTitleD3.node(),
-      titleEl: plotTitleD3.node(),
-      viewResizeEl: viewResizeD3.node(),
-    };
+    let els = new D3BaseViewHeaderElements();
+    els.gridLinesCheckEl = gridLinesCheckEl;
+    els.headerEl = viewHeaderD3.node();
+    els.iconsEl = iconsD3.node();
+    els.legendCheckEl = legendCheckEl;
+    els.titleContainerEl = viewTitleD3.node();
+    els.titleEl = plotTitleD3.node();
+    els.viewResizeEl = viewResizeD3.node();
 
-    return els;
+    return els.checkElements();
   }
 
   /**
@@ -711,17 +707,14 @@ export class D3BaseViewBuilder {
   constructor() {
     this._setDefaultViewOptions();
 
-    this._defaultHeaderOptions = {
-      addGridLineToggle: true,
-      addLegendToggle: true,
-    };
-
-    /** @type {HTMLElement} */
-    this._containerEl = undefined;
+    /** @type {Boolean} */
+    this._addGridLineToggle = true;
+    /** @type {Boolean} */
+    this._addLegendToggle = true;
     /** @type {Boolean} */
     this._addLowerSubView = false;
-
-    this._headerOptions = this._defaultHeaderOptions;
+    /** @type {HTMLElement} */
+    this._containerEl = undefined;
   }
 
   /**
@@ -735,16 +728,43 @@ export class D3BaseViewBuilder {
   }
 
   /**
-   * Add a lower sub view; adds the ability to have an upper and lower 
-   *    plot in a single view.
+   * Whether to add a grid line toogle in the view's header.
+   * Default: true
+   * 
+   * @param {Boolean} bool Whether to add the grid line toogle 
+   */
+  addGridLineToogle(bool) {
+    Preconditions.checkArgumentBoolean(bool);
+    this._addGridLineToggle = bool;
+    return this;
+  }
+
+  /**
+   * Whether to add a legend toogle in the view's header.
+   * Default: true
+   * 
+   * @param {Boolean} bool Whether to add the legend toogle 
+   */
+  addLegendToggle(bool) {
+    Preconditions.checkArgumentBoolean(bool);
+    this._addLegendToggle = bool;
+    return this;
+  }
+
+  /**
+   * Whether to add a lower sub view; 
+   *    adds the ability to have an upper and lower plot in a single view.
    * 
    * Default D3BaseSubViewOptions are applied from
    *    D3BaseSubViewOptions.lowerWithDefaults().
    * 
    * Use Builder.setLowerSubViewOptions to set custom settings.
+   * 
+   * Default: false
    */
-  addLowerSubView() {
-    this._addLowerSubView = true;
+  addLowerSubView(bool) {
+    Preconditions.checkArgumentBoolean(bool);
+    this._addLowerSubView = bool;
     return this;
   }
 
@@ -803,6 +823,118 @@ export class D3BaseViewBuilder {
     this._upperSubViewOptions = D3BaseSubViewOptions.upperWithDefaults();
     /** @type {D3BaseSubViewOptions} */
     this._lowerSubViewOptions = D3BaseSubViewOptions.lowerWithDefaults();
+  }
+
+}
+
+/**
+ * @fileoverview Container class for D3BaseView footer elements.
+ * 
+ * @class D3BaseViewFooterElements
+ * @author Brandon Clayton
+ */
+export class D3BaseViewFooterElements {
+
+  constructor() {
+    /** @type {HTMLElement} The footer button toolbar element */
+    this.btnToolbarEl = undefined;
+
+    /** @type {HTMLElement} The 'Data' button element on the button toolbar */
+    this.dataBtnEl = undefined;
+    
+    /** @type {HTMLElement} The footer element */
+    this.footerEl = undefined;
+    
+    /** @type {HTMLElement} The image only check box element in the save menu */
+    this.imageOnlyEl = undefined;
+    
+    /** @type {HTMLElement} The 'Metadata' button element on the button toolbar */
+    this.metadataBtnEl = undefined;
+    
+    /** @type {HTMLElement} The 'Plot' button element on the button toolbar */
+    this.plotBtnEl = undefined;
+    
+    /** @type {HTMLElement} The save menu element */
+    this.saveMenuEl = undefined;
+    
+    /** @type {HTMLElement} The plot, data, and metadata container element */
+    this.viewSwitchBtnEl = undefined;
+  }
+
+  /**
+   * Check that all elements are set.
+   * 
+   * @returns {D3BaseViewFooterElements} The elements
+   */
+  checkElements() {
+    for (let value of Object.values(this)) {
+      Preconditions.checkNotUndefined(value);
+    }
+
+    Preconditions.checkStateInstanceOfHTMLElement(this.btnToolbarEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.dataBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.footerEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.imageOnlyEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.metadataBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.plotBtnEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.saveMenuEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.viewSwitchBtnEl);
+
+    return this;
+  }
+
+}
+
+/**
+ * @fileoverview Container class for D3BaseView header elements.
+ * 
+ * @class D3BaseViewHeaderElements
+ * @author Brandon Clayton
+ */
+export class D3BaseViewHeaderElements {
+
+  constructor() {
+    /** @type {HTMLElement} The grid line check icon element */
+    this.gridLinesCheckEl = undefined;
+    
+    /** @type {HTMLElement} The header element */
+    this.headerEl = undefined; 
+    
+    /** @type {HTMLElement} The icons element */
+    this.iconsEl = undefined; 
+    
+    /** @type {HTMLElement} The legend check icon element */
+    this.legendCheckEl = undefined; 
+    
+    /** @type {HTMLElement} The title container element */
+    this.titleContainerEl = undefined;
+    
+    /** @type {HTMLElement} The title element */
+    this.titleEl = undefined;
+    
+    /** @type {HTMLElement} The resize icon element */
+    this.viewResizeEl = undefined;
+  }
+
+  /**
+   * Check that all elements are set.
+   * 
+   * @returns {D3BaseViewHeaderElements} The elements
+   */
+  checkElements() {
+    for (let value of Object.values(this)) {
+      Preconditions.checkNotUndefined(value);
+    }
+
+    Preconditions.checkStateInstanceOfHTMLElement(this.gridLinesCheckEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.headerEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.iconsEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.legendCheckEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.titleContainerEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.titleEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.viewResizeEl);
+
+    return this;
   }
 
 }
