@@ -1,6 +1,8 @@
 
-import D3BaseSubViewOptionsBuilder from './D3BaseSubViewOptionsBuilder.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3SaveFigureOptions } from './D3SaveFigureOptions.js';
+import { D3TooltipOptions } from './D3TooltipOptions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseSubView.
@@ -18,7 +20,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseSubViewOptions
  * @author Brandon Clayton
  */
-export default class D3BaseSubViewOptions {
+export class D3BaseSubViewOptions {
 
   /** 
    * @private
@@ -29,6 +31,13 @@ export default class D3BaseSubViewOptions {
    */
   constructor(builder) {
     Preconditions.checkArgumentInstanceOf(builder, D3BaseSubViewOptionsBuilder);
+
+    /**
+     * The filename for downloading
+     * Default: 'file'
+     * @type {String}
+     */
+    this.filename = builder._filename;
 
     /** 
      * Margin bottom for the SVG plot in px.
@@ -106,6 +115,20 @@ export default class D3BaseSubViewOptions {
      */
     this.subViewType = builder._subViewType;
 
+    /**
+     * The save figure options.
+     * Default: D3SaveFigureOptions.withDefaults()
+     * @type {D3SaveFigureOptions}
+     */
+    this.saveFigureOptions = builder._saveFigureOptions;
+
+    /**
+     * The tooltip options.
+     * Default: D3TooltipOptions.withDefaults()
+     * @type {D3TooltipOptions}
+     */
+    this.tooltipOptions = builder._tooltipOptions;
+
     /* Make immutable */
     if (new.target == D3BaseSubViewOptions) Object.freeze(this);
   }
@@ -149,6 +172,266 @@ export default class D3BaseSubViewOptions {
    */
   static upperWithDefaults() {
     return D3BaseSubViewOptions.upperBuilder().build();
+  }
+
+}
+
+/**
+ * @fileoverview Builder for D3BaseSubViewOptions
+ * 
+ * Use D3BaseSubViewOptions.lowerBuilder() or
+ *    D3BaseSubViewOptions.upperBuilder() to get new instance of builder.
+ * 
+ * @class D3SubViewOptionsBuilder
+ * @author Brandon Clayton
+ */
+export class D3BaseSubViewOptionsBuilder {
+
+  /** @private */
+  constructor() {
+    /** @type {String} */
+    this._filename = 'file';
+    
+    /** @type {Number} */
+    this._marginBottom = 15;
+    
+    /** @type {Number} */
+    this._marginLeft = 20;
+    
+    /** @type {Number} */
+    this._marginRight = 10;
+    
+    /** @type {Number} */
+    this._marginTop = 10;
+    
+    /** @type {Number} */
+    this._paddingBottom = 35;
+    
+    /** @type {Number} */
+    this._paddingLeft = 40;
+    
+    /** @type {Number} */
+    this._paddingRight = 20;
+    
+    /** @type {Number} */
+    this._paddingTop = 10;
+    
+    /** @type {Number} */
+    this._plotHeight = 504;
+    
+    /** @type {Number} */
+    this._plotWidth = 896;
+    
+    /** @type {D3SaveFigureOptions} */
+    this._saveFigureOptions = D3SaveFigureOptions.withDefaults();
+    
+    /** @type {D3TooltipOptions} */
+    this._tooltipOptions = D3TooltipOptions.withDefaults();
+
+    /** @type {String} */
+    this._subViewType = 'upper';
+  }
+
+  /**
+   * Return new D3BaseSubViewOptions
+   */
+  build() {
+    this._checkHeight();
+    this._checkWidth();
+    return new D3BaseSubViewOptions(this);
+  }
+
+  /**
+   * Set the filename for downloading.
+   * Default: 'file'
+   * 
+   * @param {String} name The filename
+   */
+  filename(name) {
+    Preconditions.checkArgumentString(name);
+    this._filename = name;
+    return this;
+  }
+
+  /**
+   * Set the bottom margin for the SVG plot in px.
+   * Default: 15
+   * 
+   * @param {Number} margin The bottom margin 
+   */
+  marginBottom(margin) {
+    Preconditions.checkArgumentInteger(margin);
+    this._marginBottom = margin; 
+    return this;
+  }
+
+  /**
+   * Set the left margin for the SVG plot in px.
+   * Default: 20
+   * 
+   * @param {Number} margin The left margin 
+   */
+  marginLeft(margin) {
+    Preconditions.checkArgumentInteger(margin);
+    this._marginLeft = margin;
+    return this;
+  }
+
+  /**
+   * Set the right margin for the SVG plot in px.
+   * Default: 10
+   * 
+   * @param {Number} margin The right margin 
+   */
+  marginRight(margin) {
+    Preconditions.checkArgumentInteger(margin);
+    this._marginRight = margin;
+    return this;
+  }
+
+  /**
+   * Set the top margin for the SVG plot in px.
+   * Default: 10
+   * 
+   * @param {Number} margin The top margin 
+   */
+  marginTop(margin) {
+    Preconditions.checkArgumentInteger(margin);
+    this._marginTop = margin;
+    return this;
+  }
+
+  /**
+   * Set the bottom padding for the SVG plot in px.
+   * Default: 35
+   * 
+   * @param {Number} margin The bottom margin 
+   */
+  paddingBottom(padding) {
+    Preconditions.checkArgumentInteger(padding);
+    this._paddingBottom = padding; 
+    return this;
+  }
+
+  /**
+   * Set the left padding for the SVG plot in px.
+   * Default: 40
+   * 
+   * @param {Number} margin The left margin 
+   */
+  paddingLeft(padding) {
+    Preconditions.checkArgumentInteger(padding);
+    this._paddingLeft = padding; 
+    return this;
+  }
+
+  /**
+   * Set the right padding for the SVG plot in px.
+   * Default: 20
+   * 
+   * @param {Number} margin The right margin 
+   */
+  paddingRight(padding) {
+    Preconditions.checkArgumentInteger(padding);
+    this._paddingRight = padding; 
+    return this;
+  }
+
+  /**
+   * Set the top padding for the SVG plot in px.
+   * Default: 10
+   * 
+   * @param {Number} margin The top margin 
+   */
+  paddingTop(padding) {
+    Preconditions.checkArgumentInteger(padding);
+    this._paddingTop = padding; 
+    return this;
+  }
+
+  /**
+   * Set the SVG plot height in px.
+   * Default: 504 (upper) || 224 (lower)
+   * 
+   * @param {number} height The plot height
+   */
+  plotHeight(height) {
+    Preconditions.checkArgumentInteger(height);
+    this._plotHeight = height;
+    return this;
+  }
+
+  /**
+   * Set the SVG plot width in px.
+   * Default: 896
+   * 
+   * @param {number} width The plot width
+   */
+  plotWidth(width) {
+    Preconditions.checkArgumentInteger(width);
+    this._plotWidth = width;
+    return this;
+  }
+
+  /**
+   * Set the save figure options.
+   * Default: D3SaveFigureOptions.withDefaults()
+   * 
+   * @param {D3SaveFigureOptions} options The save figure options
+   */
+  saveFigureOptions(options) {
+    Preconditions.checkArgumentInstanceOf(options, D3SaveFigureOptions);
+    this._saveFigureOptions = options;
+    return this;
+  }
+
+  /**
+   * Set the tooltip options.
+   * Default: D3TooltipOptions.withDefaults()
+   *  
+   * @param {D3TooltipOptions} options The tooltip options
+   */
+  tooltipOptions(options) {
+    Preconditions.checkArgumentInstanceOf(options, D3TooltipOptions);
+    this._tooltipOptions = options;
+    return this;
+  }
+
+  /**
+   * Check if plot height is good.
+   */
+  _checkHeight() {
+    let heightCheck = this._plotHeight - 
+        this._marginBottom - this._marginTop;
+
+    Preconditions.checkState(
+      heightCheck > 0,
+      'Height must be greater than (marginTop + marginBottom)');
+  }
+
+  /**
+   * Check if plot width is good
+   */
+  _checkWidth() {
+    let widthCheck = this._plotWidth - 
+        this._marginLeft - this._marginRight;
+
+    Preconditions.checkState(
+      widthCheck > 0,
+      'Width must be greater than (marginLeft + marginRight)');
+  }
+
+  /**
+   * @param {String} type 
+   */
+  _type(type) {
+    type = type.toLowerCase();
+    Preconditions.checkArgument(
+        type == 'lower' || type == 'upper',
+        `Sub view type [${type}] not supported`);
+
+    this._subViewType = type;
+    return this; 
   }
 
 }

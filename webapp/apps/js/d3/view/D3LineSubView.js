@@ -1,7 +1,8 @@
 
-import D3BaseSubView from './D3BaseSubView.js';
-import D3LineSubViewOptions from '../options/D3LineSubViewOptions.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3BaseSubView, D3BaseSubViewSVGElements } from './D3BaseSubView.js';
+import { D3LineSubViewOptions } from '../options/D3LineSubViewOptions.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @package
@@ -12,7 +13,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @extends D3BaseSubView
  * @author Brandon Clayton 
  */
-export default class D3LineSubView extends D3BaseSubView {
+export class D3LineSubView extends D3BaseSubView {
 
   /**
    * Create a new sub view for D3LineView
@@ -24,10 +25,12 @@ export default class D3LineSubView extends D3BaseSubView {
     super(containerEl, options);
 
     /* Update types */
-    /** @type {D3LineSubView~D3LineSubViewSVGEls} Line plot SVG elements */
+    /** @type {D3LineSubViewSVGElements} Line plot SVG elements */
     this.svg;
+
     /** @type {D3LineSubViewOptions} Sub view options for line plot */
     this.options;
+
   }
 
   /**
@@ -35,30 +38,14 @@ export default class D3LineSubView extends D3BaseSubView {
    * @package
    * Create the sub view SVG structure for a line plot.
    * 
-   * @returns {D3LineSubViewSVGEls} The SVG elements
-   * 
-   * @typedef {Object} D3LineSubView~D3LineSubViewSVGEls - The line plot SVG elements
-   * @property {SVGElement} dataContainerEl The data container group element
-   * @property {SVGElement} gridLinesEl The grid lines group element 
-   * @property {SVGElement} legendEl The legend group element
-   * @property {SVGElement} innerPlotEl The inner plot group element
-   * @property {SVGElement} outerPlotEl The outer plot group element
-   * @property {SVGElement} svgEl The main SVG element
-   * @property {SVGElement} tooltipEl The tooltip group element
-   * @property {SVGElement} xAxisEl The X axis group element
-   * @property {SVGElement} xGridLinesEl The X axis grid lines group element
-   * @property {SVGElement} xLabelEl The X label group element
-   * @property {SVGElement} xTickMarksEl The Y tick marks group element
-   * @property {SVGElement} yAxisEl The Y axis group element
-   * @property {SVGElement} yGridLinesEl The Y axis grid lines group element
-   * @property {SVGElement} yLabelEl The Y label group element
-   * @property {SVGElement} yTickMarksEl The Y tick marks group element
+   * @returns {D3LineSubViewSVGElements} The SVG elements
    */
-  _createSVGStructrue() {
-    let svg = super._createSVGStructrue();
+  _createSVGStructure() {
+    let svg = super._createSVGStructure();
     let svgEl = svg.svgEl;
     let outerPlotEl = svg.outerPlotEl; 
     let innerPlotEl = svg.innerPlotEl;
+    let tooltipEl = svg.tooltipEl;
 
     /* Grid Lines */
     let gridLinesD3 = d3.select(innerPlotEl)
@@ -98,37 +85,121 @@ export default class D3LineSubView extends D3BaseSubView {
     /* Legend Group */
     let legendD3 = d3.select(innerPlotEl)
         .append('g')
-        .attr('clas', 'legend'); 
+        .attr('class', 'legend')
+        .style('line-height', '1.5');
 
-    /* Tooltip Group */
-    let tooltipD3 = d3.select(innerPlotEl)
-        .append('g')
-        .attr('class', 'd3-tooltip');
+    let legendForeignObjectD3 = legendD3.append('foreignObject');
 
-    let els = {
-      dataContainerEl: dataContainerD3.node(),
-      gridLinesEl: gridLinesD3.node(),
-      legendEl: legendD3.node(),
-      innerPlotEl: innerPlotEl,
-      outerPlotEl: outerPlotEl,
-      svgEl: svgEl,
-      tooltipEl: tooltipD3.node(),
-      xAxisEl: xAxisD3.node(),
-      xGridLinesEl: xGridLinesD3.node(),
-      xLabelEl: xLabelD3.node(),
-      xTickMarksEl: xTickMarksD3.node(),
-      yAxisEl: yAxisD3.node(),
-      yGridLinesEl: yGridLinesD3.node(),
-      yLabelEl: yLabelD3.node(),
-      yTickMarksEl: yTickMarksD3.node(),
-    };
+    let legendTableD3 = legendForeignObjectD3
+        .append('xhtml:table')
+        .attr('xmlns', 'http://www.w3.org/1999/xhtml');
 
-    for (let el of Object.values(els)) {
-      Preconditions.checkStateInstanceOfSVGElement(el);
-      Preconditions.checkNotUndefined(el);
-    }
+    d3.select(tooltipEl).raise();
 
-    return els;
+    let els = new D3LineSubViewSVGElements();
+    els.dataContainerEl = dataContainerD3.node();
+    els.gridLinesEl = gridLinesD3.node();
+    els.legendEl = legendD3.node();
+    els.legendForeignObjectEl = legendForeignObjectD3.node();
+    els.legendTableEl = legendTableD3.node();
+    els.innerFrameEl = svg.innerFrameEl;
+    els.innerPlotEl = innerPlotEl;
+    els.outerFrameEl = svg.outerFrameEl;
+    els.outerPlotEl = outerPlotEl;
+    els.svgEl = svgEl;
+    els.tooltipEl = tooltipEl;
+    els.tooltipForeignObjectEl = svg.tooltipForeignObjectEl;
+    els.tooltipTableEl = svg.tooltipTableEl;
+    els.xAxisEl = xAxisD3.node();
+    els.xGridLinesEl = xGridLinesD3.node();
+    els.xLabelEl = xLabelD3.node();
+    els.xTickMarksEl = xTickMarksD3.node();
+    els.yAxisEl = yAxisD3.node();
+    els.yGridLinesEl = yGridLinesD3.node();
+    els.yLabelEl = yLabelD3.node();
+    els.yTickMarksEl = yTickMarksD3.node();
+
+    return els.checkElements();
+  }
+
+}
+
+/**
+ * @fileoverview Container class for the D3LineSubView SVG elements
+ * 
+ * @class D3LineSubViewSVGElements
+ * @extends D3BaseSubViewSVGElements
+ * @author Brandon Clayton
+ */
+export class D3LineSubViewSVGElements extends D3BaseSubViewSVGElements {
+
+  constructor() {
+    super();
+
+    /** @type {SVGElement} The data group element */
+    this.dataContainerEl = undefined; 
+    
+    /** @type {SVGElement} The grid lines group element */
+    this.gridLinesEl = undefined;
+    
+    /** @type {SVGElement} The legend group element*/
+    this.legendEl = undefined;
+    
+    /** @type {SVGElement} The legend foreign object element */
+    this.legendForeignObjectEl = undefined;
+    
+    /** @type {HTMLElement} The table element*/
+    this.legendTableEl = undefined;
+    
+    /** @type {SVGElement} The X axis group element */
+    this.xAxisEl = undefined;
+    
+    /** @type {SVGElement} The X axis grid lines group element */
+    this.xGridLinesEl = undefined;
+    
+    /** @type {SVGElement} The X label text element */
+    this.xLabelEl = undefined;
+    
+    /** @type {SVGElement} The X axis tick marks group element */
+    this.xTickMarksEl = undefined;
+    
+    /** @type {SVGElement} The Y axis group element */
+    this.yAxisEl = undefined;
+    
+    /** @type {SVGElement} The Y axis grid lines group element */
+    this.yGridLinesEl = undefined;
+    
+    /** @type {SVGElement} The Y label text element */
+    this.yLabelEl = undefined;
+    
+    /** @type {SVGElement} The Y axis tick marks group element */
+    this.yTickMarksEl = undefined;
+  }
+
+  /**
+   * @override
+   * Check the elements.
+   * 
+   * @returns {D3LineSubViewSVGElements} The elements
+   */
+  checkElements() {
+    super.checkElements();
+
+    Preconditions.checkStateInstanceOfSVGElement(this.dataContainerEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.gridLinesEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.legendEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.legendForeignObjectEl);
+    Preconditions.checkStateInstanceOfHTMLElement(this.legendTableEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.xAxisEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.xGridLinesEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.xLabelEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.xTickMarksEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.yAxisEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.yGridLinesEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.yLabelEl);
+    Preconditions.checkStateInstanceOfSVGElement(this.yTickMarksEl);
+
+    return this;
   }
 
 }

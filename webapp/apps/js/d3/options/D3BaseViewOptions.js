@@ -1,6 +1,5 @@
 
-import D3BaseViewOptionsBuilder from './D3BaseViewOptionsBuilder.js';
-import Preconditions from '../../error/Preconditions.js';
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Create options for D3BaseView. 
@@ -11,7 +10,7 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3BaseViewOptions
  * @author Brandon Clayton
  */
-export default class D3BaseViewOptions {
+export class D3BaseViewOptions {
 
   /**
    * @private 
@@ -65,6 +64,85 @@ export default class D3BaseViewOptions {
    */
   static builder() {
     return new D3BaseViewOptionsBuilder(); 
+  }
+
+}
+
+/**
+ * @fileoverview Builder for D3BaseViewOptions
+ * 
+ * Use D3BaseViewOptions.builder() for new instance of builder.
+ * 
+ * @class D3BaseViewOptionsBuilder
+ * @author Brandon Clayton
+ */
+export class D3BaseViewOptionsBuilder {
+  
+  /** @private */
+  constructor() {
+    this._viewSizeMin =  'col-sm-12 col-md-6';
+    this._viewSizeMinCenter = 'col-sm-offset-1 col-sm-10 ' + 
+        'col-xl-offset-2 col-xl-8 col-xxl-offset-3 col-xxl-6';
+    this._viewSizeMax = 'col-sm-12 col-xl-offset-1 col-xl-10 ' +
+        'col-xxl-offset-2 col-xxl-8';
+    this._viewSizeDefault = 'max';
+  }
+
+  /** 
+   * Return new D3BaseViewOptions instance 
+   */
+  build() {
+    return new D3BaseViewOptions(this);
+  }
+
+  /**
+   * Set the D3BaseView view size
+   * 
+   * @param {String} size The view size, either: 
+   *    'min' || 'minCenter' || 'max' 
+   */
+  viewSize(size) {
+    Preconditions.checkArgument(
+        size == 'min' || size == 'minCenter' || size == 'max',
+        `View size [${size}] not supported`);
+    this._viewSizeDefault = size;
+    return this;
+  }
+
+  /**
+   * Set the Bootstrap column size when viewSize is'min'
+   *  
+   * @param {String} size The Bootstrap column size with 
+   *    viewSize is 'min'
+   */
+  viewSizeMin(size) {
+    Preconditions.checkArgumentString(size);
+    this._viewSizeMin = size;
+    return this;
+  }
+
+  /**
+   * Set the Bootstrap column size when viewSize is'minCenter'
+   *  
+   * @param {String} size The Bootstrap column size with 
+   *    viewSize is 'minCenter'
+   */
+  viewSizeMinCenter(size) {
+    Preconditions.checkArgumentString(size);
+    this._viewSizeMinCenter = size;
+    return this;
+  }
+
+  /**
+   * Set the Bootstrap column size when viewSize is'max'
+   *  
+   * @param {String} size The Bootstrap column size with 
+   *    viewSize is 'max'
+   */
+  viewSizeMax(size) {
+    Preconditions.checkArgumentString(size);
+    this._viewSizeMax = size;
+    return this;
   }
 
 }
