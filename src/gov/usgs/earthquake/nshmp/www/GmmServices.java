@@ -82,7 +82,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
     urlPatterns = {
         "/gmm",
         "/gmm/*" })
-public class GmmServices extends HttpServlet {
+public class GmmServices extends NshmpServlet {
   private static final long serialVersionUID = 1L;
 
   private static final String GMM_KEY = "gmm";
@@ -96,8 +96,6 @@ public class GmmServices extends HttpServlet {
       HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-
-    ServletUtil.setCorsHeadersAndContentType(response);
 
     PrintWriter writer = response.getWriter();
 

@@ -74,7 +74,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
     urlPatterns = {
         "/hazard",
         "/hazard/*" })
-public final class HazardService extends HttpServlet {
+public final class HazardService extends NshmpServlet {
 
   /*
    * Developer notes:
@@ -122,8 +122,6 @@ public final class HazardService extends HttpServlet {
       HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-
-    ServletUtil.setCorsHeadersAndContentType(response);
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();

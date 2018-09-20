@@ -131,6 +131,7 @@ public class ServletUtil implements ServletContextListener {
    * that a browser will deem invalid.
    */
   static void setCorsHeadersAndContentType(HttpServletResponse response) {
+    System.out.println("hit me");
     response.setContentType("application/json; charset=UTF-8");
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "*");

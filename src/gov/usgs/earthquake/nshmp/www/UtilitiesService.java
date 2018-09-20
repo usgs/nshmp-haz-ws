@@ -24,7 +24,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Region;
     urlPatterns = {
         "/util",
         "/util/*" })
-public class UtilitiesService extends HttpServlet {
+public class UtilitiesService extends NshmpServlet {
 
   @Override
   protected void doGet(
@@ -32,7 +32,6 @@ public class UtilitiesService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    ServletUtil.setCorsHeadersAndContentType(response);
     PrintWriter out = response.getWriter();
     String utilUrl = "/nshmp-haz-ws/apps/util.html";
 

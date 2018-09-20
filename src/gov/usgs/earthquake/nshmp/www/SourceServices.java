@@ -47,7 +47,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
         "/source",
         "/source/*" })
 @SuppressWarnings("unused")
-public class SourceServices extends HttpServlet {
+public class SourceServices extends NshmpServlet {
   private static final long serialVersionUID = 1L;
   static final Gson GSON;
 

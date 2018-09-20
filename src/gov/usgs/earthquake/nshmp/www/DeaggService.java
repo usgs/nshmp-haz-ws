@@ -46,7 +46,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
     urlPatterns = {
         "/deagg",
         "/deagg/*" })
-public final class DeaggService extends HttpServlet {
+public final class DeaggService extends NshmpServlet {
 
   /* Developer notes: See HazardService. */
 
@@ -55,8 +55,6 @@ public final class DeaggService extends HttpServlet {
       HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-
-    ServletUtil.setCorsHeadersAndContentType(response);
 
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();

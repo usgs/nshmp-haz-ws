@@ -28,11 +28,13 @@ abstract class NshmpServlet extends HttpServlet {
   
   @Override
   protected void service(
-      HttpServletRequest req,
-      HttpServletResponse resp)
+      HttpServletRequest request,
+      HttpServletResponse response)
       throws ServletException, IOException {
 
-    super.service(req, resp);
+    ServletUtil.setCorsHeadersAndContentType(response);
+    
+    super.service(request, response);
   }
 
   String host() {

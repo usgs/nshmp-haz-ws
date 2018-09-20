@@ -68,7 +68,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
         "/rate/*",
         "/probability",
         "/probability/*" })
-public final class RateService extends HttpServlet {
+public final class RateService extends NshmpServlet {
 
   /*
    * Developer notes:
@@ -85,7 +85,6 @@ public final class RateService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    ServletUtil.setCorsHeadersAndContentType(response);
     Timer timer = ServletUtil.timer();
 
     String query = request.getQueryString();
