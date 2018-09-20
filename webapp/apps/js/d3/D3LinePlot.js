@@ -425,10 +425,10 @@ export class D3LinePlot {
     let tooltipX = this.axes.x(lineData, xScale, xyPair);
     let tooltipY = this.axes.y(lineData, yScale, xyPair);
 
-    let tooltipText = [ 
-      series.lineOptions.label,
-      `${lineData.subView.options.xLabel}: ${xyPair.x}`,
-      `${lineData.subView.options.yLabel}: ${xyPair.y}`,
+    let tooltipText = [
+      `${lineData.subView.options.lineLabel}:  ${series.lineOptions.label}`,
+      `${lineData.subView.options.xLabel}: ${xyPair.xString || xyPair.x}`,
+      `${lineData.subView.options.yLabel}: ${xyPair.yString || xyPair.y}`,
     ];
     
     this.tooltip.create(lineData.subView, tooltipText, tooltipX, tooltipY);
@@ -526,7 +526,10 @@ export class D3LinePlot {
         else D3SaveFigure.preview(this.view, saveFormat);
         break;
       case 'save-data':
-        D3SaveLineData.saveCSV(this.upperLineData, this.lowerLineData); 
+        Preconditions.checkNotUndefined(
+            this.view.getSaveData(),
+            'Must set the save data, D3LineView.setSaveData()');
+        D3SaveLineData.saveCSV(...this.view.getSaveData());
         break;
       default: 
         throw new NshmpError(`Save type [${saveType}] not supported`);

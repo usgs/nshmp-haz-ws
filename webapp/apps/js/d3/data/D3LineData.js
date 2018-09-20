@@ -103,6 +103,48 @@ export class D3LineData {
   }
 
   /**
+   * Combine two D3LineData using the D3LineData.series.lineOptions.id 
+   *    field to find matching D3LineSeries.
+   *  
+   * @param {D3LineData} lineData The line data to combine
+   */
+  concat(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    
+    let builder = D3LineData.builder()
+        .label(this.label)
+        .subView(this.subView);
+
+    for (let series of this.series) {
+      let matchingSeriesArray = lineData.series.filter((seriesConcat) => {
+        return series.lineOptions.id == seriesConcat.lineOptions.id;
+      });
+
+      let xValues = series.xValues;
+      let yValues = series.yValues;
+      let xStrings = series.xStrings;
+      let yStrings = series.yStrings;
+
+      for (let matchingSeries of matchingSeriesArray) {
+        xValues = xValues.concat(matchingSeries.xValues);
+        yValues = yValues.concat(matchingSeries.yValues);
+
+        xStrings = xStrings.concat(matchingSeries.xStrings);
+        yStrings = yStrings.concat(matchingSeries.yStrings);
+      }
+
+      builder.data(
+          xValues,
+          yValues,
+          series.lineOptions,
+          xStrings,
+          yStrings);
+    }
+
+    return builder.build();
+  }
+
+  /**
    * Get all XY values.
    * 
    * @returns {Array<Array<D3XYPair>>} Array of XY values
@@ -176,7 +218,9 @@ export class D3LineData {
       markerSeries.push(new D3LineSeriesData(
           [ data.x ], 
           [ data.y ], 
-          series.lineOptions));
+          series.lineOptions,
+          series.xStrings,
+          series.yStrings));
     }
     
     return markerSeries;
@@ -354,8 +398,15 @@ export class D3LineDataBuilder {
    * @param {Array<Number>} yValues The Y values of the data
    * @param {D3LineOptions} [lineOptions = D3LineOptions.withDefaults()]
    *    The line options for the data
+   * @param {Array<String>} xStrings
+   * @param {Array<String>} yStrings
    */
-  data(xValues, yValues, lineOptions = D3LineOptions.withDefaults()) {
+  data(
+      xValues,
+      yValues,
+      lineOptions = D3LineOptions.withDefaults(),
+      xStrings = undefined,
+      yStrings = undefined) {
     Preconditions.checkArgumentArrayOf(xValues, 'number');
     Preconditions.checkArgumentArrayOf(yValues, 'number');
     Preconditions.checkArgument(
@@ -364,7 +415,27 @@ export class D3LineDataBuilder {
    
     Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
 
-    let seriesData = new D3LineSeriesData(xValues, yValues, lineOptions);
+    if (xStrings) {
+      Preconditions.checkArgumentArrayOf(xStrings, 'string');
+      Preconditions.checkArgumentArrayLength(xStrings, xValues.length);
+    } else {
+      xStrings = new Array(xValues.length).fill('');
+    }
+
+    if (yStrings) {
+      Preconditions.checkArgumentArrayOf(yStrings, 'string');
+      Preconditions.checkArgumentArrayLength(yStrings, yValues.length);
+    } else {
+      yStrings = new Array(xValues.length).fill('');
+    }
+
+    let seriesData = new D3LineSeriesData(
+        xValues,
+        yValues,
+        lineOptions,
+        xStrings,
+        yStrings);
+
     this._series.push(seriesData); 
     return this;
   }
@@ -438,7 +509,7 @@ export class D3LineDataBuilder {
   xLimit(lim) {
     Preconditions.checkArgumentArrayLength(lim, 2);
     Preconditions.checkArgumentArrayOf(lim, 'number');
-    Preconditions.checkArgument(lim[1] > lim[0], 'xMax must be greater than xMin');
+    Preconditions.checkArgument(lim[1] >= lim[0], 'xMax must be greater than xMin');
 
     this._xLimit = lim; 
     return this;
@@ -465,7 +536,7 @@ export class D3LineDataBuilder {
   yLimit(lim) {
     Preconditions.checkArgumentArrayLength(lim, 2);
     Preconditions.checkArgumentArrayOf(lim, 'number');
-    Preconditions.checkArgument(lim[1] > lim[0], 'yMax must be greater than yMin');
+    Preconditions.checkArgument(lim[1] >= lim[0], 'yMax must be greater than yMin');
 
     this._yLimit = lim; 
     return this;

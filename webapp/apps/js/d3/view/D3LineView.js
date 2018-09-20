@@ -33,6 +33,9 @@ export class D3LineView extends D3BaseView {
   constructor(builder) {
     super(builder);
 
+    /** @type {Array<D3LineData>} The data that will be saved to file */
+    this._saveData = undefined;
+
     /* Update types */
     /** @type {D3LineSubView} Lower sub view */
     this.lowerSubView;
@@ -91,9 +94,17 @@ export class D3LineView extends D3BaseView {
       for (let series of lineData.series) {
         this._addSeriesToDataTable(tableEl, lineData, series);
       }
-
     }
-        
+
+  }
+
+  /**
+   * Get the D3LineData that will be saved to a file(s).
+   * 
+   * @return {Array<D3LineData>} The line data to save
+   */
+  getSaveData() {
+    return this._saveData;
   }
 
   /**
@@ -124,6 +135,15 @@ export class D3LineView extends D3BaseView {
   }
 
   /**
+   * Set the D3LineDatas that will be saved to a file. 
+   * @param  {...D3LineData} lineDatas 
+   */
+  setSaveData(...lineDatas) {
+    Preconditions.checkArgumentArrayInstanceOf(lineDatas, D3LineData);
+    this._saveData = lineDatas;
+  }
+
+  /**
    * Add the Array<D3XYPair> to the data table.
    * 
    * @param {HTMLElement} tableEl The table element
@@ -150,7 +170,7 @@ export class D3LineView extends D3BaseView {
         .append('td')
         .text((/** @type {D3XYPair} */ xyPair) => {
           Preconditions.checkStateInstanceOf(xyPair, D3XYPair);
-          return xyPair[axis];
+          return xyPair[`${axis}String`] || xyPair[axis];
         });
   }
 

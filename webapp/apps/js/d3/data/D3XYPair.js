@@ -12,15 +12,26 @@ export class D3XYPair {
   /**
    * @param {Number} x The X value 
    * @param {Number} y The Y value
+   * @param {String} xString Optional string representation
+   * @param {String} yString Optional string representation
    */
-  constructor(x, y) {
+  constructor(x, y, xString = '', yString = '') {
     Preconditions.checkArgumentNumber(x);
     Preconditions.checkArgumentNumber(y);
+    Preconditions.checkArgumentString(xString);
+    Preconditions.checkArgumentString(yString);
 
-    /** @type {Number} */
+    /** @type {Number} The X value */
     this.x = x;
-    /** @type {Number} */
+    
+    /** @type {Number} The Y value */
     this.y = y;
+
+    /** @type {String} The X value string representation */
+    this.xString = xString;
+
+    /** @type {String} The Y value string representation */
+    this.yString = yString;
   }
 
 }

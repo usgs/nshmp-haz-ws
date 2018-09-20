@@ -31,9 +31,17 @@ export class D3SaveLineData {
     for (let lineData of lineDatas) {
       let subViewOptions = lineData.subView.options;
       for (let series of lineData.series) {
-        fileData.push([ series.lineOptions.label ]);
-        fileData.push([ subViewOptions.xLabel, series.xValues.join(',') ]);
-        fileData.push([ subViewOptions.yLabel, series.yValues.join(',') ]);
+        fileData.push([ subViewOptions.lineLabel, series.lineOptions.label ]); 
+        let xValues = [];
+        let yValues = [];
+
+        for (let xyPair of series.data) {
+          xValues.push(xyPair.xString || xyPair.x);
+          yValues.push(xyPair.yString || xyPair.y);
+        }
+
+        fileData.push([ subViewOptions.xLabel, xValues.join(',') ]);
+        fileData.push([ subViewOptions.yLabel, yValues.join(',') ]);
         fileData.push('');
       }
       

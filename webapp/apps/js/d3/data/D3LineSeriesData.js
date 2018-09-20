@@ -18,7 +18,7 @@ export class D3LineSeriesData {
    * @param {Array<Number>} yValues The Y values
    * @param {D3LineOptions} options The line options
    */
-  constructor(xValues, yValues, options) {
+  constructor(xValues, yValues, options, xStrings, yStrings) {
     Preconditions.checkArgumentArrayOf(xValues, 'number');
     Preconditions.checkArgumentArrayOf(yValues, 'number');
     Preconditions.checkArgument(
@@ -39,6 +39,18 @@ export class D3LineSeriesData {
     this.yValues = yValues;
 
     /**
+     * Custom X value strings to be shown when viewing the data value 
+     * @type {Array<String>}
+     */
+    this.xStrings = xStrings;
+
+    /**
+     * Custom Y value strings to be shown when viewing the data value
+     * @type {Array<String>}
+     */
+    this.yStrings = yStrings;
+
+    /**
      * The D3LineOptions associated with XY values
      * @type {D3LineOptions}
      */
@@ -50,8 +62,8 @@ export class D3LineSeriesData {
      */
     this.data = [];
 
-    for (let xy of d3.zip(xValues, yValues)) {
-      this.data.push(new D3XYPair(xy[0], xy[1]));
+    for (let xy of d3.zip(xValues, yValues, xStrings, yStrings)) {
+      this.data.push(new D3XYPair(xy[0], xy[1], xy[2], xy[3]));
     }
 
     /**
