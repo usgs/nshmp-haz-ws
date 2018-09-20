@@ -83,6 +83,13 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.legendOptions = builder._legendOptions;
 
     /**
+     * A label to represent what the data represents.
+     * Default: 'Line'
+     * @type {String}
+     */
+    this.lineLabel = builder._lineLabel;
+
+    /**
      * Color of a reference line.
      * Default: '9E9E9E'
      * @type {String}
@@ -149,7 +156,7 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
 
     /**
      * The X axis label; can be an HTML string.
-     * Default: ''
+     * Default: 'X'
      * @type {String}
      */
     this.xLabel = builder._xLabel;
@@ -193,7 +200,7 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
 
     /**
      * The Y axis label; can be an HTML string.
-     * Default: ''
+     * Default: 'Y'
      * @type {String}
      */
     this.yLabel = builder._yLabel;
@@ -291,6 +298,9 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {D3LineLegendOptions} */
     this._legendOptions = D3LineLegendOptions.upperWithDefaults();
+
+    /** @type {String} */
+    this._lineLabel = 'Line';
     
     /** @type {String} */
     this._referenceLineColor = '#9E9E9E';
@@ -320,7 +330,7 @@ export class D3LineSubViewOptionsBuilder
     this._xAxisScale = 'log';
     
     /** @type {String} */
-    this._xLabel = '';
+    this._xLabel = 'X';
     
     /** @type {Number} */
     this._xLabelPadding = 8;
@@ -338,7 +348,7 @@ export class D3LineSubViewOptionsBuilder
     this._yAxisScale = 'log';
     
     /** @type {String} */
-    this._yLabel = '';
+    this._yLabel = 'Y';
     
     /** @type {Number} */
     this._yLabelPadding = 10;
@@ -423,6 +433,18 @@ export class D3LineSubViewOptionsBuilder
   legendOptions(options) {
     Preconditions.checkArgumentInstanceOf(options, D3LineLegendOptions);
     this._legendOptions = options;
+    return this;
+  }
+
+  /**
+   * A label representing what the line data is. 
+   * Default: ''
+   *  
+   * @param {String} label The line label 
+   */
+  lineLabel(label) {
+    Preconditions.checkArgumentString(label);
+    this._lineLabel = label;
     return this;
   }
 
