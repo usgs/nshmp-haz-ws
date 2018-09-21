@@ -8,18 +8,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Custom NSHMP servlet implementation.
+ * Custom NSHMP servlet implementation and URL helper class.
  * 
  * <p>All nshmp-haz-ws services should extend this class. This class sets custom
- * response headers and provides access to updated host,
- * {@code request.getServerName()} and protocol, {@code request.getScheme()},
- * values to support (possible forwarded) requests on USGS servers. To construct
- * the correct request URLs use the host() and protocol() methods as in the
- * example below:
+ * response headers and provides a helper class to ensure serialized response
+ * URLs propagate the correct host and protocol from requests on USGS servers
+ * and caches that may have been forwarded.
  * 
- * <pre>
- * response.getWriter().printf("%s://%s/service-name/...", protocol(), host());
- * </pre>
+ * <p>Class provides one convenience method,
+ * {@code urlHelper.writeResponse(String)}, to write a servlet response wherein
+ * any URL strings may be formatted with the correct protocol and host. Such URL
+ * strings should start with:
+ * 
+ * "%s://%s/service-name/..."
  * 
  * @author Peter Powers
  */
@@ -49,11 +50,56 @@ abstract class NshmpServlet extends HttpServlet {
     super.service(request, response);
   }
 
-  String host() {
-    return null;
+  static UrlHelper urlHelper(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    return new UrlHelper(request, response);
   }
 
-  String protocol() {
-    return null;
+  static class UrlHelper {
+
+    private final HttpServletResponse response;
+    private final String host;
+    private final String protocol;
+    final String url;
+
+    UrlHelper(HttpServletRequest request, HttpServletResponse response) {
+
+      /*
+       * Check custom header for a forwarded protocol so generated links can use
+       * the same protocol and not cause mixed content errors.
+       */
+      String host = request.getServerName();
+      String protocol = request.getHeader("X-FORWARDED-PROTO");
+      if (protocol == null) {
+        /* Not a forwarded request. Honor reported protocol and port. */
+        protocol = request.getScheme();
+        host += ":" + request.getServerPort();
+      }
+
+      /*
+       * For convenience, store a url field with the (possibly updated) request
+       * protocol and
+       */
+      StringBuffer urlBuf = request.getRequestURL();
+      String query = request.getQueryString();
+      if (query != null) urlBuf.append('?').append(query);
+      String url = urlBuf.toString().replace("http://", protocol + "://");
+
+      this.response = response;
+      this.host = host;
+      this.protocol = protocol;
+      this.url = url;
+    }
+
+    /**
+     * Convenience method to update a string response with the correct protocol
+     * and host in URLs. URL strings should start with:
+     * 
+     * "%s://%s/service-name/..."
+     */
+    void writeResponse(String usage) throws IOException {
+      response.getWriter().printf(usage, protocol, host);
+    }
   }
+
 }

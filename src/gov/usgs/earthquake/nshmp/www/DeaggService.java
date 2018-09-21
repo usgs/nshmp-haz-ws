@@ -27,6 +27,7 @@ import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
+import gov.usgs.earthquake.nshmp.www.NshmpServlet.UrlHelper;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;
@@ -56,31 +57,14 @@ public final class DeaggService extends NshmpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
+    UrlHelper urlHelper = urlHelper(request, response);
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName();
-
-    /*
-     * Checking custom header for a forwarded protocol so generated links can
-     * use the same protocol and not cause mixed content errors.
-     */
-    String protocol = request.getHeader("X-FORWARDED-PROTO");
-    if (protocol == null) {
-      /* Not a forwarded request. Honor reported protocol and port. */
-      protocol = request.getScheme();
-      host += ":" + request.getServerPort();
-    }
 
     if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-      response.getWriter().printf(Metadata.DEAGG_USAGE, protocol, host);
+      urlHelper.writeResponse(Metadata.DEAGG_USAGE);
       return;
     }
-
-    StringBuffer urlBuf = request.getRequestURL();
-    if (query != null) urlBuf.append('?').append(query);
-    String url = urlBuf.toString();
-
-    url = url.replace("http://", protocol + "://");
 
     RequestData requestData;
     try {
@@ -91,22 +75,22 @@ public final class DeaggService extends NshmpServlet {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 7) {
-          response.getWriter().printf(Metadata.DEAGG_USAGE, protocol, host);
+          urlHelper.writeResponse(Metadata.DEAGG_USAGE);
           return;
         }
         requestData = HazardService.buildRequest(params);
       }
 
       /* Submit as task to job executor */
-      DeaggTask task = new DeaggTask(url, requestData, getServletContext());
+      DeaggTask task = new DeaggTask(urlHelper.url, requestData, getServletContext());
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
 
     } catch (Exception e) {
-      String message = Metadata.errorMessage(url, e, false);
+      String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
-      getServletContext().log(url, e);
+      getServletContext().log(urlHelper.url, e);
     }
   }
 
