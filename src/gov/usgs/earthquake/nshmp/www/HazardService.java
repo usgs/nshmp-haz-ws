@@ -74,7 +74,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
     urlPatterns = {
         "/hazard",
         "/hazard/*" })
-public final class HazardService extends HttpServlet {
+public final class HazardService extends NshmpServlet {
 
   /*
    * Developer notes:
@@ -123,33 +123,14 @@ public final class HazardService extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    ServletUtil.setCorsHeadersAndContentType(response);
-
+    UrlHelper urlHelper = urlHelper(request, response);
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName();
-
-    /*
-     * Checking custom header for a forwarded protocol so generated links can
-     * use the same protocol and not cause mixed content errors.
-     */
-    String protocol = request.getHeader("X-FORWARDED-PROTO");
-    if (protocol == null) {
-      /* Not a forwarded request. Honor reported protocol and port. */
-      protocol = request.getScheme();
-      host += ":" + request.getServerPort();
-    }
 
     if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
-      response.getWriter().printf(Metadata.HAZARD_USAGE, protocol, host);
+      urlHelper.writeResponse(Metadata.HAZARD_USAGE);
       return;
     }
-
-    StringBuffer urlBuf = request.getRequestURL();
-    if (query != null) urlBuf.append('?').append(query);
-    String url = urlBuf.toString();
-
-    url = url.replace("http://", protocol + "://");
 
     RequestData requestData;
     try {
@@ -160,23 +141,23 @@ public final class HazardService extends HttpServlet {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
         if (params.size() < 6) {
-          response.getWriter().printf(Metadata.HAZARD_USAGE, protocol, host);
+          urlHelper.writeResponse(Metadata.HAZARD_USAGE);
           return;
         }
         requestData = buildRequest(params);
       }
 
       /* Submit as task to job executor */
-      HazardTask task = new HazardTask(url, requestData, getServletContext());
+      HazardTask task = new HazardTask(urlHelper.url, requestData, getServletContext());
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       // GSON.toJson(result, response.getWriter()); TODO test and use elsewhere?
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
 
     } catch (Exception e) {
-      String message = Metadata.errorMessage(url, e, false);
+      String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
-      getServletContext().log(url, e);
+      getServletContext().log(urlHelper.url, e);
     }
   }
 
@@ -244,7 +225,7 @@ public final class HazardService extends HttpServlet {
 
     /* Possibly update for deagg. */
     if (params.size() == 7) {
-      //imts = supportedImts; TODO for CMS, need all periods
+      // imts = supportedImts; TODO for CMS, need all periods
       Imt imt = readValue(params.get(4), Imt.class);
       imts = Sets.immutableEnumSet(imt);
       returnPeriod = OptionalDouble.of(Double.valueOf(params.get(6)));

@@ -47,7 +47,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
         "/source",
         "/source/*" })
 @SuppressWarnings("unused")
-public class SourceServices extends HttpServlet {
+public class SourceServices extends NshmpServlet {
   private static final long serialVersionUID = 1L;
   static final Gson GSON;
 
@@ -70,18 +70,12 @@ public class SourceServices extends HttpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    PrintWriter writer = response.getWriter();
-
-    // for future use...
-    // String query = request.getQueryString();
-    // String pathInfo = request.getPathInfo();
-    // String host = request.getServerName();
 
     ResponseData svcResponse = null;
     try {
       svcResponse = new ResponseData();
       String jsonString = GSON.toJson(svcResponse);
-      writer.print(jsonString);
+      response.getWriter().print(jsonString);
     } catch (Exception e) {
       e.printStackTrace();
     }
