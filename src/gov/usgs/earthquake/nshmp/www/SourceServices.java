@@ -70,18 +70,12 @@ public class SourceServices extends NshmpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    PrintWriter writer = response.getWriter();
-
-    // for future use...
-    // String query = request.getQueryString();
-    // String pathInfo = request.getPathInfo();
-    // String host = request.getServerName();
 
     ResponseData svcResponse = null;
     try {
       svcResponse = new ResponseData();
       String jsonString = GSON.toJson(svcResponse);
-      writer.print(jsonString);
+      response.getWriter().print(jsonString);
     } catch (Exception e) {
       e.printStackTrace();
     }

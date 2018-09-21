@@ -1,5 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
@@ -14,16 +15,13 @@ import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z1P0;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z2P5;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZHYP;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZTOP;
-import static gov.usgs.earthquake.nshmp.gmm.Imt.PGV;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.AI;
-
-import static gov.usgs.earthquake.nshmp.www.meta.Metadata.errorMessage;
-
+import static gov.usgs.earthquake.nshmp.gmm.Imt.PGV;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
+import static gov.usgs.earthquake.nshmp.www.meta.Metadata.errorMessage;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -32,21 +30,18 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Enums;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -56,21 +51,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import static com.google.common.base.Preconditions.checkArgument;
 
 import gov.usgs.earthquake.nshmp.GroundMotions;
 import gov.usgs.earthquake.nshmp.GroundMotions.DistanceResult;
 import gov.usgs.earthquake.nshmp.ResponseSpectra.MultiResult;
 import gov.usgs.earthquake.nshmp.data.Data;
 import gov.usgs.earthquake.nshmp.data.XySequence;
-
 import gov.usgs.earthquake.nshmp.gmm.Gmm;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput;
-import gov.usgs.earthquake.nshmp.gmm.Imt;
-import gov.usgs.earthquake.nshmp.gmm.Gmm.Group;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Builder;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Constraints;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
+import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
@@ -97,11 +89,9 @@ public class GmmServices extends NshmpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-    PrintWriter writer = response.getWriter();
-
+    UrlHelper urlHelper = urlHelper(request, response);
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
-    String host = request.getServerName();
 
     Service service = null;
     if (pathInfo.equals(Service.DISTANCE.pathInfo)) {
@@ -127,22 +117,11 @@ public class GmmServices extends NshmpServlet {
             new Util.EnumSerializer<Imt>())
         .create();
 
-    /*
-     * Checking custom header for a forwarded protocol so generated links can
-     * use the same protocol and not cause mixed content errors.
-     */
-    String protocol = request.getHeader("X-FORWARDED-PROTO");
-    if (protocol == null) {
-      /* Not a forwarded request. Honor reported protocol and port. */
-      protocol = request.getScheme();
-      host += ":" + request.getServerPort();
-    }
-
     /* At a minimum, Gmms must be defined. */
     final String USAGE_STR = gson.toJson(new Metadata(service));
     String gmmParam = request.getParameter(GMM_KEY);
     if (gmmParam == null) {
-      writer.printf(USAGE_STR, protocol, host);
+      urlHelper.writeResponse(USAGE_STR);
       return;
     }
 
@@ -163,10 +142,10 @@ public class GmmServices extends NshmpServlet {
       }
       svcResponse.url = url;
       String jsonString = gson.toJson(svcResponse);
-      writer.print(jsonString);
+      response.getWriter().print(jsonString);
     } catch (Exception e) {
       String message = errorMessage(url, e, false);
-      writer.print(message);
+      response.getWriter().print(message);
       e.printStackTrace();
     }
   }
