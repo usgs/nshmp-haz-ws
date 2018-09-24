@@ -76,12 +76,12 @@ export default class Spectra extends GmmBeta {
 
     /* Vs30 buttons */
     this.vs30Btns = [
-      { text: '180', value: 180.0 },
-      { text: '259', value: 259.0 },
-      { text: '360', value: 360.0 },
-      { text: '537', value: 537.0 },
+      { text: '185', value: 185.0 },
+      { text: '260', value: 260.0 },
+      { text: '365', value: 365.0 },
+      { text: '530', value: 530.0 },
       { text: '760', value: 760.0 },
-      { text: '1150', value: 1150.0 },
+      { text: '1080', value: 1080.0 },
       { text: '2000', value: 2000.0 },
       { text: '3000', value: 3000.0 },
     ];
