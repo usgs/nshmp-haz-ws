@@ -29,7 +29,6 @@ export class D3LinePlot {
    * @todo Add gridlines check and legend check color options
    * @todo Add ablity to plot a reference line at zero
    * @todo Add ability to reverse the Y axis
-   * @todo Add method to remove small values from the data
    */
   constructor(view) {
     Preconditions.checkArgumentInstanceOf(view, D3LineView);

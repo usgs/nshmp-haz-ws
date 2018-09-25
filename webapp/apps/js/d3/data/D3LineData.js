@@ -2,6 +2,7 @@
 import { D3LineOptions } from '../options/D3LineOptions.js';
 import { D3LineSeriesData } from './D3LineSeriesData.js';
 import { D3LineSubView } from '../view/D3LineSubView.js';
+import { D3Utils } from '../D3Utils.js';
 import { D3XYPair }from './D3XYPair.js';
 
 import { Preconditions } from '../../error/Preconditions.js';
@@ -345,6 +346,9 @@ export class D3LineDataBuilder {
     /** @type {String} */
     this._label = undefined;
     
+    /** @type {Boolean} */
+    this._removeSmallValues = false;
+    
     /** @type {Array<D3LineSeriesData>} */
     this._series = []; 
     
@@ -359,6 +363,9 @@ export class D3LineDataBuilder {
     
     /** @type {Array<Number>} */
     this._yLimit = undefined;
+
+    /** @type {Number} */
+    this._yMinCutOff = undefined;
   }
 
   /**
@@ -374,6 +381,12 @@ export class D3LineDataBuilder {
         `${this._subView.options.subViewType} line data` : this._label;
 
     this._colorScheme = this._updateColorScheme();
+
+    if (this._removeSmallValues) {
+      for (let series of this._series) {
+        series.removeSmallValues(this._yMinCutOff);
+      }
+    }
 
     return new D3LineData(this);
   }
@@ -407,13 +420,17 @@ export class D3LineDataBuilder {
       lineOptions = D3LineOptions.withDefaults(),
       xStrings = undefined,
       yStrings = undefined) {
-    Preconditions.checkArgumentArrayOf(xValues, 'number');
-    Preconditions.checkArgumentArrayOf(yValues, 'number');
+    Preconditions.checkArgumentArray(xValues);
+    Preconditions.checkArgumentArray(yValues);
+
     Preconditions.checkArgument(
         xValues.length == yValues.length, 
         'Arrays must have same length');
    
     Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
+
+    D3Utils.checkArrayIsNumberOrNull(xValues);
+    D3Utils.checkArrayIsNumberOrNull(yValues);
 
     if (xStrings) {
       Preconditions.checkArgumentArrayOf(xStrings, 'string');
@@ -485,7 +502,20 @@ export class D3LineDataBuilder {
     this.xLimit([ xMin, xMax ]);
     this.yAxisReverse(lineData[0].yAxisReverse);
     this.yLimit([ yMin, yMax ]);
+    this._removeSmallValues = false;
 
+    return this;
+  }
+
+  /**
+   * Remove all values under a cut off Y value.
+   * 
+   * @param {Number} yMinCutOff The cut off value
+   */
+  removeSmallValues(yMinCutOff) {
+    Preconditions.checkArgumentNumber(yMinCutOff);
+    this._yMinCutOff = yMinCutOff;
+    this._removeSmallValues = true;
     return this;
   }
 
