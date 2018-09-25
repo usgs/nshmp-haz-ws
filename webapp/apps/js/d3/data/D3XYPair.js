@@ -16,8 +16,14 @@ export class D3XYPair {
    * @param {String} yString Optional string representation
    */
   constructor(x, y, xString = '', yString = '') {
-    Preconditions.checkArgumentNumber(x);
-    Preconditions.checkArgumentNumber(y);
+    Preconditions.checkArgument(
+        typeof x == 'number' || x === null,
+        `Value [${x}] must be a number or null`);
+    
+    Preconditions.checkArgument(
+        typeof y == 'number' || y === null,
+        `Value [${y}] must be a number or null`);
+
     Preconditions.checkArgumentString(xString);
     Preconditions.checkArgumentString(yString);
 

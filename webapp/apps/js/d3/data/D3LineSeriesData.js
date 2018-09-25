@@ -1,5 +1,6 @@
 
 import { D3LineOptions } from '../options/D3LineOptions.js';
+import { D3Utils } from '../D3Utils.js';
 import { D3XYPair } from './D3XYPair.js'; 
 
 import { Preconditions } from '../../error/Preconditions.js';
@@ -19,12 +20,16 @@ export class D3LineSeriesData {
    * @param {D3LineOptions} options The line options
    */
   constructor(xValues, yValues, options, xStrings, yStrings) {
-    Preconditions.checkArgumentArrayOf(xValues, 'number');
-    Preconditions.checkArgumentArrayOf(yValues, 'number');
+    Preconditions.checkArgumentArray(xValues);
+    Preconditions.checkArgumentArray(yValues);
+    Preconditions.checkArgumentInstanceOf(options, D3LineOptions);
+
     Preconditions.checkArgument(
         xValues.length == yValues.length, 
         'Arrays must have same length');
-    Preconditions.checkArgumentInstanceOf(options, D3LineOptions);
+    
+    D3Utils.checkArrayIsNumberOrNull(xValues);
+    D3Utils.checkArrayIsNumberOrNull(yValues);
 
     /**
      * The X values
@@ -70,6 +75,21 @@ export class D3LineSeriesData {
      * The D3 symbol generator.
      */
     this.d3Symbol = d3.symbol().type(options.d3Symbol).size(options.d3SymbolSize);
+  }
+
+  /**
+   * Remove all values under a cut off Y value.
+   * 
+   * @param {Number} yMinCuttOff The cut off value
+   */
+  removeSmallValues(yMinCuttOff) {
+    Preconditions.checkArgumentNumber(yMinCuttOff);
+    this.yValues.map((y) => { return y <= yMinCuttOff ? null : y; });
+
+    this.data.map((xyPair) => {
+      if (xyPair.y <= yMinCuttOff) xyPair.y = null;
+      return xyPair;
+    })
   }
 
 }
