@@ -12,7 +12,23 @@ import { Preconditions } from '../error/Preconditions.js';
  */
 export class D3Utils {
 
+  /** @private */
   constructor() {}
+
+  /**
+   * Check an array to see if if each value is a number or null.
+   * 
+   * @param {Array<Number | Null>} values Values to check
+   */
+  static checkArrayIsNumberOrNull(values) {
+    Preconditions.checkArgumentArray(values);
+
+    for (let val of values) {
+      Preconditions.checkState(
+          typeof val == 'number' || val === null,
+          `Value [${val}] must be a number or null`);
+    }
+  }
 
   /**
    * Increase/decrease the line width, marker size, and marker edge width
