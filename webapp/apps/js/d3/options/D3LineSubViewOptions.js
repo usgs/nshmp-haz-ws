@@ -221,7 +221,6 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
      */
     this.yTickMarks = builder._yTickMarks;
 
-
     /* Make immutable */
     if (new.target == D3LineSubViewOptions) Object.freeze(this);
   }

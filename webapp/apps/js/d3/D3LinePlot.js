@@ -27,10 +27,8 @@ export class D3LinePlot {
    * 
    * @todo Add a D3View.legendIsChecked and D3View.gridlinesIsChecked method
    * @todo Add gridlines check and legend check color options
-   * @todo Add data view table and metadata view table
    * @todo Add ablity to plot a reference line at zero
    * @todo Add ability to reverse the Y axis
-   * @todo Add method to get a certain data element in the plot
    * @todo Add method to remove small values from the data
    */
   constructor(view) {
@@ -112,6 +110,186 @@ export class D3LinePlot {
                 lineDatas);
           });
     }
+  }
+
+  /**
+   * Get the current X domain of the plot.
+   * 
+   * @param {D3LineSubView} subView The sub view to get domain
+   * @returns {Array<Number>} The X axis domain: [ xMin, xMax ]
+   */
+  getXDomain(subView) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    return this.axes._getXAxisScale(
+        lineData,
+        this._getCurrentXScale(lineData.subView))
+        .domain();
+  }
+
+  /**
+   * Get the current Y domain of the plot.
+   * 
+   * @param {D3LineSubView} subView The sub view to get the domain
+   * @returns {Array<Number>} The Y axis domain: [ yMin, yMax ]
+   */
+  getYDomain(subView) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    return this.axes._getYAxisScale(
+        lineData,
+        this._getCurrentYScale(lineData.subView))
+        .domain();
+  }
+
+  /**
+   * Make a vertical line draggable.
+   *  
+   * @param {D3LineSubView} subView The sub view were the line is to drag
+   * @param {String} id The id of the line to drag
+   * @param {Array<Number>} xLimit The limits that the line can be dragged
+   * @param {Function} callback The funciton to call when the line is dragged.
+   *    The arguments passed to the callback function are 
+   *    (D3LineSeriesData, Number, SVGElement) where:
+   *        - D3LineSeriesData is updated line series data
+   *        - Number is the current X value
+   *        - SVGElement is element being dragged
+   */
+  makeDraggableInX(subView, id, xLimit, callback = () => {}) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentString(id);
+    Preconditions.checkArgumentArrayLength(xLimit, 2);
+    Preconditions.checkState(
+        xLimit[0] < xLimit[1], 
+        `X limit min [${xLimit[0]}] must be less than X limit max [${xLimit[1]}]`);
+    Preconditions.checkArgumentInstanceOf(callback, Function);
+
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    let dataEl = this.querySelector(subView, id);
+
+    d3.selectAll([ dataEl ])
+        .style('cursor', 'col-resize')
+        .on('click', null)
+        .call(d3.drag()    
+            .on('start', (/** @type {D3LineSeriesData*/ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              this._onDragStart(series);
+            }) 
+            .on('end', (/** @type {D3LineSeriesData*/ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              this._onDragEnd(series, dataEl);
+            }) 
+            .on('drag', (/** @type {D3LineSeriesData */ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              let xValues = series.xValues;
+              Preconditions.checkStateArrayLength(xValues, 2);
+              Preconditions.checkState(
+                  xValues[0] == xValues[1],
+                  'Not a vertical line');
+              this._onDragInX(lineData, series, dataEl, xLimit, callback);
+            }));
+  }
+
+  /**
+   * Make a horizontal line draggable.
+   *  
+   * @param {D3LineSubView} subView The sub view were the line is to drag
+   * @param {String} id The id of the line to drag
+   * @param {Array<Number>} yLimit The limits that the line can be dragged
+   * @param {Function} callback The funciton to call when the line is dragged.
+   *    The arguments passed to the callback function are 
+   *    (D3LineSeriesData, Number, SVGElement) where:
+   *        - D3LineSeriesData is updated line series data
+   *        - Number is the current Y value
+   *        - SVGElement is element being dragged
+   */
+  makeDraggableInY(subView, id, yLimit, callback = () => {}) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentString(id);
+    Preconditions.checkArgumentArrayLength(yLimit, 2);
+    Preconditions.checkState(
+        yLimit[0] < yLimit[1], 
+        `Y limit min [${yLimit[0]}] must be less than Y limit max [${yLimit[1]}]`);
+    Preconditions.checkArgumentInstanceOf(callback, Function);
+
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    let dataEl = this.querySelector(subView, id);
+
+    d3.selectAll([ dataEl ])
+        .style('cursor', 'row-resize')
+        .on('click', null)
+        .call(d3.drag()
+            .on('start', (/** @type {D3LineSeriesData*/ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              this._onDragStart(series, dataEl);
+            }) 
+            .on('end', (/** @type {D3LineSeriesData*/ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              this._onDragEnd(series, dataEl);
+            }) 
+            .on('drag', (/** @type {D3LineSeriesData */ series) => {
+              Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+              let yValues = series.yValues;
+              Preconditions.checkStateArrayLength(yValues, 2);
+              Preconditions.checkState(
+                  yValues[0] == yValues[1],
+                  'Not a horizontal line');
+              this._onDragInY(lineData, series, dataEl, yLimit, callback);
+            }));
+  }
+
+  /**
+   * Get an SVG element in a sub view's plot based on the data's id.
+   * 
+   * @param {D3LineSubView} subView The sub view the data element is in
+   * @param {String} id The id of the data element
+   * @returns {SVGElement} The SVG element with that id
+   */
+  querySelector(subView, id) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentString(id);
+
+    let dataEl = subView.svg.dataContainerEl.querySelector(`#${id}`);
+    Preconditions.checkNotNull(
+        dataEl,
+        `Id [${id}] not found in [${subView.options.subViewType}] sub view`);
+    Preconditions.checkStateInstanceOfSVGElement(dataEl);
+
+    return dataEl;
+  }
+
+  /**
+   * Get SVG elements in a sub view's plot based on the data's id. 
+   * 
+   * @param {D3LineSubView} subView The sub view the data element is in
+   * @param {String} id The id of the data element
+   * @returns {NodeList<SVGElement>} Node list of SVG elements with that id
+   */
+  querySelectorAll(subView, id) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentString(id);
+
+    let dataEls = subView.svg.dataContainerEl.querySelectorAll(`#${id}`);
+    Preconditions.checkStateInstanceOf(dataEls, NodeList);
+    Preconditions.checkState(
+        dataEls.length > 0,
+        `Id [${id}] not found in [${subView.options.subViewType}] sub view`);
+    
+    for (let el of dataEls) {
+      Preconditions.checkStateInstanceOfSVGElement(el);
+    }
+
+    return dataEls;
   }
 
   /**
@@ -282,6 +460,7 @@ export class D3LinePlot {
     data.push(lineData);
     let updatedLineData = D3LineData.of(...data);
 
+    this.clear(lineData);
     let seriesEnter = d3.select(lineData.subView.svg.dataContainerEl)
         .datum([ updatedLineData ])    
         .selectAll('g')
@@ -443,6 +622,133 @@ export class D3LinePlot {
   _onDataSymbolMouseout(lineData) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this.tooltip.remove(lineData.subView);
+  }
+
+  /**
+   * @private
+   * Drag line in X direction.
+   *  
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The series data
+   * @param {SVGElement} dataEl The element being dragged
+   * @param {Array<Number>} yLimit The Y limit
+   * @param {Function} callback The function to call
+   */
+  _onDragInX(lineData, series, dataEl, xLimit, callback) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+    Preconditions.checkArgumentArrayLength(xLimit, 2);
+    Preconditions.checkArgumentInstanceOf(callback, Function);
+
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let xBounds = this.axes._getXAxisScale(lineData, xScale);
+    let xDomain = xBounds.domain();
+
+    let xMinLimit = xLimit[0] < xDomain[0] ? xDomain[0] : xLimit[0];
+    let xMaxLimit = xLimit[1] > xDomain[1] ? xDomain[1] : xLimit[1];
+
+    let x = xBounds.invert(d3.event.x);
+    x = x < xMinLimit ? xMinLimit : x > xMaxLimit ? xMaxLimit : x;
+    let xValues = series.xValues.map(() => { return x; }); 
+
+    let updatedSeries = new D3LineSeriesData(
+        xValues,
+        series.yValues,
+        series.lineOptions,
+        series.xStrings,
+        series.yStrings);
+
+    d3.select(dataEl).raise();
+    callback(updatedSeries, x, dataEl);
+    this._plotUpdateOnDrag(lineData, updatedSeries, dataEl);
+  }
+
+  /**
+   * @private
+   * Drag line in Y direction.
+   *  
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The series data
+   * @param {SVGElement} dataEl The element being dragged
+   * @param {Array<Number>} yLimit The Y limit
+   * @param {Function} callback The function to call
+   */
+  _onDragInY(lineData, series, dataEl, yLimit, callback) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+    Preconditions.checkArgumentArrayLength(yLimit, 2);
+    Preconditions.checkArgumentInstanceOf(callback, Function);
+
+    let yScale = this._getCurrentYScale(lineData.subView);
+    let yBounds = this.axes._getYAxisScale(lineData, yScale);
+    let yDomain = yBounds.domain();
+
+    let yMinLimit = yLimit[0] < yDomain[0] ? yDomain[0] : yLimit[0];
+    let yMaxLimit = yLimit[1] > yDomain[1] ? yDomain[1] : yLimit[1];
+
+    let y = yBounds.invert(d3.event.y);
+    y = y < yMinLimit ? yMinLimit : y > yMaxLimit ? yMaxLimit : y;
+    let yValues = series.yValues.map(() => { return y; }); 
+
+    let updatedSeries = new D3LineSeriesData(
+        series.xValues,
+        yValues,
+        series.lineOptions,
+        series.xStrings,
+        series.yStrings);
+
+    d3.select(dataEl).raise();
+    callback(updatedSeries, y, dataEl);
+    this._plotUpdateOnDrag(lineData, updatedSeries, dataEl);
+  }
+
+  /**
+   * @private
+   * Reset line and symbol size on drag end.
+   *  
+   * @param {D3LineSeriesData} series The series
+   * @param {SVGElement} dataEl
+   */
+  _onDragEnd(series, dataEl) {
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+
+    d3.select(dataEl)
+        .selectAll('.plot-line')
+        .attr('stroke-width', series.lineOptions.lineWidth); 
+    
+    d3.select(dataEl)
+        .selectAll('.plot-symbol')
+        .attr('d', series.d3Symbol.size(series.lineOptions.d3SymbolSize)())
+        .attr('stroke-width', series.lineOptions.markerEdgeWidth);
+  }
+
+  /**
+   * @private
+   * Increase line and symbol size on drag start.
+   *  
+   * @param {D3LineSeriesData} series The series 
+   * @param {SVGElement} dataEl
+   */
+  _onDragStart(series, dataEl) {
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+
+    let lineOptions = series.lineOptions;
+    let lineWidth = lineOptions.lineWidth * lineOptions.selectionMultiplier;
+    let symbolSize = lineOptions.d3SymbolSize * lineOptions.selectionMultiplier;
+    let edgeWidth = lineOptions.markerEdgeWidth * lineOptions.selectionMultiplier;
+
+    d3.select(dataEl)
+        .selectAll('.plot-line')
+        .attr('stroke-width', lineWidth);
+
+    d3.select(dataEl)
+        .selectAll('.plot-symbol')
+        .attr('d', series.d3Symbol.size(symbolSize)())
+        .attr('stroke-width', edgeWidth);
   }
 
   /**
@@ -727,6 +1033,63 @@ export class D3LinePlot {
           return series.d3Symbol(); 
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
+          let x = this.axes.x(lineData, xScale, series.data[0]);
+          let y = this.axes.y(lineData, yScale, series.data[0]);
+          let rotate = series.lineOptions.d3SymbolRotate;
+          return `translate(${x}, ${y}) rotate(${rotate})`;
+        });
+  }
+
+  /**
+   * @private
+   * Update plot on drag.
+   * 
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The line series
+   * @param {SVGElement} dataEl The plot data element
+   */
+  _plotUpdateOnDrag(lineData, series, dataEl) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
+    let line = this.axes.line(lineData, xScale, yScale);
+   
+    /* Update line */
+    d3.select(dataEl)
+        .selectAll('.plot-line')
+        .datum(series)
+        .attr('d', line(series.data));
+
+    /* Update symbols */
+    let lineOptions = series.lineOptions;
+    let symbolSize = lineOptions.d3SymbolSize * lineOptions.selectionMultiplier;
+    let edgeWidth = lineOptions.markerEdgeWidth * lineOptions.selectionMultiplier;
+    
+    d3.select(dataEl)
+        .selectAll('.plot-symbol')
+        .data(() => {
+          let symbolLineData = D3LineData.builder()
+              .subView(lineData.subView)
+              .data(
+                  series.xValues,
+                  series.yValues,
+                  series.lineOptions,
+                  series.xStrings,
+                  series.yStrings)
+              .build();
+
+          return symbolLineData.toMarkerSeries(series);
+        })
+        .attr('d', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          return series.d3Symbol.size(symbolSize)(); 
+        })
+        .attr('stroke-width', edgeWidth)
+        .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           let x = this.axes.x(lineData, xScale, series.data[0]);
           let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
