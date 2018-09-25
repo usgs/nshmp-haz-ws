@@ -197,13 +197,11 @@ public class ServletUtil implements ServletContextListener {
   abstract static class TimedTask<T> implements Callable<T> {
 
     final String url;
-    final RequestData data;
     final ServletContext context;
     final Timer timer;
 
-    TimedTask(String url, RequestData data, ServletContext context) {
+    TimedTask(String url, ServletContext context) {
       this.url = url;
-      this.data = data;
       this.context = context;
       this.timer = ServletUtil.timer();
     }

@@ -55,6 +55,7 @@ import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
+import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;
@@ -148,7 +149,7 @@ public final class HazardService extends NshmpServlet {
       }
 
       /* Submit as task to job executor */
-      HazardTask task = new HazardTask(urlHelper.url, requestData, getServletContext());
+      HazardTask task = new HazardTask(urlHelper.url, getServletContext(), requestData);
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       // GSON.toJson(result, response.getWriter()); TODO test and use elsewhere?
       String resultStr = GSON.toJson(result);
@@ -245,8 +246,11 @@ public final class HazardService extends NshmpServlet {
 
   private static class HazardTask extends TimedTask<Result> {
 
-    HazardTask(String url, RequestData data, ServletContext context) {
-      super(url, data, context);
+    final RequestData data;
+
+    HazardTask(String url, ServletContext context, RequestData data) {
+      super(url, context);
+      this.data = data;
     }
 
     @Override
