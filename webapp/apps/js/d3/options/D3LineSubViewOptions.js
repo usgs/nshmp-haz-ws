@@ -91,14 +91,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
 
     /**
      * Color of a reference line.
-     * Default: '9E9E9E'
+     * Default: 'gray'
      * @type {String}
      */
     this.referenceLineColor = builder._referenceLineColor;
 
     /**
      * Line width of the reference line.
-     * Default: 1.0
+     * Default: 1.5
      * @type {Number}
      */
     this.referenceLineWidth = builder._referenceLineWidth;
@@ -302,10 +302,10 @@ export class D3LineSubViewOptionsBuilder
     this._lineLabel = 'Line';
     
     /** @type {String} */
-    this._referenceLineColor = '#9E9E9E';
+    this._referenceLineColor = 'gray';
     
     /** @type {Number} */
-    this._referenceLineWidth = 1;
+    this._referenceLineWidth = 1.5;
     
     /** @type {Boolean} */
     this._showLegend = true;
@@ -460,7 +460,7 @@ export class D3LineSubViewOptionsBuilder
   
   /**
    * Set the reference line width. 
-   * Default: 1.0
+   * Default: 1.5
    * @param {Number} width The width
    */
   referenceLineWidth(width) {

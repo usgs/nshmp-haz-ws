@@ -11,6 +11,7 @@ import { D3Tooltip } from './D3Tooltip.js';
 import { D3Utils } from './D3Utils.js';
 
 import { Preconditions } from '../error/Preconditions.js';
+import { D3LineOptions } from './options/D3LineOptions.js';
 
 /**
  * @fileoverview Plot D3LineData
@@ -25,9 +26,6 @@ export class D3LinePlot {
    * 
    * @param {D3LineView} view The line view 
    * 
-   * @todo Add a D3View.legendIsChecked and D3View.gridlinesIsChecked method
-   * @todo Add gridlines check and legend check color options
-   * @todo Add ablity to plot a reference line at zero
    * @todo Add ability to reverse the Y axis
    */
   constructor(view) {
@@ -109,6 +107,21 @@ export class D3LinePlot {
                 lineDatas);
           });
     }
+  }
+
+  /**
+   * Clear all plots off a D3LineSubView.
+   * 
+   * @param {D3LineData} lineData 
+   */
+  clear(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+
+    this.legend.remove(lineData);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('*')
+        .remove();
   }
 
   /**
@@ -248,6 +261,67 @@ export class D3LinePlot {
   }
 
   /**
+   * Fire a custom function when a line or symbol is selected.
+   * Arguments passed to the callback function:
+   *    - D3LineData: The line data passed into onPlotSelection
+   *    - D3LineSeriesData: The series data from the plot selection
+   * 
+   * @param {D3LineData} lineData The line data
+   * @param {Function} callback Function to call when plot is selected
+   */
+  onPlotSelection(lineData, callback) {
+    lineData.subView.svg.dataContainerEl.addEventListener('plotSelection', (e) => {
+      let series = e.detail;
+      Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+      callback(lineData, series);
+    });
+  }
+
+  /**
+   * Creates a 2-D line plot from D3LineData.
+   *  
+   * @param {D3LineData} lineData The line data to plot
+   */
+  plot(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+
+    lineData = this._dataEnter(lineData);
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
+    this.axes.createXAxis(lineData, xScale);
+    this.axes.createYAxis(lineData, yScale);
+    this.legend.create(lineData);
+
+    this._plotUpdateZeroRefLine(lineData);
+    this._plotSelectionEventListener(lineData);
+  }
+
+  /**
+   * Plot a reference line at zero.
+   * 
+   * @param {D3LineSubView} subView The sub view to add the line to
+   */
+  plotZeroRefLine(subView) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    let lineOptions = D3LineOptions.builder()
+        .color(subView.options.referenceLineColor)
+        .id('zero-ref-line')
+        .lineWidth(subView.options.referenceLineWidth)
+        .markerSize(0)
+        .selectable(false)
+        .showInLegend(false)
+        .build();
+
+    let lineData = D3LineData.builder()
+        .subView(subView)
+        .data(this.getXDomain(subView), [0, 0], lineOptions)
+        .build();
+
+    this.plot(lineData);
+  }
+
+  /**
    * Get an SVG element in a sub view's plot based on the data's id.
    * 
    * @param {D3LineSubView} subView The sub view the data element is in
@@ -289,56 +363,6 @@ export class D3LinePlot {
     }
 
     return dataEls;
-  }
-
-  /**
-   * Clear all plots off a D3LineSubView.
-   * 
-   * @param {D3LineData} lineData 
-   */
-  clear(lineData) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-
-    this.legend.remove(lineData);
-
-    d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('*')
-        .remove();
-  }
-
-  /**
-   * Fire a custom function when a line or symbol is selected.
-   * Arguments passed to the callback function:
-   *    - D3LineData: The line data passed into onPlotSelection
-   *    - D3LineSeriesData: The series data from the plot selection
-   * 
-   * @param {D3LineData} lineData The line data
-   * @param {Function} callback Function to call when plot is selected
-   */
-  onPlotSelection(lineData, callback) {
-    lineData.subView.svg.dataContainerEl.addEventListener('plotSelection', (e) => {
-      let series = e.detail;
-      Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-      callback(lineData, series);
-    });
-  }
-
-  /**
-   * Creates a 2-D line plot from D3LineData.
-   *  
-   * @param {D3LineData} lineData The line data to plot
-   */
-  plot(lineData) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-
-    lineData = this._dataEnter(lineData);
-    let xScale = this._getCurrentXScale(lineData.subView);
-    let yScale = this._getCurrentYScale(lineData.subView);
-    this.axes.createXAxis(lineData, xScale);
-    this.axes.createYAxis(lineData, yScale);
-    this.legend.create(lineData);
-
-    this._plotSelectionEventListener(lineData);
   }
 
   /**
@@ -472,8 +496,7 @@ export class D3LinePlot {
         .attr('class', 'data-enter')
         .attr('id', (/** @type {D3LineSeriesData} */ series) => {
           return series.lineOptions.id;
-        })
-        .style('cursor', 'pointer');
+        });
 
     /* Update upperLineData or lowerLineData */
     this._setLineData(updatedLineData);
@@ -660,7 +683,7 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, x, dataEl);
-    this._plotUpdateOnDrag(lineData, updatedSeries, dataEl);
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl);
   }
 
   /**
@@ -700,7 +723,7 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, y, dataEl);
-    this._plotUpdateOnDrag(lineData, updatedSeries, dataEl);
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl);
   }
 
   /**
@@ -910,8 +933,9 @@ export class D3LinePlot {
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => { 
           return series.lineOptions.lineWidth; 
         })
+        .attr('fill', 'none')
         .style('shape-rendering', 'geometricPrecision')
-        .attr('fill', 'none');
+        .style('cursor', 'pointer');
   }
 
   /**
@@ -951,7 +975,12 @@ export class D3LinePlot {
 
     d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.data-enter')
+        .filter((/** @type {D3LineSeriesData */ series) => {
+          Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+          return series.lineOptions.selectable;
+        })
         .on('click', (/** @type {D3LineSeriesData} */ series) => {
+          console.log(series);
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           this.selectLine(series.lineOptions.id, lineData);
         });
@@ -995,6 +1024,7 @@ export class D3LinePlot {
           return series.lineOptions.markerEdgeWidth; 
         })
         .style('shape-rendering', 'geometricPrecision')
+        .style('cursor', 'pointer')
         .on('mouseover', (/** @type {D3LineSeriesData} */series) => {
           this._onDataSymbolMouseover(lineData, series);
         })
@@ -1041,13 +1071,13 @@ export class D3LinePlot {
 
   /**
    * @private
-   * Update plot on drag.
+   * Update plot for single data element.
    * 
    * @param {D3LineData} lineData The line data
    * @param {D3LineSeriesData} series The line series
    * @param {SVGElement} dataEl The plot data element
    */
-  _plotUpdateOnDrag(lineData, series, dataEl) {
+  _plotUpdateDataEl(lineData, series, dataEl) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
     Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
@@ -1055,18 +1085,24 @@ export class D3LinePlot {
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     let line = this.axes.line(lineData, xScale, yScale);
-   
+  
+    /* Update data */
+    d3.select(dataEl).datum(series);
+
     /* Update line */
     d3.select(dataEl)
         .selectAll('.plot-line')
         .datum(series)
-        .attr('d', line(series.data));
+        .attr('d', (/** @type {D3LineSeriesData*/ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          return line(series.data);
+        });
 
-    /* Update symbols */
     let lineOptions = series.lineOptions;
     let symbolSize = lineOptions.d3SymbolSize * lineOptions.selectionMultiplier;
     let edgeWidth = lineOptions.markerEdgeWidth * lineOptions.selectionMultiplier;
     
+    /* Update symbols */
     d3.select(dataEl)
         .selectAll('.plot-symbol')
         .data(() => {
@@ -1094,6 +1130,35 @@ export class D3LinePlot {
           let rotate = series.lineOptions.d3SymbolRotate;
           return `translate(${x}, ${y}) rotate(${rotate})`;
         });
+  }
+
+  /**
+   * @private
+   * Update the reference line at y=0 if it exists.
+   *  
+   * @param {D3LineData} lineData The line data 
+   */
+  _plotUpdateZeroRefLine(lineData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    
+    let refLineD3 = d3.select(lineData.subView.svg.dataContainerEl)
+        .select('#zero-ref-line');
+
+    let refLineEl = refLineD3.node();
+    if (refLineEl === null) return;
+    Preconditions.checkStateInstanceOfSVGElement(refLineEl);
+
+    let series = d3.select(refLineEl).selectAll('.plot-line').datum();
+    Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+
+    let updatedSeries = new D3LineSeriesData(
+        this.getXDomain(lineData.subView),
+        series.yValues,
+        series.lineOptions,
+        series.xStrings,
+        series.yStrings);
+
+    this._plotUpdateDataEl(lineData, updatedSeries, refLineEl);
   }
 
   /**

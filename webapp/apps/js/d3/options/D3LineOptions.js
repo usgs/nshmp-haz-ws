@@ -110,6 +110,13 @@ export class D3LineOptions {
     this.markerStyle = builder._markerStyle;
 
     /**
+     * Whether the data is selectable in the plot.
+     * Default: true
+     * @type {Boolean}
+     */
+    this.selectable = builder._selectable;
+
+    /**
      * The plot selection multiplier to be applied to the 
      *    line width, marker size, and marker edge size, when a line
      *    or marker is selected.
@@ -117,13 +124,6 @@ export class D3LineOptions {
      * @type{Number}
      */
     this.selectionMultiplier = builder._selectionMultiplier;
-
-    /**
-     * Whether to show the data in the data table view. 
-     * Default: true
-     * @type {Boolean}
-     */
-    this.showInDataTable = builder._showInDataTable;
 
     /**
      * Whether to show the data in the legend.
@@ -315,12 +315,12 @@ export class D3LineOptionsBuilder {
     
     /** @type {Number} */
     this._markerSize = 6.0;
+
+    /** @type {Boolean} */
+    this._selectable = true;
     
     /** @type {Number} */
     this._selectionMultiplier = 2;
-    
-    /** @type {Boolean} */
-    this._showInDataTable = true;
     
     /** @type {Boolean} */
     this._showInLegend = true;
@@ -353,7 +353,8 @@ export class D3LineOptionsBuilder {
     this._markerEdgeWidth = options.markerEdgeWidth;
     this._markerStyle = options.markerStyle;
     this._markerSize = options.markerSize;
-    this._showInDataTable = options.showInDataTable;
+    this._selectable = options.selectable;
+    this._selectionMultiplier = options.selectionMultiplier;
     this._showInLegend = options.showInLegend;
 
     return this;
@@ -495,6 +496,17 @@ export class D3LineOptionsBuilder {
   }
 
   /**
+   * Set whether the data can be selected in the plot.
+   * 
+   * @param {Boolean} selectable Whether data is selectable
+   */
+  selectable(selectable) {
+    Preconditions.checkArgumentBoolean(selectable);
+    this._selectable = selectable;
+    return this;
+  }
+
+  /**
    * Set the plot selection multiplier to be applied to the 
    *    line width, marker size, and marker edge size, when a line
    *    or marker is selected.
@@ -505,17 +517,6 @@ export class D3LineOptionsBuilder {
   selectionMultiplier(mult) {
     Preconditions.checkArgumentNumber(mult);
     this._selectionMultiplier = mult;
-    return this;
-  }
-
-  /**
-   * Whether to show the data in the data table view. 
-   * Default: true
-   * @type {Boolean}
-   */
-  showInDataTable(bool) {
-    Preconditions.checkArgumentBoolean(bool);
-    this._showInDataTable = bool;
     return this;
   }
 
