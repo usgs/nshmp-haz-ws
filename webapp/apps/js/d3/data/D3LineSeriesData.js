@@ -19,7 +19,7 @@ export class D3LineSeriesData {
    * @param {Array<Number>} yValues The Y values
    * @param {D3LineOptions} options The line options
    */
-  constructor(xValues, yValues, options, xStrings, yStrings) {
+  constructor(xValues, yValues, options, xStrings = undefined, yStrings = undefined) {
     Preconditions.checkArgumentArray(xValues);
     Preconditions.checkArgumentArray(yValues);
     Preconditions.checkArgumentInstanceOf(options, D3LineOptions);
@@ -30,6 +30,21 @@ export class D3LineSeriesData {
     
     D3Utils.checkArrayIsNumberOrNull(xValues);
     D3Utils.checkArrayIsNumberOrNull(yValues);
+
+
+    if (xStrings != undefined) {
+      Preconditions.checkArgumentArrayOf(xStrings, 'string');
+      Preconditions.checkArgumentArrayLength(xStrings, xValues.length);
+    } else {
+      xStrings = new Array(xValues.length).fill('');
+    }
+
+    if (yStrings != undefined) {
+      Preconditions.checkArgumentArrayOf(yStrings, 'string');
+      Preconditions.checkArgumentArrayLength(yStrings, yValues.length);
+    } else {
+      yStrings = new Array(xValues.length).fill('');
+    }
 
     /**
      * The X values

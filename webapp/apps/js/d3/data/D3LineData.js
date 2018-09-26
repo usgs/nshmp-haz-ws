@@ -215,13 +215,15 @@ export class D3LineData {
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
 
     let markerSeries = [];
-    for (let data of series.data) {
+    for (let i in series.data) {
+      let data = series.data[i];
+
       markerSeries.push(new D3LineSeriesData(
           [ data.x ], 
           [ data.y ], 
           series.lineOptions,
-          series.xStrings,
-          series.yStrings));
+          [ series.xStrings[i] ],
+          [ series.yStrings[i] ]));
     }
     
     return markerSeries;
@@ -432,20 +434,6 @@ export class D3LineDataBuilder {
     D3Utils.checkArrayIsNumberOrNull(xValues);
     D3Utils.checkArrayIsNumberOrNull(yValues);
 
-    if (xStrings) {
-      Preconditions.checkArgumentArrayOf(xStrings, 'string');
-      Preconditions.checkArgumentArrayLength(xStrings, xValues.length);
-    } else {
-      xStrings = new Array(xValues.length).fill('');
-    }
-
-    if (yStrings) {
-      Preconditions.checkArgumentArrayOf(yStrings, 'string');
-      Preconditions.checkArgumentArrayLength(yStrings, yValues.length);
-    } else {
-      yStrings = new Array(xValues.length).fill('');
-    }
-
     let seriesData = new D3LineSeriesData(
         xValues,
         yValues,
@@ -575,7 +563,8 @@ export class D3LineDataBuilder {
   /** @private */
   _updateColorScheme() {
     let nSeries = this._series.length;
-    let colors = this._colorScheme || d3.schemeCategory10;
+    let colors = this._colorScheme && this._colorScheme.length == nSeries ? 
+        this._colorScheme : d3.schemeCategory10;
     let nColors = colors.length;
     let nCat = Math.ceil( nSeries / nColors );
 
