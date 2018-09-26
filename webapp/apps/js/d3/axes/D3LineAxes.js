@@ -41,7 +41,7 @@ export class D3LineAxes {
         subView.plotHeight;
 
     d3.select(subView.svg.xAxisEl)
-        .attr('transform', `translate(0, ${translate})`)
+        .attr('transform', `translate(-0.5, ${translate - 0.5})`)
         .style(subView.options.tickFontSize);
   
     d3.select(subView.svg.xTickMarksEl)
@@ -70,7 +70,7 @@ export class D3LineAxes {
         subView.plotWidth : 0;
 
     d3.select(subView.svg.yAxisEl)
-        .attr('transform', `translate(${translate}, 0)`)
+        .attr('transform', `translate(${translate - 0.5}, -0.5)`)
         .style(subView.options.tickFontSize);
   
     d3.select(subView.svg.yTickMarksEl)
@@ -333,7 +333,7 @@ export class D3LineAxes {
         .domain(lineData.getXLimit());
 
     if (lineData.subView.options.xAxisNice) {
-      d3Scale.nice();
+      d3Scale.nice(lineData.subView.options.xTickMarks);
     }
 
     return d3Scale;
@@ -375,7 +375,7 @@ export class D3LineAxes {
         .domain(lineData.getYLimit());
 
     if (lineData.subView.options.yAxisNice) {
-      d3Scale.nice();
+      d3Scale.nice(lineData.subView.options.yTickMarks);
     }
 
     return d3Scale;
