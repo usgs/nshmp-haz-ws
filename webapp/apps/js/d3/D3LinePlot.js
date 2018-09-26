@@ -164,7 +164,7 @@ export class D3LinePlot {
    * Make a vertical line draggable.
    *  
    * @param {D3LineSubView} subView The sub view were the line is to drag
-   * @param {String} id The id of the line to drag
+   * @param {SVGElement} refLineEl The reference line element
    * @param {Array<Number>} xLimit The limits that the line can be dragged
    * @param {Function} callback The funciton to call when the line is dragged.
    *    The arguments passed to the callback function are 
@@ -173,9 +173,9 @@ export class D3LinePlot {
    *        - Number is the current X value
    *        - SVGElement is element being dragged
    */
-  makeDraggableInX(subView, id, xLimit, callback = () => {}) {
+  makeDraggableInX(subView, refLineEl, xLimit, callback = () => {}) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
-    Preconditions.checkArgumentString(id);
+    Preconditions.checkArgumentInstanceOfSVGElement(refLineEl);
     Preconditions.checkArgumentArrayLength(xLimit, 2);
     Preconditions.checkState(
         xLimit[0] < xLimit[1], 
@@ -185,19 +185,18 @@ export class D3LinePlot {
     let lineData = subView.options.subViewType == 'lower' ?
         this.lowerLineData : this.upperLineData;
 
-    let dataEl = this.querySelector(subView, id);
+    d3.select(refLineEl).select('.plot-line').style('cursor', 'col-resize');
 
-    d3.selectAll([ dataEl ])
-        .style('cursor', 'col-resize')
+    d3.selectAll([ refLineEl ])
         .on('click', null)
         .call(d3.drag()    
             .on('start', (/** @type {D3LineSeriesData*/ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-              this._onDragStart(series);
+              this._onDragStart(series, refLineEl);
             }) 
             .on('end', (/** @type {D3LineSeriesData*/ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-              this._onDragEnd(series, dataEl);
+              this._onDragEnd(series, refLineEl);
             }) 
             .on('drag', (/** @type {D3LineSeriesData */ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
@@ -206,7 +205,7 @@ export class D3LinePlot {
               Preconditions.checkState(
                   xValues[0] == xValues[1],
                   'Not a vertical line');
-              this._onDragInX(lineData, series, dataEl, xLimit, callback);
+              this._onDragInX(lineData, series, refLineEl, xLimit, callback);
             }));
   }
 
@@ -214,7 +213,7 @@ export class D3LinePlot {
    * Make a horizontal line draggable.
    *  
    * @param {D3LineSubView} subView The sub view were the line is to drag
-   * @param {String} id The id of the line to drag
+   * @param {SVGElement} refLineEl The reference line element
    * @param {Array<Number>} yLimit The limits that the line can be dragged
    * @param {Function} callback The funciton to call when the line is dragged.
    *    The arguments passed to the callback function are 
@@ -223,9 +222,9 @@ export class D3LinePlot {
    *        - Number is the current Y value
    *        - SVGElement is element being dragged
    */
-  makeDraggableInY(subView, id, yLimit, callback = () => {}) {
+  makeDraggableInY(subView, refLineEl, yLimit, callback = () => {}) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
-    Preconditions.checkArgumentString(id);
+    Preconditions.checkArgumentInstanceOfSVGElement(refLineEl);
     Preconditions.checkArgumentArrayLength(yLimit, 2);
     Preconditions.checkState(
         yLimit[0] < yLimit[1], 
@@ -235,19 +234,19 @@ export class D3LinePlot {
     let lineData = subView.options.subViewType == 'lower' ?
         this.lowerLineData : this.upperLineData;
 
-    let dataEl = this.querySelector(subView, id);
+    d3.select(refLineEl).select('.plot-line').style('cursor', 'row-resize');
 
-    d3.selectAll([ dataEl ])
-        .style('cursor', 'row-resize')
+    d3.selectAll([ refLineEl ])
+        .selectAll('.plot-line')
         .on('click', null)
         .call(d3.drag()
             .on('start', (/** @type {D3LineSeriesData*/ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-              this._onDragStart(series, dataEl);
+              this._onDragStart(series, refLineEl);
             }) 
             .on('end', (/** @type {D3LineSeriesData*/ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-              this._onDragEnd(series, dataEl);
+              this._onDragEnd(series, refLineEl);
             }) 
             .on('drag', (/** @type {D3LineSeriesData */ series) => {
               Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
@@ -256,7 +255,7 @@ export class D3LinePlot {
               Preconditions.checkState(
                   yValues[0] == yValues[1],
                   'Not a horizontal line');
-              this._onDragInY(lineData, series, dataEl, yLimit, callback);
+              this._onDragInY(lineData, series, refLineEl, yLimit, callback);
             }));
   }
 
@@ -292,12 +291,13 @@ export class D3LinePlot {
     this.axes.createYAxis(lineData, yScale);
     this.legend.create(lineData);
 
-    this._plotUpdateZeroRefLine(lineData);
+    this._plotUpdateHorizontalRefLine(lineData, xScale, yScale);
+    this._plotUpdateVerticalRefLine(lineData, xScale, yScale);
     this._plotSelectionEventListener(lineData);
   }
 
   /**
-   * Plot a reference line at zero.
+   * Plot a reference line at zero, y=0.
    * 
    * @param {D3LineSubView} subView The sub view to add the line to
    */
@@ -313,12 +313,85 @@ export class D3LinePlot {
         .showInLegend(false)
         .build();
 
-    let lineData = D3LineData.builder()
-        .subView(subView)
-        .data(this.getXDomain(subView), [0, 0], lineOptions)
+    this.plotHorizontalRefLine(subView, 0, lineOptions);
+  }
+
+  /**
+   * Plot a horizontal reference line, y=value.
+   * 
+   * @param {D3LineSubView} subView The sub view to put reference line
+   * @param {Number} y The Y value of reference line
+   * @param {D3LineOptions} lineOptions The line options
+   * @returns {SVGElement} The reference line element
+   */
+  plotHorizontalRefLine(subView, y, lineOptions) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentNumber(y);
+    Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
+
+    let series = new D3LineSeriesData(
+        this.getXDomain(subView),
+        [ y, y ],
+        lineOptions);
+
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    lineData = D3LineData.builder()
+        .of(lineData)
+        .data(series.xValues, series.yValues, series.lineOptions)
         .build();
 
-    this.plot(lineData);
+    let refLineD3 = d3.select(subView.svg.dataContainerEl)
+        .append('g')
+        .attr('class', 'data-enter-ref-line horizontal-ref-line')
+        .attr('id', lineOptions.id);
+
+    let refLineEl = refLineD3.node();
+    Preconditions.checkStateInstanceOfSVGElement(refLineEl);
+
+    this._plotRefLine(lineData, series, refLineEl);
+
+    return refLineEl;
+  }
+
+  /**
+   * Plot a vertical reference line, x=value.
+   * 
+   * @param {D3LineSubView} subView The sub view to put reference line
+   * @param {Number} x The X value of reference line
+   * @param {D3LineOptions} lineOptions The line options
+   * @returns {SVGElement} The reference line element
+   */
+  plotVerticalRefLine(subView, x, lineOptions) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentNumber(x);
+    Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
+
+    let series = new D3LineSeriesData(
+        [ x, x ],
+        this.getYDomain(subView),
+        lineOptions);
+
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    lineData = D3LineData.builder()
+        .of(lineData)
+        .data(series.xValues, series.yValues, series.lineOptions)
+        .build();
+
+    let refLineD3 = d3.select(subView.svg.dataContainerEl)
+        .append('g')
+        .attr('class', 'data-enter-ref-line vertical-ref-line')
+        .attr('id', lineOptions.id);
+
+    let refLineEl = refLineD3.node();
+    Preconditions.checkStateInstanceOfSVGElement(refLineEl);
+
+    this._plotRefLine(lineData, series, refLineEl);
+
+    return refLineEl;
   }
 
   /**
@@ -483,7 +556,10 @@ export class D3LinePlot {
     data.push(lineData);
     let updatedLineData = D3LineData.of(...data);
 
-    this.clear(lineData);
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
+        .remove();
+
     let seriesEnter = d3.select(lineData.subView.svg.dataContainerEl)
         .datum([ updatedLineData ])    
         .selectAll('g')
@@ -664,6 +740,7 @@ export class D3LinePlot {
     Preconditions.checkArgumentInstanceOf(callback, Function);
 
     let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
     let xBounds = this.axes._getXAxisScale(lineData, xScale);
     let xDomain = xBounds.domain();
 
@@ -683,7 +760,7 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, x, dataEl);
-    this._plotUpdateDataEl(lineData, updatedSeries, dataEl);
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale);
   }
 
   /**
@@ -703,6 +780,7 @@ export class D3LinePlot {
     Preconditions.checkArgumentArrayLength(yLimit, 2);
     Preconditions.checkArgumentInstanceOf(callback, Function);
 
+    let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     let yBounds = this.axes._getYAxisScale(lineData, yScale);
     let yDomain = yBounds.domain();
@@ -723,7 +801,7 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, y, dataEl);
-    this._plotUpdateDataEl(lineData, updatedSeries, dataEl);
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale);
   }
 
   /**
@@ -920,9 +998,34 @@ export class D3LinePlot {
 
     d3.selectAll(seriesEnterEls)
         .append('path')
-        .attr('class', 'plot-line')
-        .attr('d', (/** @type {D3LineSeriesData */ series) => { 
-          return line(series.data);
+        .each((
+            /** @type {D3LineSeriesData} */ series,
+            /** @type {Number} */ i,
+            /** @type {Array<SVGElement>} */ els) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          Preconditions.checkStateInteger(i);
+          Preconditions.checkStateArrayInstanceOf(els, SVGElement); 
+          this._plotLineSeries(series, els[i], line); 
+        });
+  }
+
+  /**
+   * @private
+   * Add a D3LineSeries line to the plot.
+   * 
+   * @param {D3LineSeriesData} series The series to add
+   * @param {SVGElement} dataEl The plot data element
+   * @param {Function} line The line function
+   */
+  _plotLineSeries(series, dataEl, line) {
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+    Preconditions.checkArgumentInstanceOf(line, Function);
+    
+    d3.select(dataEl)
+        .classed('plot-line', true)
+        .attr('d', (/** @type {D3LineSeriesData} */series) => { 
+          return line(series.data); 
         })
         .attr('stroke-dasharray', (/** @type {D3LineSeriesData} */ series) => { 
           return series.lineOptions.svgDashArray; 
@@ -936,6 +1039,40 @@ export class D3LinePlot {
         .attr('fill', 'none')
         .style('shape-rendering', 'geometricPrecision')
         .style('cursor', 'pointer');
+  }
+
+  /**
+   * @private
+   * Add a reference line to the plot.
+   *  
+   * @param {D3LineData} lineData The upper or lower line data 
+   * @param {D3LineSeriesData} series The series to add 
+   * @param {SVGElement} refLineEl The reference line element
+   */
+  _plotRefLine(lineData, series, refLineEl) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(refLineEl);
+    
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
+    let line = this.axes.line(lineData, xScale, yScale);
+
+    d3.select(refLineEl)
+        .datum(series)
+        .selectAll('path')
+        .data([ series ])
+        .enter()
+        .append('path')
+        .each((
+            /** @type {D3LineSeriesData} */ series,
+            /** @type {Number} */ i,
+            /** @type {Array<SVGElement>} */ els) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          Preconditions.checkStateInteger(i);
+          Preconditions.checkStateArrayInstanceOf(els, SVGElement); 
+          this._plotLineSeries(series, els[i], line); 
+        });
   }
 
   /**
@@ -980,7 +1117,6 @@ export class D3LinePlot {
           return series.lineOptions.selectable;
         })
         .on('click', (/** @type {D3LineSeriesData} */ series) => {
-          console.log(series);
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           this.selectLine(series.lineOptions.id, lineData);
         });
@@ -994,9 +1130,6 @@ export class D3LinePlot {
    * @param {Array<SVGElement>} seriesEnter The SVG elements
    */
   _plotSymbol(lineData, seriesEnterEls) {
-    let xScale = this._getCurrentXScale(lineData.subView);
-    let yScale = this._getCurrentYScale(lineData.subView);
-    
     d3.selectAll(seriesEnterEls)
         .selectAll('.plot-symbol')
         .data((/** @type {D3LineSeriesData} */ series) =>  { 
@@ -1005,6 +1138,34 @@ export class D3LinePlot {
         .enter()
         .append('path')
         .attr('class', 'plot-symbol')
+        .each((
+            /** @type {D3LineSeriesData} */ series,
+            /** @type {Number} */ i,
+            /** @type {Array<SVGElement>} */ els) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          Preconditions.checkStateInteger(i);
+          Preconditions.checkStateArrayInstanceOf(els, SVGElement); 
+          this._plotSymbolSeries(lineData, series, els[i]); 
+        });
+  }
+
+  /**
+   * @private
+   * Add a D3LineSeries symbols to the plot.
+   * 
+   * @param {D3LineData} lineData The line data
+   * @param {D3LineSeriesData} series The series to add
+   * @param {SVGElement} dataEl The plot data element
+   */
+  _plotSymbolSeries(lineData, series, dataEl) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
+    
+    let xScale = this._getCurrentXScale(lineData.subView);
+    let yScale = this._getCurrentYScale(lineData.subView);
+    
+    d3.select(dataEl)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
           return series.d3Symbol(); 
         })
@@ -1042,10 +1203,14 @@ export class D3LinePlot {
    * @param {String} yScale The current Y scale
    */
   _plotUpdate(lineData, xScale, yScale) {
+    this._plotUpdateHorizontalRefLine(lineData, xScale, yScale);
+    this._plotUpdateVerticalRefLine(lineData, xScale, yScale);
 
     /* Update lines */
     let line = this.axes.line(lineData, xScale, yScale);
+
     d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
         .selectAll('.plot-line')
         .transition()
         .duration(lineData.subView.options.translationDuration)
@@ -1055,6 +1220,7 @@ export class D3LinePlot {
 
     /* Update symbols */
     d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
         .selectAll('.plot-symbol')
         .transition()
         .duration(lineData.subView.options.translationDuration)
@@ -1077,13 +1243,13 @@ export class D3LinePlot {
    * @param {D3LineSeriesData} series The line series
    * @param {SVGElement} dataEl The plot data element
    */
-  _plotUpdateDataEl(lineData, series, dataEl) {
+  _plotUpdateDataEl(lineData, series, dataEl, xScale, yScale) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
     Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
 
-    let xScale = this._getCurrentXScale(lineData.subView);
-    let yScale = this._getCurrentYScale(lineData.subView);
+    // let xScale = this._getCurrentXScale(lineData.subView);
+    // let yScale = this._getCurrentYScale(lineData.subView);
     let line = this.axes.line(lineData, xScale, yScale);
   
     /* Update data */
@@ -1134,31 +1300,77 @@ export class D3LinePlot {
 
   /**
    * @private
-   * Update the reference line at y=0 if it exists.
+   * Update any horizontal reference lines.
    *  
-   * @param {D3LineData} lineData The line data 
+   * @param {D3LineData} lineData The upper or lower line data
+   * @param {String} xScale The X scale
+   * @param {String} yScale The Y scale
    */
-  _plotUpdateZeroRefLine(lineData) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-    
-    let refLineD3 = d3.select(lineData.subView.svg.dataContainerEl)
-        .select('#zero-ref-line');
+  _plotUpdateHorizontalRefLine(lineData, xScale, yScale) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData); 
+    Preconditions.checkArgumentString(xScale);
+    Preconditions.checkArgumentString(yScale);
 
-    let refLineEl = refLineD3.node();
-    if (refLineEl === null) return;
-    Preconditions.checkStateInstanceOfSVGElement(refLineEl);
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter-ref-line.horizontal-ref-line')
+        .selectAll('.plot-line')
+        .each((
+            /** @type {D3LineSeriesData */ series,
+            /** @type {Number} */ i,
+            /** @type {Array<SVGElement>} */ els) => {
+          Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
 
-    let series = d3.select(refLineEl).selectAll('.plot-line').datum();
-    Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          let refLineEl = els[i].parentNode;
+          Preconditions.checkArgumentInstanceOfSVGElement(refLineEl);
 
-    let updatedSeries = new D3LineSeriesData(
-        this.getXDomain(lineData.subView),
-        series.yValues,
-        series.lineOptions,
-        series.xStrings,
-        series.yStrings);
+          let xDomain = this.axes._getXAxisScale(lineData, xScale).domain();
 
-    this._plotUpdateDataEl(lineData, updatedSeries, refLineEl);
+          let updatedSeries = new D3LineSeriesData(
+              xDomain,
+              series.yValues,
+              series.lineOptions,
+              series.xStrings,
+              series.yStrings);
+          
+          this._plotUpdateDataEl(lineData, updatedSeries, refLineEl, xScale, yScale);
+        })
+  }
+
+  /**
+   * @private
+   * Update any vertical reference lines.
+   * 
+   * @param {D3LineData} lineData The upper or lower line data
+   * @param {String} xScale The X scale
+   * @param {String} yScale The Y scale
+   */
+  _plotUpdateVerticalRefLine(lineData, xScale, yScale) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData); 
+    Preconditions.checkArgumentString(xScale);
+    Preconditions.checkArgumentString(yScale);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter-ref-line.vertical-ref-line')
+        .selectAll('.plot-line')
+        .each((
+            /** @type {D3LineSeriesData */ series,
+            /** @type {Number} */ i,
+            /** @type {Array<SVGElement>} */ els) => {
+          Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
+
+          let yDomain = this.axes._getYAxisScale(lineData, yScale).domain();
+          let refLineEl = els[i].parentNode;
+          Preconditions.checkArgumentInstanceOfSVGElement(refLineEl);
+
+          let updatedSeries = new D3LineSeriesData(
+              series.xValues,
+              yDomain,
+              series.lineOptions,
+              series.xStrings,
+              series.yStrings);
+          
+          this._plotUpdateDataEl(lineData, updatedSeries, refLineEl, xScale, yScale);
+        })
   }
 
   /**
