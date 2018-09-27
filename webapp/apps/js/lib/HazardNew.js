@@ -84,7 +84,7 @@ export default class Hazard {
     };
   
     /** @type {String} */
-    this.dynamicUrl = this.config.server.dynamic + '/nshmp-haz-ws/hazard';
+    this.dynamicUrl = this.config.server.dynamic + '/nshmp-haz-ws/haz';
     /** @type {String} */
     this.staticUrl = this.config.server.static + '/hazws/staticcurve/1';
  

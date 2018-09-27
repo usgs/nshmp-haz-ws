@@ -449,26 +449,30 @@ export default class DynamicCompare extends Hazard {
     let seriesData = [];
     let seriesIds = [];  
     let seriesLabels = [];
+
     for (let result of results) {
       let response = result.response.find((response) => {
         return response.metadata.imt.value == this.imtEl.value;
       });
+      
       let xValues = response.metadata.xvalues;
+      
       let totalData = response.data.find((data) => {
         return data.component == 'Total';
       });
+
       let yValues = totalData.yvalues;
-      let edition = response.metadata.edition.value;
-      let region = response.metadata.region.value;
+
+      let modelValue = response.metadata.model;
       let model = this.parameters.models.values.find((model) => {
-        return `E${model.year}` == edition && 
-            model.region == region;
+        return model.value == modelValue;
       });
 
       seriesData.push(d3.zip(xValues, yValues));
       seriesLabels.push(model.display);
       seriesIds.push(model.value);
     }
+
     let xLabel = results[0].response[0].metadata.xlabel;
     let yLabel = results[0].response[0].metadata.ylabel;
     let imt = $(':selected', this.imtEl).text();
@@ -632,12 +636,10 @@ export default class DynamicCompare extends Hazard {
         spectraX.push(per);
         spectraY.push(gm);
       }
-      
-      let edition = result.response[0].metadata.edition.value;
-      let region = result.response[0].metadata.region.value;
+     
+      let modelValue = result.response[0].metadata.model;
       let model = this.parameters.models.values.find((model) => {
-        return `E${model.year}` == edition && 
-            model.region == region;
+        return model.value == modelValue; 
       });
 
       seriesData.push(d3.zip(spectraX, spectraY));
@@ -881,21 +883,19 @@ export default class DynamicCompare extends Hazard {
     let urls = [];
     let inputs = $(this.inputsEl).serialize();
     let windowUrl = '';
+
     for (let modelEl of [this.firstModelEl, this.secondModelEl]) {
       let model = Tools.stringToParameter(
           this.parameters.models, 
           modelEl.value);
-      let edition = `E${model.year}`;
-      let region = model.region;
-      urls.push(this.dynamicUrl + 
-          '?edition=' + edition +
-          '&region=' + region +
-          '&' + inputs);
-      windowUrl += '&model=' + modelEl.value; 
+
+      urls.push(`${this.dynamicUrl}?model=${model.value}&${inputs}`);
+
+      windowUrl += `&model=${model.value}`; 
     }
-    windowUrl += '&' + inputs + 
-        '&imt=' + this.imtEl.value +
-        '&returnperiod=' + this.returnPeriodEl.value;
+
+    windowUrl += `&${inputs}&imt=${this.imtEl.value}` +
+        `&returnperiod=${this.returnPeriodEl.value}`;
     
     window.location.hash = windowUrl.substring(1);
     return urls;
@@ -985,6 +985,7 @@ export default class DynamicCompare extends Hazard {
   */
   updatePlot() { 
     let urls = this.serializeUrls();
+
     let jsonCall = Tools.getJSONs(urls);     
     this.spinner.on(jsonCall.reject, 'Calculating'); 
     
