@@ -199,6 +199,13 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.yAxisNice = builder._yAxisNice;
 
     /**
+     * Whether to reverse the Y axis direction.
+     * Default: false
+     * @type {Boolean}
+     */
+    this.yAxisReverse = builder._yAxisReverse;
+
+    /**
      * The Y axis scale: 'log' || 'linear'
      * Default: 'log'
      * @type {String}
@@ -353,6 +360,9 @@ export class D3LineSubViewOptionsBuilder
     /** @type {Boolean} */
     this._yAxisNice = true;
     
+    /** @type {Boolean} */
+    this._yAxisReverse = false;
+
     /** @type {String} */
     this._yAxisScale = 'log';
     
@@ -640,6 +650,18 @@ export class D3LineSubViewOptionsBuilder
     return this; 
   } 
   
+  /**
+   * Whether to reverse the Y axis direction.
+   * Default: false
+   * 
+   * @param {Boolean} bool To reverse Y axis
+   */
+  yAxisReverse(bool) {
+    Preconditions.checkArgumentBoolean(bool);
+    this._yAxisReverse = bool;
+    return this;
+  }
+
   /**
    * Set the Y axis scale: 'log' || 'linear'
    * Default: 'log' 

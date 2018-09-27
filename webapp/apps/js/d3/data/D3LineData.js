@@ -70,13 +70,6 @@ export class D3LineData {
      */
     this.yLimit = builder._yLimit;
     
-    /**
-     * Whether to reverse the Y axis direction.
-     * Default: false
-     * @type {Boolean}
-     */
-    this.yAxisReverse = builder._yAxisReverse;
-
     this._updateLineOptions();
     
     /* Make immutable */
@@ -360,9 +353,6 @@ export class D3LineDataBuilder {
     /** @type {Array<Number>} */
     this._xLimit = undefined;
     
-    /** @type {Boolean} */
-    this._yAxisReverse = false;
-    
     /** @type {Array<Number>} */
     this._yLimit = undefined;
 
@@ -488,7 +478,6 @@ export class D3LineDataBuilder {
     this.colorScheme(color);
     this.subView(lineData[0].subView);
     this.xLimit([ xMin, xMax ]);
-    this.yAxisReverse(lineData[0].yAxisReverse);
     this.yLimit([ yMin, yMax ]);
     this._removeSmallValues = false;
 
@@ -530,18 +519,6 @@ export class D3LineDataBuilder {
     Preconditions.checkArgument(lim[1] >= lim[0], 'xMax must be greater than xMin');
 
     this._xLimit = lim; 
-    return this;
-  }
-
-  /**
-   * Whether to reverse the Y axis direction.
-   * Default: false
-   * 
-   * @param {Boolean} bool To reverse Y axis
-   */
-  yAxisReverse(bool) {
-    Preconditions.checkArgumentBoolean(bool);
-    this._yAxisReverse = bool;
     return this;
   }
 

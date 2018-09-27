@@ -369,10 +369,14 @@ export class D3LineAxes {
   _getYAxisScale(lineData, scale) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    
+   
     let d3Scale = this._getD3AxisScale(scale);
     d3Scale.range([ lineData.subView.plotHeight, 0 ])
         .domain(lineData.getYLimit());
+
+    if (lineData.subView.options.yAxisReverse) {
+      d3Scale.range([ 0, lineData.subView.plotHeight ]);
+    }
 
     if (lineData.subView.options.yAxisNice) {
       d3Scale.nice(lineData.subView.options.yTickMarks);
