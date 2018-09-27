@@ -81,10 +81,13 @@ export class D3BaseViewOptionsBuilder {
   /** @private */
   constructor() {
     this._viewSizeMin =  'col-sm-12 col-md-6';
+
     this._viewSizeMinCenter = 'col-sm-offset-1 col-sm-10 ' + 
         'col-xl-offset-2 col-xl-8 col-xxl-offset-3 col-xxl-6';
+
     this._viewSizeMax = 'col-sm-12 col-xl-offset-1 col-xl-10 ' +
         'col-xxl-offset-2 col-xxl-8';
+
     this._viewSizeDefault = 'max';
   }
 
@@ -105,6 +108,7 @@ export class D3BaseViewOptionsBuilder {
     Preconditions.checkArgument(
         size == 'min' || size == 'minCenter' || size == 'max',
         `View size [${size}] not supported`);
+
     this._viewSizeDefault = size;
     return this;
   }

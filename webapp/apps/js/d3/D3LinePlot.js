@@ -1,6 +1,7 @@
 
 import { D3LineAxes } from './axes/D3LineAxes.js';
 import { D3LineData } from './data/D3LineData.js';
+import { D3LineOptions } from './options/D3LineOptions.js';
 import { D3LineLegend } from './legend/D3LineLegend.js';
 import { D3LineSeriesData } from './data/D3LineSeriesData.js';
 import { D3LineSubView } from './view/D3LineSubView.js';
@@ -13,7 +14,6 @@ import { D3Utils } from './D3Utils.js';
 import { D3XYPair } from './data/D3XYPair.js';
 
 import { Preconditions } from '../error/Preconditions.js';
-import { D3LineOptions } from './options/D3LineOptions.js';
 
 /**
  * @fileoverview Plot D3LineData
@@ -328,6 +328,8 @@ export class D3LinePlot {
    * @param {Function} callback Function to call when plot is selected
    */
   onPlotSelection(lineData, callback) {
+    Preconditions.checkArgumentInstanceOf();
+
     lineData.subView.svg.dataContainerEl.addEventListener('plotSelection', (e) => {
       let series = e.detail;
       Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
@@ -344,10 +346,13 @@ export class D3LinePlot {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
 
     lineData = this._dataEnter(lineData);
+
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
+    
     this.axes.createXAxis(lineData, xScale);
     this.axes.createYAxis(lineData, yScale);
+    
     this.legend.create(lineData);
 
     this._plotUpdateHorizontalRefLine(lineData, xScale, yScale);
@@ -372,7 +377,9 @@ export class D3LinePlot {
         .showInLegend(false)
         .build();
 
-    this.plotHorizontalRefLine(subView, 0, lineOptions);
+    let refLineEl = this.plotHorizontalRefLine(subView, 0, lineOptions);
+
+    d3.select(refLineEl).lower();
   }
 
   /**
@@ -665,6 +672,7 @@ export class D3LinePlot {
         .append('g')
         .attr('class', 'data-enter')
         .attr('id', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.id;
         });
 
@@ -833,6 +841,8 @@ export class D3LinePlot {
     Preconditions.checkArgumentArrayLength(xLimit, 2);
     Preconditions.checkArgumentInstanceOf(callback, Function);
 
+    d3.event.sourceEvent.stopPropagation();
+
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
     let xBounds = this.axes._getXAxisScale(lineData, xScale);
@@ -877,6 +887,8 @@ export class D3LinePlot {
     Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
     Preconditions.checkArgumentArrayLength(yLimit, 2);
     Preconditions.checkArgumentInstanceOf(callback, Function);
+
+    d3.event.sourceEvent.stopPropagation();
 
     let xScale = this._getCurrentXScale(lineData.subView);
     let yScale = this._getCurrentYScale(lineData.subView);
@@ -1235,6 +1247,7 @@ export class D3LinePlot {
     d3.selectAll(seriesEnterEls)
         .selectAll('.plot-symbol')
         .data((/** @type {D3LineSeriesData} */ series) =>  { 
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return lineData.toMarkerSeries(series); 
         })
         .enter()
@@ -1272,23 +1285,29 @@ export class D3LinePlot {
           return series.d3Symbol(); 
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+
           let x = this.axes.x(lineData, xScale, series.data[0]);
           let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
           return `translate(${x}, ${y}) rotate(${rotate})`;
         })
         .attr('fill', (/** @type {D3LineSeriesData} */ series) => { 
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.markerColor; 
         })
         .attr('stroke', (/** @type {D3LineSeriesData} */ series) => { 
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.markerEdgeColor; 
         })
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => { 
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.markerEdgeWidth; 
         })
         .style('shape-rendering', 'geometricPrecision')
         .style('cursor', 'pointer')
-        .on('mouseover', (/** @type {D3LineSeriesData} */series) => {
+        .on('mouseover', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           this._onDataSymbolMouseover(lineData, series);
         })
         .on('mouseout', () => {
@@ -1318,6 +1337,7 @@ export class D3LinePlot {
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => { 
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return line(series.data);
         });
 
@@ -1328,9 +1348,12 @@ export class D3LinePlot {
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol(); 
         })
         .attr('transform', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+
           let x = this.axes.x(lineData, xScale, series.data[0]);
           let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
@@ -1531,6 +1554,7 @@ export class D3LinePlot {
         .transition()
         .duration(lineData.subView.options.translationDuration)
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.lineWidth;
         });
 
@@ -1538,10 +1562,12 @@ export class D3LinePlot {
         .selectAll('.plot-symbol')
         .transition()
         .duration(lineData.subView.options.translationDuration)
-        .attr('d', (/** @type {D3LineSeriesData}*/ series) => {
+        .attr('d', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol.size(series.lineOptions.d3SymbolSize)();
         })
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.markerEdgeWidth;
         });
   }

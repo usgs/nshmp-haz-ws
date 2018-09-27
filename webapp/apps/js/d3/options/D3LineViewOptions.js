@@ -203,6 +203,7 @@ export class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
       Preconditions.checkArgument(
           scale == 'log' || scale == 'linear',
           `X axis scale [${scale}] not supported`);
+
       this._xAxisScale = scale;
     }
 
@@ -226,6 +227,7 @@ export class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
       Preconditions.checkArgument(
           scale == 'log' || scale == 'linear',
           `Y axis scale [${scale}] not supported`);
+
       this._yAxisScale = scale;
     }
 

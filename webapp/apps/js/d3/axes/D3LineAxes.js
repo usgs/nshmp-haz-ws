@@ -18,7 +18,7 @@ export class D3LineAxes {
   /**
    * New instance of D3LineAxes
    *  
-   * @param {D3LineView} view 
+   * @param {D3LineView} view The line view
    */
   constructor(view) {
     Preconditions.checkArgumentInstanceOf(view, D3LineView);
@@ -57,35 +57,6 @@ export class D3LineAxes {
   }
 
   /**
-   * Add a log or linear Y axis to a D3LineSubView with 
-   *    a Y label and grid lines.
-   * 
-   * @param {D3LineData} lineData The line data 
-   * @param {String} scale The scale: 'log' || 'linear'
-   */
-  createYAxis(lineData, scale) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-    this._checkScale(scale);
-   
-    let subView = lineData.subView;
-    let translate = subView.options.yAxisLocation == 'right' ?
-        subView.plotWidth : 0;
-
-    d3.select(subView.svg.yAxisEl)
-        .attr('transform', `translate(${translate - 0.5}, -0.5)`)
-        .style(subView.options.tickFontSize);
-  
-    d3.select(subView.svg.yTickMarksEl)
-        .call(this._getYAxis(lineData, scale))
-        .on('end', () => {
-          this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
-        });
-    
-    this.createYGridLines(lineData, scale);
-    this._addYLabel(subView);
-  }
-
-  /**
    * Add log or linear X grid lines to a D3LineSubView.
    * 
    * @param {D3LineData} lineData The line data
@@ -114,6 +85,35 @@ export class D3LineAxes {
 
     xGridD3.selectAll('text')
         .remove();
+  }
+
+  /**
+   * Add a log or linear Y axis to a D3LineSubView with 
+   *    a Y label and grid lines.
+   * 
+   * @param {D3LineData} lineData The line data 
+   * @param {String} scale The scale: 'log' || 'linear'
+   */
+  createYAxis(lineData, scale) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    this._checkScale(scale);
+   
+    let subView = lineData.subView;
+    let translate = subView.options.yAxisLocation == 'right' ?
+        subView.plotWidth : 0;
+
+    d3.select(subView.svg.yAxisEl)
+        .attr('transform', `translate(${translate - 0.5}, -0.5)`)
+        .style(subView.options.tickFontSize);
+  
+    d3.select(subView.svg.yTickMarksEl)
+        .call(this._getYAxis(lineData, scale))
+        .on('end', () => {
+          this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
+        });
+    
+    this.createYGridLines(lineData, scale);
+    this._addYLabel(subView);
   }
 
   /**
@@ -181,6 +181,7 @@ export class D3LineAxes {
    */
   removeXGridLines(subView) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
     d3.select(subView.svg.xGridLinesEl)
         .selectAll('*')
         .remove();
@@ -193,6 +194,7 @@ export class D3LineAxes {
    */
   removeYGridLines(subView) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
     d3.select(subView.svg.yGridLinesEl)
         .selectAll('*')
         .remove();

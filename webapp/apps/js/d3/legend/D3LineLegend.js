@@ -546,6 +546,7 @@ export class D3LineLegend {
 
     let x = parseFloat(subView.svg.legendForeignObjectEl.getAttribute('x'));
     x += d3.event.dx;
+
     let y = parseFloat(subView.svg.legendForeignObjectEl.getAttribute('y'));
     y += d3.event.dy;
 

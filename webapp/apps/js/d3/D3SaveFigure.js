@@ -146,6 +146,7 @@ export class D3SaveFigure {
   static preview(view, previewFormat) {
     Preconditions.checkArgumentInstanceOf(view, D3BaseView);
     Preconditions.checkArgumentString(previewFormat);
+
     D3SaveFigure._create(
         view,
         previewFormat.toLowerCase(),
@@ -162,6 +163,7 @@ export class D3SaveFigure {
   static previewImageOnly(view, previewFormat) {
     Preconditions.checkArgumentInstanceOf(view, D3BaseView);
     Preconditions.checkArgumentString(previewFormat);
+
     D3SaveFigure._create(
         view,
         previewFormat.toLowerCase(),
@@ -179,6 +181,7 @@ export class D3SaveFigure {
   static save(view, saveFormat) {
     Preconditions.checkArgumentInstanceOf(view, D3BaseView);
     Preconditions.checkArgumentString(saveFormat);
+
     D3SaveFigure._create(
         view,
         saveFormat.toLowerCase(),
@@ -195,6 +198,7 @@ export class D3SaveFigure {
   static saveImageOnly(view, saveFormat) {
     Preconditions.checkArgumentInstanceOf(view, D3BaseView);
     Preconditions.checkArgumentString(saveFormat);
+
     D3SaveFigure._create(
         view,
         saveFormat.toLowerCase(),
@@ -481,9 +485,12 @@ export class D3SaveFigure {
     let canvasContext = canvasEl.getContext('2d');
 
     canvasContext.scale(dpiScale, dpiScale);
+
     canvasContext.fillStyle = 'white';
+    
     canvasContext.fillRect(0, 0, 
         this.pageWidthPxPrintDPI, this.pageHeightPxPrintDPI);
+    
     canvasContext.drawImage(svgImage, 0, 0, 
           this.pageWidthPxPrintDPI, this.pageHeightPxPrintDPI);
   }
