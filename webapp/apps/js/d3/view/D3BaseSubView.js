@@ -91,8 +91,7 @@ export class D3BaseSubView {
     
     /* Tooltip Group */
     let tooltipD3 = innerPlotD3.append('g')
-        .attr('class', 'd3-tooltip')
-        .style('line-height', '1.5');
+        .attr('class', 'd3-tooltip');
 
     let tooltipForeignObjectD3 = tooltipD3.append('foreignObject');
     let tooltipTableD3 = tooltipForeignObjectD3.append('xhtml:table')
