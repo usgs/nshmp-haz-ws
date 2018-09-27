@@ -112,7 +112,7 @@ public final class HazardService2 extends NshmpServlet {
 
     if (isNullOrEmpty(request.getQueryString()) &&
         isNullOrEmpty(request.getPathInfo()) ||
-        request.getPathInfo().equals("/")) {
+        ("/").equals(request.getPathInfo())) {
       urlHelper.writeResponse(USAGE);
       return;
     }
