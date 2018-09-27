@@ -3,7 +3,6 @@ package gov.usgs.earthquake.nshmp.www;
 import static gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.util.EnumSet;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,7 +68,6 @@ public class SourceServices extends NshmpServlet {
       HttpServletResponse response)
       throws ServletException, IOException {
 
-
     ResponseData svcResponse = null;
     try {
       svcResponse = new ResponseData();
@@ -81,21 +78,30 @@ public class SourceServices extends NshmpServlet {
     }
   }
 
-  private static class ResponseData {
-    String name;
-    String status;
-    Object server;
-    Parameters parameters;
+  /*
+   * TODO service metadata should be in same package as services (why
+   * ResponseData is currently public); rename meta package to
+   */
+  static final class ResponseData {
+
+    final String name;
+    final String description;
+    final String status;
+    final String syntax;
+    final Object server;
+    final Parameters parameters;
 
     ResponseData() {
-      this.status = Status.USAGE.toString();
       this.name = "Source Models";
+      this.description = "Installed source model listing";
+      this.syntax = "%s://%s/nshmp-haz-ws/haz/{model}/{longitude}/{latitude}/{vs30}";
+      this.status = Status.USAGE.toString();
       this.server = serverData(ServletUtil.THREAD_COUNT, ServletUtil.timer());
       this.parameters = new Parameters();
     }
   }
 
-  private static class Parameters {
+  static class Parameters {
     SourceModelsParameter models;
     EnumParameter<Region> region;
     DoubleParameter returnPeriod;
@@ -114,7 +120,7 @@ public class SourceServices extends NshmpServlet {
           "Region",
           ParamType.STRING,
           EnumSet.allOf(Region.class));
-      
+
       returnPeriod = new DoubleParameter(
           "Return period (in years)",
           ParamType.NUMBER,
@@ -249,7 +255,7 @@ public class SourceServices extends NshmpServlet {
       return json;
     }
   }
-  
+
   // TODO align with enum serializer if possible; consider service attribute
   // enum
   // TODO test removal of ui-min/max-lon/lat

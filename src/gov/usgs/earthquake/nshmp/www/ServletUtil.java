@@ -5,15 +5,6 @@ import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 import static java.lang.Runtime.getRuntime;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -31,13 +22,20 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.base.Stopwatch;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import gov.usgs.earthquake.nshmp.calc.ValueFormat;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
-import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
@@ -161,7 +159,7 @@ public class ServletUtil implements ServletContextListener {
       }
 
       return HazardModel.load(path);
-      
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
