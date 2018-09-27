@@ -146,12 +146,14 @@ export class D3LineView extends D3BaseView {
   /**
    * Add the Array<D3XYPair> to the data table.
    * 
+   * @param {D3LineData} lineData The line data
    * @param {HTMLElement} tableEl The table element
    * @param {D3LineSeriesData} series The series data
    * @param {String} label The X/Y label
    * @param {String} axis The axis: 'x' || 'y'
    */
-  _addDataToDataTable(tableEl, series, label, axis) {
+  _addDataToDataTable(lineData, tableEl, series, label, axis) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     Preconditions.checkArgumentInstanceOfHTMLElement(tableEl);
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
     Preconditions.checkArgumentString(label);
@@ -164,13 +166,23 @@ export class D3LineView extends D3BaseView {
         .attr('nowrap', true)
         .text(label);
 
+    let fractionDigits = lineData.subView
+        .options[`${axis}ExponentFractionDigits`];
+
+    let toExponent = lineData.subView.options[`${axis}ValueToExponent`];
+
     rowD3.selectAll('td')
         .data(series.data)
         .enter()
         .append('td')
         .text((/** @type {D3XYPair} */ xyPair) => {
           Preconditions.checkStateInstanceOf(xyPair, D3XYPair);
-          return xyPair[`${axis}String`] || xyPair[axis];
+
+          let val = toExponent ? 
+              xyPair[axis].toExponential(fractionDigits) :
+              xyPair[axis];
+
+          return xyPair[`${axis}String`] || val;
         });
   }
 
@@ -196,10 +208,10 @@ export class D3LineView extends D3BaseView {
         .text(series.lineOptions.label);
 
     let xLabel = lineData.subView.options.xLabel;
-    this._addDataToDataTable(tableEl, series, xLabel, 'x');
+    this._addDataToDataTable(lineData, tableEl, series, xLabel, 'x');
     
     let yLabel = lineData.subView.options.yLabel;
-    this._addDataToDataTable(tableEl, series, yLabel, 'y');
+    this._addDataToDataTable(lineData, tableEl, series, yLabel, 'y');
   }
 
   /**

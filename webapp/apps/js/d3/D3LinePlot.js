@@ -804,10 +804,20 @@ export class D3LinePlot {
     let tooltipX = this.axes.x(lineData, xScale, xyPair);
     let tooltipY = this.axes.y(lineData, yScale, xyPair);
 
+    let subViewOptions = lineData.subView.options;
+
+    let x = subViewOptions.xValueToExponent ? 
+        xyPair.x.toExponential(subViewOptions.xExponentFractionDigits) :
+        xyPair.x;
+
+    let y = subViewOptions.yValueToExponent ? 
+        xyPair.y.toExponential(subViewOptions.yExponentFractionDigits) :
+        xyPair.y;
+
     let tooltipText = [
       `${lineData.subView.options.lineLabel}:  ${series.lineOptions.label}`,
-      `${lineData.subView.options.xLabel}: ${xyPair.xString || xyPair.x}`,
-      `${lineData.subView.options.yLabel}: ${xyPair.yString || xyPair.y}`,
+      `${lineData.subView.options.xLabel}: ${xyPair.xString || x}`,
+      `${lineData.subView.options.yLabel}: ${xyPair.yString || y}`,
     ];
     
     this.tooltip.create(lineData.subView, tooltipText, tooltipX, tooltipY);

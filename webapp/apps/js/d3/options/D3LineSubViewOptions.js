@@ -162,6 +162,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.xAxisScale = builder._xAxisScale;
 
     /**
+     * The number of digits after decimal place when 
+     *    xValueToExponent is set to true.
+     * Default: 4
+     * @type {Number} digits The number of digits after decimal point
+     */
+    this.xExponentFractionDigits = builder._xExponentFractionDigits;
+
+    /**
      * The X axis label; can be an HTML string.
      * Default: 'X'
      * @type {String}
@@ -184,6 +192,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
      */
     this.xTickMarks = builder._xTickMarks;
 
+    /**
+     * Whether to format the X value in exponential form when X value
+     *    is shown on tooltip, in data view, and when saving data.
+     * Default: false
+     * @type{Boolean} 
+     */
+    this.xValueToExponent = builder._xValueToExponent;
+    
     /**
      * The Y axis location: 'left' || 'right'
      * Default: 'left'
@@ -213,6 +229,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
     this.yAxisScale = builder._yAxisScale;
 
     /**
+     * The number of digits after decimal place when 
+     *    yValueToExponent is set to true.
+     * Default: 4
+     * @type {Number} digits The number of digits after decimal point
+     */
+    this.yExponentFractionDigits = builder._xExponentFractionDigits;
+
+    /**
      * The Y axis label; can be an HTML string.
      * Default: 'Y'
      * @type {String}
@@ -234,6 +258,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
      * @type {Number}
      */
     this.yTickMarks = builder._yTickMarks;
+
+    /**
+     * Whether to format the Y value in exponential form when Y value
+     *    is shown on tooltip, in data view, and when saving data.
+     * Default: false
+     * @type{Boolean} 
+     */
+    this.yValueToExponent = builder._yValueToExponent;
 
     /* Make immutable */
     if (new.target == D3LineSubViewOptions) Object.freeze(this);
@@ -335,7 +367,7 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {Number} */
     this._translationDuration = 500;
-    
+   
     /** @type {String} */
     this._xAxisLocation = 'bottom';
     
@@ -344,6 +376,9 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {String} */
     this._xAxisScale = 'linear';
+
+    /** @type {Number} */
+    this._xExponentFractionDigits = 4;
     
     /** @type {String} */
     this._xLabel = 'X';
@@ -353,6 +388,9 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {Number} */
     this._xTickMarks = 8;
+    
+    /** @type {Boolean} */
+    this._xValueToExponent = false;
     
     /** @type {String} */
     this._yAxisLocation = 'left';
@@ -366,6 +404,9 @@ export class D3LineSubViewOptionsBuilder
     /** @type {String} */
     this._yAxisScale = 'linear';
     
+    /** @type {Number} */
+    this._yExponentFractionDigits = 4;
+
     /** @type {String} */
     this._yLabel = 'Y';
     
@@ -374,6 +415,9 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {Number} */
     this._yTickMarks = 6;
+
+    /** @type {Boolean} */
+    this._yValueToExponent = false;
   }
 
   /**
@@ -590,6 +634,19 @@ export class D3LineSubViewOptionsBuilder
   } 
 
   /**
+   * Set the number of digits after decimal place when 
+   *    xValueToExponent is set to true.
+   * Default: 4
+   * 
+   * @param {Number} digits The number of digits after decimal point
+   */
+  xExponentFractionDigits(digits) {
+    Preconditions.checkArgumentInteger(digits);
+    this._xExponentFractionDigits = digits;
+    return this;
+  }
+  
+  /**
    * Set the X axis label; can be an HTML string.
    * Default: ''
    * @param {String} label The X axis label 
@@ -623,6 +680,19 @@ export class D3LineSubViewOptionsBuilder
     this._xTickMarks = count;
     return this; 
   } 
+  
+  /**
+   * Whether to format the X value in exponential form when X value
+   *    is shown on tooltip, in data view, and when saving data.
+   * Default: false
+   * 
+   * @param {Boolean} toExponenet Whether to format in exponential form
+   */
+  xValueToExponent(toExponenet) {
+    Preconditions.checkArgumentBoolean(toExponenet);
+    this._xValueToExponent = toExponenet;
+    return this;
+  }
   
   /**
    * Set the Y axis location: 'left' || 'right'
@@ -678,6 +748,19 @@ export class D3LineSubViewOptionsBuilder
   } 
   
   /**
+   * Set the number of digits after decimal place when 
+   *    yValueToExponent is set to true.
+   * Default: 4
+   * 
+   * @param {Number} digits The number of digits after decimal point
+   */
+  yExponentFractionDigits(digits) {
+    Preconditions.checkArgumentInteger(digits);
+    this._yExponentFractionDigits = digits;
+    return this;
+  }
+  
+  /**
    * Set the Y axis label; can be an HTML string.
    * Default: ''
    * @param {String} label The Y axis label 
@@ -710,6 +793,19 @@ export class D3LineSubViewOptionsBuilder
     Preconditions.checkArgumentInteger(count);
     this._yTickMarks = count;
     return this; 
-  } 
-  
+  }
+
+  /**
+   * Whether to format the Y value in exponential form when Y value
+   *    is shown on tooltip, in data view, and when saving data.
+   * Default: false
+   * 
+   * @param {Boolean} toExponenet Whether to format in exponential form
+   */
+  yValueToExponent(toExponenet) {
+    Preconditions.checkArgumentBoolean(toExponenet);
+    this._yValueToExponent = toExponenet;
+    return this;
+  }
+
 }

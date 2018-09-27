@@ -30,14 +30,23 @@ export class D3SaveLineData {
 
     for (let lineData of lineDatas) {
       let subViewOptions = lineData.subView.options;
+
       for (let series of lineData.series) {
         fileData.push([ subViewOptions.lineLabel, series.lineOptions.label ]); 
         let xValues = [];
         let yValues = [];
 
         for (let xyPair of series.data) {
-          xValues.push(xyPair.xString || xyPair.x);
-          yValues.push(xyPair.yString || xyPair.y);
+          let x = subViewOptions.xValueToExponent ? 
+              xyPair.x.toExponential(subViewOptions.xExponentFractionDigits) :
+              xyPair.x;
+
+          let y = subViewOptions.yValueToExponent ? 
+              xyPair.y.toExponential(subViewOptions.yExponentFractionDigits) :
+              xyPair.y;
+
+          xValues.push(xyPair.xString || x);
+          yValues.push(xyPair.yString || y);
         }
 
         fileData.push([ subViewOptions.xLabel, xValues.join(',') ]);
