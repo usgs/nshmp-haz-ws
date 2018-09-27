@@ -451,6 +451,7 @@ export class D3SaveFigureOptionsBuilder {
     Preconditions.checkArgument(
         loc == 'center' || loc == 'left',
         `Title location [${loc}] not supported`);
+
     return this;
   }
 
