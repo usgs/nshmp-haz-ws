@@ -19,14 +19,8 @@ import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +32,12 @@ import java.util.concurrent.Executor;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import gov.usgs.earthquake.nshmp.HazardCalc;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
@@ -55,7 +52,6 @@ import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;

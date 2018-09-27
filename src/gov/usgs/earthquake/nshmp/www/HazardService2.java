@@ -18,7 +18,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
 import javax.servlet.ServletContext;
@@ -141,7 +140,6 @@ public final class HazardService2 extends NshmpServlet {
       Model model;
       double lon;
       double lat;
-      Set<Imt> imts;
       Vs30 vs30;
 
       if (request.getQueryString() != null) {
@@ -149,7 +147,6 @@ public final class HazardService2 extends NshmpServlet {
         model = readValue(MODEL, request, Model.class);
         lon = readDouble(LONGITUDE, request);
         lat = readDouble(LATITUDE, request);
-        imts = model.imts;
         vs30 = Vs30.fromValue(readDouble(VS30, request));
 
       } else {
@@ -160,7 +157,6 @@ public final class HazardService2 extends NshmpServlet {
         model = Model.valueOf(params.get(0));
         lon = Double.valueOf(params.get(1));
         lat = Double.valueOf(params.get(2));
-        imts = model.imts;
         vs30 = Vs30.fromValue(Double.valueOf(params.get(3)));
       }
 
@@ -168,7 +164,6 @@ public final class HazardService2 extends NshmpServlet {
           model,
           lon,
           lat,
-          imts,
           vs30);
 
     } catch (Exception e) {
@@ -202,7 +197,7 @@ public final class HazardService2 extends NshmpServlet {
     Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
     HazardModel model = modelCache.getUnchecked(data.model);
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
-    configBuilder.imts(data.imts);
+    configBuilder.imts(data.model.imts);
     CalcConfig config = configBuilder.build();
     Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
     return HazardCalc.calc(model, config, site, executor);
@@ -213,20 +208,17 @@ public final class HazardService2 extends NshmpServlet {
     final Model model;
     final double latitude;
     final double longitude;
-    final Set<Imt> imts; // TODO needed?
     final Vs30 vs30;
 
     RequestData(
         Model model,
         double longitude,
         double latitude,
-        Set<Imt> imts,
         Vs30 vs30) {
 
       this.model = model;
       this.latitude = latitude;
       this.longitude = longitude;
-      this.imts = imts;
       this.vs30 = vs30;
     }
   }
