@@ -92,7 +92,7 @@ public final class HazardService2 extends NshmpServlet {
 
   private LoadingCache<Model, HazardModel> modelCache;
 
-  private static final String USAGE = ServletUtil.GSON.toJson(
+  private static final String USAGE = SourceServices.GSON.toJson(
       new SourceServices.ResponseData());
 
   @Override

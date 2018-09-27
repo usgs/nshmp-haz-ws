@@ -53,7 +53,6 @@ public class SourceServices extends NshmpServlet {
     GSON = new GsonBuilder()
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
         .registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
-        .registerTypeAdapter(SourceModel.class, new SourceModelSerializer())
         .registerTypeAdapter(Vs30.class, new Util.EnumSerializer<Vs30>())
         .registerTypeAdapter(Region.class, new RegionSerializer())
         .disableHtmlEscaping()
@@ -231,35 +230,10 @@ public class SourceServices extends NshmpServlet {
     }
   }
 
-  private static final class SourceModelSerializer
-      implements
-      JsonSerializer<SourceModel> {
-
-    @Override
-    public JsonElement serialize(
-        SourceModel srcModel,
-        Type typeOfSrc,
-        JsonSerializationContext context) {
-
-      JsonObject json = new JsonObject();
-
-      json.addProperty(Attributes.ID.toLowerCase(), srcModel.id);
-      json.addProperty(Attributes.VALUE.toLowerCase(), srcModel.value);
-      json.addProperty(Attributes.DISPLAY.toLowerCase(), srcModel.display);
-      json.addProperty(Attributes.DISPLAYORDER.toLowerCase(), srcModel.displayorder);
-      json.addProperty(Attributes.YEAR.toLowerCase(), srcModel.year);
-      json.addProperty(Attributes.PATH.toLowerCase(), srcModel.path);
-      json.addProperty(Attributes.REGION.toLowerCase(), srcModel.region);
-      json.add(Attributes.SUPPORTS.toLowerCase(), context.serialize(srcModel.supports));
-
-      return json;
-    }
-  }
-
   // TODO align with enum serializer if possible; consider service attribute
   // enum
   // TODO test removal of ui-min/max-lon/lat
-  private static final class RegionSerializer implements JsonSerializer<Region> {
+  static final class RegionSerializer implements JsonSerializer<Region> {
 
     @Override
     public JsonElement serialize(Region region, Type typeOfSrc, JsonSerializationContext context) {
