@@ -27,8 +27,6 @@ export class D3LinePlot {
    * New D3LinePlot instance.
    * 
    * @param {D3LineView} view The line view 
-   * 
-   * @todo Add ability to reverse the Y axis
    */
   constructor(view) {
     Preconditions.checkArgumentInstanceOf(view, D3LineView);
@@ -201,9 +199,9 @@ export class D3LinePlot {
    * @param {Array<Number>} xLimit The limits that the line can be dragged
    * @param {Function} callback The funciton to call when the line is dragged.
    *    The arguments passed to the callback function are 
-   *    (D3LineSeriesData, Number, SVGElement) where:
-   *        - D3LineSeriesData is updated line series data
+   *    (Number, D3LineSeriesData, SVGElement) where:
    *        - Number is the current X value
+   *        - D3LineSeriesData is updated line series data
    *        - SVGElement is element being dragged
    */
   makeDraggableInX(subView, refLineEl, xLimit, callback = () => {}) {
@@ -250,9 +248,9 @@ export class D3LinePlot {
    * @param {Array<Number>} yLimit The limits that the line can be dragged
    * @param {Function} callback The funciton to call when the line is dragged.
    *    The arguments passed to the callback function are 
-   *    (D3LineSeriesData, Number, SVGElement) where:
-   *        - D3LineSeriesData is updated line series data
+   *    (Number, D3LineSeriesData, SVGElement) where:
    *        - Number is the current Y value
+   *        - D3LineSeriesData is updated line series data
    *        - SVGElement is element being dragged
    */
   makeDraggableInY(subView, refLineEl, yLimit, callback = () => {}) {
@@ -382,10 +380,13 @@ export class D3LinePlot {
    * 
    * @param {D3LineSubView} subView The sub view to put reference line
    * @param {Number} y The Y value of reference line
-   * @param {D3LineOptions} lineOptions The line options
+   * @param {D3LineOptions=} lineOptions The line options
    * @returns {SVGElement} The reference line element
    */
-  plotHorizontalRefLine(subView, y, lineOptions) {
+  plotHorizontalRefLine(
+      subView,
+      y,
+      lineOptions = D3LineOptions.withRefLineDefaults()) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     Preconditions.checkArgumentNumber(y);
     Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
@@ -421,10 +422,13 @@ export class D3LinePlot {
    * 
    * @param {D3LineSubView} subView The sub view to put reference line
    * @param {Number} x The X value of reference line
-   * @param {D3LineOptions} lineOptions The line options
+   * @param {D3LineOptions=} lineOptions The line options
    * @returns {SVGElement} The reference line element
    */
-  plotVerticalRefLine(subView, x, lineOptions) {
+  plotVerticalRefLine(
+      subView,
+      x,
+      lineOptions = D3LineOptions.withRefLineDefaults()) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
     Preconditions.checkArgumentNumber(x);
     Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
@@ -852,7 +856,7 @@ export class D3LinePlot {
         series.yStrings);
 
     d3.select(dataEl).raise();
-    callback(updatedSeries, x, dataEl);
+    callback(x, updatedSeries, dataEl);
     let duration = 0;
     this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale, duration);
   }
@@ -897,7 +901,7 @@ export class D3LinePlot {
         series.yStrings);
 
     d3.select(dataEl).raise();
-    callback(updatedSeries, y, dataEl);
+    callback(y, updatedSeries, dataEl);
     let duration = 0;
     this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale, duration);
   }

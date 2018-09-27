@@ -169,6 +169,13 @@ export class D3LineOptions {
   }
 
   /**
+   * Create line options for reference lines.
+   */
+  static withRefLineDefaults() {
+    return D3LineOptions.builder().color('black').build();
+  }
+
+  /**
    * Returns a new D3LineOptionsBuilder
    * @returns {D3LineOptionsBuilder} New builder
    */

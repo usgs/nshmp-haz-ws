@@ -67,7 +67,7 @@ export class D3LineViewOptions extends D3BaseViewOptions {
      * The X axis scale: 'log' || 'linear'
      * NOTE: Overriden by D3LineSubViewOptions.xAxisScale if 
      *    syncXAxisScale is false.
-     * Default: 'log'
+     * Default: 'linear'
      * @type {String}
      */
     this.xAxisScale = builder._xAxisScale;
@@ -76,7 +76,7 @@ export class D3LineViewOptions extends D3BaseViewOptions {
      * The Y axis scale: 'log' || 'linear'
      * NOTE: Overriden by D3LineSubViewOptions.yAxisScale if 
      *    syncYAxisScale is false.
-     * Default: 'log'
+     * Default: 'linear'
      * @type {String}
      */
     this.yAxisScale =  builder._yAxisScale;
@@ -134,10 +134,10 @@ export class D3LineViewOptionsBuilder extends D3BaseViewOptionsBuilder {
     this._syncYAxisScale = false;
     
     /** @type {String} */
-    this._xAxisScale = 'log';
+    this._xAxisScale = 'linear';
     
     /** @type {String} */
-    this._yAxisScale = 'log';
+    this._yAxisScale = 'linear';
   }
 
   /** 

@@ -186,8 +186,6 @@ export class D3LineView extends D3BaseView {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
 
-    if (!series.lineOptions.showInDataTable) return;
-
     d3.select(tableEl)
         .append('tr')
         .append('th')
