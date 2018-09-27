@@ -11,6 +11,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletRequest;
+
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 
@@ -19,6 +21,7 @@ class Util {
   enum Key {
     EDITION,
     REGION,
+    MODEL,
     VS30,
     LATITUDE,
     LONGITUDE,
@@ -40,6 +43,8 @@ class Util {
     }
   }
 
+  // TODO clean; these methods all seem a bit clunky
+  
   static <T extends Enum<T>> T readValue(String value, Class<T> type) {
     Optional<T> opt = Enums.getIfPresent(type, value).toJavaUtil();
     checkState(opt.isPresent(), "Invalid value [%s] for enum: %s", value, type.getName());
@@ -73,5 +78,20 @@ class Util {
   static double readDoubleValue(Map<String, String[]> paramMap, Key key) {
     return Double.valueOf(readValue(paramMap, key));
   }
+  
+  /* New method variants for region-year based hazard servlet */
+  
+  static <T extends Enum<T>> T readValue(Key key, ServletRequest request, Class<T> type) {
+    return Enum.valueOf(type, request.getParameter(key.toString()));
+  }
+  
+  static double readDouble(Key key, ServletRequest request) {
+    return Double.valueOf(request.getParameter(key.toString()));
+  }
+  
+  static int readInteger(Key key, ServletRequest request) {
+    return Integer.valueOf(request.getParameter(key.toString()));
+  }
+  
 
 }

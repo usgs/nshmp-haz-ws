@@ -82,7 +82,7 @@ public final class DeaggService extends NshmpServlet {
       }
 
       /* Submit as task to job executor */
-      DeaggTask task = new DeaggTask(urlHelper.url, requestData, getServletContext());
+      DeaggTask task = new DeaggTask(urlHelper.url, getServletContext(), requestData);
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
@@ -96,8 +96,11 @@ public final class DeaggService extends NshmpServlet {
 
   private static class DeaggTask extends TimedTask<Result> {
 
-    DeaggTask(String url, RequestData data, ServletContext context) {
-      super(url, data, context);
+    RequestData data;
+    
+    DeaggTask(String url, ServletContext context, RequestData data) {
+      super(url, context);
+      this.data = data;
     }
 
     @Override

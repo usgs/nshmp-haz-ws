@@ -19,14 +19,8 @@ import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +32,12 @@ import java.util.concurrent.Executor;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import gov.usgs.earthquake.nshmp.HazardCalc;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
@@ -148,7 +145,7 @@ public final class HazardService extends NshmpServlet {
       }
 
       /* Submit as task to job executor */
-      HazardTask task = new HazardTask(urlHelper.url, requestData, getServletContext());
+      HazardTask task = new HazardTask(urlHelper.url, getServletContext(), requestData);
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       // GSON.toJson(result, response.getWriter()); TODO test and use elsewhere?
       String resultStr = GSON.toJson(result);
@@ -245,8 +242,11 @@ public final class HazardService extends NshmpServlet {
 
   private static class HazardTask extends TimedTask<Result> {
 
-    HazardTask(String url, RequestData data, ServletContext context) {
-      super(url, data, context);
+    final RequestData data;
+
+    HazardTask(String url, ServletContext context, RequestData data) {
+      super(url, context);
+      this.data = data;
     }
 
     @Override
