@@ -7,8 +7,10 @@ import { D3LineSubView } from './view/D3LineSubView.js';
 import { D3LineView } from './view/D3LineView.js';
 import { D3SaveFigure} from './D3SaveFigure.js';
 import { D3SaveLineData } from './D3SaveLineData.js';
+import { D3TextOptions } from './options/D3TextOptions.js';
 import { D3Tooltip } from './D3Tooltip.js';
 import { D3Utils } from './D3Utils.js';
+import { D3XYPair } from './data/D3XYPair.js';
 
 import { Preconditions } from '../error/Preconditions.js';
 import { D3LineOptions } from './options/D3LineOptions.js';
@@ -107,6 +109,37 @@ export class D3LinePlot {
                 lineDatas);
           });
     }
+  }
+
+  /**
+   * Add text to a sub view's plot.
+   *  
+   * @param {D3LineSubView} subView The sub view to add text
+   * @param {Number} x The X coordinate of text
+   * @param {Number} y The Y coordinate of text
+   * @param {String} text The text
+   * @param {D3TextOptions=} textOptions Optional text options
+   */
+  addText(subView, x, y, text, textOptions = D3TextOptions.withDefaults()) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentNumber(x);
+    Preconditions.checkArgumentNumber(y);
+    Preconditions.checkArgumentString(text);
+    Preconditions.checkArgumentInstanceOf(textOptions, D3TextOptions);
+
+    let textD3 = d3.select(subView.svg.dataContainerEl)
+        .append('g')
+        .attr('class', 'text-enter')
+        .append('text')
+        .datum(new D3XYPair(x, y));
+
+    let textEl = textD3.node();
+    Preconditions.checkStateInstanceOfSVGElement(textEl);
+
+    this.moveText(subView, x, y, textEl);
+    this.updateText(textEl, text, textOptions);
+
+    return textEl;
   }
 
   /**
@@ -257,6 +290,34 @@ export class D3LinePlot {
                   'Not a horizontal line');
               this._onDragInY(lineData, series, refLineEl, yLimit, callback);
             }));
+  }
+
+  /**
+   * Move a text element to a new location.
+   *  
+   * @param {D3LineSubView} subView The sub view of the text
+   * @param {Number} x The new X coordinate
+   * @param {Number} y The new Y coordinate
+   * @param {SVGElement} textEl The text element
+   */
+  moveText(subView, x, y, textEl) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentNumber(x);
+    Preconditions.checkArgumentNumber(y);
+    Preconditions.checkArgumentInstanceOfSVGElement(textEl);
+
+    let xScale = this._getCurrentXScale(subView);
+    let yScale = this._getCurrentYScale(subView);
+    
+    let lineData = subView.options.subViewType == 'lower' ?
+        this.lowerLineData : this.upperLineData;
+
+    let xyPair = new D3XYPair(x, y);
+
+    d3.select(textEl)
+        .datum(xyPair)
+        .attr('x', this.axes.x(lineData, xScale, xyPair))
+        .attr('y', this.axes.y(lineData, yScale, xyPair));
   }
 
   /**
@@ -484,6 +545,35 @@ export class D3LinePlot {
   }
 
   /**
+   * Update the text on a text element.
+   * 
+   * @param {SVGElement} textEl The text element
+   * @param {String} text The new text
+   * @param {D3TextOptions=} textOptions Optional text options
+   */
+  updateText(textEl, text, textOptions = D3TextOptions.withDefaults()) {
+    Preconditions.checkArgumentInstanceOfSVGElement(textEl);
+    Preconditions.checkArgumentString(text);
+    Preconditions.checkArgumentInstanceOf(textOptions, D3TextOptions);
+
+    let cxRotate = textEl.getAttribute('x');
+    let cyRotate = textEl.getAttribute('y');
+
+    d3.select(textEl)
+        .text(text)
+        .attr('alignment-baseline', textOptions.alignmentBaseline)
+        .attr('dx', textOptions.dx)
+        .attr('dy', -textOptions.dy)
+        .attr('fill', textOptions.color)
+        .attr('stroke', textOptions.stroke)
+        .attr('stroke-width', textOptions.strokeWidth)
+        .attr('transform', `rotate(${textOptions.rotate}, ${cxRotate}, ${cyRotate})`)
+        .style('font-size', `${textOptions.fontSize}px`)
+        .style('font-weight', textOptions.fontWeight)
+        .style('text-anchor', textOptions.textAnchor);
+  }
+
+  /**
    * @private
    * Add the default X and Y axes.
    * 
@@ -562,7 +652,7 @@ export class D3LinePlot {
 
     let seriesEnter = d3.select(lineData.subView.svg.dataContainerEl)
         .datum([ updatedLineData ])    
-        .selectAll('g')
+        .selectAll('.data-enter')
         .data(updatedLineData.series);
 
     seriesEnter.exit().remove();
@@ -760,7 +850,8 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, x, dataEl);
-    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale);
+    let duration = 0;
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale, duration);
   }
 
   /**
@@ -801,7 +892,8 @@ export class D3LinePlot {
 
     d3.select(dataEl).raise();
     callback(updatedSeries, y, dataEl);
-    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale);
+    let duration = 0;
+    this._plotUpdateDataEl(lineData, updatedSeries, dataEl, xScale, yScale, duration);
   }
 
   /**
@@ -1205,6 +1297,7 @@ export class D3LinePlot {
   _plotUpdate(lineData, xScale, yScale) {
     this._plotUpdateHorizontalRefLine(lineData, xScale, yScale);
     this._plotUpdateVerticalRefLine(lineData, xScale, yScale);
+    this._plotUpdateText(lineData, xScale, yScale);
 
     /* Update lines */
     let line = this.axes.line(lineData, xScale, yScale);
@@ -1242,14 +1335,13 @@ export class D3LinePlot {
    * @param {D3LineData} lineData The line data
    * @param {D3LineSeriesData} series The line series
    * @param {SVGElement} dataEl The plot data element
+   * @param {Number} translationDuration The duration for translation
    */
-  _plotUpdateDataEl(lineData, series, dataEl, xScale, yScale) {
+  _plotUpdateDataEl(lineData, series, dataEl, xScale, yScale, translationDuration) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
     Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
 
-    // let xScale = this._getCurrentXScale(lineData.subView);
-    // let yScale = this._getCurrentYScale(lineData.subView);
     let line = this.axes.line(lineData, xScale, yScale);
   
     /* Update data */
@@ -1259,6 +1351,8 @@ export class D3LinePlot {
     d3.select(dataEl)
         .selectAll('.plot-line')
         .datum(series)
+        .transition()
+        .duration(translationDuration)
         .attr('d', (/** @type {D3LineSeriesData*/ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return line(series.data);
@@ -1284,6 +1378,8 @@ export class D3LinePlot {
 
           return symbolLineData.toMarkerSeries(series);
         })
+        .transition()
+        .duration(translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol.size(symbolSize)(); 
@@ -1332,8 +1428,41 @@ export class D3LinePlot {
               series.xStrings,
               series.yStrings);
           
-          this._plotUpdateDataEl(lineData, updatedSeries, refLineEl, xScale, yScale);
+          let duration = lineData.subView.options.translationDuration;
+          this._plotUpdateDataEl(
+              lineData,
+              updatedSeries,
+              refLineEl,
+              xScale,
+              yScale,
+              duration);
+        });
+  }
+
+  /**
+   * @private
+   * Update any added text.
+   *  
+   * @param {D3LineData} lineData The line data
+   * @param {String} xScale The X axis scale
+   * @param {String} yScale The Y axis scale
+   */
+  _plotUpdateText(lineData, xScale, yScale) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.text-enter')
+        .selectAll('text')
+        .transition()
+        .duration(lineData.subView.options.translationDuration)
+        .attr('x', (/** @type {D3XYPair} */ xyPair) => {
+          Preconditions.checkStateInstanceOf(xyPair, D3XYPair);
+          return this.axes.x(lineData, xScale, xyPair);
         })
+        .attr('y', (/** @type {D3XYPair} */ xyPair) => {
+          Preconditions.checkStateInstanceOf(xyPair, D3XYPair);
+          return this.axes.y(lineData, yScale, xyPair);
+        });
   }
 
   /**
@@ -1368,9 +1497,16 @@ export class D3LinePlot {
               series.lineOptions,
               series.xStrings,
               series.yStrings);
-          
-          this._plotUpdateDataEl(lineData, updatedSeries, refLineEl, xScale, yScale);
-        })
+
+          let duration = lineData.subView.options.translationDuration;
+          this._plotUpdateDataEl(
+              lineData,
+              updatedSeries,
+              refLineEl,
+              xScale,
+              yScale,
+              duration);
+        });
   }
 
   /**
