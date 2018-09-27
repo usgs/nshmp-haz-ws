@@ -839,6 +839,9 @@ export class D3LinePlot {
 
     let x = xBounds.invert(d3.event.x);
     x = x < xMinLimit ? xMinLimit : x > xMaxLimit ? xMaxLimit : x;
+    
+    let snapTo = 1 / lineData.subView.options.dragLineSnapTo;
+    x = Math.round( x *  snapTo ) / snapTo;
     let xValues = series.xValues.map(() => { return x; }); 
 
     let updatedSeries = new D3LineSeriesData(
@@ -881,6 +884,9 @@ export class D3LinePlot {
 
     let y = yBounds.invert(d3.event.y);
     y = y < yMinLimit ? yMinLimit : y > yMaxLimit ? yMaxLimit : y;
+
+    let snapTo = 1 / lineData.subView.options.dragLineSnapTo;
+    y = Math.round( y *  snapTo ) / snapTo;
     let yValues = series.yValues.map(() => { return y; }); 
 
     let updatedSeries = new D3LineSeriesData(

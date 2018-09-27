@@ -53,7 +53,14 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
      * @type {Array<Number>} 
      */
     this.defaultYLimit = builder._defaultYLimit;
-    
+   
+    /**
+     * Snap lines that are being dragged to the nearest specified value.
+     * Default: 0.01
+     * @type {Number}
+     */
+    this.dragLineSnapTo = builder._dragLineSnapTo;
+
     /** 
      * Color of axes grid lines.
      * Default: '#E0E0E0' 
@@ -285,6 +292,9 @@ export class D3LineSubViewOptionsBuilder
     
     /** @type {Array<Number>} */
     this._defaultYLimit = [ 0.01, 1 ];
+
+    /** @type {Number} */
+    this._dragLineSnapTo = 0.01;
     
     /** @type {String} */
     this._gridLineColor = '#E0E0E0';
@@ -398,6 +408,18 @@ export class D3LineSubViewOptionsBuilder
     Preconditions.checkArgumentArrayLength(yLimit, 2);
     Preconditions.checkArgumentArrayOf(yLimit, 'number');
     this._defaultYLimit = yLimit;
+    return this;
+  }
+
+  /**
+   * Snap a line to the nearest value when dragging.
+   * Default: 0.01
+   * 
+   * @param {Number} snapTo Snap to value
+   */
+  dragLineSnapTo(snapTo) {
+    Preconditions.checkArgumentNumber(snapTo);
+    this._dragLineSnapTo = snapTo;
     return this;
   }
 
