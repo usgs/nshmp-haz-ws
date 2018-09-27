@@ -21,6 +21,8 @@ export class D3LineAxes {
    * @param {D3LineView} view 
    */
   constructor(view) {
+    Preconditions.checkArgumentInstanceOf(view, D3LineView);
+
     /** @type {D3LineView} */
     this.view = view;
   }

@@ -156,7 +156,7 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
 
     /**
      * The X axis scale: 'log' || 'linear'
-     * Default: 'log'
+     * Default: 'linear'
      * @type {String}
      */
     this.xAxisScale = builder._xAxisScale;
@@ -207,7 +207,7 @@ export class D3LineSubViewOptions extends D3BaseSubViewOptions {
 
     /**
      * The Y axis scale: 'log' || 'linear'
-     * Default: 'log'
+     * Default: 'linear'
      * @type {String}
      */
     this.yAxisScale = builder._yAxisScale;
@@ -343,7 +343,7 @@ export class D3LineSubViewOptionsBuilder
     this._xAxisNice = true;
     
     /** @type {String} */
-    this._xAxisScale = 'log';
+    this._xAxisScale = 'linear';
     
     /** @type {String} */
     this._xLabel = 'X';
@@ -364,7 +364,7 @@ export class D3LineSubViewOptionsBuilder
     this._yAxisReverse = false;
 
     /** @type {String} */
-    this._yAxisScale = 'log';
+    this._yAxisScale = 'linear';
     
     /** @type {String} */
     this._yLabel = 'Y';
@@ -576,7 +576,7 @@ export class D3LineSubViewOptionsBuilder
   
   /**
    * Set the X axis scale: 'log' || 'linear'
-   * Default: 'log' 
+   * Default: 'linear' 
    * @param {String} scale The X axis scale
    */
   xAxisScale(scale) { 
@@ -664,7 +664,7 @@ export class D3LineSubViewOptionsBuilder
 
   /**
    * Set the Y axis scale: 'log' || 'linear'
-   * Default: 'log' 
+   * Default: 'linear' 
    * @param {String} scale The Y axis scale
    */
   yAxisScale(scale) { 
