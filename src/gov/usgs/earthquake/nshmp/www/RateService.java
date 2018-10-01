@@ -6,6 +6,7 @@ import static gov.usgs.earthquake.nshmp.calc.ValueFormat.ANNUAL_RATE;
 import static gov.usgs.earthquake.nshmp.calc.ValueFormat.POISSON_PROBABILITY;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.DISTANCE;
@@ -97,7 +98,7 @@ public final class RateService extends NshmpServlet {
     String usage = (format == ANNUAL_RATE) ? Metadata.RATE_USAGE : Metadata.PROBABILITY_USAGE;
     int paramCount = (format == ANNUAL_RATE) ? 5 : 6;
 
-    if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
+    if (emptyRequest(request)) {
       urlHelper.writeResponse(usage);
       return;
     }

@@ -1,5 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
@@ -22,6 +23,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import javax.servlet.http.HttpServletRequest;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
@@ -165,6 +167,11 @@ public class ServletUtil implements ServletContextListener {
     }
   }
 
+  static boolean emptyRequest(HttpServletRequest request) {
+    return isNullOrEmpty(request.getQueryString()) &&
+        (request.getPathInfo() == null || request.getPathInfo().equals("/"));
+  }
+  
   static Timer timer() {
     return new Timer();
   }
