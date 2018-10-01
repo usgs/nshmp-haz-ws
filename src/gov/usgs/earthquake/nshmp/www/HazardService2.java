@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshmp.www;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.calc.HazardExport.curvesBySource;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
@@ -110,9 +111,7 @@ public final class HazardService2 extends NshmpServlet {
 
     UrlHelper urlHelper = urlHelper(request, response);
 
-    if (isNullOrEmpty(request.getQueryString()) &&
-        isNullOrEmpty(request.getPathInfo()) ||
-        ("/").equals(request.getPathInfo())) {
+    if (emptyRequest(request)) {
       urlHelper.writeResponse(USAGE);
       return;
     }

@@ -2,6 +2,7 @@ package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -61,7 +62,7 @@ public final class DeaggService extends NshmpServlet {
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
 
-    if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
+    if (emptyRequest(request)) {
       urlHelper.writeResponse(Metadata.DEAGG_USAGE);
       return;
     }

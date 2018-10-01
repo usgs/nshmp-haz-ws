@@ -5,6 +5,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.calc.HazardExport.curvesBySource;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.readValues;
@@ -124,7 +125,7 @@ public final class HazardService extends NshmpServlet {
     String query = request.getQueryString();
     String pathInfo = request.getPathInfo();
 
-    if (isNullOrEmpty(query) && isNullOrEmpty(pathInfo)) {
+    if (emptyRequest(request)) {
       urlHelper.writeResponse(Metadata.HAZARD_USAGE);
       return;
     }
