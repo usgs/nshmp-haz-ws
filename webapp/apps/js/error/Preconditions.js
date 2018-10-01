@@ -10,7 +10,7 @@ import NshmpError from './NshmpError.js';
  * @class Preconditions
  * @author Brandon Clayton
  */
-export default class Preconditions {
+export class Preconditions {
 
   /** @private */
   constructor() {}
@@ -36,6 +36,21 @@ export default class Preconditions {
    */
   static checkArgumentArray(arr, errorMessage = 'Must be an array') {
     Preconditions.checkArgument(Array.isArray(arr), errorMessage);
+  }
+
+  /**
+   * Check whether an argument is an array and all elements
+   *    inside are of specific type.
+   * 
+   * @param {Array<Object>} arr Array to check
+   * @param {Object} type Type inside array to check
+   */
+  static checkArgumentArrayInstanceOf(arr, type) {
+    Preconditions.checkArgumentArray(arr);
+
+    for (let val of arr) {
+      Preconditions.checkArgumentInstanceOf(val, type);
+    }
   }
 
   /**
@@ -232,6 +247,21 @@ export default class Preconditions {
    */
   static checkStateArray(arr, errorMessage = 'Must be an array') {
     Preconditions.checkState(Array.isArray(arr), errorMessage);
+  }
+
+  /**
+   * Check whether an argument is an array and all elements
+   *    inside are of specific type.
+   * 
+   * @param {Array<Object>} arr Array to check
+   * @param {Object} type Type inside array to check
+   */
+  static checkStateArrayInstanceOf(arr, type) {
+    Preconditions.checkArgumentArray(arr);
+
+    for (let val of arr) {
+      Preconditions.checkStateInstanceOf(val, type);
+    }
   }
 
   /**

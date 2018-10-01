@@ -1,6 +1,6 @@
 
 import NshmpError from '../error/NshmpError.js';
-import Preconditions from '../error/Preconditions.js';
+import { Preconditions } from '../error/Preconditions.js';
 
 /**
  * @fileoverview This class will save a SVG element as a figure. 

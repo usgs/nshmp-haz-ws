@@ -27,6 +27,7 @@
 /* Plot panel body */
 .D3View .panel-body {
   padding: 0;
+  line-height: 0.1;
 }
 
 .D3View .panel-outer > .panel-body + .panel-body {
@@ -104,6 +105,10 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
+}
+
+.D3View .d3-tooltip {
+  line-height: 1.5;
 }
 
 @media only screen and (max-width: 992px) {

@@ -1,8 +1,10 @@
 
-import D3LineData from '../data/D3LineData.js';
-import D3LineSubView from '../view/D3LineSubView.js';
-import D3LineView from '../view/D3LineView.js';
-import Preconditions from '../../error/Preconditions.js';
+import { D3LineData } from '../data/D3LineData.js';
+import { D3LineSubView } from '../view/D3LineSubView.js';
+import { D3LineView } from '../view/D3LineView.js';
+import { D3XYPair } from '../data/D3XYPair.js';
+
+import { Preconditions } from '../../error/Preconditions.js';
 
 /**
  * @fileoverview Add X and Y axes, axes labels, and gridlines to
@@ -11,14 +13,16 @@ import Preconditions from '../../error/Preconditions.js';
  * @class D3LineAxes
  * @author Brandon Clayton
  */
-export default class D3LineAxes {
+export class D3LineAxes {
 
   /**
    * New instance of D3LineAxes
    *  
-   * @param {D3LineView} view 
+   * @param {D3LineView} view The line view
    */
   constructor(view) {
+    Preconditions.checkArgumentInstanceOf(view, D3LineView);
+
     /** @type {D3LineView} */
     this.view = view;
   }
@@ -39,12 +43,10 @@ export default class D3LineAxes {
         subView.plotHeight;
 
     d3.select(subView.svg.xAxisEl)
-        .attr('transform', `translate(0, ${translate})`)
+        .attr('transform', `translate(-0.5, ${translate - 0.5})`)
         .style(subView.options.tickFontSize);
   
     d3.select(subView.svg.xTickMarksEl)
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .call(this._getXAxis(lineData, scale))
         .on('end', () => {
           this._setExponentTickMarks(subView, subView.svg.xTickMarksEl, scale);
@@ -52,37 +54,6 @@ export default class D3LineAxes {
     
     this.createXGridLines(lineData, scale);
     this._addXLabel(subView);
-  }
-
-  /**
-   * Add a log or linear Y axis to a D3LineSubView with 
-   *    a Y label and grid lines.
-   * 
-   * @param {D3LineData} lineData The line data 
-   * @param {String} scale The scale: 'log' || 'linear'
-   */
-  createYAxis(lineData, scale) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-    this._checkScale(scale);
-   
-    let subView = lineData.subView;
-    let translate = subView.options.yAxisLocation == 'right' ?
-        subView.plotWidth : 0;
-
-    d3.select(subView.svg.yAxisEl)
-        .attr('transform', `translate(${translate}, 0)`)
-        .style(subView.options.tickFontSize);
-  
-    d3.select(subView.svg.yTickMarksEl)
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
-        .call(this._getYAxis(lineData, scale))
-        .on('end', () => {
-          this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
-        });
-    
-    this.createYGridLines(lineData, scale);
-    this._addYLabel(subView);
   }
 
   /**
@@ -105,8 +76,6 @@ export default class D3LineAxes {
         .tickSize(-subView.plotHeight);
 
     let xGridD3 = d3.select(subView.svg.xGridLinesEl)
-        .transition()
-        .duration(subView.options.translationDuration)
         .attr('transform', d3.select(subView.svg.xAxisEl).attr('transform'))
         .call(xGridLines);
 
@@ -116,6 +85,35 @@ export default class D3LineAxes {
 
     xGridD3.selectAll('text')
         .remove();
+  }
+
+  /**
+   * Add a log or linear Y axis to a D3LineSubView with 
+   *    a Y label and grid lines.
+   * 
+   * @param {D3LineData} lineData The line data 
+   * @param {String} scale The scale: 'log' || 'linear'
+   */
+  createYAxis(lineData, scale) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    this._checkScale(scale);
+   
+    let subView = lineData.subView;
+    let translate = subView.options.yAxisLocation == 'right' ?
+        subView.plotWidth : 0;
+
+    d3.select(subView.svg.yAxisEl)
+        .attr('transform', `translate(${translate - 0.5}, -0.5)`)
+        .style(subView.options.tickFontSize);
+  
+    d3.select(subView.svg.yTickMarksEl)
+        .call(this._getYAxis(lineData, scale))
+        .on('end', () => {
+          this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
+        });
+    
+    this.createYGridLines(lineData, scale);
+    this._addYLabel(subView);
   }
 
   /**
@@ -138,8 +136,6 @@ export default class D3LineAxes {
         .tickSize(-subView.plotWidth);
 
     let yGridD3 = d3.select(subView.svg.yGridLinesEl)
-        .transition()
-        .duration(subView.options.translationDuration)
         .attr('transform', d3.select(subView.svg.yAxisEl).attr('transform'))
         .call(yGridLines);
 
@@ -165,9 +161,15 @@ export default class D3LineAxes {
     this._checkScale(yScale);
 
     let line = d3.line()
-        .defined((d) => { return d[1] != null; })
-        .x((d) => { return this.x(lineData, xScale, d); })
-        .y((d) => { return this.y(lineData, yScale, d); })
+        .defined((/** @type {D3XYPair} */ d) => { 
+          return d.y != null; 
+        })
+        .x((/** @type {D3XYPair} */ d) => { 
+          return this.x(lineData, xScale, d); 
+        })
+        .y((/** @type {D3XYPair} */ d) => { 
+          return this.y(lineData, yScale, d); 
+        })
     
     return line;
   }
@@ -179,6 +181,7 @@ export default class D3LineAxes {
    */
   removeXGridLines(subView) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
     d3.select(subView.svg.xGridLinesEl)
         .selectAll('*')
         .remove();
@@ -191,6 +194,7 @@ export default class D3LineAxes {
    */
   removeYGridLines(subView) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
     d3.select(subView.svg.yGridLinesEl)
         .selectAll('*')
         .remove();
@@ -202,17 +206,16 @@ export default class D3LineAxes {
    * 
    * @param {D3LineData} lineData The D3LineData for the X coordinate
    * @param {String} scale The X axis scale
-   * @param {Array<Number>} The data point to plot
+   * @param {D3XYPair} xyPair The data point to plot
    * @returns {Number} The plotting X coordinate of the X data point
    */
-  x(lineData, scale, dataPoint) {
+  x(lineData, scale, xyPair) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    Preconditions.checkArgumentArrayOf(dataPoint, 'number');
-    Preconditions.checkArgumentArrayLength(dataPoint, 2);
+    Preconditions.checkArgumentInstanceOf(xyPair, D3XYPair);
     
     let d3Scale = this._getXAxisScale(lineData, scale);
-    return d3Scale(dataPoint[0]);
+    return d3Scale(xyPair.x);
   }
 
   /**
@@ -221,17 +224,16 @@ export default class D3LineAxes {
    * 
    * @param {D3LineData} lineData The D3LineData for the Y coordinate
    * @param {String} scale The Y axis scale
-   * @param {Array<Number>} The data point to plot
+   * @param {D3XYPair} xyPair The data point to plot
    * @returns {Number} The plotting Y coordinate of the Y data point
    */
-  y(lineData, scale, dataPoint) {
+  y(lineData, scale, xyPair) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    Preconditions.checkArgumentArrayOf(dataPoint, 'number');
-    Preconditions.checkArgumentArrayLength(dataPoint, 2);
+    Preconditions.checkArgumentInstanceOf(xyPair, D3XYPair);
     
     let d3Scale = this._getYAxisScale(lineData, scale);
-    return d3Scale(dataPoint[1]);
+    return d3Scale(xyPair.y);
   }
 
   /**
@@ -335,7 +337,7 @@ export default class D3LineAxes {
         .domain(lineData.getXLimit());
 
     if (lineData.subView.options.xAxisNice) {
-      d3Scale.nice();
+      d3Scale.nice(lineData.subView.options.xTickMarks);
     }
 
     return d3Scale;
@@ -371,13 +373,17 @@ export default class D3LineAxes {
   _getYAxisScale(lineData, scale) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     this._checkScale(scale);
-    
+   
     let d3Scale = this._getD3AxisScale(scale);
     d3Scale.range([ lineData.subView.plotHeight, 0 ])
         .domain(lineData.getYLimit());
 
+    if (lineData.subView.options.yAxisReverse) {
+      d3Scale.range([ 0, lineData.subView.plotHeight ]);
+    }
+
     if (lineData.subView.options.yAxisNice) {
-      d3Scale.nice();
+      d3Scale.nice(lineData.subView.options.yTickMarks);
     }
 
     return d3Scale;
