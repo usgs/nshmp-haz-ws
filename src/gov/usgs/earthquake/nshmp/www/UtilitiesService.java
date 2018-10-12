@@ -5,17 +5,16 @@ import java.io.PrintWriter;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.usgs.earthquake.nshmp.internal.NshmpSite;
-import gov.usgs.earthquake.nshmp.geo.json.FeatureCollection;
+import gov.usgs.earthquake.nshmp.geo.json.Feature;
+import gov.usgs.earthquake.nshmp.geo.json.GeoJson;
 import gov.usgs.earthquake.nshmp.geo.json.Properties;
+import gov.usgs.earthquake.nshmp.internal.NshmpSite;
 import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 @WebServlet(
@@ -24,6 +23,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Region;
     urlPatterns = {
         "/util",
         "/util/*" })
+@SuppressWarnings("javadoc")
 public class UtilitiesService extends NshmpServlet {
 
   @Override
@@ -56,27 +56,24 @@ public class UtilitiesService extends NshmpServlet {
     nshmpSites.put("nehrp", NshmpSite.nehrp());
     nshmpSites.put("nrc", NshmpSite.nrc());
 
-    FeatureCollection.Builder fc = FeatureCollection.builder();
+    GeoJson.Builder builder = GeoJson.builder();
 
     for (String regionKey : nshmpSites.keySet()) {
       RegionInfo regionInfo = getRegionInfo(regionKey);
       for (NshmpSite site : nshmpSites.get(regionKey)) {
-        Properties siteProperties = Properties.builder()
+        Map<String, Object> properties = Properties.builder()
             .put(Key.LOCATION, site.toString())
             .put(Key.LOCATION_ID, site.id())
             .put(Key.REGION_ID, regionInfo.regionId)
             .put(Key.REGION_DISPLAY, regionInfo.regionDisplay)
             .build();
-
-        fc.addPoint(
-            site.location(),
-            siteProperties,
-            Optional.empty(),
-            Optional.of(regionInfo.bbox));
+        builder.add(Feature.point(site.location())
+            .bbox(regionInfo.bbox)
+            .properties(properties)
+            .build());
       }
     }
-
-    return fc.build().toJsonString();
+    return builder.toJson();
   }
 
   private static class Key {
