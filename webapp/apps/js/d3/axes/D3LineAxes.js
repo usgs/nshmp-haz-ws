@@ -48,7 +48,7 @@ export class D3LineAxes {
   
     d3.select(subView.svg.xTickMarksEl)
         .call(this._getXAxis(lineData, scale))
-        .on('end', () => {
+        .each(() => {
           this._setExponentTickMarks(subView, subView.svg.xTickMarksEl, scale);
         });
     
@@ -108,7 +108,7 @@ export class D3LineAxes {
   
     d3.select(subView.svg.yTickMarksEl)
         .call(this._getYAxis(lineData, scale))
-        .on('end', () => {
+        .each(() => {
           this._setExponentTickMarks(subView, subView.svg.yTickMarksEl, scale);
         });
     
