@@ -4,13 +4,17 @@ import { Preconditions } from '../error/Preconditions.js';
 import Tools from '../lib/Tools.js';
 
 /**
+ * @fileoverview Container class for hazard web service response.
  * 
+ * @class HazardServiceResponse
+ * @author Brandon Clayton
  */
 export class HazardServiceResponse extends WebServiceResponse {
 
   /**
+   * Create new HazardServiceResponse.
    * 
-   * @param {Object} hazardResponse 
+   * @param {Object} hazardResponse The hazard JSON response
    */
   constructor(hazardResponse) {
     Preconditions.checkArgumentObject(hazardResponse);
@@ -23,12 +27,13 @@ export class HazardServiceResponse extends WebServiceResponse {
     this.response = hazardResponse.response.map((response) => {
       return new HazardResponse(response);
     });
-    
   }
 
   /**
-   * 
-   * @param {String} imt 
+   * Get a specific IMT response.
+   *  
+   * @param {String} imt The IMT
+   * @returns {HazardResponse} The hazard response for the IMT
    */
   getResponse(imt) {
     Preconditions.checkArgumentString(imt);
@@ -39,10 +44,13 @@ export class HazardServiceResponse extends WebServiceResponse {
   }
 
   /**
-   * 
-   * @param {String} component 
-   * @param {Number} returnPeriod 
-   * @returns {Array<Array<Number>>} The response spectrum
+   * Calculate the response spectrum for a specific component 
+   *    and return period.
+   *  
+   * @param {String} component The hazard component
+   * @param {Number} returnPeriod The return period
+   * @returns {Array<Array<Number>>} The response spectrum: 
+   *    [ X values, Y values ]
    */
   calculateResponseSpectrum(component, returnPeriod) {
     let xValues = [];
@@ -50,15 +58,17 @@ export class HazardServiceResponse extends WebServiceResponse {
 
     for (let response of this.response) {
       xValues.push(Tools.imtToValue(response.metadata.imt.value));
-      yValues.push(response.toResponseSpectrum(component, returnPeriod));
+      yValues.push(response.calculateResponseSpectrum(component, returnPeriod));
     }
 
     return [ xValues, yValues ];
   }
 
   /**
+   * Convert to response spectrum and return new HazardResponseSpectrum
    * 
-   * @param {Number} returnPeriod 
+   * @param {Number} returnPeriod The return period
+   * @returns {HazardResponseSpectrum} The response spectrum
    */
   toResponseSpectrum(returnPeriod) {
     Preconditions.checkArgumentNumber(returnPeriod);
@@ -68,11 +78,18 @@ export class HazardServiceResponse extends WebServiceResponse {
 
 }
 
+/**
+ * @fileoverview Container class for a hazard response for a IMT.
+ * 
+ * @class HazardResponse
+ * @author Brandon Clayton
+ */
 export class HazardResponse {
   
   /**
+   * Create new HazardResponse
    * 
-   * @param {Object} response 
+   * @param {Object} response The JSON response
    */
   constructor(response) {
     Preconditions.checkArgumentObject(response);
@@ -91,34 +108,15 @@ export class HazardResponse {
   }
 
   /**
-   * 
-   * @param {String} component 
-   */
-  getDataComponent(component) {
-    this._checkDataComponent(component);
-
-    return this.data.find((data) => {
-      return data.component == component;
-    });
-  }
-
-  /**
-   * Get all data components except for Total
-   */
-  getDataComponents() {
-    return this.data.filter((data) => {
-      return data.component != 'Total';
-    });
-  }
-
-  /**
-   * 
-   * @param {String} component 
-   * @param {Number} returnPeriod 
+   * Calculate the response spectrum at a specific
+   *    hazard component and return period.
+   *  
+   * @param {String} component The hazard component
+   * @param {Number} returnPeriod The return period
    * @returns {Number} The response spectrum value
    */
-  toResponseSpectrum(component, returnPeriod) {
-    this._checkDataComponent(component);
+  calculateResponseSpectrum(component, returnPeriod) {
+    Tools.checkHazardComponent(component);
     Preconditions.checkArgumentNumber(returnPeriod);
 
     let responseData = this.getDataComponent(component);
@@ -141,33 +139,47 @@ export class HazardResponse {
   }
 
   /**
+   * Get a specific hazard component.
    * 
-   * @param {String} component 
+   * @param {String} component The component
+   * @returns {HazardResponseData} The data
    */
-  _checkDataComponent(component) {
-    Preconditions.checkArgument(
-        component == 'Total' || 
-            component == 'Grid' ||
-            component == 'Interface' || 
-            component == 'Fault' ||
-            component == 'Slab' ||
-            component == 'System' ||
-            component == 'Cluster' ||
-            component == 'Area',
-        `Component [${component}] not supported`);
+  getDataComponent(component) {
+    Tools.checkHazardComponent(component);
+
+    return this.data.find((data) => {
+      return data.component == component;
+    });
+  }
+
+  /**
+   * Get all data components except for Total
+   * 
+   * @returns {Array<HazardResponseData} The data
+   */
+  getDataComponents() {
+    return this.data.filter((data) => {
+      return data.component != 'Total';
+    });
   }
 
 }
 
+/**
+ * @fileoverview Container class for the HazardResponse metadata.
+ * 
+ * @class HazardResponseMetadata
+ * @author Brandon Clayton
+ */
 export class HazardResponseMetadata {
 
   /**
-   * 
-   * @param {Object} response 
+   * Create new HazardResponseMetadata.
+   *  
+   * @param {Object} response The JSON response
    */
   constructor(response) {
     Preconditions.checkArgumentObject(response);
-
     Preconditions.checkStateObjectProperty(response, 'metadata');
     let metadata = response.metadata;
 
@@ -181,8 +193,8 @@ export class HazardResponseMetadata {
     Preconditions.checkStateObjectProperty(metadata, 'xvalues');
     Preconditions.checkStateArrayOf(metadata.xvalues, 'number');
 
-    /** @type {String} The source model */
-    this.model = metadata.model;
+    /** @type {HazardSourceModel} The source model */
+    this.model = new HazardSourceModel(metadata.model);
 
     /** @type {Number} The latitude */
     this.latitude = metadata.latitude;
@@ -208,12 +220,73 @@ export class HazardResponseMetadata {
 
 }
 
+/**
+ * @fileoverview Container class for the hazard model.
+ * 
+ * @class HazardSourceModel
+ * @author Brandon Clayton
+ */
+export class HazardSourceModel extends ServiceParameter {
+
+  constructor(model) {
+    Preconditions.checkArgumentObject(model);
+    super(model);
+
+    Preconditions.checkStateObjectProperty(model, 'region');
+    Preconditions.checkStateObjectProperty(model, 'path');
+    Preconditions.checkStateObjectProperty(model, 'supports');
+    Preconditions.checkStateObjectProperty(model, 'year');
+
+    /** @type {String} The model region */
+    this.region = model.region;
+
+    /** @type {String} The path to the model */
+    this.path = model.path;
+
+    /** @type {HazardSourceModelSupports} The supported IMTs and vs30s */
+    this.supports = new HazardSourceModelSupports(model.supports);
+
+    /** @type {Number} The model year */
+    this.year = model.year;
+  }
+
+}
+
+/**
+ * @fileoverview Container class for the hazard source model supports object.
+ * 
+ * @class HazardSourceModelSupports
+ * @author Brandon Clayton
+ */
+export class HazardSourceModelSupports {
+  
+  constructor(supports) {
+    Preconditions.checkArgumentObject(supports);
+    Preconditions.checkStateObjectProperty(supports, 'imt');
+    Preconditions.checkStateObjectProperty(supports, 'vs30');
+
+    /** @type {Array<String>} The supported IMTs */
+    this.imt = supports.imt;
+
+    /** @type {Array<String>} The supported vs30s */
+    this.vs30 = supports.vs30;
+  }
+
+}
+
+/**
+ * @fileoverview Container class for the hazard data.
+ * 
+ * @class HazardResponseData
+ * @author Brandon Clayton
+ */
 export class HazardResponseData { 
 
   /**
+   * Create new HazardResponseData.
    * 
-   * @param {Object} data 
-   * @param {Array<Number>} xValues
+   * @param {Object} data The data JSON
+   * @param {Array<Number>} xValues The X values from metadata
    */
   constructor(data, xValues) {
     Preconditions.checkArgumentObject(data);
@@ -235,24 +308,35 @@ export class HazardResponseData {
 
 }
 
+/**
+ * @fileoverview Container class from the hazard response 
+ *    spectrum calculations.
+ * 
+ * @class HazardResponseSpectrum
+ * @author Brandon Clayton 
+ */
 export class HazardResponseSpectrum {
 
   /**
+   * Create new HazardResponseSpectrum.
    * 
-   * @param {HazardServiceResponse} serviceResponse
-   * @param {Number} returnPeriod
+   * @param {HazardServiceResponse} serviceResponse The hazard service response
+   * @param {Number} returnPeriod The return period
    */
   constructor(serviceResponse, returnPeriod) {
     Preconditions.checkArgumentInstanceOf(serviceResponse, HazardServiceResponse);
     Preconditions.checkArgumentNumber(returnPeriod);
 
     this.data = serviceResponse.response[0].data.map((data) => {
-      return new ResponseSpectrumData(serviceResponse, data, returnPeriod);
+      return new ResponseSpectrumData(
+          serviceResponse,
+          data.component,
+          returnPeriod);
     });
   }
   
   /**
-   * Get all data components except for Total
+   * Get all hazard data components except for Total.
    */
   getDataComponents() {
     return this.data.filter((data) => {
@@ -261,11 +345,12 @@ export class HazardResponseSpectrum {
   }
 
   /**
+   * Get a specific hazard data component.
    * 
-   * @param {String} component 
+   * @param {String} component The component
    */
   getDataComponent(component) {
-    // this._checkDataComponent(component);
+    Tools.checkHazardComponent(component);
 
     return this.data.find((data) => {
       return data.component == component;
@@ -274,20 +359,33 @@ export class HazardResponseSpectrum {
 
 }
 
+/**
+ * @fileoverview Container class for response spectrum data.
+ * 
+ * @class ResponseSpectrumData
+ * @author Brandon Clayton
+ */
 export class ResponseSpectrumData {
 
   /**
+   * Create new ResponseSpectrumData.
    * 
-   * @param {HazardServiceResponse} serviceResponse 
-   * @param {HazardResponseData} data 
-   * @param {Number} returnPeriod 
+   * @param {HazardServiceResponse} serviceResponse The service response
+   * @param {String} component The hazard component 
+   * @param {Number} returnPeriod The return period
    */
-  constructor(serviceResponse, data, returnPeriod) {
+  constructor(serviceResponse, component, returnPeriod) {
+    Preconditions.checkArgumentInstanceOf(
+        serviceResponse,
+        HazardServiceResponse);
+
+    Preconditions.checkArgumentNumber(returnPeriod);
+
     let spectra = serviceResponse.calculateResponseSpectrum(
-        data.component,
+        component,
         returnPeriod);
 
-    this.component = data.component;
+    this.component = component;
 
     this.xValues = spectra[0];
 
