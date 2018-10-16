@@ -363,6 +363,7 @@ export class D3BaseView {
 
     let viewTitleD3 = viewHeaderD3.append('h2')
         .attr('class', 'panel-title')
+        .style('font-size', `${this.viewOptions.titleFontSize}px`);
     
     let viewTitleWidth = this.addLegendToggle &&
         this.addGridLineToggle ? 'calc(100% - 8em)' :
