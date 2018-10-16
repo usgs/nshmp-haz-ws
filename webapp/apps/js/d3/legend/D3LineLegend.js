@@ -38,7 +38,7 @@ export class D3LineLegend {
 
     if (!lineData.subView.options.showLegend) return;
 
-    this.remove(lineData);
+    this.remove(lineData.subView);
     this._createLegendTable(lineData);
     this._legendSelectionListener(lineData);
   }
@@ -56,16 +56,16 @@ export class D3LineLegend {
   /**
    * Remove the legend from the sub view.
    * 
-   * @param {D3LineData} lineData The line data
+   * @param {D3LineSubView} subView
    */
-  remove(lineData) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+  remove(subView) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
 
-    d3.select(lineData.subView.svg.legendForeignObjectEl)
+    d3.select(subView.svg.legendForeignObjectEl)
         .attr('height', 0)
         .attr('width', 0);
 
-    d3.select(lineData.subView.svg.legendTableEl)
+    d3.select(subView.svg.legendTableEl)
         .selectAll('*')
         .remove();
   }
@@ -508,9 +508,7 @@ export class D3LineLegend {
     let subViewOptions = lineData.subView.options;
 
     let fontWeight = isActive ? 'bold' : 'normal';
-    let fontSize = isActive ? 
-        legendOptions.fontSize * 1.25 : 
-        legendOptions.fontSize;
+    let fontSize = legendOptions.fontSize;
 
     let delay = isActive ? subViewOptions.translationDuration : 0;
     
