@@ -83,7 +83,7 @@ export class D3LineView extends D3BaseView {
     for (let lineData of lineDatas) {
       let divD3 = foreignObjectD3.append('xhtml:div');
       
-      divD3.append('h3').text(lineData.label);
+      divD3.append('h3').text(lineData.subView.options.label);
 
       let tableD3 = divD3.append('table')
           .attr('class', 'table table-bordered table-condensed')
