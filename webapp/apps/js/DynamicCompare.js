@@ -1317,12 +1317,14 @@ export class DynamicCompare extends Hazard {
     Promise.all(jsonCall.promises).then((results) => {
       this.spinner.off();
 
-      NshmpError.checkResponses(results, this.hazardPlot, this.spectraPlot);
-      this.footer.setMetadata(results[0].server); 
-     
+      Tools.checkResponses(results);
+
       let hazardsResponses = results.map((result) => {
         return new HazardServiceResponse(result);
       });
+      
+      /* Set footer metadata */
+      this.footer.setWebServiceMetadata(hazardsResponses[0]); 
       
       /* Update tooltips for input */
       this.addInputTooltip();
