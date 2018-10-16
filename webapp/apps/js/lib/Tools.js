@@ -12,6 +12,24 @@ import { Preconditions } from '../error/Preconditions.js';
 export default class Tools {
 
   /**
+   * Check hazard component.
+   * 
+   * @param {String} component The component
+   */
+  static checkHazardComponent(component) {
+    Preconditions.checkArgument(
+        component == 'Total' || 
+            component == 'Grid' ||
+            component == 'Interface' || 
+            component == 'Fault' ||
+            component == 'Slab' ||
+            component == 'System' ||
+            component == 'Cluster' ||
+            component == 'Area',
+        `Component [${component}] not supported`);
+  }
+
+  /**
    * Check a web service response to see if
    *    response has "status" = "error".
    * 
