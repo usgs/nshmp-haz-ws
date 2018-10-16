@@ -31,7 +31,6 @@ export class D3LineSeriesData {
     D3Utils.checkArrayIsNumberOrNull(xValues);
     D3Utils.checkArrayIsNumberOrNull(yValues);
 
-
     if (xStrings != undefined) {
       Preconditions.checkArgumentArrayOf(xStrings, 'string');
       Preconditions.checkArgumentArrayLength(xStrings, xValues.length);
@@ -93,18 +92,80 @@ export class D3LineSeriesData {
   }
 
   /**
+   * Given two D3LineSeriesData, find the common X values and return
+   *    an array of XY pairs that were in common. 
+   *  
+   * @param {D3LineSeriesData} seriesA First series
+   * @param {D3LineSeriesData} seriesB Second series
+   * @return {Array<D3XYPair>} The array of common XY pairs
+   */
+  static intersectionX(seriesA, seriesB) {
+    Preconditions.checkArgumentInstanceOf(seriesA, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOf(seriesB, D3LineSeriesData);
+
+    let data = seriesA.data.filter((dataA) => {
+      let index = seriesB.data.findIndex((dataB) => {
+        return dataA.x == dataB.x;
+      });
+
+      return index != -1;
+    });
+
+    return data;
+  }
+
+  /**
+   * Given two D3LineSeriesData, find the common Y values and return
+   *    an array of XY pairs that were in common. 
+   *  
+   * @param {D3LineSeriesData} seriesA First series
+   * @param {D3LineSeriesData} seriesB Second series
+   * @return {Array<D3XYPair>} The array of common XY pairs
+   */
+  static intersectionY(seriesA, seriesB) {
+    Preconditions.checkArgumentInstanceOf(seriesA, D3LineSeriesData);
+    Preconditions.checkArgumentInstanceOf(seriesB, D3LineSeriesData);
+
+    let data = seriesA.data.filter((dataA) => {
+      let index = seriesB.data.findIndex((dataB) => {
+        return dataA.y == dataB.y;
+      });
+
+      return index != -1;
+    });
+
+    return data;
+  }
+
+  /**
+   * Check to see if all X values are null
+   */
+  checkXValuesNull() {
+    return this.data.every((xyPair) => {
+      return xyPair.x == null; 
+    });
+  }
+
+  /**
+   * Check to see if all Y values are null
+   */
+  checkYValuesNull() {
+    return this.data.every((xyPair) => {
+      return xyPair.y == null; 
+    });
+  }
+
+  /**
    * Remove all values under a cut off Y value.
    * 
    * @param {Number} yMinCuttOff The cut off value
    */
   removeSmallValues(yMinCuttOff) {
     Preconditions.checkArgumentNumber(yMinCuttOff);
-    this.yValues.map((y) => { return y <= yMinCuttOff ? null : y; });
 
-    this.data.map((xyPair) => {
-      if (xyPair.y <= yMinCuttOff) xyPair.y = null;
-      return xyPair;
-    })
+    this.data = this.data.filter((xyPair) => {
+      return xyPair.y > yMinCuttOff;
+    });
   }
 
 }
