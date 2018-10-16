@@ -63,7 +63,7 @@ export class DynamicCompare extends Hazard {
   /** @param {!Config} config - The config file */
   constructor(config) {
     let webApp = 'DynamicCompare';
-    let webServiceUrl = '/nshmp-haz-ws/source/models';
+    let webServiceUrl = '/nshmp-haz-ws/haz';
     super(webApp, webServiceUrl, config);
     this.header.setTitle('Dynamic Compare');
 
@@ -296,7 +296,7 @@ export class DynamicCompare extends Hazard {
 
     for (let hazardResponse of hazardResponses) {
       let response = hazardResponse.getResponse(imt);
-      spectrum.push(response.toResponseSpectrum('Total', returnPeriod));
+      spectrum.push(response.calculateResponseSpectrum('Total', returnPeriod));
     }
 
     return Tools.percentDifference(spectrum[0], spectrum[1]);
@@ -615,10 +615,7 @@ export class DynamicCompare extends Hazard {
       let response = hazardResponse.getResponse(this.imtEl.value);
       let xValues = response.metadata.xValues;
 
-      let modelValue = response.metadata.model;
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue;
-      });
+      let model = response.metadata.model;
 
       for (let componentData of response.getDataComponents()) {
         let yValues = componentData.yValues;
@@ -690,10 +687,7 @@ export class DynamicCompare extends Hazard {
       let xValues = response.metadata.xValues;
       let yValues = totalHazardData.yValues;
 
-      let modelValue = response.metadata.model;
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue;
-      });
+      let model = response.metadata.model;
 
       let lineOptions = D3LineOptions.builder()
           .id(model.value)
@@ -802,10 +796,7 @@ export class DynamicCompare extends Hazard {
       let xValues = spectra[0];
       let yValues = spectra[1];
 
-      let modelValue = hazardResponse.response[0].metadata.model; 
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue; 
-      });
+      let model = hazardResponse.response[0].metadata.model; 
 
       let iPGA = xValues.indexOf(Tools.imtToValue('PGA')); 
       let pgaX = xValues.splice(iPGA, 1);
@@ -910,10 +901,7 @@ export class DynamicCompare extends Hazard {
           .xLimit(xLimit)
           .yLimit(yLimit);
 
-      let modelValue = hazardResponse.response[0].metadata.model; 
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue; 
-      });
+      let model = hazardResponse.response[0].metadata.model; 
 
       for (let componentData of spectra.getDataComponents()) {
         let xValues = componentData.xValues;
