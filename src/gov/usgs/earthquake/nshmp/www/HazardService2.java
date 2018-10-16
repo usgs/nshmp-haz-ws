@@ -45,6 +45,7 @@ import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
+import gov.usgs.earthquake.nshmp.www.SourceServices.SourceModel;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 
@@ -224,7 +225,7 @@ public final class HazardService2 extends NshmpServlet {
 
   private static final class ResponseData {
 
-    final Model model;
+    final SourceModel model;
     final double latitude;
     final double longitude;
     final Imt imt;
@@ -234,7 +235,7 @@ public final class HazardService2 extends NshmpServlet {
     final List<Double> xvalues;
 
     ResponseData(RequestData request, Imt imt, List<Double> xvalues) {
-      this.model = request.model;
+      this.model = new SourceModel(request.model);
       this.latitude = request.latitude;
       this.longitude = request.longitude;
       this.imt = imt;
