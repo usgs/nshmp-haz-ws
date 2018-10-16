@@ -1,75 +1,75 @@
-'use strict';
+
+import { D3LineData } from './d3/data/D3LineData.js';
+import { D3LineLegendOptions } from './d3/options/D3LineLegendOptions.js';
+import { D3LineOptions } from './d3/options/D3LineOptions.js';
+import { D3LinePlot } from './d3/D3LinePlot.js';
+import { D3LineSeriesData } from './d3/data/D3LineSeriesData.js';
+import { D3LineSubView } from './d3/view/D3LineSubView.js';
+import { D3LineSubViewOptions } from './d3/options/D3LineSubViewOptions.js';
+import { D3LineView } from './d3/view/D3LineView.js';
+import { D3LineViewOptions } from './d3/options/D3LineViewOptions.js';
+import { D3TextOptions } from './d3/options/D3TextOptions.js';
+
+import { Hazard } from './lib/HazardNew.js';
+import { HazardServiceResponse } from './response/HazardServiceResponse.js';
 
 import Constraints from './lib/Constraints.js';
-import D3LinePlot from './lib/D3LinePlot.js';
-import Hazard from './lib/HazardNew.js';
 import LeafletTestSitePicker from './lib/LeafletTestSitePicker.js';
 import NshmpError from './error/NshmpError.js';
+import { Preconditions } from './error/Preconditions.js';
 import Tools from './lib/Tools.js';
 
 /**
-* @class DynamicCompare
-*
-* @fileoverview Class for the dynamic compare webpage, dynamic-compare.html.
-*
-* This class contains two plot panels with the following plots:
-*     first panel: 
-*         - Model comparison of ground motion Vs. annual frequency of exceedence 
-*         - Percent difference between the models
-*     second panel: 
-*         - Response spectrum of the models
-*         - Percent difference of the response spectrum
-*
-* The class first class out to the source model webservice, 
-*     nshmp-haz-ws/source/models, to get the usage and build the 
-*     following menus: 
-*         - Model
-*         - Second Model
-*         - IMT
-*         - Vs30
-* 
-* The IMT and Vs30 menus are created by the common supported values
-*     between the two selected models.
-* 
-* Bootstrap tooltips are created and updated for the latitude, longitude,
-*     and return period inputs.
-* 
-* The inputs, latitude, longitude, and return period, are monitored. If 
-*     a bad or out of range value is entered the update button will 
-*     remain disabled. Once all inputs are correctly entered the update
-*     button or enter can be pressed to render the results.
-* 
-* The return period allowable minimum and maximum values are updated
-*     based on the choosen models such that the response spectrum
-*     is defined for the entire bounds for both models. 
-*
-* The results are rendered using the D3View and D3LinePlot classes.
-* 
-* @author Brandon Clayton
-*/
-export default class DynamicCompare extends Hazard {
+ * @fileoverview Class for the dynamic compare webpage, dynamic-compare.html.
+ *
+ * This class contains two plot panels with the following plots:
+ *     first panel: 
+ *         - Model comparison of ground motion Vs. annual frequency of exceedence 
+ *         - Percent difference between the models
+ *     second panel: 
+ *         - Response spectrum of the models
+ *         - Percent difference of the response spectrum
+ *
+ * The class first class out to the source model webservice, 
+ *     nshmp-haz-ws/source/models, to get the usage and build the 
+ *     following menus: 
+ *         - Model
+ *         - Second Model
+ *         - IMT
+ *         - Vs30
+ * 
+ * The IMT and Vs30 menus are created by the common supported values
+ *     between the two selected models.
+ * 
+ * Bootstrap tooltips are created and updated for the latitude, longitude,
+ *     and return period inputs.
+ * 
+ * The inputs, latitude, longitude, and return period, are monitored. If 
+ *     a bad or out of range value is entered the update button will 
+ *     remain disabled. Once all inputs are correctly entered the update
+ *     button or enter can be pressed to render the results.
+ * 
+ * The return period allowable minimum and maximum values are updated
+ *     based on the choosen models such that the response spectrum
+ *     is defined for the entire bounds for both models. 
+ *
+ * The results are rendered using the D3 package. 
+ *
+ * @class DynamicCompare
+ * @author Brandon Clayton
+ */
+export class DynamicCompare extends Hazard {
 
   /** @param {!Config} config - The config file */
   constructor(config) {
     let webApp = 'DynamicCompare';
-    let webServiceUrl = '/nshmp-haz-ws/source/models';
+    let webServiceUrl = '/nshmp-haz-ws/haz';
     super(webApp, webServiceUrl, config);
     this.header.setTitle('Dynamic Compare');
 
-    /**
-    * @typedef {Object} DynamicCompareOptions
-    * @property {String} defaultFirstModel - The default selected first model
-    * @property {String} defaultSecondModel - The default selected second model
-    * @property {String} defaultImt - The default selected IMT.
-    *     If this IMT is not available, IMT will default to another value.
-    * @property {Number} defaultTimeHorizon - The default time horizon.
-    * @property {Number} defaultVs30 - The default vs30 value.
-    *     If this vs30 value is not available, vs30 will default to another
-    *     value;
-    */
     this.options = {
-      defaultFirstModel: 'WUS_2008',
-      defaultSecondModel: 'WUS_2014',
+      defaultFirstModel: 'WUS_2014',
+      defaultSecondModel: 'WUS_2018',
       defaultImt: 'PGA',
       defaultReturnPeriod: 2475,
       defaultVs30: 760,
@@ -77,25 +77,46 @@ export default class DynamicCompare extends Hazard {
 
     /** @type {HTMLElement} */
     this.contentEl = document.querySelector('#content');
+
     /** @type {HTMLElement} */
     this.firstModelEl = document.querySelector('#first-model');
+    
     /** @type {HTMLElement} */
     this.secondModelEl = document.querySelector('#second-model'); 
+    
     /** @type {HTMLElement} */
     this.modelsEl = document.querySelector('.model');
+    
     /** @type {HTMLElement} */
     this.testSitePickerBtnEl = document.querySelector('#test-site-picker');
+    
     /** @type {Object} */
     this.comparableModels = undefined;
    
     /* Get webservice usage */ 
     this.getUsage();
 
-    /** @type {D3LinePlot} */
-    this.spectraPlot = this.plotSetupSpectra();
-    /** @type {D3LinePlot} */
-    this.hazardPlot = this.plotSetupHazard();
-     
+    /** X-axis domain for spectra plots - @type {Array<Number} */
+    this.spectraXDomain = [0.001, 10.0];
+
+    /* Spectra plot setup */
+    this.spectraView = this.setupSpectraView();
+    this.spectraLinePlot = new D3LinePlot(this.spectraView);
+    this.spectraLinePlot.plotZeroRefLine(this.spectraView.lowerSubView);
+
+    /* Hazard curve plot setup */
+    this.hazardView = this.setupHazardView();
+    this.hazardLinePlot = new D3LinePlot(this.hazardView);
+    this.hazardLinePlot.plotZeroRefLine(this.hazardView.lowerSubView);
+
+    /* Spectra component curves setup */
+    this.spectraComponentView = this.setupSpectraComponentView();
+    this.spectraComponentLinePlot = new D3LinePlot(this.spectraComponentView);
+
+    /* Hazard component curves setup */
+    this.hazardComponentView = this.setupHazardComponentView();
+    this.hazardComponentLinePlot = new D3LinePlot(this.hazardComponentView);
+
     /* Check latitude values on change */
     $(this.latEl).on('input', (event) => {
       this.onCoordinate(event);
@@ -109,9 +130,6 @@ export default class DynamicCompare extends Hazard {
     /* Listen for input changes */ 
     this.footer.onInput(this.inputsEl, this.footerOptions);
  
-    /* Listen for return period to change */ 
-    this.onReturnPeriodChange();
-
     /* @type {LeafletTestSitePicker} */
     this.testSitePicker = new LeafletTestSitePicker(
         this.latEl,
@@ -126,17 +144,12 @@ export default class DynamicCompare extends Hazard {
       
       this.testSitePicker.plotMap(model.region);
     });
-
-    /** X-axis domain for spectra plots - @type {Array<Number} */
-    this.spectraXDomain = [0.01, 10.0];
   }
 
   /**
-  * @method addInputTooltip
-  *
-  * Add an input tooltip for latitude, longitude, and return period 
-  *     using Constraints.addTooltip.
-  */
+   * Add an input tooltip for latitude, longitude, and return period 
+   *     using Constraints.addTooltip.
+   */
   addInputTooltip() {
     let model = Tools.stringToParameter(
         this.parameters.models,
@@ -164,10 +177,45 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method buildInputs
-  *
-  * Process usage response from nshmp-haz-ws/source/models and set menus.
-  */
+   * Add text with the ground motion difference.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   * @param {D3LineSubView} subView The sub view
+   * @returns {SVGElement} The text element
+   */
+  addGroundMotionDifferenceText(hazardResponses, subView) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses,
+        HazardServiceResponse);
+
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    let timeHorizon = this.returnPeriodEl.value;
+    let returnPeriod = 1 / timeHorizon;
+    let percentDifference = this.getGroundMotionDifference(hazardResponses);
+
+    let xMax = this.hazardLinePlot.getXDomain(subView)[1];
+    let text = `${timeHorizon} years, % diff = ${percentDifference}`;
+    
+    let textOptions = D3TextOptions.builder()
+        .dy(10)
+        .fontSize(18)
+        .textAnchor('end')
+        .build();
+
+    let textEl = this.hazardLinePlot.addText(
+        subView,
+        xMax,
+        returnPeriod,
+        text,
+        textOptions);
+
+    return textEl;
+  }
+
+  /**
+   * Process usage response from nshmp-haz-ws/source/models and set menus.
+   */
   buildInputs() {
     this.spinner.off();
     this.setComparableModels();
@@ -191,11 +239,9 @@ export default class DynamicCompare extends Hazard {
   }
   
   /**
-  * @method checkQuery
-  *
-  * Check the current hash part of the URL for parameters, if they
-  *     exist plot the results. 
-  */
+   * Check the current hash part of the URL for parameters, if they
+   *     exist plot the results. 
+   */
   checkQuery() {
     let url = window.location.hash.substring(1);
     let urlObject = Tools.urlQueryStringToObject(url);
@@ -221,7 +267,7 @@ export default class DynamicCompare extends Hazard {
     /* Trigger events to update tooltips */
     $(this.latEl).trigger('input');
     $(this.lonEl).trigger('input'); 
-    $(this.returnPeriodEl).trigger('input'); 
+    this.onReturnPeriodInput();
     this.addInputTooltip();
 
     /* Get and plot results */
@@ -233,8 +279,65 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
+   * Calculate the ground motion difference. 
+   * 
+   * @param {Array<HazardServiceResponse>} hazardResponses The responses
+   */
+  getGroundMotionDifference(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses,
+        HazardServiceResponse);
+
+    let spectrum = [];
+    let imt = this.imtEl.value;
+
+    let timeHorizon = this.returnPeriodEl.value;
+    let returnPeriod = 1 / timeHorizon;
+
+    for (let hazardResponse of hazardResponses) {
+      let response = hazardResponse.getResponse(imt);
+      spectrum.push(response.calculateResponseSpectrum('Total', returnPeriod));
+    }
+
+    return Tools.percentDifference(spectrum[0], spectrum[1]);
+  }
+
+  /**
+   * Return the Y limit for the hazard curves.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   * @param {String} imt The IMT 
+   * @returns {Array<Number>} The Y limit
+   */
+  getHazardCurvesYLimit(hazardResponses, imt) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    Preconditions.checkArgumentString(imt);
+
+    let yValues = [];
+
+    for (let hazardResponse of hazardResponses) {
+      let response = hazardResponse.getResponse(imt);
+  
+      for (let data of response.data) {
+        yValues.push(data.yValues);
+      }
+    }
+
+    yValues = d3.merge(yValues).filter((y) => { return y > this.Y_MIN_CUTOFF; });
+
+    let min = d3.min(yValues);
+    let max = d3.max(yValues);
+
+    return [ min, max ];
+  }
+
+  /**
    * Get the metadata, associated with the hazard plots,
    *     about the selected parameters in the control panel.
+   * 
    * @return {Map<String, Array<String>>} The metadata Map
    */
   getMetadataHazard() {
@@ -256,6 +359,7 @@ export default class DynamicCompare extends Hazard {
   /**
    * Get the metadata, associated with the response spectra plots,
    *     about the selected parameters in the control panel.
+   * 
    * @return {Map<String, Array<String>>} The metadata Map
    */
   getMetadataSpectra() {
@@ -275,48 +379,112 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method getResponseSpectraExtremes
-  */
-  getResponseSpectraExtremes(results) {
+   * Calculate the percent difference of the models.
+   * 
+   * @param {D3LineSubView} subView The sub view for the line data
+   * @param {D3LineData} lineData The hazard line data 
+   * @param {Array<Number>} xLimit The X limit for the data
+   * @returns {D3LineData} The percent difference line data
+   */
+  getModelDifferenceData(subView, lineData, xLimit) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentArrayOf(xLimit, 'number');
+
+    let firstModelSeries = lineData.series.find((series) => {
+      return series.lineOptions.id == this.firstModelEl.value;
+    });
+
+    let secondModelSeries = lineData.series.find((series) => {
+      return series.lineOptions.id == this.secondModelEl.value;
+    });
+
+    let firstModelData = D3LineSeriesData.intersectionX(
+        firstModelSeries,
+        secondModelSeries);
+
+    let secondModelData = D3LineSeriesData.intersectionX(
+        secondModelSeries,
+        firstModelSeries);
+
+    let firstModelYValues = firstModelData.map((xyPair) => { 
+      return xyPair.y; 
+    });
+
+    let secondModelYValues = secondModelData.map((xyPair) => { 
+      return xyPair.y; 
+    });
+
+    let xValues = firstModelData.map((xyPair) => { 
+      return xyPair.x;
+    });
+
+    let yValues = Tools.percentDifferenceArray(
+        firstModelYValues,
+        secondModelYValues);
+    
+    let maxVal = d3.max(yValues, (/** @type {Number} */ y) => { 
+      return Math.abs(y); 
+    });
+
+    let yLimit = [-maxVal, maxVal];
+
+    let selectedFirstModel = $(':selected', this.firstModelEl).text();
+    let selectedSecondModel = $(':selected', this.secondModelEl).text();
+
+    let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
+
+    let lineOptions = D3LineOptions.builder()
+        .label(label)
+        .id('plot-difference')
+        .build();
+
+    let diffData = D3LineData.builder()
+        .subView(subView)
+        .data(xValues, yValues, lineOptions)
+        .xLimit(xLimit)
+        .yLimit(yLimit)
+        .build();
+
+    return diffData;
+  }
+
+  /**
+   * Return the Y limit for the response spectrum.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   * @returns {Array<Number>} The Y limit
+   */
+  getResponseSpectraYLimit(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
     let minReturnPeriod = 1 / this.parameters.returnPeriod.values.maximum; 
     let maxReturnPeriod = 1 / this.parameters.returnPeriod.values.minimum; 
-    let supportedValues = this.modelSupports('imt');
     
-    let spectraGm = []; 
-    for (let returnPeriod of [minReturnPeriod, maxReturnPeriod]) {
-      for (let result of results) {
-        let responses = result.response.filter((response) => {
-          return supportedValues.find((sp) => {
-            return sp.value == response.metadata.imt.value;
-          });
-        });
-        
-        for (let response of responses) {
-          let imt = response.metadata.imt.value;
-          let xValues = response.metadata.xvalues;
-          let data = response.data.filter((data) => {
-            return data.component == 'Total';
-          })[0];
-          
-          let values = data.yvalues.filter((val) => {
-            return val > returnPeriod;
-          });
-          let index = data.yvalues.indexOf(values.pop());
-          
-          let x0 = xValues[index];
-          let x1 = xValues[index + 1];
-          let y0 = data.yvalues[index];
-          let y1 = data.yvalues[index + 1];
-          
-          let gm = Tools
-              .returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
-          gm = isNaN(gm) ? null : Number(gm.toFixed(6));
-          spectraGm.push(gm);
-        }
+    let spectras = [];
+
+    for (let hazardResponse of hazardResponses) {
+      let spectraMin = hazardResponse.toResponseSpectrum(minReturnPeriod);
+      let spectraMax = hazardResponse.toResponseSpectrum(maxReturnPeriod);
+
+      spectras.push(spectraMin);
+      spectras.push(spectraMax);
+    }
+
+    let yValues = [];
+
+    for (let spectra of spectras) {
+      for (let data of spectra.data) {
+        yValues.push(data.yValues);
       }
-    } 
-    let maxSpectraGm = d3.max(spectraGm);
-    let minSpectraGm = d3.min(spectraGm);
+    }
+
+    yValues = d3.merge(yValues).filter((y) => { return y > this.Y_MIN_CUTOFF; });
+
+    let maxSpectraGm = d3.max(yValues);
+    let minSpectraGm = d3.min(yValues);
 
     maxSpectraGm = isNaN(maxSpectraGm) ? 1.0 : maxSpectraGm;
     minSpectraGm = isNaN(minSpectraGm) ? 1e-4 : minSpectraGm;
@@ -325,40 +493,11 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method modelSupports
-  *
-  * Find the supported IMT or Vs30 values between the two selected models.
-  * @param {String} param -  The parameters to search, 'imt' || 'vs30'.
-  * @return {Object} The supported values from the usage. Output 
-  *     from Tools.supportedParameters
-  */
-  modelSupports(param) {
-    let firstModel = Tools.stringToParameter(
-        this.parameters.models,
-        this.firstModelEl.value);
-    
-    let secondModel = Tools.stringToParameter(
-        this.parameters.models,
-        this.secondModelEl.value);
-    
-    let supports = [];
-    supports.push(firstModel.supports[param]);
-    supports.push(secondModel.supports[param]);
-    
-    let supportedValues = Tools.supportedParameters(
-        this.parameters[param],
-        supports);
-    
-    return supportedValues;
-  }
-
-  /**
-  * @method onCoordinate 
-  *
-  * On longitude or latitude input, check that the coordinate values 
-  *     input are good values.
-  * @param {Event} event - The event that triggered the input.
-  */
+   * On longitude or latitude input, check that the coordinate values 
+   *     input are good values.
+   * 
+   * @param {Event} event - The event that triggered the input.
+   */
   onCoordinate(event) {
     let model = Tools.stringToParameter(
         this.parameters.models,
@@ -369,10 +508,8 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method onFirstModelChange
-  *
-  * Update menus when the first model select menu is changed.
-  */
+   * Update menus when the first model select menu is changed.
+   */
   onFirstModelChange() {
     $(this.firstModelEl).on('change', (event) => {
       this.setSecondModelMenu();
@@ -385,96 +522,121 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method onImtChange 
-  *
-  * Update plot to new IMT on change.
-  */
-  onImtChange(results) {
-    let imtValue;
-    $(this.imtEl).on('change', (event) => {
-      if (imtValue != this.imtEl.value) {
-        this.plotHazardCurves(results);
+   * Handler to update the hazard plots on IMT change.
+   * 
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  onIMTChange(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    this.plotHazardCurves(hazardResponses);
+    this.plotHazardComponentCurves(hazardResponses);
+  }
+
+  /**
+   * Handler to update the plots when the return period is changed.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  onReturnPeriodChange(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    this.serializeUrls();
+    this.plotResponseSpectrum(hazardResponses);
+    this.plotResponseSpectrumComponents(hazardResponses);
+
+    this.plotHazardCurves(hazardResponses);
+    this.plotHazardComponentCurves(hazardResponses);
+  }
+
+  /**
+   * Handler for the return period line being dragged on the hazard curve plot.
+   * 
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   * @param {D3LineSubView} subView The sub view
+   * @param {Number} returnPeriod The return period
+   * @param {SVGElement} textEl The return period difference text element
+   */
+  onReturnPeriodDrag(hazardResponses, subView, textEl, returnPeriod) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses,
+        HazardServiceResponse);
+
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOfSVGElement(textEl);
+    Preconditions.checkArgumentNumber(returnPeriod);
+
+    let timeHorizon = 1 / returnPeriod;
+    timeHorizon = Number(timeHorizon.toFixed(2));
+    this.returnPeriodEl.value = timeHorizon;
+
+    this.checkReturnPeriodButtons();
+
+    this.plotResponseSpectrum(hazardResponses);
+    this.plotResponseSpectrumComponents(hazardResponses);
+    this.updateGroundMotionDifferenceText(hazardResponses, subView, textEl);
+    
+    this.serializeUrls();
+  }
+
+  /**
+   * Plot the hazard comonent curves.
+   * 
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  plotHazardComponentCurves(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    let subView = this.hazardComponentView.upperSubView;
+
+    this.hazardComponentLinePlot.clear(subView);
+
+    let yLimit = this.getHazardCurvesYLimit(hazardResponses, this.imtEl.value);
+
+    let lineData = [];
+    let lineStyles = [ '-', '--' ];
+
+    for (let index in hazardResponses) {
+      let hazardResponse = hazardResponses[index];
+
+      let lineStyle = lineStyles[index];
+
+      let dataBuilder = D3LineData.builder()
+          .subView(subView)
+          .removeSmallValues(this.Y_MIN_CUTOFF)
+          .yLimit(yLimit);
+
+      let response = hazardResponse.getResponse(this.imtEl.value);
+      let xValues = response.metadata.xValues;
+
+      let model = response.metadata.model;
+
+      for (let componentData of response.getDataComponents()) {
+        let yValues = componentData.yValues;
+        
+        let lineOptions = D3LineOptions.builder()
+            .color(Tools.hazardComponentToColor(componentData.component))
+            .id(`${model.value}-${componentData.component}`)
+            .label(`${model.year} ${model.region}: ${componentData.component}`)
+            .lineStyle(lineStyle)
+            .build();
+
+        dataBuilder.data(xValues, yValues, lineOptions);
       }
-      imtValue = this.imtEl.value;
-    });
-  }
 
-  /**
-  * @method onReturnPeriodDrag
-  *
-  * When the return period line is being draged it will trigger a 
-  *   change on the svg element. Once triggerd, the return period 
-  *   value is updated in the control panel.
-  * This will then trigger an input event so that the response spectrum can 
-  *     be updated.
-  */
-  onReturnPeriodDrag() {
-    let d3ReturnPeriodEl = d3.select(this.hazardPlot.upperPanel.plotEl)
-        .select('.return-period')
-        .node();
-
-    $(d3ReturnPeriodEl).on('change', (event) => {
-      let timeHorizon = parseInt(this.hazardPlot.upperPanel.timeHorizon);
-      this.returnPeriodEl.value = timeHorizon; 
-      $(this.returnPeriodEl).trigger('input');
-    });
-  }
-
-  /**
-  * Listen for a data point to be clicked and update the 
-  *     hazard curves to that IMT.
-  */ 
-  onSpectraPlotImtClick(panel) {
-    d3.select(panel.allDataEl)
-        .selectAll('.data')
-        .selectAll('circle')
-        .on('click', (d, i, els) => {
-          let imtVal = d[0];
-          let imt = Tools.valueToImt(imtVal);
-          this.imtEl.value = imt;
-          $(this.imtEl).trigger('change');
-        });
-  }
-  
-  /**
-  * @method plotHazardCurves
-  *
-  * Plot the hazard curves of the selected models.
-  */
-  plotHazardCurves(results) {
-    let metadata = this.getMetadataHazard();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [results[0].date]);
-
-    let seriesData = [];
-    let seriesIds = [];  
-    let seriesLabels = [];
-
-    for (let result of results) {
-      let response = result.response.find((response) => {
-        return response.metadata.imt.value == this.imtEl.value;
-      });
-      
-      let xValues = response.metadata.xvalues;
-      
-      let totalData = response.data.find((data) => {
-        return data.component == 'Total';
-      });
-
-      let yValues = totalData.yvalues;
-
-      let modelValue = response.metadata.model;
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue;
-      });
-
-      seriesData.push(d3.zip(xValues, yValues));
-      seriesLabels.push(model.display);
-      seriesIds.push(model.value);
+      lineData.push(dataBuilder.build());
     }
 
-    let xLabel = results[0].response[0].metadata.xlabel;
-    let yLabel = results[0].response[0].metadata.ylabel;
+    let hazardComponentData = D3LineData.of(...lineData); 
+
+    this.hazardComponentLinePlot.plot(hazardComponentData);
+
     let imt = $(':selected', this.imtEl).text();
     let vs30 = $(':selected', this.vs30El).text();
     
@@ -483,170 +645,197 @@ export default class DynamicCompare extends Hazard {
         this.firstModelEl.value);
     
     let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
+    let title = `Hazard Component Curves: ${siteTitle}, ${imt}, ${vs30}`;
 
-    let selectedFirstModel = $(':selected', this.firstModelEl).val();
-    let selectedSecondModel = $(':selected', this.secondModelEl).val();
-    
-    let title = siteTitle + ', ' + imt + ', ' + vs30;
+    this.hazardComponentView.setTitle(title);
 
-    let filename = 'dynamicCompare-' + 
-        this.firstModelEl.value + '-' + 
-        this.secondModelEl.value;
+    let metadata = this.getMetadataHazard();
+    this.hazardComponentView.setMetadata(metadata);
+    this.hazardComponentView.createMetadataTable();
 
-    this.hazardPlot.setPlotTitle(title)
-        .setMetadata(metadata)
-        .setTimeHorizonUsage(this.parameters.returnPeriod)
-        .setUpperData(seriesData)
-        .setUpperDataTableTitle('Hazard')
-        .setUpperPlotFilename(filename)
-        .setUpperPlotIds(seriesIds)
-        .setUpperPlotLabels(seriesLabels)
-        .setUpperTimeHorizon(this.returnPeriodEl.value)
-        .setUpperXLabel(xLabel)
-        .setUpperYLabel(yLabel)
-        .removeSmallValues(this.hazardPlot.upperPanel, 1e-16)
-        .plotData(this.hazardPlot.upperPanel);
-    
-    this.plotReturnPeriodDifference(seriesData);
-    this.plotModelDifference(seriesData);
-    
-    /* Update response spectrum and return period plot */      
-    $(this.returnPeriodEl).on('change input', (event) => {
-      this.serializeUrls();
-      this.plotReturnPeriodDifference(seriesData);
-      this.plotResponseSpectrum(results);
-      this.hazardPlot
-          .setUpperTimeHorizon(this.returnPeriodEl.value)
-          .plotReturnPeriod(this.hazardPlot.upperPanel);
-    });
-    
-    let returnPeriodLineEl = d3.select(this.hazardPlot.upperPanel.plotEl)
-        .select('.return-period')
-        .node();
-    
-    /* Update return period text when axis is changed */   
-    
-    $(returnPeriodLineEl).on('axisChange', (event) => {
-      this.plotReturnPeriodDifference(seriesData);
-    });
+    this.hazardComponentView.setSaveData(hazardComponentData);
+    this.hazardComponentView.createDataTable(hazardComponentData);
   }
 
   /**
-  * @method plotModelDifference
-  *
-  * Calculate the percent difference of the selected models and 
-  *     plot.
-  */
-  plotModelDifference(hazardData) {
-    let firstModel = hazardData[0];
-    let secondModel = hazardData[1];
-    let yValues = [];
-    let xValues = [];
-    for (let i in firstModel) {
-      let xValFirst = firstModel[i][0];
-      let xValSecond = secondModel[i][0];
-      let yValFirst = firstModel[i][1];
-      let yValSecond = secondModel[i][1];
-      
-      if (xValFirst == null) continue;
+   * Plot the total hazard curve.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  plotHazardCurves(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
 
-      let xyPair = secondModel.find((val) => {
-        return xValFirst == val[0];
-      });
-      
-      if (xyPair != undefined || xyPair != null) {
-        let diff = Tools.percentDifference(yValFirst, yValSecond); 
-        if (!isNaN(diff) && diff != null) {
-          xValues.push(xyPair[0]);
-          yValues.push(Number(diff.toFixed(4))); 
-        }
-      }
+    let subView = this.hazardView.upperSubView;
+
+    this.hazardLinePlot.clear(subView);
+
+    let metadata = this.getMetadataHazard();
+
+    let yLimit = this.getHazardCurvesYLimit(hazardResponses, this.imtEl.value);
+
+    let dataBuilder = D3LineData.builder()
+        .subView(subView)
+        .removeSmallValues(this.Y_MIN_CUTOFF)
+        .yLimit(yLimit);
+
+    for (let hazardResponse of hazardResponses) {
+      let response = hazardResponse.getResponse(this.imtEl.value);
+      let totalHazardData = response.getDataComponent('Total');
+
+      let xValues = response.metadata.xValues;
+      let yValues = totalHazardData.yValues;
+
+      let model = response.metadata.model;
+
+      let lineOptions = D3LineOptions.builder()
+          .id(model.value)
+          .label(model.display)
+          .build();
+
+      dataBuilder.data(xValues, yValues, lineOptions);
     }
     
-    let maxVal = d3.max(yValues, (d) => { return Math.abs(d) });
-    let seriesData = [];
-    seriesData.push(d3.zip(xValues, yValues)); 
-    let selectedFirstModel = $(':selected', this.firstModelEl).text();
-    let selectedSecondModel = $(':selected', this.secondModelEl).text();
+    let hazardData = dataBuilder.build();
 
-    let filename = 'dynamicCompareDiff-' + 
-        this.firstModelEl.value + '-' + 
-        this.secondModelEl.value;
+    this.hazardLinePlot.plot(hazardData);
 
-    let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
-    let xDomain = this.hazardPlot.upperPanel.xExtremes;
-    let yDomain = [-maxVal, maxVal];
+    let timeHorizon = this.returnPeriodEl.value;
+    let returnPeriod = 1 / timeHorizon;
 
-    this.hazardPlot.setLowerData(seriesData)
-        .setLowerDataTableTitle('Percent Difference')
-        .setLowerPlotFilename(filename)
-        .setLowerPlotIds(['percent-difference'])
-        .setLowerPlotLabels([label])
-        .setLowerXLabel(this.hazardPlot.upperPanel.xLabel)
-        .setLowerYLabel('% difference')
-        .plotData(this.hazardPlot.lowerPanel, xDomain, yDomain);
+    let returnPeriodPlotEl = this.hazardLinePlot.plotHorizontalRefLine(
+          subView,
+          returnPeriod);
+
+    let textEl = this.addGroundMotionDifferenceText(hazardResponses, subView);
+
+    let returnPeriodValues = this.parameters.returnPeriod.values;
+
+    let yLimitDrag = [ 
+        1 / returnPeriodValues.maximum,
+        1 / returnPeriodValues.minimum ];
+
+    this.hazardLinePlot.makeDraggableInY(
+        subView,
+        returnPeriodPlotEl,
+        yLimitDrag,
+        (returnPeriod) => {
+          this.onReturnPeriodDrag(
+              hazardResponses,
+              subView,
+              textEl,
+              returnPeriod);
+        });
+
+    let imt = $(':selected', this.imtEl).text();
+    let vs30 = $(':selected', this.vs30El).text();
+    
+    let model = Tools.stringToParameter(
+        this.parameters.models,
+        this.firstModelEl.value);
+    
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
+    let title = `Hazard Curves: ${siteTitle}, ${imt}, ${vs30}`;
+
+    this.hazardView.setTitle(title);
+
+    let hazardDiffData = this.plotHazardCurveDifference(hazardData);
+
+    this.hazardView.setMetadata(metadata);
+    this.hazardView.createMetadataTable();
+
+    this.hazardView.setSaveData(hazardData, hazardDiffData);
+    this.hazardView.createDataTable(hazardData, hazardDiffData);
   }
 
   /**
-  * @method plotResponseSpectrum
-  *
-  * Calculate the response spectrum and plot.
-  */
-  plotResponseSpectrum(results) {
-    let metadata = this.getMetadataSpectra();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [results[0].date]);
+   * Plot the total hazard curve difference.
+   *  
+   * @param {D3LineData} hazardData The hazard data
+   */
+  plotHazardCurveDifference(hazardData) {
+    let subView = this.hazardView.lowerSubView;
+
+    this.hazardLinePlot.clear(subView);
+
+    let xLimit = hazardData.getXLimit(); 
+
+    let hazardDiffData = this.getModelDifferenceData(subView, hazardData, xLimit);
+
+    this.hazardLinePlot.plot(hazardDiffData);
+    this.hazardLinePlot.plotZeroRefLine(subView);
+
+    return hazardDiffData;
+  }
+
+  /**
+   * Plot the response spectrum calculated from the total hazard component.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  plotResponseSpectrum(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    let subView = this.spectraView.upperSubView;
+
+    this.spectraLinePlot.clear(subView);
 
     let returnPeriod = 1 / this.returnPeriodEl.value; 
-    let seriesData = [];
-    let seriesLabels = [];
-    let seriesIds = [];
-    let supportedValues = this.modelSupports('imt');
 
-    for (let result of results) {
-      let spectraX = [];
-      let spectraY = [];
+    let dataBuilder = D3LineData.builder()
+        .subView(subView);
 
-      let responses = result.response.filter((response) => {
-        return supportedValues.find((sp) => {
-          return sp.value == response.metadata.imt.value;
-        });
-      });
-      
-      for (let response of responses) {
-        let imt = response.metadata.imt.value;
-        let xValues = response.metadata.xvalues;
-        let data = response.data.filter((data) => {
-          return data.component == 'Total';
-        })[0];
-        
-        let values = data.yvalues.filter((val) => {
-          return val > returnPeriod;
-        });
-        let index = data.yvalues.indexOf(values.pop());
-        
-        let x0 = xValues[index];
-        let x1 = xValues[index + 1];
-        let y0 = data.yvalues[index];
-        let y1 = data.yvalues[index + 1];
-        
-        let gm = Tools.returnPeriodInterpolation(x0, x1, y0, y1, returnPeriod);
-        gm = isNaN(gm) ? null : Number(gm.toFixed(6));
-        let per = imt == 'PGA' ? 'PGA' : Tools.imtToValue(imt);
-        spectraX.push(per);
-        spectraY.push(gm);
-      }
-     
-      let modelValue = result.response[0].metadata.model;
-      let model = this.parameters.models.values.find((model) => {
-        return model.value == modelValue; 
-      });
+    let pgaBuilder = D3LineData.builder()
+        .subView(subView);
 
-      seriesData.push(d3.zip(spectraX, spectraY));
-      seriesLabels.push(model.display);
-      seriesIds.push(model.value);
+    for (let hazardResponse of hazardResponses) {
+      let spectra = hazardResponse.calculateResponseSpectrum('Total', returnPeriod);
+      let xValues = spectra[0];
+      let yValues = spectra[1];
+
+      let model = hazardResponse.response[0].metadata.model; 
+
+      let iPGA = xValues.indexOf(Tools.imtToValue('PGA')); 
+      let pgaX = xValues.splice(iPGA, 1);
+      let pgaY = yValues.splice(iPGA, 1);
+
+      let pgaOptions = D3LineOptions.builder()
+          .id(model.value)
+          .label(model.display)
+          .lineStyle('none')
+          .markerStyle('s')
+          .showInLegend(false)
+          .build();
+
+      pgaBuilder.data(pgaX, pgaY, pgaOptions, [ 'PGA' ]);
+
+      let lineOptions = D3LineOptions.builder()
+          .id(model.value)
+          .label(model.display)
+          .build();
+
+      dataBuilder.data(xValues, yValues, lineOptions);
     }
+   
+    let xLimit = this.spectraXDomain;
+    let yLimit = this.getResponseSpectraYLimit(hazardResponses);
     
+    let spectraLineData = dataBuilder
+        .xLimit(xLimit)
+        .yLimit(yLimit)
+        .build();
+
+    let spectraPGAData = pgaBuilder
+        .xLimit(xLimit)
+        .yLimit(yLimit)
+        .build();
+
+    this.spectraLinePlot.plot(spectraPGAData);
+    this.spectraLinePlot.plot(spectraLineData);
+
     let model = Tools.stringToParameter(
         this.parameters.models,
         this.firstModelEl.value);
@@ -654,231 +843,151 @@ export default class DynamicCompare extends Hazard {
     let vs30 = $(':selected', this.vs30El).text();
     let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
     
-    let title = 'Response Spectrum at ' + 
-        this.returnPeriodEl.value + ' years, ' +
-        siteTitle + ', ' + vs30;
-         
-    let xLabel = 'Spectral Period (s)';
-    let yLabel = results[0].response[0].metadata.xlabel;
+    let title = `Response Spectrum at ${this.returnPeriodEl.value}` + 
+        ` years, ${siteTitle}, ${vs30}`;
 
-    let filename = 'dynamicCompareSpectra-' + 
-        this.firstModelEl.value + '-' + 
-        this.secondModelEl.value; 
-    
-    let yDomain = this.getResponseSpectraExtremes(results);
-    this.spectraPlot.setPlotTitle(title)
-        .setMetadata(metadata)
-        .setUpperData(seriesData)
-        .setUpperDataTableTitle('Spectrum')
-        .setUpperPlotFilename(filename)
-        .setUpperPlotIds(seriesIds)
-        .setUpperPlotLabels(seriesLabels)
-        .setUpperXLabel(xLabel)
-        .setUpperYLabel(yLabel)
-        .plotData(this.spectraPlot.upperPanel, this.spectraXDomain, yDomain);
-    
-    this.plotResponseSpectrumDifference(seriesData);
+    this.spectraView.setTitle(title);
 
-    /* Update hazard curves on IMT click */
-    this.onSpectraPlotImtClick(this.spectraPlot.upperPanel);
+    let metadata = this.getMetadataSpectra();
+    this.spectraView.setMetadata(metadata);
+    this.spectraView.createMetadataTable();
+
+    let spectraDiffData = this.plotResponseSpectrumDifference(spectraLineData);
+
+    let spectraData = spectraPGAData.concat(spectraLineData); 
+    this.spectraView.createDataTable(spectraData, spectraDiffData);
+    this.spectraView.setSaveData(spectraData, spectraDiffData);
   }
 
   /**
-  * @method plotResponseSpectrumDifference
-  *
-  * Calculate the percent difference of the selected models and 
-  *     plot.
-  */
-  plotResponseSpectrumDifference(spectraData) {
-    let firstModel = spectraData[0];
-    let secondModel = spectraData[1];
-    let yValues = [];
-    let xValues = [];
+   * Plot the response spectrum component curves.
+   *  
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   */
+  plotResponseSpectrumComponents(hazardResponses) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    let subView = this.spectraComponentView.upperSubView;
+
+    this.spectraComponentLinePlot.clear(subView);
+
+    let returnPeriod = 1 / this.returnPeriodEl.value; 
+
+    let lineStyles = [ '-', '--' ];
+    let markerStyles = [ 's', '*' ]
+    let lineData = [];
+    let pgaData = [];
+
+    let xLimit = this.spectraXDomain;
+    let yLimit = this.getResponseSpectraYLimit(hazardResponses);
     
-    for (let i in firstModel) {
-      let xValFirst = firstModel[i][0];
-      let xValSecond = secondModel[i][0];
-      let yValFirst = firstModel[i][1];
-      let yValSecond = secondModel[i][1];
-     
-      let xVal = secondModel.find((val) => {
-        return xValFirst == val[0];
-      })[0];
-      
-      if (!isNaN(xVal) && xVal != null) {
-        let diff = Tools.percentDifference(yValFirst, yValSecond); 
-        if (!isNaN(diff)) {
-          xValues.push(xVal);
-          yValues.push(Number(diff.toFixed(4))); 
-        }
+    for (let index in hazardResponses) {
+      let hazardResponse = hazardResponses[index];
+
+      let lineStyle = lineStyles[index];
+      let markerStyle = markerStyles[index];
+
+      let spectra = hazardResponse.toResponseSpectrum(returnPeriod);
+
+      let dataBuilder = D3LineData.builder()
+          .subView(subView)
+          .xLimit(xLimit)
+          .yLimit(yLimit);
+
+      let pgaBuilder = D3LineData.builder()
+          .subView(subView)
+          .xLimit(xLimit)
+          .yLimit(yLimit);
+
+      let model = hazardResponse.response[0].metadata.model; 
+
+      for (let componentData of spectra.getDataComponents()) {
+        let xValues = componentData.xValues;
+        let yValues = componentData.yValues;
+        
+        let iPGA = xValues.indexOf(Tools.imtToValue('PGA')); 
+        let pgaX = xValues.splice(iPGA, 1);
+        let pgaY = yValues.splice(iPGA, 1);
+
+        let pgaOptions = D3LineOptions.builder()
+            .color(Tools.hazardComponentToColor(componentData.component))
+            .id(`${model.value}-${componentData.component}`)
+            .label(`${model.year} ${model.region}: ${componentData.component}`)
+            .lineStyle('none')
+            .markerStyle(markerStyle)
+            .showInLegend(false)
+            .build();
+
+        pgaBuilder.data(pgaX, pgaY, pgaOptions, [ 'PGA' ]);
+
+        let lineOptions = D3LineOptions.builder()
+            .color(Tools.hazardComponentToColor(componentData.component))
+            .id(`${model.value}-${componentData.component}`)
+            .label(`${model.year} ${model.region}: ${componentData.component}`)
+            .lineStyle(lineStyle)
+            .build();
+
+        dataBuilder.data(xValues, yValues, lineOptions);
       }
+
+      lineData.push(dataBuilder.build());
+      pgaData.push(pgaBuilder.build());
     }
+
+    let spectraComponentLineData = D3LineData.of(...lineData);
+    let spectraComponentPGAData = D3LineData.of(...pgaData);
+
+    this.spectraComponentLinePlot.plot(spectraComponentPGAData);
+    this.spectraComponentLinePlot.plot(spectraComponentLineData);
+
+    let model = Tools.stringToParameter(
+        this.parameters.models,
+        this.firstModelEl.value);
     
-    let maxVal = d3.max(yValues, (d) => { return Math.abs(d) });
+    let vs30 = $(':selected', this.vs30El).text();
+    let siteTitle = this.testSitePicker.getTestSiteTitle(model.region);
     
-    let seriesData = [];
-    seriesData.push(d3.zip(xValues, yValues)); 
+    let title = `Response Spectrum at ${this.returnPeriodEl.value}` + 
+        ` years, ${siteTitle}, ${vs30}`;
+
+    this.spectraComponentView.setTitle(title);
+
+    let metadata = this.getMetadataSpectra();
+    this.spectraComponentView.setMetadata(metadata);
+    this.spectraComponentView.createMetadataTable();
+
+    let spectraData = spectraComponentPGAData.concat(spectraComponentLineData); 
+    this.spectraComponentView.createDataTable(spectraData);
+    this.spectraComponentView.setSaveData(spectraData);
+  }
+
+  /**
+   * Plot the response spectrum percent difference.
+   *  
+   * @param {D3LineData} spectraData The spectra data
+   */
+  plotResponseSpectrumDifference(spectraData) {
+    let subView = this.spectraView.lowerSubView;
+
+    this.spectraLinePlot.clear(subView);
+
+    let spectraDiffData = this.getModelDifferenceData(
+        subView,
+        spectraData,
+        this.spectraXDomain);
+
+    this.spectraLinePlot.plot(spectraDiffData);
+    this.spectraLinePlot.plotZeroRefLine(subView);
      
-    let selectedFirstModel = $(':selected', this.firstModelEl).text();
-    let selectedSecondModel = $(':selected', this.secondModelEl).text();
-
-    let label = selectedFirstModel + ' Vs. ' + selectedSecondModel;  
-    let yDomain = [-maxVal, maxVal];
-
-    let filename = 'dynamicCompareSpectraDiff-' + 
-        this.firstModelEl.value + '-' + 
-        this.secondModelEl.value;
-    
-    this.spectraPlot.setLowerData(seriesData)
-        .setLowerDataTableTitle('Percent Difference')
-        .setLowerPlotFilename(filename)
-        .setLowerPlotIds(['percent-difference'])
-        .setLowerPlotLabels([label])
-        .setLowerXLabel(this.spectraPlot.upperPanel.xLabel)
-        .setLowerYLabel('% difference')
-        .plotData(this.spectraPlot.lowerPanel, this.spectraXDomain, yDomain);
-    
-    /* Update hazard curves on IMT click */
-    this.onSpectraPlotImtClick(this.spectraPlot.lowerPanel);
+    return spectraDiffData;
   }
 
   /**
-  * @method plotReturnPeriodDifference
-  *
-  */
-  plotReturnPeriodDifference(hazardData) {
-    let xyValues = Tools.d3XYDataToArrays(hazardData);
-    let returnPeriod = 1 / this.returnPeriodEl.value;
-    let gmInterpValues = [];
-
-    for (let modelData of xyValues) {
-      let values = modelData.yValues.filter((val) => {
-        return val > returnPeriod;
-      });
-      let index = modelData.yValues.indexOf(values.pop());
-      
-      let x0 = modelData.xValues[index]; 
-      let x1 = modelData.xValues[index + 1]; 
-      let y0 = modelData.yValues[index]; 
-      let y1 = modelData.yValues[index + 1]; 
-      
-      gmInterpValues.push(Tools.returnPeriodInterpolation(
-          x0, x1, y0, y1, returnPeriod));
-    }
-   
-    let percentDifference = Tools.percentDifference(
-        gmInterpValues[0],
-        gmInterpValues[1]);
-    
-    let xDomain = this.hazardPlot.upperPanel.xBounds.domain();
-    let xMax = xDomain[1];
-    
-    d3.select(this.hazardPlot.upperPanel.plotEl)
-        .select('.return-period')
-        .selectAll('text')
-        .remove();
-
-    let data = d3.zip([xMax], [returnPeriod]);
-    let text = this.returnPeriodEl.value + ' years, % Diff = ' + 
-        percentDifference.toFixed(4);
-
-    d3.select(this.hazardPlot.upperPanel.plotEl)
-        .select('.return-period')
-        .selectAll('text')
-        .data(data)
-        .enter()
-        .append('text')
-        .attr('x', this.hazardPlot.upperPanel.line.x())
-        .attr('y', this.hazardPlot.upperPanel.line.y())
-        .attr('dy', -10)
-        .attr('text-anchor', 'end')
-        .text(text);
-  }
-
-  /**
-  * @method plotSetupHazrd
-  *
-  * Set the plot options for hazard plots.
-  */
-  plotSetupHazard() {
-    let plotOptions = {
-      colSizeDefault: 'min',
-      plotLowerPanel: true,
-      syncXAxis: true,
-      syncYAxis: false,
-    };
-
-    let hazardTooltip = ['Model:', 'GM (g):', 'AFE:'];
-    let hazardOptions = {
-      legendLocation: 'bottomleft',
-      plotReturnPeriod: true,
-      tooltipText: hazardTooltip,
-      tooltipYToExponent: true,
-    };
-    
-    let diffTooltip = ['', 'GM (g):', '% difference:'];
-    let diffOptions = {
-      tooltipText: diffTooltip,
-      plotHeight: 224,
-      plotZeroReferenceLine: true,
-      showLegend: false,
-      yAxisScale: 'linear',
-    };
-    
-    return new D3LinePlot(
-        this.contentEl,
-        plotOptions,
-        hazardOptions,
-        diffOptions)
-        .withPlotHeader()
-        .withPlotFooter();
-  }
-
-  /**
-  * @method plotSetupSpectra
-  *
-  * Set the plot options for response spectra plot.
-  */
-  plotSetupSpectra() {
-    let plotOptions = {
-      colSizeDefault: 'min',
-      plotLowerPanel: true,
-      syncXAxis: true,
-      syncYAxis: false,
-      xAxisScale: 'log',
-    };
-
-    let spectraTooltip = ['Model:', 'Period (s):', 'GM (g):'];
-    let spectraOptions = {
-      legendLocation: 'topright',
-      tooltipText: spectraTooltip,
-      yAxisScale: 'linear',
-    };
-    
-    let diffTooltip = ['', 'Period (s):', '% difference:'];
-    let diffOptions = {
-      tooltipText: diffTooltip,
-      plotHeight: 224,
-      plotZeroReferenceLine: true,
-      showLegend: false,
-      yAxisScale: 'linear',
-    };
-    
-    return new D3LinePlot(
-        this.contentEl,
-        plotOptions,
-        spectraOptions,
-        diffOptions)
-        .withPlotHeader()
-        .withPlotFooter();
-  }
-  
-  /**
-  * @Override
-  * @method serializeUrls
-  *
-  * Get URLs to query.
-  */
+   * @override
+   * Get URLs to query.
+   */
   serializeUrls() {
     let urls = [];
     let inputs = $(this.inputsEl).serialize();
@@ -902,11 +1011,9 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method setComparableModels
-  *
-  * Given the models in nshmp-haz-ws/source/models find only models
-  *     that can be compared, ones that have that same region.
-  */
+   * Given the models in nshmp-haz-ws/source/models find only models
+   *     that can be compared, ones that have that same region.
+   */
   setComparableModels() {
     this.comparableModels = this.parameters.models.values.filter((model) => {
       let regions = this.parameters.models.values.filter((modelCheck) => {
@@ -917,22 +1024,19 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method setFirstModelMenu
-  *
-  * Set the first model select menu with only comparable models.
-  * See setComparableModels().
-  */
+   * Set the first model select menu with only comparable models.
+   * See setComparableModels().
+   */
   setFirstModelMenu() {
     Tools.setSelectMenu(this.firstModelEl, this.comparableModels); 
     this.firstModelEl.value = this.options.defaultFirstModel;
   }
 
   /**
-  * @method setParameterMenu
-  *
-  * Set select menus with supported values of the selected models.
-  * @param {HTMLElement} el - The dom element of the select menu to set.
-  */
+   * Set select menus with supported values of the selected models.
+   * 
+   * @param {HTMLElement} el - The dom element of the select menu to set.
+   */
   setParameterMenu(el, defaultValue) {
     let firstModel = Tools.stringToParameter(
         this.parameters.models,
@@ -960,11 +1064,9 @@ export default class DynamicCompare extends Hazard {
   }
 
   /**
-  * @method setSecondModelMenu
-  *
-  * Set the second model select menu with only comparable models to 
-  *     the first selected model.
-  */
+   * Set the second model select menu with only comparable models to 
+   *     the first selected model.
+   */
   setSecondModelMenu() {
     let selectedModel = Tools.stringToParameter(
         this.parameters.models,
@@ -976,13 +1078,224 @@ export default class DynamicCompare extends Hazard {
     });
     
     Tools.setSelectMenu(this.secondModelEl, comparableModels);
+    this.secondModelEl.value = this.options.defaultSecondModel;
   }
 
   /**
-  * @method updatePlot
-  *
-  * Call the hazard web service for each model and plot the resuls.
-  */
+   * Build the view for the hazard component curves plot
+   * 
+   * @returns {D3LineView} The spectra line view
+   */
+  setupHazardComponentView() {
+    /* Upper sub view options: hazard plot */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .dragLineSnapTo(1e-10)
+        .filename('dynamic-compare-hazard-components')
+        .label('Hazard Component Curves')
+        .lineLabel('Model')
+        .xLabel('Ground Motion (g)')
+        .xAxisScale('log')
+        .yAxisScale('log')
+        .yLabel('Annual Frequency of Exceedence')
+        .yValueToExponent(true)
+        .build();
+
+    /* Plot view options */
+    let viewOptions = D3LineViewOptions.builder()
+        .titleFontSize(14)
+        .viewSize('min')
+        .build(); 
+
+    /* Build the view */
+    let view = D3LineView.builder()
+        .containerEl(this.contentEl)
+        .viewOptions(viewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+
+    view.setTitle('Hazard Component Curves');
+        
+    return view;
+  }
+
+  /**
+   * Build the view for the hazard curve plot with % difference 
+   * 
+   * @returns {D3LineView} The spectra line view
+   */
+  setupHazardView() {
+    /* Lower sub view options: % difference plot */
+    let lowerSubViewOptions = D3LineSubViewOptions.lowerBuilder()
+        .defaultYLimit([ -1.0, 1.0 ])
+        .filename('dynamic-compare-hazard-difference')
+        .label('Hazard Curves Percent Difference')
+        .lineLabel('Model')
+        .showLegend(false)
+        .xLabel('Ground Motion (g)')
+        .yLabel('% Difference')
+        .build();
+
+    /* Upper sub view legend options: hazard plot */
+    let upperLegendOptions = D3LineLegendOptions.upperBuilder()
+        .location('bottom-left')
+        .build();
+
+    /* Upper sub view options: hazard plot */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .dragLineSnapTo(1e-8)
+        .filename('dynamic-compare-hazard')
+        .label('Hazard Curves')
+        .lineLabel('Model')
+        .legendOptions(upperLegendOptions)
+        .xLabel('Ground Motion (g)')
+        .yAxisScale('log')
+        .yLabel('Annual Frequency of Exceedence')
+        .yValueToExponent(true)
+        .build();
+
+    /* Plot view options */
+    let viewOptions = D3LineViewOptions.builder()
+        .syncXAxisScale(true, 'log')
+        .syncYAxisScale(false)
+        .titleFontSize(14)
+        .viewSize('min')
+        .build(); 
+
+    /* Build the view */
+    let view = D3LineView.builder()
+        .addLowerSubView(true)
+        .containerEl(this.contentEl)
+        .viewOptions(viewOptions)
+        .lowerSubViewOptions(lowerSubViewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+
+    view.setTitle('Hazard Component Curves');
+        
+    return view;
+  }
+
+  /**
+   * Build the view for the spectra plot with % difference 
+   * 
+   * @returns {D3LineView} The spectra line view
+   */
+  setupSpectraComponentView() {
+    /* Upper sub view options: spectra plot */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .defaultXLimit(this.spectraXDomain)
+        .filename('dynamic-compare-spectra-components')
+        .label('Response Spectrum Component Curves')
+        .lineLabel('Model')
+        .xAxisScale('log')
+        .yAxisScale('log')
+        .xLabel('Spectral Period (s)')
+        .yLabel('Ground Motion (g)')
+        .build();
+
+    /* Plot view options */
+    let viewOptions = D3LineViewOptions.builder()
+        .titleFontSize(14)
+        .viewSize('min')
+        .build(); 
+
+    /* Build the view */
+    let view = D3LineView.builder()
+        .containerEl(this.contentEl)
+        .viewOptions(viewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+
+    view.setTitle('Response Spectrum Component Curves');
+        
+    return view;
+  }
+
+  /**
+   * Build the view for the spectra plot with % difference 
+   * 
+   * @returns {D3LineView} The spectra line view
+   */
+  setupSpectraView() {
+    /* Lower sub view options: % difference plot */
+    let lowerSubViewOptions = D3LineSubViewOptions.lowerBuilder()
+        .defaultXLimit(this.spectraXDomain)
+        .defaultYLimit([ -1.0, 1.0 ])
+        .filename('dynamic-compare-spectra-difference')
+        .label('Response Spectrum Percent Difference')
+        .lineLabel('Model')
+        .showLegend(false)
+        .xLabel('Period (s)')
+        .yLabel('% Difference')
+        .build();
+    
+    /* Upper sub view legend options: hazard plot */
+    let upperLegendOptions = D3LineLegendOptions.upperBuilder()
+        .location('bottom-left')
+        .build();
+
+    /* Upper sub view options: spectra plot */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .defaultXLimit(this.spectraXDomain)
+        .filename('dynamic-compare-spectra')
+        .label('Response Spectrum')
+        .legendOptions(upperLegendOptions)
+        .lineLabel('Model')
+        .xLabel('Spectral Period (s)')
+        .yAxisScale('log')
+        .yLabel('Ground Motion (g)')
+        .build();
+
+    /* Plot view options */
+    let viewOptions = D3LineViewOptions.builder()
+        .syncXAxisScale(true, 'log')
+        .syncYAxisScale(false)
+        .titleFontSize(14)
+        .viewSize('min')
+        .build(); 
+
+    /* Build the view */
+    let view = D3LineView.builder()
+        .addLowerSubView(true)
+        .containerEl(this.contentEl)
+        .viewOptions(viewOptions)
+        .lowerSubViewOptions(lowerSubViewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+
+    view.setTitle('Response Spectrum');
+        
+    return view;
+  }
+
+  /**
+   * Update the ground motion difference text. 
+   * 
+   * @param {Array<HazardServiceResponse>} hazardResponses The responses
+   * @param {D3LineSubView} subView The sub view
+   * @param {SVGElement} textEl The SVG text element to update
+   */
+  updateGroundMotionDifferenceText(hazardResponses, subView, textEl) {
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses,
+        HazardServiceResponse);
+
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+    Preconditions.checkArgumentInstanceOfSVGElement(textEl);
+
+    let timeHorizon = this.returnPeriodEl.value;
+    let returnPeriod = 1 / timeHorizon;
+    let percentDifference = this.getGroundMotionDifference(hazardResponses);
+    let text = `${timeHorizon} years, % diff = ${percentDifference}`;
+
+    let xMax = this.hazardLinePlot.getXDomain(subView)[1];
+    this.hazardLinePlot.moveText(subView, xMax, returnPeriod, textEl);
+    this.hazardLinePlot.updateText(textEl, text);
+  }
+
+  /**
+   * Call the hazard web service for each model and plot the resuls.
+   */
   updatePlot() { 
     let urls = this.serializeUrls();
 
@@ -992,19 +1305,39 @@ export default class DynamicCompare extends Hazard {
     Promise.all(jsonCall.promises).then((results) => {
       this.spinner.off();
 
-      NshmpError.checkResponses(results, this.hazardPlot, this.spectraPlot);
-      this.footer.setMetadata(results[0].server); 
+      Tools.checkResponses(results);
+
+      let hazardsResponses = results.map((result) => {
+        return new HazardServiceResponse(result);
+      });
+      
+      /* Set footer metadata */
+      this.footer.setWebServiceMetadata(hazardsResponses[0]); 
       
       /* Update tooltips for input */
       this.addInputTooltip();
+
       /* Plot response spectrum */
-      this.plotResponseSpectrum(results);
+      this.plotResponseSpectrum(hazardsResponses);
+
       /* Plot hazard curves */
-      this.plotHazardCurves(results);
+      this.plotHazardCurves(hazardsResponses);
+
+      /* Plot spectra component curves  */
+      this.plotResponseSpectrumComponents(hazardsResponses);
+
+      /* Plot hazard component curves */
+      this.plotHazardComponentCurves(hazardsResponses);
+      
       /* Update plot on IMT change */
-      this.onImtChange(results);
-      /* Update return period value */ 
-      this.onReturnPeriodDrag();
+      this.imtEl.addEventListener('change', () => {
+        this.onIMTChange(hazardsResponses);
+      });
+
+      /* Update plot on return period change */
+      this.returnPeriodEl.addEventListener('returnPeriodChange', () => {
+        this.onReturnPeriodChange(hazardsResponses);
+      });
       
       /* Get raw data */
       this.footer.onRawDataBtn(urls); 

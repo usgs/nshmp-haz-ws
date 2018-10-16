@@ -117,6 +117,7 @@ export class D3LinePlot {
    * @param {Number} y The Y coordinate of text
    * @param {String} text The text
    * @param {D3TextOptions=} textOptions Optional text options
+   * @returns {SVGElement} The text element
    */
   addText(subView, x, y, text, textOptions = D3TextOptions.withDefaults()) {
     Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
@@ -135,7 +136,8 @@ export class D3LinePlot {
     Preconditions.checkStateInstanceOfSVGElement(textEl);
 
     this.moveText(subView, x, y, textEl);
-    this.updateText(textEl, text, textOptions);
+    this.updateText(textEl, text);
+    this.updateTextOptions(textEl, textOptions);
 
     return textEl;
   }
@@ -143,14 +145,16 @@ export class D3LinePlot {
   /**
    * Clear all plots off a D3LineSubView.
    * 
-   * @param {D3LineData} lineData 
+   * @param {D3LineSubView} subView
    */
-  clear(lineData) {
-    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+  clear(subView) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
 
-    this.legend.remove(lineData);
+    this.legend.remove(subView);
 
-    d3.select(lineData.subView.svg.dataContainerEl)
+    d3.select(subView.svg.dataContainerEl).datum(null);
+
+    d3.select(subView.svg.dataContainerEl)
         .selectAll('*')
         .remove();
   }
@@ -328,12 +332,13 @@ export class D3LinePlot {
    * @param {Function} callback Function to call when plot is selected
    */
   onPlotSelection(lineData, callback) {
-    Preconditions.checkArgumentInstanceOf();
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(callback, Function);
 
     lineData.subView.svg.dataContainerEl.addEventListener('plotSelection', (e) => {
       let series = e.detail;
       Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
-      callback(lineData, series);
+      callback(series);
     });
   }
 
@@ -560,18 +565,28 @@ export class D3LinePlot {
    * 
    * @param {SVGElement} textEl The text element
    * @param {String} text The new text
-   * @param {D3TextOptions=} textOptions Optional text options
    */
-  updateText(textEl, text, textOptions = D3TextOptions.withDefaults()) {
+  updateText(textEl, text) {
     Preconditions.checkArgumentInstanceOfSVGElement(textEl);
     Preconditions.checkArgumentString(text);
+
+    d3.select(textEl).text(text)
+  }
+
+  /**
+   * Update the text on a text element.
+   * 
+   * @param {SVGElement} textEl The text element
+   * @param {D3TextOptions=} textOptions Optional text options
+   */
+  updateTextOptions(textEl, textOptions) {
+    Preconditions.checkArgumentInstanceOfSVGElement(textEl);
     Preconditions.checkArgumentInstanceOf(textOptions, D3TextOptions);
 
     let cxRotate = textEl.getAttribute('x');
     let cyRotate = textEl.getAttribute('y');
 
     d3.select(textEl)
-        .text(text)
         .attr('alignment-baseline', textOptions.alignmentBaseline)
         .attr('dx', textOptions.dx)
         .attr('dy', -textOptions.dy)
@@ -734,7 +749,10 @@ export class D3LinePlot {
    * @returns {String} The X scale: 'log' || 'linear'
    */
   _getCurrentXScale(subView) {
-    if (this.view.viewOptions.syncXAxisScale) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    if (this.view.viewOptions.syncXAxisScale || 
+        subView.options.subViewType == 'upper') {
       return this.view.viewFooter.xLinearBtnEl.classList.contains('active') ?
           this.view.viewFooter.xLinearBtnEl.getAttribute('value') :
           this.view.viewFooter.xLogBtnEl.getAttribute('value');
@@ -751,7 +769,10 @@ export class D3LinePlot {
    * @returns {String} The Y scale: 'log' || 'linear'
    */
   _getCurrentYScale(subView) {
-    if (this.view.viewOptions.syncYAxisScale) {
+    Preconditions.checkArgumentInstanceOf(subView, D3LineSubView);
+
+    if (this.view.viewOptions.syncYAxisScale || 
+        subView.options.subViewType == 'upper') {
       return this.view.viewFooter.yLinearBtnEl.classList.contains('active') ?
           this.view.viewFooter.yLinearBtnEl.getAttribute('value') :
           this.view.viewFooter.yLogBtnEl.getAttribute('value');
@@ -1076,14 +1097,15 @@ export class D3LinePlot {
     if (event.target.hasAttribute('disabled')) return;
 
     let xScale = event.target.getAttribute('value');
-    let yScale = this._getCurrentYScale(this.view.upperSubView);
+    let yScaleUpper = this._getCurrentYScale(this.view.upperSubView);
 
     this.axes.createXAxis(this.upperLineData, xScale);
-    this._plotUpdate(this.upperLineData, xScale, yScale);
+    this._plotUpdate(this.upperLineData, xScale, yScaleUpper);
 
     if (this.view.addLowerSubView && this.view.viewOptions.syncXAxisScale) {
+      let yScaleLower = this._getCurrentYScale(this.view.lowerSubView);
       this.axes.createXAxis(this.lowerLineData, xScale);
-      this._plotUpdate(this.lowerLineData, xScale, yScale);
+      this._plotUpdate(this.lowerLineData, xScale, yScaleLower);
     }
   }
 
@@ -1096,15 +1118,16 @@ export class D3LinePlot {
   _onYAxisClick(event) {
     if (event.target.hasAttribute('disabled')) return;
 
-    let xScale = this._getCurrentXScale(this.view.upperSubView);
+    let xScaleUpper = this._getCurrentXScale(this.view.upperSubView);
     let yScale = event.target.getAttribute('value');
     
     this.axes.createYAxis(this.upperLineData, yScale);
-    this._plotUpdate(this.upperLineData, xScale, yScale);
+    this._plotUpdate(this.upperLineData, xScaleUpper, yScale);
     
     if (this.view.addLowerSubView && this.view.viewOptions.syncYAxisScale) {
+      let xScaleLower = this._getCurrentXScale(this.view.lowerSubView);
       this.axes.createYAxis(this.lowerLineData, yScale);
-      this._plotUpdate(this.lowerLineData, xScale, yScale);
+      this._plotUpdate(this.lowerLineData, xScaleLower, yScale);
     }
   }
 
@@ -1261,6 +1284,10 @@ export class D3LinePlot {
           return lineData.toMarkerSeries(series); 
         })
         .enter()
+        .filter((/** @type {D3LineSeriesData */ series) => {
+          Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+          return series.data[0].x != null && series.data[0].y != null;
+        })
         .append('path')
         .attr('class', 'plot-symbol')
         .each((
@@ -1300,6 +1327,7 @@ export class D3LinePlot {
           let x = this.axes.x(lineData, xScale, series.data[0]);
           let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
+
           return `translate(${x}, ${y}) rotate(${rotate})`;
         })
         .attr('fill', (/** @type {D3LineSeriesData} */ series) => { 
@@ -1367,6 +1395,7 @@ export class D3LinePlot {
           let x = this.axes.x(lineData, xScale, series.data[0]);
           let y = this.axes.y(lineData, yScale, series.data[0]);
           let rotate = series.lineOptions.d3SymbolRotate;
+
           return `translate(${x}, ${y}) rotate(${rotate})`;
         });
   }

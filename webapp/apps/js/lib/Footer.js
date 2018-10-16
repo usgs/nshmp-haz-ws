@@ -1,4 +1,6 @@
-'use strict'
+
+import { Preconditions } from '../error/Preconditions.js';
+import { WebServiceResponse } from '../response/WebServiceResponse.js';
 
 /**
 * @class Footer
@@ -240,6 +242,34 @@ export default class Footer{
       ['nshmp-haz version: ' + server['nshmp-haz'].version],
       ['nshmp-haz-ws version: ' + server['nshmp-haz-ws'].version],
       ['Cores used: ' + server['threads']],
+    ];
+    
+    d3.select(this.codeInfoEl)
+        .selectAll('div')
+        .data(codeInfo)
+        .enter()
+        .append('div')
+        .text((d) => { return d; });
+  }
+
+  /**
+   * Set the collapsable panel with the nshmp-haz and nshmp-haz-ws 
+   *    version numbers.
+   * 
+   * @param {WebServiceResponse} response The web service response
+   */
+  setWebServiceMetadata(response) {
+    Preconditions.checkArgumentInstanceOf(response, WebServiceResponse);
+
+    d3.select(this.codeInfoIconEl)
+        .property('disabled', false)
+        .classed('disabled', false);
+    let server = response.server;
+
+    let codeInfo = [
+      [`nshmp-haz version: ${server.nshmpHaz.version}`],
+      [`nshmp-haz-ws version: ${server.nshmpHazWs.version}`],
+      [`Cores used: ${server.threads}`],
     ];
     
     d3.select(this.codeInfoEl)

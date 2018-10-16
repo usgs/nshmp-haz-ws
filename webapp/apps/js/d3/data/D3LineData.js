@@ -38,13 +38,6 @@ export class D3LineData {
     this.colorScheme = builder._colorScheme;
 
     /**
-     * The label for the line data
-     * Default: 'upper line data' || 'lower line data'
-     * @type {String}
-     */
-    this.label = builder._label;
-
-    /**
      * The series XY values and line options.
      * @type {Array<D3LineSeriesData>}
      */
@@ -106,7 +99,6 @@ export class D3LineData {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
     
     let builder = D3LineData.builder()
-        .label(this.label)
         .subView(this.subView);
 
     for (let series of this.series) {
@@ -338,9 +330,6 @@ export class D3LineDataBuilder {
     /** @type {Array<String>} */
     this._colorScheme = undefined;
 
-    /** @type {String} */
-    this._label = undefined;
-    
     /** @type {Boolean} */
     this._removeSmallValues = false;
     
@@ -369,10 +358,15 @@ export class D3LineDataBuilder {
     Preconditions.checkNotNull(this._subView, 'Must set subView');
     Preconditions.checkNotUndefined(this._subView, 'Must set subView');
 
-    this._label = this._label == undefined ? 
-        `${this._subView.options.subViewType} line data` : this._label;
-
     this._colorScheme = this._updateColorScheme();
+
+    this._series = this._series.filter((series) => {
+      return !series.checkXValuesNull();
+    });
+
+    this._series = this._series.filter((series) => {
+      return !series.checkYValuesNull();
+    });
 
     if (this._removeSmallValues) {
       for (let series of this._series) {
@@ -432,17 +426,6 @@ export class D3LineDataBuilder {
         yStrings);
 
     this._series.push(seriesData); 
-    return this;
-  }
-
-  /**
-   * Set the label for the line data.
-   * 
-   * @param {String} label The label
-   */
-  label(label) {
-    Preconditions.checkArgumentString(label);
-    this._label = label;
     return this;
   }
 

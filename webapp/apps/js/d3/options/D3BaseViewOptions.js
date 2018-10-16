@@ -21,6 +21,13 @@ export class D3BaseViewOptions {
   constructor(builder) {
     Preconditions.checkArgumentInstanceOf(builder, D3BaseViewOptionsBuilder);
 
+    /**
+     * The title font size in the view's header in px.
+     * Default: 18
+     * @type {Number}
+     */
+    this.titleFontSize = builder._titleFontSize;
+
     /** 
      * The D3BaseView view size to start with, either:
      *    'min' || 'minCenter' || 'max'
@@ -80,6 +87,8 @@ export class D3BaseViewOptionsBuilder {
   
   /** @private */
   constructor() {
+    this._titleFontSize = 18;
+
     this._viewSizeMin =  'col-sm-12 col-md-6';
 
     this._viewSizeMinCenter = 'col-sm-offset-1 col-sm-10 ' + 
@@ -96,6 +105,18 @@ export class D3BaseViewOptionsBuilder {
    */
   build() {
     return new D3BaseViewOptions(this);
+  }
+
+  /**
+   * Set the title font size in px.
+   * Default: 18
+   * 
+   * @param {Number} fontSize The title font size
+   */
+  titleFontSize(fontSize) {
+    Preconditions.checkArgumentInteger(fontSize);
+    this._titleFontSize = fontSize;
+    return this;
   }
 
   /**

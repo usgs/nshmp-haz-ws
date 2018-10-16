@@ -39,6 +39,13 @@ export class D3BaseSubViewOptions {
      */
     this.filename = builder._filename;
 
+    /**
+     * The label for the sub view
+     * Default: 'upper' || 'lower'
+     * @type {String}
+     */
+    this.label = builder._label;
+
     /** 
      * Margin bottom for the SVG plot in px.
      * Default: 15
@@ -191,6 +198,9 @@ export class D3BaseSubViewOptionsBuilder {
   constructor() {
     /** @type {String} */
     this._filename = 'file';
+
+    /** @type {String} */
+    this._label = '';
     
     /** @type {Number} */
     this._marginBottom = 15;
@@ -250,6 +260,18 @@ export class D3BaseSubViewOptionsBuilder {
   filename(name) {
     Preconditions.checkArgumentString(name);
     this._filename = name;
+    return this;
+  }
+
+  /**
+   * Set the label for the sub view.
+   * Default: ''
+   * 
+   * @param {String} label The label
+   */
+  label(label) {
+    Preconditions.checkArgumentString(label);
+    this._label = label;
     return this;
   }
 

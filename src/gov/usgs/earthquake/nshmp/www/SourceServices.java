@@ -164,7 +164,7 @@ public class SourceServices extends NshmpServlet {
         .collect(Collectors.toSet()));
   }
 
-  private static class SourceModel {
+  static class SourceModel {
     int displayorder;
     int id;
     String region;
