@@ -12,6 +12,57 @@ import { Preconditions } from '../error/Preconditions.js';
 export default class Tools {
 
   /**
+   * Check a web service response to see if
+   *    response has "status" = "error".
+   * 
+   * If a web service has an error a NshmpError is thrown
+   * 
+   * @param {Object} responses The web service responses 
+   */
+  static checkResponse(response) {
+    Preconditions.checkArgumentObject(response);
+    Preconditions.checkStateObjectProperty(response, 'status');
+    let status = response.status;
+
+    if (status == 'error') {
+      hasError = true;
+      let errorMessage = `<p> ${response.message} </p> \n`;
+      throw new NshmpError(errorMessage);
+    }
+
+  }
+
+  /**
+   * Check an array of web service responses to see if any web service
+   *    response has "status" = "error".
+   * 
+   * If a web service has an error a NshmpError is thrown
+   * 
+   * @param {Array<Object>} responses The web service responses 
+   */
+  static checkResponses(responses) {
+    Preconditions.checkArgumentArrayOf(responses, 'object');
+
+    let errorMessage = '';
+    let hasError = false;
+
+    for (let response of responses) {
+      Preconditions.checkStateObjectProperty(response, 'status');
+      let status = response.status;
+
+      if (status == 'error') {
+        hasError = true;
+        errorMessage += `<p> ${response.message} </p> \n`;
+      }
+    }
+
+    if (hasError) {
+      throw new NshmpError(errorMessage);
+    }
+
+  }
+
+  /**
    * Decomposes a data series structrued for D3 to seperate X and 
    *     Y arrays.
    */
