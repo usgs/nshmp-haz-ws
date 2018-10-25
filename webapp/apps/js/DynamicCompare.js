@@ -502,8 +502,9 @@ export class DynamicCompare extends Hazard {
     let model = Tools.stringToParameter(
         this.parameters.models,
         this.firstModelEl.value);
-    let region = model.region;
-    
+
+    let region = Tools.stringToParameter(this.parameters.region, model.region);
+
     this.checkCoordinates(event.target, region);
   }
 
