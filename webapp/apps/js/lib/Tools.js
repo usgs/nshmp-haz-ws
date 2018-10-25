@@ -1,4 +1,5 @@
 
+import { D3Utils } from '../d3/D3Utils.js';
 import { Preconditions } from '../error/Preconditions.js';
 
 /**
@@ -192,6 +193,8 @@ export default class Tools {
    * Conveince method for calculating percent difference.
    */
   static percentDifference(x0, x1) {
+    if (x0 == null || x1 == null) return null;
+
     Preconditions.checkArgumentNumber(x0);
     Preconditions.checkArgumentNumber(x1);
 
@@ -208,8 +211,8 @@ export default class Tools {
    * @para {Array<Number>} The percent difference array
    */
   static percentDifferenceArray(x0Values, x1Values) {
-    Preconditions.checkArgumentArrayOf(x0Values, 'number');
-    Preconditions.checkArgumentArrayOf(x1Values, 'number');
+    D3Utils.checkArrayIsNumberOrNull(x0Values);
+    D3Utils.checkArrayIsNumberOrNull(x1Values);
 
     Preconditions.checkArgument(
         x0Values.length == x1Values.length,
