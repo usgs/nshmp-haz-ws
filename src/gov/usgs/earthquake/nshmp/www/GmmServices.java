@@ -2,25 +2,14 @@ package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static gov.usgs.earthquake.nshmp.ResponseSpectra.spectra;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.DIP;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.MW;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RAKE;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RJB;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RRUP;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.RX;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.VS30;
 import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.VSINF;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.WIDTH;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z1P0;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.Z2P5;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZHYP;
-import static gov.usgs.earthquake.nshmp.gmm.GmmInput.Field.ZTOP;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.AI;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGV;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.meta.Metadata.errorMessage;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
@@ -28,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,6 +53,8 @@ import gov.usgs.earthquake.nshmp.gmm.GmmInput.Builder;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Constraints;
 import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.internal.Parsing;
+import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.meta.EnumParameter;
 import gov.usgs.earthquake.nshmp.www.meta.ParamType;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
@@ -77,11 +69,24 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
 public class GmmServices extends NshmpServlet {
   private static final long serialVersionUID = 1L;
 
+  private static final Gson GSON;
+
   private static final String GMM_KEY = "gmm";
   private static final String RMIN_KEY = "rMin";
   private static final String RMAX_KEY = "rMax";
   private static final String IMT_KEY = "imt";
   private static final int ROUND = 5;
+
+  static {
+    GSON = new GsonBuilder()
+        .setPrettyPrinting()
+        .serializeNulls()
+        .disableHtmlEscaping()
+        .registerTypeAdapter(Double.class, new Util.NaNSerializer())
+        .registerTypeAdapter(Parameters.class, new Parameters.Serializer())
+        .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+        .create();
+  }
 
   @Override
   protected void doGet(
@@ -90,66 +95,82 @@ public class GmmServices extends NshmpServlet {
       throws ServletException, IOException {
 
     UrlHelper urlHelper = urlHelper(request, response);
-    String query = request.getQueryString();
-    String pathInfo = request.getPathInfo();
+    Service service = getService(request);
 
-    Service service = null;
-    if (pathInfo.equals(Service.DISTANCE.pathInfo)) {
-      service = Service.DISTANCE;
-    } else if (pathInfo.equals(Service.HW_FW.pathInfo)) {
-      service = Service.HW_FW;
-    } else if (pathInfo.equals(Service.SPECTRA.pathInfo)) {
-      service = Service.SPECTRA;
-    }
-
-    Gson gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .serializeNulls()
-        .disableHtmlEscaping()
-        .registerTypeAdapter(
-            Parameters.class,
-            new Parameters.Serializer())
-        .registerTypeAdapter(
-            GmmInput.class,
-            new InputSerializer(service))
-        .registerTypeAdapter(
-            Imt.class,
-            new Util.EnumSerializer<Imt>())
-        .create();
-
-    /* At a minimum, Gmms must be defined. */
-    final String USAGE_STR = gson.toJson(new Metadata(service));
-    String gmmParam = request.getParameter(GMM_KEY);
-    if (gmmParam == null) {
-      urlHelper.writeResponse(USAGE_STR);
-      return;
-    }
-
-    String url = request.getRequestURL()
-        .append("?")
-        .append(query)
-        .toString();
-
-    ResponseData svcResponse = null;
     try {
+      /* At a minimum, Gmms must be defined. */
+      if (!hasGMM(request, service, urlHelper)) return;
+      
       Map<String, String[]> params = request.getParameterMap();
-      if (service.equals(Service.DISTANCE)) {
-        svcResponse = processRequestDistance(service, params);
-      } else if (service.equals(Service.HW_FW)) {
-        svcResponse = processRequestDistance(service, params);
-      } else if (service.equals(Service.SPECTRA)) {
-        svcResponse = processRequestSpectra(service, params);
-      }
-      svcResponse.url = url;
-      String jsonString = gson.toJson(svcResponse);
-      response.getWriter().print(jsonString);
+
+      ResponseData svcResponse = processRequest(service, params, urlHelper);
+
+      response.getWriter().print(GSON.toJson(svcResponse));
     } catch (Exception e) {
-      String message = errorMessage(url, e, false);
+      String message = errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
       e.printStackTrace();
     }
   }
 
+  @Override
+  protected void doPost(
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BufferedReader requestReader = request.getReader();
+    UrlHelper urlHelper = urlHelper(request, response);
+    Service service = getService(request);
+
+    try {
+      /* At a minimum, Gmms must be defined. */
+      if (!hasGMM(request, service, urlHelper)) return;
+
+      String[] gmmParams = request.getParameterMap().get(GMM_KEY);
+
+      List<String> requestData = requestReader.lines().collect(Collectors.toList());
+      
+      if (requestData.isEmpty()) {
+        throw new IllegalStateException("Post data is empty");
+      }
+      
+      List<String> keys = Parsing.splitToList(requestData.get(0), Delimiter.COMMA);
+
+      ResponseDataPost svcResponse = new ResponseDataPost(service, urlHelper);
+      
+      List<ResponseData> gmmResponses = requestData.subList(1, requestData.size())
+          .parallelStream()
+          .filter((line) -> !line.startsWith("#") && !line.trim().isEmpty())
+          .map((line) -> {
+            List<String> values = Parsing.splitToList(line, Delimiter.COMMA);
+            
+            Map<String, String[]> params = new HashMap<>();
+            params.put(GMM_KEY, gmmParams);
+            
+            int index = 0;
+
+            for (String key : keys) {
+              String value = values.get(index);
+              if ("null".equals(value.toLowerCase())) continue;
+              
+              params.put(key, new String[] { value });
+              index++;
+            }
+           
+            return processRequest(service, params, urlHelper); 
+          })
+          .collect(Collectors.toList());
+
+      svcResponse.setResponse(gmmResponses);
+      response.getWriter().print(GSON.toJson(svcResponse));
+    } catch (Exception e) {
+      String message = errorMessage(urlHelper.url, e, false);
+      response.getWriter().print(message);
+      e.printStackTrace();
+    }
+  }
+  
   static class RequestData {
     Set<Gmm> gmms;
     GmmInput input;
@@ -172,13 +193,36 @@ public class GmmServices extends NshmpServlet {
         double rMax) {
 
       super(params);
+
       this.imt = imt;
-      this.minDistance = rMin;
-      this.maxDistance = rMax;
+      minDistance = rMin;
+      maxDistance = rMax;
+    }
+  }
+  
+  static class ResponseDataPost {
+    String name;
+    String status = Status.SUCCESS.toString();
+    String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
+    String url;
+    Object server;
+    List<ResponseData> response;
+   
+    ResponseDataPost(Service service, UrlHelper urlHelper) {
+      name = service.resultName;
+      
+      server = gov.usgs.earthquake.nshmp.www.meta
+          .Metadata.serverData(1, ServletUtil.timer());
+      
+      url = urlHelper.url;
+    }
+    
+    void setResponse(List<ResponseData> response) {
+      this.response = response;
     }
   }
 
-  static class ResponseData {
+  static class ResponseData  {
     String name;
     String status = Status.SUCCESS.toString();
     String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
@@ -189,17 +233,19 @@ public class GmmServices extends NshmpServlet {
     XY_DataGroup sigmas;
 
     ResponseData(Service service, RequestData request) {
-      this.name = service.resultName;
+      name = service.resultName;
+      
+      server = gov.usgs.earthquake.nshmp.www.meta
+          .Metadata.serverData(1, ServletUtil.timer());
+      
       this.request = request;
-      this.server =
-          gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
-
-      this.means = XY_DataGroup.create(
+      
+      means = XY_DataGroup.create(
           service.groupNameMean,
           service.xLabel,
           service.yLabelMedian);
 
-      this.sigmas = XY_DataGroup.create(
+      sigmas = XY_DataGroup.create(
           service.groupNameSigma,
           service.xLabel,
           service.yLabelSigma);
@@ -223,6 +269,28 @@ public class GmmServices extends NshmpServlet {
       }
     }
 
+  }
+  
+  static ResponseData processRequest(
+      Service service,
+      Map<String, String[]> params,
+      UrlHelper urlHelper) {
+    ResponseData svcResponse = null;
+    
+    switch (service) {
+      case DISTANCE:
+      case HW_FW:
+        svcResponse = processRequestDistance(service, params);
+        break;
+      case SPECTRA:
+        svcResponse = processRequestSpectra(service, params);
+        break;
+      default:
+        throw new IllegalStateException("Service not supported [" + service + "]");
+    }
+    
+    svcResponse.url = urlHelper.url;
+    return svcResponse;
   }
 
   static ResponseData processRequestDistance(
@@ -251,7 +319,6 @@ public class GmmServices extends NshmpServlet {
     RequestData request = new RequestData(params);
     MultiResult result = spectra(request.gmms, request.input, false);
 
-    // set up response
     ResponseData response = new ResponseData(service, request);
     response.setXY(result.periods, result.means, result.sigmas);
 
@@ -283,40 +350,6 @@ public class GmmServices extends NshmpServlet {
       builder.set(id, value);
     }
     return builder.build();
-  }
-
-  static final class InputSerializer implements JsonSerializer<GmmInput> {
-
-    Service service;
-
-    InputSerializer(Service service) {
-      this.service = service;
-    }
-
-    @Override
-    public JsonElement serialize(
-        GmmInput input,
-        Type type,
-        JsonSerializationContext context) {
-
-      boolean printDistance = !service.equals(Service.SPECTRA) ? true : false;
-      JsonObject root = new JsonObject();
-      root.addProperty(MW.toString(), input.Mw);
-      root.addProperty(RJB.toString(), printDistance ? input.rJB : null);
-      root.addProperty(RRUP.toString(), printDistance ? input.rRup : null);
-      root.addProperty(RX.toString(), printDistance ? input.rX : null);
-      root.addProperty(DIP.toString(), input.dip);
-      root.addProperty(WIDTH.toString(), input.width);
-      root.addProperty(ZTOP.toString(), input.zTop);
-      root.addProperty(ZHYP.toString(), input.zHyp);
-      root.addProperty(RAKE.toString(), input.rake);
-      root.addProperty(VS30.toString(), input.vs30);
-      root.addProperty(VSINF.toString(), input.vsInf);
-      root.addProperty(Z1P0.toString(), Double.isNaN(input.z1p0) ? null : input.z1p0);
-      root.addProperty(Z2P5.toString(), Double.isNaN(input.z2p5) ? null : input.z2p5);
-
-      return root;
-    }
   }
 
   static final class Metadata {
@@ -379,7 +412,7 @@ public class GmmServices extends NshmpServlet {
             .sorted(Comparator.comparing(Object::toString))
             .distinct()
             .collect(Collectors.toList());
-        
+
         GmmParam gmmParam = new GmmParam(
             GMM_NAME,
             GMM_INFO,
@@ -533,7 +566,7 @@ public class GmmServices extends NshmpServlet {
     }
   }
 
-  static enum Service {
+  private static enum Service {
 
     DISTANCE(
         "Ground Motion Vs. Distance",
@@ -591,6 +624,47 @@ public class GmmServices extends NshmpServlet {
       this.yLabelSigma = yLabelSigma;
     }
 
+  }
+
+  private static Service getService(HttpServletRequest request) {
+    Service service = null;
+    String pathInfo = request.getPathInfo();
+
+    switch (pathInfo) {
+      case PathInfo.DISTANCE:
+        service = Service.DISTANCE;
+        break;
+      case PathInfo.HW_FW:
+        service = Service.HW_FW;
+        break;
+      case PathInfo.SPECTRA:
+        service = Service.SPECTRA;
+        break;
+      default:
+        throw new IllegalStateException("Unsupported service [" + pathInfo + "]");
+    }
+
+    return service;
+  }
+
+  private static final class PathInfo {
+    private static final String DISTANCE = "/distance";
+    private static final String HW_FW = "/hw-fw";
+    private static final String SPECTRA = "/spectra";
+  }
+
+  private static boolean hasGMM(
+      HttpServletRequest request,
+      Service service,
+      UrlHelper urlHelper)
+      throws IOException {
+
+    String gmmParam = request.getParameter(GMM_KEY);
+    if (gmmParam != null) return true;
+
+    String usage = GSON.toJson(new Metadata(service));
+    urlHelper.writeResponse(usage);
+    return false;
   }
 
 }

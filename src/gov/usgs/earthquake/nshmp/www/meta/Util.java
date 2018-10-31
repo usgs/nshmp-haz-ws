@@ -87,4 +87,12 @@ public final class Util {
     }
   }
 
+  /* Convert NaN to null */
+  public static final class NaNSerializer implements JsonSerializer<Double> {
+    @Override
+    public JsonElement serialize(Double d, Type type, JsonSerializationContext context) {
+      return Double.isNaN(d) ? null : new JsonPrimitive(d);
+    }
+  }
+
 }
