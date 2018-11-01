@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author Peter Powers
  */
-abstract class NshmpServlet extends HttpServlet {
+public abstract class NshmpServlet extends HttpServlet {
 
   @Override
   protected void service(
@@ -50,17 +50,17 @@ abstract class NshmpServlet extends HttpServlet {
     super.service(request, response);
   }
 
-  static UrlHelper urlHelper(HttpServletRequest request, HttpServletResponse response)
+  public static UrlHelper urlHelper(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     return new UrlHelper(request, response);
   }
 
-  static class UrlHelper {
+  public static class UrlHelper {
 
     private final HttpServletResponse response;
     private final String host;
     private final String protocol;
-    final String url;
+    public final String url;
 
     UrlHelper(HttpServletRequest request, HttpServletResponse response) {
 
@@ -97,7 +97,7 @@ abstract class NshmpServlet extends HttpServlet {
      * 
      * "%s://%s/service-name/..."
      */
-    void writeResponse(String usage) throws IOException {
+    public void writeResponse(String usage) throws IOException {
       response.getWriter().printf(usage, protocol, host);
     }
   }
