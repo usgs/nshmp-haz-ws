@@ -71,7 +71,7 @@ public final class DeaggService extends NshmpServlet {
     try {
       if (query != null) {
         /* process query '?' request */
-        requestData = HazardService.buildRequest(request.getParameterMap());
+        requestData = HazardService.buildRequest(request);
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);

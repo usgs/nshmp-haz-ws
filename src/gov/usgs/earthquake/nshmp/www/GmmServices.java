@@ -127,7 +127,7 @@ public class GmmServices extends NshmpServlet {
       /* At a minimum, Gmms must be defined. */
       if (!hasGMM(request, service, urlHelper)) return;
 
-      String[] gmmParams = request.getParameterMap().get(GMM_KEY);
+      String[] gmmParams = request.getParameterValues(GMM_KEY);
 
       List<String> requestData = requestReader.lines().collect(Collectors.toList());
       
@@ -144,7 +144,7 @@ public class GmmServices extends NshmpServlet {
           .filter((line) -> !line.startsWith("#") && !line.trim().isEmpty())
           .map((line) -> {
             List<String> values = Parsing.splitToList(line, Delimiter.COMMA);
-            
+           
             Map<String, String[]> params = new HashMap<>();
             params.put(GMM_KEY, gmmParams);
             
@@ -297,7 +297,7 @@ public class GmmServices extends NshmpServlet {
       Service service, Map<String, String[]> params) {
 
     boolean isLogSpace = service.equals(Service.DISTANCE) ? true : false;
-    Imt imt = readValue(params, IMT, Imt.class);
+    Imt imt = readValue(IMT, params, Imt.class);
     double rMin = Double.valueOf(params.get(RMIN_KEY)[0]);
     double rMax = Double.valueOf(params.get(RMAX_KEY)[0]);
 

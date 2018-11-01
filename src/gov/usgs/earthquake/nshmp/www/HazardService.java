@@ -6,7 +6,7 @@ import static gov.usgs.earthquake.nshmp.calc.HazardExport.curvesBySource;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
-import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.readValues;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
@@ -134,7 +134,7 @@ public final class HazardService extends NshmpServlet {
     try {
       if (query != null) {
         /* process query '?' request */
-        requestData = buildRequest(request.getParameterMap());
+        requestData = buildRequest(request);
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
@@ -163,19 +163,21 @@ public final class HazardService extends NshmpServlet {
    * Reduce query string key-value pairs. This method is shared with deagg.
    * Deagg must supply a single Imt. See RequestData notes below.
    */
-  static RequestData buildRequest(Map<String, String[]> paramMap) {
+  static RequestData buildRequest(HttpServletRequest request) {
 
+    Map<String, String[]> paramMap = request.getParameterMap();
+    
     /* Read params as for hazard. */
-    double lon = readDoubleValue(paramMap, LONGITUDE);
-    double lat = readDoubleValue(paramMap, LATITUDE);
-    Vs30 vs30 = Vs30.fromValue(readDoubleValue(paramMap, VS30));
-    Edition edition = readValue(paramMap, EDITION, Edition.class);
+    double lon = readDouble(LONGITUDE, request);
+    double lat = readDouble(LATITUDE, request);
+    Vs30 vs30 = Vs30.fromValue(readDouble(VS30, request));
+    Edition edition = readValue(EDITION, request, Edition.class);
     Region region = ServletUtil.checkRegion(
-        readValue(paramMap, REGION, Region.class),
+        readValue(REGION, request, Region.class),
         lon);
     Set<Imt> supportedImts = Metadata.commonImts(edition, region);
     Set<Imt> imts = paramMap.containsKey(IMT.toString())
-        ? readValues(paramMap, IMT, Imt.class)
+        ? readValues(IMT, request, Imt.class)
         : supportedImts;
     OptionalDouble returnPeriod = OptionalDouble.empty();
     Optional<Imt> deaggImt = Optional.empty();
@@ -183,9 +185,9 @@ public final class HazardService extends NshmpServlet {
     /* Possibly update for deagg. */
     if (paramMap.containsKey(RETURNPERIOD.toString())) {
       // imts = supportedImts; TODO for CMS, need all periods
-      Imt imt = readValue(paramMap, IMT, Imt.class);
+      Imt imt = readValue(IMT, request, Imt.class);
       imts = Sets.immutableEnumSet(imt);
-      returnPeriod = OptionalDouble.of(readDoubleValue(paramMap, RETURNPERIOD));
+      returnPeriod = OptionalDouble.of(readDouble(RETURNPERIOD, request));
       deaggImt = Optional.of(imt);
     }
 
@@ -210,9 +212,9 @@ public final class HazardService extends NshmpServlet {
     double lon = Double.valueOf(params.get(2));
     double lat = Double.valueOf(params.get(3));
     Vs30 vs30 = Vs30.fromValue(Double.valueOf(params.get(5)));
-    Edition edition = readValue(params.get(0), Edition.class);
+    Edition edition = Enum.valueOf(Edition.class, params.get(0));
     Region region = ServletUtil.checkRegion(
-        readValue(params.get(1), Region.class),
+        Enum.valueOf(Region.class, params.get(1)),
         lon);
     Set<Imt> supportedImts = Metadata.commonImts(edition, region);
     Set<Imt> imts = (params.get(4).equalsIgnoreCase("any"))
@@ -224,7 +226,7 @@ public final class HazardService extends NshmpServlet {
     /* Possibly update for deagg. */
     if (params.size() == 7) {
       // imts = supportedImts; TODO for CMS, need all periods
-      Imt imt = readValue(params.get(4), Imt.class);
+      Imt imt = Enum.valueOf(Imt.class, params.get(4));
       imts = Sets.immutableEnumSet(imt);
       returnPeriod = OptionalDouble.of(Double.valueOf(params.get(6)));
       deaggImt = Optional.of(imt);
