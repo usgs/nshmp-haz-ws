@@ -7,7 +7,7 @@ import static gov.usgs.earthquake.nshmp.calc.ValueFormat.POISSON_PROBABILITY;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
-import static gov.usgs.earthquake.nshmp.www.Util.readDoubleValue;
+import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.DISTANCE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.EDITION;
@@ -107,7 +107,7 @@ public final class RateService extends NshmpServlet {
     try {
       if (query != null) {
         /* process query '?' request */
-        requestData = buildRequest(request.getParameterMap(), format);
+        requestData = buildRequest(request, format);
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
@@ -136,17 +136,17 @@ public final class RateService extends NshmpServlet {
   }
 
   /* Reduce query string key-value pairs */
-  private RequestData buildRequest(Map<String, String[]> paramMap, ValueFormat format) {
+  private RequestData buildRequest(HttpServletRequest request, ValueFormat format) {
 
     Optional<Double> timespan = (format == POISSON_PROBABILITY)
-        ? Optional.of(readDoubleValue(paramMap, TIMESPAN)) : Optional.<Double> empty();
+        ? Optional.of(readDouble(TIMESPAN, request)) : Optional.<Double> empty();
 
     return new RequestData(
-        readValue(paramMap, EDITION, Edition.class),
-        readValue(paramMap, REGION, Region.class),
-        readDoubleValue(paramMap, LONGITUDE),
-        readDoubleValue(paramMap, LATITUDE),
-        readDoubleValue(paramMap, DISTANCE),
+        readValue(EDITION, request, Edition.class),
+        readValue(REGION, request, Region.class),
+        readDouble(LONGITUDE, request),
+        readDouble(LATITUDE, request),
+        readDouble(DISTANCE, request),
         timespan);
   }
 
@@ -157,8 +157,8 @@ public final class RateService extends NshmpServlet {
         ? Optional.of(Double.valueOf(params.get(5))) : Optional.<Double> empty();
 
     return new RequestData(
-        readValue(params.get(0), Edition.class),
-        readValue(params.get(1), Region.class),
+        Enum.valueOf(Edition.class, params.get(0)),
+        Enum.valueOf(Region.class, params.get(1)),
         Double.valueOf(params.get(2)),
         Double.valueOf(params.get(3)),
         Double.valueOf(params.get(4)),
