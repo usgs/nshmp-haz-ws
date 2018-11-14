@@ -150,6 +150,10 @@ export class DynamicCompare extends Hazard {
       
       this.testSitePicker.plotMap(model.region);
     });
+
+    this.imtHandler = () => {};
+    this.returnPeriodEventHandler = () => {};
+    this.vs30EventHandler = () => {};
   }
 
   /**
@@ -1419,22 +1423,48 @@ export class DynamicCompare extends Hazard {
       let vs30Value = this.vs30El.value;
 
       /* Update plot on IMT change */
-      this.imtEl.addEventListener('change', () => {
-        this.onIMTChange(firstModelValue, secondModelValue, hazardsResponses);
-      });
+      let imtHandler = () => { 
+        console.log('IMT change');
+        this.onIMTChange(firstModelValue, secondModelValue, hazardsResponses)
+      };
+
+      this.imtEl.removeEventListener('change', this.imtHandler);
+      this.imtEl.addEventListener('change', imtHandler);
+      this.imtHandler = imtHandler;
 
       /* Update plot on return period change */
-      this.returnPeriodEl.addEventListener('returnPeriodChange', () => {
-        this.onReturnPeriodChange(firstModelValue, secondModelValue, hazardsResponses);
-      });
+      let returnPeriodEventHandler = () => {
+        console.log('Return Period change');
+        this.onReturnPeriodChange(
+            firstModelValue,
+            secondModelValue,
+            hazardsResponses);
+      };
+
+      this.returnPeriodEl.removeEventListener(
+          'returnPeriodChange',
+          this.returnPeriodEventHandler)
+
+      this.returnPeriodEl.addEventListener(
+          'returnPeriodChange',
+          returnPeriodEventHandler);
+
+      this.returnPeriodEventHandler = returnPeriodEventHandler;
       
-      this.vs30El.addEventListener('change', () => {
+      /* Update on vs30 change */
+      let vs30EventHandler = () => {
+        console.log('Vs30 change');
         this.onVs30Change(
           firstModelValue,
           secondModelValue,
           vs30Value,
           hazardsResponses);
-      });
+
+      };
+
+      this.vs30El.removeEventListener('change', this.vs30EventHandler);
+      this.vs30El.addEventListener('change', vs30EventHandler);
+      this.vs30EventHandler = vs30EventHandler;
 
       /* Get raw data */
       this.footer.onRawDataBtn(urls); 
