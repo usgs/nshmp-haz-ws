@@ -160,6 +160,15 @@ export class D3LinePlot {
   }
 
   /**
+   * Clear all plots off the sub views
+   */
+  clearAll() {
+    this.clear(this.view.upperSubView);
+
+    if (this.view.addLowerSubView) this.clear(this.view.lowerSubView);
+  }
+
+  /**
    * Get the current X domain of the plot.
    * 
    * @param {D3LineSubView} subView The sub view to get domain
@@ -1025,18 +1034,10 @@ export class D3LinePlot {
 
     if (isChecked) {
       this.view.viewHeader.legendCheckEl.removeAttribute('checked');
-      this.legend.hide(this.upperLineData);
-
-      if (this.view.addLowerSubView) {
-        this.legend.hide(this.lowerLineData);
-      }
+      this.legend.hideAll();
     } else {
       this.view.viewHeader.legendCheckEl.setAttribute('checked', 'true');
-      this.legend.show(this.upperLineData);
-
-      if (this.view.addLowerSubView) {
-        this.legend.show(this.lowerLineData);
-      }
+      this.legend.showAll();
     }
   }
 
