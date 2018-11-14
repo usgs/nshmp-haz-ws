@@ -99,6 +99,12 @@ export class DynamicCompare extends Hazard {
     /** X-axis domain for spectra plots - @type {Array<Number} */
     this.spectraXDomain = [0.001, 10.0];
 
+    /* Default titles */
+    this.hazardComponentPlotTitle = 'Hazard Component Curves';
+    this.hazardPlotTitle = 'Hazard Curves';
+    this.spectraComponentPlotTitle = 'Response Spectrum Component Curves';
+    this.spectraPlotTitle = 'Response Spectrum';
+
     /* Spectra plot setup */
     this.spectraView = this.setupSpectraView();
     this.spectraLinePlot = new D3LinePlot(this.spectraView);
@@ -289,16 +295,18 @@ export class DynamicCompare extends Hazard {
    */
   clearPlots() {
     this.hazardComponentLinePlot.clearAll();
-    this.hazardComponentView.setTitle('');
+    this.hazardComponentView.setTitle(this.hazardComponentPlotTitle);
 
     this.hazardLinePlot.clearAll();
-    this.hazardView.setTitle('');
+    this.hazardView.setTitle(this.hazardPlotTitle);
+    this.hazardLinePlot.plotZeroRefLine(this.hazardView.lowerSubView);
 
     this.spectraComponentLinePlot.clearAll();
-    this.spectraComponentView.setTitle('');
+    this.spectraComponentView.setTitle(this.spectraComponentPlotTitle);
     
     this.spectraLinePlot.clearAll();
-    this.spectraView.setTitle('');
+    this.spectraView.setTitle(this.spectraPlotTitle);
+    this.spectraLinePlot.plotZeroRefLine(this.spectraView.lowerSubView);
   }
 
   /**
@@ -537,6 +545,8 @@ export class DynamicCompare extends Hazard {
   onFirstModelChange() {
     this.setSecondModelMenu();
     this.onModelChange();
+    this.latEl.value = null;
+    this.lonEl.value = null;
   }
 
   /**
@@ -571,8 +581,6 @@ export class DynamicCompare extends Hazard {
     this.clearPlots();
     this.setParameterMenu(this.imtEl, this.options.defaultImt);
     this.setParameterMenu(this.vs30El, this.options.defaultVs30);
-    this.latEl.value = null;
-    this.lonEl.value = null;
     this.addInputTooltip();
   }
 
@@ -581,12 +589,17 @@ export class DynamicCompare extends Hazard {
    * @param {Number} vs30Value The vs30
    * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
    */
-  onVs30Change(vs30Value, hazardResponses) {
+  onVs30Change(firstModelValue, secondModelValue, vs30Value, hazardResponses) {
+    Preconditions.checkArgumentString(firstModelValue);
+    Preconditions.checkArgumentString(secondModelValue);
+    Preconditions.checkArgumentString(vs30Value);
     Preconditions.checkArgumentArrayInstanceOf(
         hazardResponses, 
         HazardServiceResponse);
 
-    if (vs30Value != this.vs30El.value) {
+    if (vs30Value != this.vs30El.value ||
+        firstModelValue != this.firstModelEl.value ||
+        secondModelValue != this.secondModelEl.value) {
       this.clearPlots();
     } else {
       this.serializeUrls();
@@ -1185,7 +1198,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Hazard Component Curves');
+    view.setTitle(this.hazardComponentPlotTitle);
         
     return view;
   }
@@ -1242,7 +1255,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Hazard Component Curves');
+    view.setTitle(this.hazardPlotTitle);
         
     return view;
   }
@@ -1278,7 +1291,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Response Spectrum Component Curves');
+    view.setTitle(this.spectraComponentPlotTitle);
         
     return view;
   }
@@ -1335,7 +1348,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Response Spectrum');
+    view.setTitle(this.spectraPlotTitle);
         
     return view;
   }
@@ -1416,7 +1429,11 @@ export class DynamicCompare extends Hazard {
       });
       
       this.vs30El.addEventListener('change', () => {
-        this.onVs30Change(vs30Value, hazardsResponses);
+        this.onVs30Change(
+          firstModelValue,
+          secondModelValue,
+          vs30Value,
+          hazardsResponses);
       });
 
       /* Get raw data */
