@@ -1,11 +1,10 @@
 package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.calc.HazardExport.curvesBySource;
-import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
+import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
@@ -30,10 +29,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
-import gov.usgs.earthquake.nshmp.HazardCalc;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
+import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.data.XySequence;
@@ -200,7 +199,7 @@ public final class HazardService2 extends NshmpServlet {
     configBuilder.imts(data.model.imts);
     CalcConfig config = configBuilder.build();
     Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
-    return HazardCalc.calc(model, config, site, executor);
+    return HazardCalcs.hazard(model, config, site, executor);
   }
 
   static final class RequestData {
