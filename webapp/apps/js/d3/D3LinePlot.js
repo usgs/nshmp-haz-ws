@@ -1241,7 +1241,7 @@ export class D3LinePlot {
     let lineEls = dataEl.querySelectorAll('.plot-line');
     let symbolEls = dataEl.querySelectorAll('.plot-symbol');
 
-    D3Utils.linePlotSelection(lineData, series, lineEls, symbolEls, isActive);
+    D3Utils.linePlotSelection(series, lineEls, symbolEls, isActive);
 
     let selectionEvent = new CustomEvent(
         'plotSelection', 
@@ -1590,9 +1590,11 @@ export class D3LinePlot {
    */
   _resetPlotSelection(lineData) {
     d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
+        .classed('active', false);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.plot-line')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.lineWidth;
@@ -1600,8 +1602,6 @@ export class D3LinePlot {
 
     d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.plot-symbol')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol.size(series.lineOptions.d3SymbolSize)();

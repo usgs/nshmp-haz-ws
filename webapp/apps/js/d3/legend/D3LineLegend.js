@@ -530,31 +530,15 @@ export class D3LineLegend {
     let symbolEls = tableRowEl.querySelectorAll('.legend-symbol');
     
     let legendOptions = lineData.subView.options.legendOptions;
-    let subViewOptions = lineData.subView.options;
-
     let fontWeight = isActive ? 'bold' : 'normal';
     let fontSize = legendOptions.fontSize;
 
-    let delay = isActive ? subViewOptions.translationDuration : 0;
-    
-    if (isActive) {
-      d3.select(tableRowEl)
-          .select('.legend-text')
-          .transition()
-          .duration(subViewOptions.translationDuration)
-          .style('font-weight', fontWeight )
-          .style('font-size', `${fontSize * 1.25}px`);
-    }
-
     d3.select(tableRowEl)
         .select('.legend-text')
-        .transition()
-        .delay(delay)
-        .duration(subViewOptions.translationDuration)
         .style('font-weight', fontWeight)
         .style('font-size', `${fontSize}px`);
 
-    D3Utils.linePlotSelection(lineData, series, lineEls, symbolEls, isActive);
+    D3Utils.linePlotSelection(series, lineEls, symbolEls, isActive);
   }
 
   /**
@@ -603,9 +587,11 @@ export class D3LineLegend {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
 
     d3.select(lineData.subView.svg.legendEl)
+        .selectAll('.legend-entry')
+        .classed('active', false);
+
+    d3.select(lineData.subView.svg.legendEl)
         .selectAll('.legend-line')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.lineWidth;
@@ -613,8 +599,6 @@ export class D3LineLegend {
 
     d3.select(lineData.subView.svg.legendEl)
         .selectAll('.legend-symbol')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData}*/ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol.size(series.lineOptions.d3SymbolSize)();
@@ -628,8 +612,6 @@ export class D3LineLegend {
 
     d3.select(lineData.subView.svg.legendEl)
         .selectAll('.legend-text')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .style('font-size', `${legendOptions.fontSize}px`)
         .style('font-weight', 'normal');
   }
