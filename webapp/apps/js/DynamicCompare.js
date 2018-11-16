@@ -99,6 +99,12 @@ export class DynamicCompare extends Hazard {
     /** X-axis domain for spectra plots - @type {Array<Number} */
     this.spectraXDomain = [0.001, 10.0];
 
+    /* Default titles */
+    this.hazardComponentPlotTitle = 'Hazard Component Curves';
+    this.hazardPlotTitle = 'Hazard Curves';
+    this.spectraComponentPlotTitle = 'Response Spectrum Component Curves';
+    this.spectraPlotTitle = 'Response Spectrum';
+
     /* Spectra plot setup */
     this.spectraView = this.setupSpectraView();
     this.spectraLinePlot = new D3LinePlot(this.spectraView);
@@ -117,6 +123,21 @@ export class DynamicCompare extends Hazard {
     this.hazardComponentView = this.setupHazardComponentView();
     this.hazardComponentLinePlot = new D3LinePlot(this.hazardComponentView);
 
+    /* @type {LeafletTestSitePicker} */
+    this.testSitePicker = new LeafletTestSitePicker(
+        this.latEl,
+        this.lonEl,
+        this.testSitePickerBtnEl); 
+  
+    this.imtHandler = () => {};
+    this.returnPeriodEventHandler = () => {};
+    this.vs30EventHandler = () => {};
+
+    this.addEventListener();
+  }
+
+  /** Add event listeners */
+  addEventListener() {
     /* Check latitude values on change */
     $(this.latEl).on('input', (event) => {
       this.onCoordinate(event);
@@ -129,13 +150,22 @@ export class DynamicCompare extends Hazard {
  
     /* Listen for input changes */ 
     this.footer.onInput(this.inputsEl, this.footerOptions);
- 
-    /* @type {LeafletTestSitePicker} */
-    this.testSitePicker = new LeafletTestSitePicker(
-        this.latEl,
-        this.lonEl,
-        this.testSitePickerBtnEl); 
-  
+
+    /* Update menus when first model changes */ 
+    this.firstModelEl.addEventListener('change', () => {
+      this.onFirstModelChange();
+    });
+
+    /** Update menus on second model change */
+    this.secondModelEl.addEventListener('change', () => {
+      this.onModelChange();
+    });
+
+    /** Check query on test site load */
+    this.testSitePicker.on('testSiteLoad', (event) => {
+      this.checkQuery();
+    });
+
     /* Bring Leaflet map up when clicked */
     $(this.testSitePickerBtnEl).on('click', (event) => {
       let model = Tools.stringToParameter(
@@ -222,6 +252,7 @@ export class DynamicCompare extends Hazard {
     
     this.setFirstModelMenu();
     this.setSecondModelMenu();
+    this.secondModelEl.value = this.options.defaultSecondModel;
     this.setParameterMenu(this.imtEl, this.options.defaultImt);
     this.setParameterMenu(this.vs30El, this.options.defaultVs30);
     this.setDefaultReturnPeriod();
@@ -229,13 +260,6 @@ export class DynamicCompare extends Hazard {
 
     $(this.controlPanelEl).removeClass('hidden');
 
-    /* Update menus when first model changes */ 
-    this.onFirstModelChange();
-    
-    this.testSitePicker.on('testSiteLoad', (event) => {
-      this.checkQuery();
-    });
-    
   }
   
   /**
@@ -276,6 +300,25 @@ export class DynamicCompare extends Hazard {
     keypress.which = 13;
     keypress.keyCode = 13;
     $(document).trigger(keypress);
+  }
+
+  /**
+   * Clear all plots
+   */
+  clearPlots() {
+    this.hazardComponentLinePlot.clearAll();
+    this.hazardComponentView.setTitle(this.hazardComponentPlotTitle);
+
+    this.hazardLinePlot.clearAll();
+    this.hazardView.setTitle(this.hazardPlotTitle);
+    this.hazardLinePlot.plotZeroRefLine(this.hazardView.lowerSubView);
+
+    this.spectraComponentLinePlot.clearAll();
+    this.spectraComponentView.setTitle(this.spectraComponentPlotTitle);
+    
+    this.spectraLinePlot.clearAll();
+    this.spectraView.setTitle(this.spectraPlotTitle);
+    this.spectraLinePlot.plotZeroRefLine(this.spectraView.lowerSubView);
   }
 
   /**
@@ -509,42 +552,68 @@ export class DynamicCompare extends Hazard {
   }
 
   /**
-   * Update menus when the first model select menu is changed.
+   * Update menus and update the second model
    */
   onFirstModelChange() {
-    $(this.firstModelEl).on('change', (event) => {
-      this.setSecondModelMenu();
-      this.setParameterMenu(this.imtEl, this.options.defaultImt);
-      this.setParameterMenu(this.vs30El, this.options.defaultVs30);
-      this.latEl.value = null;
-      this.lonEl.value = null;
-      this.addInputTooltip();
-    });
+    this.setSecondModelMenu();
+    this.onModelChange();
+    this.latEl.value = null;
+    this.lonEl.value = null;
   }
 
   /**
    * Handler to update the hazard plots on IMT change.
-   * 
+   *
+   * @param {String} firstModel The first model value
+   * @param {String} secondModel The second model value 
    * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
    */
-  onIMTChange(hazardResponses) {
+  onIMTChange(firstModel, secondModel, hazardResponses) {
+    Preconditions.checkArgumentString(firstModel);
+    Preconditions.checkArgumentString(secondModel);
     Preconditions.checkArgumentArrayInstanceOf(
         hazardResponses, 
         HazardServiceResponse);
+
+    this.serializeUrls();
+
+    if (firstModel != this.firstModelEl.value ||
+        secondModel != this.secondModelEl.value) {
+      return;
+    }
 
     this.plotHazardCurves(hazardResponses);
     this.plotHazardComponentCurves(hazardResponses);
   }
 
   /**
+   * Update menus on model change
+   */
+  onModelChange() {
+    this.clearPlots();
+    this.setParameterMenu(this.imtEl, this.options.defaultImt);
+    this.setParameterMenu(this.vs30El, this.options.defaultVs30);
+    this.addInputTooltip();
+  }
+
+  /**
    * Handler to update the plots when the return period is changed.
    *  
+   * @param {String} firstModel The first model value
+   * @param {String} secondModel The second model value 
    * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
    */
-  onReturnPeriodChange(hazardResponses) {
+  onReturnPeriodChange(firstModel, secondModel, hazardResponses) {
+    Preconditions.checkArgumentString(firstModel);
+    Preconditions.checkArgumentString(secondModel);
     Preconditions.checkArgumentArrayInstanceOf(
         hazardResponses, 
         HazardServiceResponse);
+
+    if (firstModel != this.firstModelEl.value ||
+        secondModel != this.secondModelEl.value) {
+      return;
+    }
 
     this.serializeUrls();
     this.plotResponseSpectrum(hazardResponses);
@@ -582,6 +651,36 @@ export class DynamicCompare extends Hazard {
     this.updateGroundMotionDifferenceText(hazardResponses, subView, textEl);
     
     this.serializeUrls();
+  }
+
+  /**
+   * Handler to update the plots on vs30 change.
+   *
+   * @param {String} firstModel The first model value
+   * @param {String} secondModel The second model value
+   * @param {Array<HazardServiceResponse>} hazardResponses The hazard responses
+   * @param {Number} vs30Value The vs30
+   */
+  onVs30Change(firstModel, secondModel, hazardResponses, vs30) {
+    Preconditions.checkArgumentString(firstModel);
+    Preconditions.checkArgumentString(secondModel);
+    Preconditions.checkArgumentString(vs30);
+    Preconditions.checkArgumentArrayInstanceOf(
+        hazardResponses, 
+        HazardServiceResponse);
+
+    if (vs30 != this.vs30El.value ||
+        firstModel != this.firstModelEl.value ||
+        secondModel != this.secondModelEl.value) {
+      this.clearPlots();
+    } else {
+      this.serializeUrls();
+      this.plotResponseSpectrum(hazardResponses);
+      this.plotResponseSpectrumComponents(hazardResponses);
+
+      this.plotHazardCurves(hazardResponses);
+      this.plotHazardComponentCurves(hazardResponses);
+    }
   }
 
   /**
@@ -1046,7 +1145,7 @@ export class DynamicCompare extends Hazard {
     let secondModel = Tools.stringToParameter(
         this.parameters.models,
         this.secondModelEl.value);
-    
+   
     let supports = [];
     supports.push(firstModel.supports[el.id]);
     supports.push(secondModel.supports[el.id]);
@@ -1079,7 +1178,6 @@ export class DynamicCompare extends Hazard {
     });
     
     Tools.setSelectMenu(this.secondModelEl, comparableModels);
-    this.secondModelEl.value = this.options.defaultSecondModel;
   }
 
   /**
@@ -1114,7 +1212,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Hazard Component Curves');
+    view.setTitle(this.hazardComponentPlotTitle);
         
     return view;
   }
@@ -1171,7 +1269,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Hazard Component Curves');
+    view.setTitle(this.hazardPlotTitle);
         
     return view;
   }
@@ -1207,7 +1305,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Response Spectrum Component Curves');
+    view.setTitle(this.spectraComponentPlotTitle);
         
     return view;
   }
@@ -1264,7 +1362,7 @@ export class DynamicCompare extends Hazard {
         .upperSubViewOptions(upperSubViewOptions)
         .build();
 
-    view.setTitle('Response Spectrum');
+    view.setTitle(this.spectraPlotTitle);
         
     return view;
   }
@@ -1308,44 +1406,81 @@ export class DynamicCompare extends Hazard {
 
       Tools.checkResponses(results);
 
-      let hazardsResponses = results.map((result) => {
+      let hazardResponses = results.map((result) => {
         return new HazardServiceResponse(result);
       });
       
       /* Set footer metadata */
-      this.footer.setWebServiceMetadata(hazardsResponses[0]); 
+      this.footer.setWebServiceMetadata(hazardResponses[0]); 
       
       /* Update tooltips for input */
       this.addInputTooltip();
 
       /* Plot response spectrum */
-      this.plotResponseSpectrum(hazardsResponses);
+      this.plotResponseSpectrum(hazardResponses);
 
       /* Plot hazard curves */
-      this.plotHazardCurves(hazardsResponses);
+      this.plotHazardCurves(hazardResponses);
 
       /* Plot spectra component curves  */
-      this.plotResponseSpectrumComponents(hazardsResponses);
+      this.plotResponseSpectrumComponents(hazardResponses);
 
       /* Plot hazard component curves */
-      this.plotHazardComponentCurves(hazardsResponses);
-      
-      /* Update plot on IMT change */
-      this.imtEl.addEventListener('change', () => {
-        this.onIMTChange(hazardsResponses);
-      });
+      this.plotHazardComponentCurves(hazardResponses);
+     
+      let firstModel = this.firstModelEl.value;
+      let secondModel = this.secondModelEl.value;
+      let vs30 = this.vs30El.value;
 
-      /* Update plot on return period change */
-      this.returnPeriodEl.addEventListener('returnPeriodChange', () => {
-        this.onReturnPeriodChange(hazardsResponses);
-      });
-      
+      this.updatePlotIMT(firstModel, secondModel, hazardResponses);
+      this.updatePlotReturnPeriod(firstModel, secondModel, hazardResponses);
+      this.updatePlotVs30(firstModel, secondModel, hazardResponses, vs30);
+
       /* Get raw data */
       this.footer.onRawDataBtn(urls); 
     }).catch((errorMessage) => {
       this.spinner.off();
       NshmpError.throwError(errorMessage);
     });
+  }
+
+  /** Update IMT event handler */
+  updatePlotIMT(firstModel, secondModel, hazardResponses) {
+    let imtHandler = () => { 
+      this.onIMTChange(firstModel, secondModel, hazardResponses)
+    };
+
+    this.imtEl.removeEventListener('change', this.imtHandler);
+    this.imtEl.addEventListener('change', imtHandler);
+    this.imtHandler = imtHandler;
+  }
+
+  /** Update return period event handler */
+  updatePlotReturnPeriod(firstModel, secondModel, hazardResponses) {
+    let returnPeriodEventHandler = () => {
+      this.onReturnPeriodChange(firstModel, secondModel, hazardResponses);
+    };
+
+    this.returnPeriodEl.removeEventListener(
+        'returnPeriodChange',
+        this.returnPeriodEventHandler)
+
+    this.returnPeriodEl.addEventListener(
+        'returnPeriodChange',
+        returnPeriodEventHandler);
+
+    this.returnPeriodEventHandler = returnPeriodEventHandler;
+  }
+
+  /** Update vs30 event handler */
+  updatePlotVs30(firstModel, secondModel, hazardResponses, vs30) {
+    let vs30EventHandler = () => {
+      this.onVs30Change(firstModel, secondModel, hazardResponses, vs30);
+    };
+
+    this.vs30El.removeEventListener('change', this.vs30EventHandler);
+    this.vs30El.addEventListener('change', vs30EventHandler);
+    this.vs30EventHandler = vs30EventHandler;
   }
 
 }

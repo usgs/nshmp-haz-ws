@@ -160,6 +160,15 @@ export class D3LinePlot {
   }
 
   /**
+   * Clear all plots off the sub views
+   */
+  clearAll() {
+    this.clear(this.view.upperSubView);
+
+    if (this.view.addLowerSubView) this.clear(this.view.lowerSubView);
+  }
+
+  /**
    * Get the current X domain of the plot.
    * 
    * @param {D3LineSubView} subView The sub view to get domain
@@ -1025,18 +1034,10 @@ export class D3LinePlot {
 
     if (isChecked) {
       this.view.viewHeader.legendCheckEl.removeAttribute('checked');
-      this.legend.hide(this.upperLineData);
-
-      if (this.view.addLowerSubView) {
-        this.legend.hide(this.lowerLineData);
-      }
+      this.legend.hideAll();
     } else {
       this.view.viewHeader.legendCheckEl.setAttribute('checked', 'true');
-      this.legend.show(this.upperLineData);
-
-      if (this.view.addLowerSubView) {
-        this.legend.show(this.lowerLineData);
-      }
+      this.legend.showAll();
     }
   }
 
@@ -1240,7 +1241,7 @@ export class D3LinePlot {
     let lineEls = dataEl.querySelectorAll('.plot-line');
     let symbolEls = dataEl.querySelectorAll('.plot-symbol');
 
-    D3Utils.linePlotSelection(lineData, series, lineEls, symbolEls, isActive);
+    D3Utils.linePlotSelection(series, lineEls, symbolEls, isActive);
 
     let selectionEvent = new CustomEvent(
         'plotSelection', 
@@ -1589,9 +1590,11 @@ export class D3LinePlot {
    */
   _resetPlotSelection(lineData) {
     d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
+        .classed('active', false);
+
+    d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.plot-line')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.lineOptions.lineWidth;
@@ -1599,8 +1602,6 @@ export class D3LinePlot {
 
     d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.plot-symbol')
-        .transition()
-        .duration(lineData.subView.options.translationDuration)
         .attr('d', (/** @type {D3LineSeriesData} */ series) => {
           Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
           return series.d3Symbol.size(series.lineOptions.d3SymbolSize)();
