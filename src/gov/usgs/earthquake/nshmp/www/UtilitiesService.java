@@ -15,7 +15,6 @@ import gov.usgs.earthquake.nshmp.geo.json.Feature;
 import gov.usgs.earthquake.nshmp.geo.json.GeoJson;
 import gov.usgs.earthquake.nshmp.geo.json.Properties;
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
-import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 @WebServlet(
     name = "Utilities Service",
