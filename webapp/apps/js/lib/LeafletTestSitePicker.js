@@ -187,7 +187,7 @@ export default class LeafletTestSitePciker extends TestSiteView {
               .property('disabled', false);
           
           d3.select(this.siteListEl)
-              .select('#' + feature.properties.locationId)
+              .select('#' + feature.id)
               .classed('active', true)
               .node()
               .scrollIntoView();
@@ -200,7 +200,7 @@ export default class LeafletTestSitePciker extends TestSiteView {
       /* Create tooltips for each location. */
       onEachFeature: (feature, layer) => {
         let coords = this.getCoordinates(feature);
-        let tooltip = '<b> ' + feature.properties.location + '</b><br>' +
+        let tooltip = '<b> ' + feature.properties.title + '</b><br>' +
             'Longitude: ' + coords[0] + '<br>' +
             'Latitude: ' + coords[1];
         
@@ -247,16 +247,16 @@ export default class LeafletTestSitePciker extends TestSiteView {
     
     return selectedLayer.feature; 
   }
-
+  
   /**
-  * @method getSelectedSiteFromId
-  *
-  * Find a selected site based on the location id
-  */  
+   * Find a selected site based on the location id.
+   * 
+   * @param {String} locationId The location id 
+   */
   getSelectedSiteFromId(locationId) {
     let layers = this.geoJsonLayer.getLayers();
     let selectedLayer = layers.find((layer) => {
-      return layer.feature.properties.locationId == locationId
+      return layer.feature.id == locationId;
     });
  
     return selectedLayer; 
@@ -273,7 +273,7 @@ export default class LeafletTestSitePciker extends TestSiteView {
   */
   getTestSiteTitle(regionId) {
     let testSite = this.findTestSite(regionId);
-    let loc = testSite != undefined ? testSite.properties.location : '';
+    let loc = testSite != undefined ? testSite.properties.title : '';
 
     return loc + ' (' + this.lonEl.value + ', ' + this.latEl.value + ')';
   }
@@ -360,7 +360,7 @@ export default class LeafletTestSitePciker extends TestSiteView {
           .classed('active', false);
 
       d3.select(this.siteListEl)
-          .select('#' + layer.feature.properties.locationId)
+          .select('#' + layer.feature.id)
           .classed('active', true)
           .node()
           .scrollIntoView();
@@ -420,15 +420,17 @@ export default class LeafletTestSitePciker extends TestSiteView {
 
     /* Replot */
     this.leafletMap.invalidateSize();
+    
     /* Plot test sites */
     let regionGeoJson = this.getRegion(regionId);
     this.createSiteList(regionGeoJson);
     this.geoJsonLayer.clearLayers(); 
     this.geoJsonLayer.addData(regionGeoJson);
+    
     /* Zoom to region bounds */
-    let bbox = regionGeoJson[0].bbox;
-    let regionBounds = L.latLngBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
-    this.leafletMap.fitBounds(regionBounds, this.options.fitBounds);
+    this.leafletMap.fitBounds(
+        this.geoJsonLayer.getBounds(),
+        this.options.fitBounds);
     
     /* Listeners */
     this.onSiteSelect(); 
@@ -439,7 +441,10 @@ export default class LeafletTestSitePciker extends TestSiteView {
     /* Replot when container size changes */
     $(window).resize((event) => {
       this.leafletMap.invalidateSize();
-      this.leafletMap.fitBounds(regionBounds, this.options.fitBounds);
+      
+      this.leafletMap.fitBounds(
+          this.geoJsonLayer.getBounds(),
+          this.options.fitBounds);
     });
   }
 
