@@ -73,11 +73,11 @@ export default class TestSiteView {
         .enter()
         .append('label')
         .attr('class', 'btn btn-sm btn-default')
-        .attr('id', (d, i) => { return d.properties.locationId; })
-        .html((d, i) => {
+        .attr('id', (feature) => { return feature.id; })
+        .html((feature) => {
           return '<input type="radio" ' +
-              'value="' + d.properties.locationId + '" />' +
-              d.properties.location;
+              'value="' + feature.id + '" />' +
+              feature.properties.title;
         });
   }
 
@@ -216,8 +216,8 @@ export default class TestSiteView {
         .data(this.testSites)
         .enter()
         .append('option')
-        .attr('value', (d) => { return d.properties.regionId; })
-        .text((d) => { return d.properties.regionDisplay; })
+        .attr('value', (feature) => { return feature.properties.regionId; })
+        .text((feature) => { return feature.properties.regionTitle; })
   }
 
   /**

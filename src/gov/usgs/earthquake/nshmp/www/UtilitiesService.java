@@ -15,7 +15,6 @@ import gov.usgs.earthquake.nshmp.geo.json.Feature;
 import gov.usgs.earthquake.nshmp.geo.json.GeoJson;
 import gov.usgs.earthquake.nshmp.geo.json.Properties;
 import gov.usgs.earthquake.nshmp.internal.NshmpSite;
-import gov.usgs.earthquake.nshmp.www.meta.Region;
 
 @WebServlet(
     name = "Utilities Service",
@@ -62,13 +61,13 @@ public class UtilitiesService extends NshmpServlet {
       RegionInfo regionInfo = getRegionInfo(regionKey);
       for (NshmpSite site : nshmpSites.get(regionKey)) {
         Map<String, Object> properties = Properties.builder()
-            .put(Key.LOCATION, site.toString())
-            .put(Key.LOCATION_ID, site.id())
+            .put(Key.TITLE, site.toString())
             .put(Key.REGION_ID, regionInfo.regionId)
-            .put(Key.REGION_DISPLAY, regionInfo.regionDisplay)
+            .put(Key.REGION_TITLE, regionInfo.regionDisplay)
             .build();
+
         builder.add(Feature.point(site.location())
-            .bbox(regionInfo.bbox)
+            .id(site.id())
             .properties(properties)
             .build());
       }
@@ -77,71 +76,52 @@ public class UtilitiesService extends NshmpServlet {
   }
 
   private static class Key {
-    private static final String LOCATION = "location";
-    private static final String LOCATION_ID = "locationId";
+    private static final String TITLE = "title";
     private static final String REGION_ID = "regionId";
-    private static final String REGION_DISPLAY = "regionDisplay";
+    private static final String REGION_TITLE = "regionTitle";
   }
 
   private static class RegionInfo {
     private String regionId;
     private String regionDisplay;
-    private double[] bbox;
 
-    private RegionInfo(Region region, String regionDisplay, String regionId) {
+    private RegionInfo(String regionDisplay, String regionId) {
       this.regionId = regionId.toUpperCase();
       this.regionDisplay = regionDisplay;
-      this.bbox = getBbox(region);
     }
 
-    private static double[] getBbox(Region region) {
-      double minlatitude = region.minlatitude;
-      double maxlatitude = region.maxlatitude;
-      double minlongitude = region.minlongitude <= -180 ? -179 : region.minlongitude;
-      double maxlongitude = region.maxlongitude;
-
-      return new double[] { minlatitude, minlongitude, maxlatitude, maxlongitude };
-    }
   }
 
   private static RegionInfo getRegionInfo(String regionId) {
-    Region region = null;
     String regionDisplay = "";
 
     switch (regionId) {
       case "ceus":
         regionDisplay = "Central & Eastern US";
-        region = Region.CEUS;
         break;
       case "cous":
         regionDisplay = "Conterminous US";
-        region = Region.COUS;
         break;
       case "wus":
         regionDisplay = "Western US";
-        region = Region.WUS;
         break;
       case "ak":
         regionDisplay = "Alaska";
-        region = Region.AK;
         break;
       case "facilities":
         regionDisplay = "US National Labs";
-        region = Region.WUS;
         break;
       case "nehrp":
         regionDisplay = "NEHRP";
-        region = Region.COUS;
         break;
       case "nrc":
         regionDisplay = "NRC";
-        region = Region.CEUS;
         break;
       default:
         throw new RuntimeException("Region [" + regionId + "] not found");
     }
 
-    return new RegionInfo(region, regionDisplay, regionId);
+    return new RegionInfo(regionDisplay, regionId);
   }
 
 }
