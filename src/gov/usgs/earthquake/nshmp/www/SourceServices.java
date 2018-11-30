@@ -87,6 +87,7 @@ public class SourceServices extends NshmpServlet {
     final String description;
     final String status;
     final String syntax;
+    final String deaggSyntax;
     final Object server;
     final Parameters parameters;
 
@@ -94,6 +95,7 @@ public class SourceServices extends NshmpServlet {
       this.name = "Source Models";
       this.description = "Installed source model listing";
       this.syntax = "%s://%s/nshmp-haz-ws/haz/{model}/{longitude}/{latitude}/{vs30}";
+      this.deaggSyntax = "%s://%s/nshmp-haz-ws/deagg2/{model}/{longitude}/{latitude}/{imt}/{vs30}/{returnPeriod}";
       this.status = Status.USAGE.toString();
       this.server = serverData(ServletUtil.THREAD_COUNT, ServletUtil.timer());
       this.parameters = new Parameters();

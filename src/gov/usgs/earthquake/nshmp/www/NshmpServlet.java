@@ -98,7 +98,8 @@ public abstract class NshmpServlet extends HttpServlet {
      * "%s://%s/service-name/..."
      */
     public void writeResponse(String usage) throws IOException {
-      response.getWriter().printf(usage, protocol, host);
+      // TODO had to add duplicate fields to handle haz and g syntax strings
+      response.getWriter().printf(usage, protocol, host, protocol, host);
     }
   }
 
