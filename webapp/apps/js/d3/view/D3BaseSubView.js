@@ -119,6 +119,7 @@ export class D3BaseSubView {
   _createSubView() {
     let subViewD3 = d3.select(this.containerEl)
         .append('div')
+        .style('line-height', '1.2')
         .attr('class', 'panel-body');
     
     return subViewD3.node();

@@ -140,7 +140,7 @@ export class D3BaseView {
         .append('tr');
 
     tableRowsD3.append('th')
-        .text((/** @type {String} */ key) => {
+        .html((/** @type {String} */ key) => {
           return key;
         });
 

@@ -334,7 +334,6 @@ export class D3LinePlot {
   /**
    * Fire a custom function when a line or symbol is selected.
    * Arguments passed to the callback function:
-   *    - D3LineData: The line data passed into onPlotSelection
    *    - D3LineSeriesData: The series data from the plot selection
    * 
    * @param {D3LineData} lineData The line data
@@ -556,6 +555,7 @@ export class D3LinePlot {
    * Sync the plot selections between the upper and lower sub views.
    */
   syncSubViews() {
+    this.legend.syncSubViews();
     for (let lineData of [this.upperLineData, this.lowerLineData]) {
       d3.select(lineData.subView.svg.dataContainerEl)
           .selectAll('.data-enter')

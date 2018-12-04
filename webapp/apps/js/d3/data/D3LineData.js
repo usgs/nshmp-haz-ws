@@ -523,7 +523,7 @@ export class D3LineDataBuilder {
   /** @private */
   _updateColorScheme() {
     let nSeries = this._series.length;
-    let colors = this._colorScheme && this._colorScheme.length == nSeries ? 
+    let colors = this._colorScheme ? 
         this._colorScheme : d3.schemeCategory10;
     let nColors = colors.length;
     let nCat = Math.ceil( nSeries / nColors );

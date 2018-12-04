@@ -356,6 +356,8 @@ export class D3SaveFigure {
    * @param {D3XYPair} plotTranslate The X and Y translate
    */
   _addPlotTitle(plotTranslate) {
+    if (!this.options.addTitle) return;
+
     Preconditions.checkArgumentInstanceOf(plotTranslate, D3XYPair);
     let titleTranslate = this._titlePosition(plotTranslate);
 

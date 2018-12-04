@@ -1,7 +1,13 @@
-'use strict';
 
-import Gmm from './lib/Gmm.js';
-import D3LinePlot from './lib/D3LinePlot.js';
+import { D3LineData } from './d3/data/D3LineData.js';
+import { D3LineOptions } from './d3/options/D3LineOptions.js';
+import { D3LinePlot } from './d3/D3LinePlot.js';
+import { D3LineSubViewOptions } from './d3/options/D3LineSubViewOptions.js';
+import { D3LineView } from './d3/view/D3LineView.js';
+import { D3LineSubView } from './d3/view/D3LineSubView.js';
+import { D3LineLegendOptions } from './d3/options/D3LineLegendOptions.js';
+
+import { Gmm } from './lib/Gmm.js';
 import NshmpError from './error/NshmpError.js';
 import Tools from './lib/Tools.js';
 
@@ -39,7 +45,7 @@ import Tools from './lib/Tools.js';
 *
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-export default class GmmDistance extends Gmm {
+export class GmmDistance extends Gmm {
  
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
@@ -77,9 +83,9 @@ export default class GmmDistance extends Gmm {
     /** @type {HTMLElement} */
     this.zTopEl = document.querySelector('#zTop');
     
-    /** @type {D3LinePlot} */
-    this.plot = this.plotSetup();
-    
+    this.gmmView = this.setupGMMView();
+    this.gmmLinePlot = new D3LinePlot(this.gmmView);
+
     $(this.imtEl).change((event) => { this.imtOnChange(); }); 
     
     this.getUsage();
@@ -109,61 +115,43 @@ export default class GmmDistance extends Gmm {
   }
 
   /**
-  * Plot ground motion vs. distance in the upper plot panel
-  * @param {Object} response JSON return from the gmm/distance web service
-  */ 
-  plotGmm(response) {
+   * Plot the ground motion vs. distance response.
+   * 
+   * @param {Object} response 
+   */
+  plotGMM(response) {
+    this.gmmLinePlot.clearAll();
+    let lineData = this.responseToLineData(response, this.gmmView.upperSubView);
+    this.gmmLinePlot.plot(lineData);
+
     let metadata = this.getMetadata();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [response.date]);
-    
-    let mean = response.means;
-    let meanData = mean.data;
-    let seriesLabels = [];
-    let seriesIds = [];
-    let seriesData = [];
-      
-    meanData.forEach((d, i) => {
-      seriesLabels.push(d.label);
-      seriesIds.push(d.id);
-      seriesData.push(d3.zip(d.data.xs, d.data.ys));
-    });
-   
-    let selectedImt = $(':selected', this.imtEl);
-    let selectedImtVal = selectedImt.val();
-    
-    this.plot.setUpperData(seriesData)
-        .setMetadata(metadata)
-        .setUpperDataTableTitle('Median Ground Motion')
-        .setUpperPlotFilename('gmmDistance' + selectedImtVal)
-        .setUpperPlotIds(seriesIds)
-        .setUpperPlotLabels(seriesLabels)
-        .setUpperXLabel(mean.xLabel)
-        .setUpperYLabel(mean.yLabel)
-        .plotData(this.plot.upperPanel);
+    this.gmmView.setMetadata(metadata);
+    this.gmmView.createMetadataTable();
+
+    this.gmmView.setSaveData(lineData);
+    this.gmmView.createDataTable(lineData);
   }
 
   /**
-  * Set the plot options for the ground motion vs. distance plot
-  *     and the fault plane plot.
-  * @return {D3LinePlot} New instance of D3LinePlot 
-  */ 
-  plotSetup() {
-    let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
-    let meanPlotOptions = {
-      legendLocation: 'bottomleft',
-      pointRadius: 2.75,
-      selectionIncrement: 1,
-      tooltipText: meanTooltipText,
-    };
-    
-    return new D3LinePlot(
-        this.contentEl,
-        {} /* main plot options */,
-        meanPlotOptions,
-        {} /* lower panel options */)
-        .withPlotHeader()
-        .withPlotFooter(); 
+   * Convert the response to line data.
+   * 
+   * @param {Object} response The response
+   * @param {D3LineSubView} subView The sub view to plot the line data 
+   */
+  responseToLineData(response, subView) {
+    let dataBuilder = D3LineData.builder().subView(subView);
+
+    for (let responseData of response.means.data) {
+      let lineOptions = D3LineOptions.builder()
+          .id(responseData.id)
+          .label(responseData.label)
+          .markerSize(4)
+          .build();
+
+      dataBuilder.data(responseData.data.xs, responseData.data.ys, lineOptions);
+    }
+
+    return dataBuilder.build();
   }
 
   /**
@@ -186,6 +174,37 @@ export default class GmmDistance extends Gmm {
   }
  
   /**
+   * Setup the plot view
+   */
+  setupGMMView() {
+    /* Upper sub view legend options */
+    let legendOptions = D3LineLegendOptions.upperBuilder() 
+        .location('bottom-left')
+        .build();
+
+    /* Upper sub view options: gmm vs distance */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .filename('gmm-distance')
+        .label('Ground Motion Vs. Distance')
+        .legendOptions(legendOptions)
+        .lineLabel('Ground Motion Model')
+        .xAxisScale('log')
+        .xLabel('Distance (km)')
+        .yAxisScale('log')
+        .yLabel('Median Ground Motion (g)')
+        .build();
+
+    let view = D3LineView.builder()
+        .containerEl(this.contentEl)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+ 
+    view.setTitle('Ground Motion Vs. Distance');
+
+    return view;
+  }
+
+  /**
   * Call the ground motion web service and plot the results 
   */
   updatePlot() {
@@ -203,18 +222,18 @@ export default class GmmDistance extends Gmm {
 
       let selectedImt = $(':selected', this.imtEl);
       let selectedImtDisplay = selectedImt.text();
-      this.plot.setPlotTitle('Ground Motion Vs. Distance: ' + 
-          selectedImtDisplay);
+
+      this.gmmView.setTitle(`Ground Motion Vs. Distance: ${selectedImtDisplay}`);
     
-      // Plot ground motion Vs. distance
-      this.plotGmm(response);
-      // Show raw JSON results on click
+      this.plotGMM(response);
+
       $(this.footer.rawBtnEl).off() 
       $(this.footer.rawBtnEl).click((event) => {
         window.open(url);
       });
     }).catch((errorMessage) => {
       this.spinner.off();
+      this.gmmLinePlot.clearAll();
       NshmpError.throwError(errorMessage);
     });
   }
