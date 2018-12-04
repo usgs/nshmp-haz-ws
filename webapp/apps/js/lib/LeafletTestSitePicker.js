@@ -83,7 +83,10 @@ export default class LeafletTestSitePciker extends TestSiteView {
   *     there is no region.
   */
   checkForRegion(regionId) {
-    let region = this.getRegion(regionId);
+    let region = this.testSites.find((feature) => {
+      return feature.properties.regionId == regionId;
+    });
+
     if (region == undefined) {
       d3.select(this.activationBtnEl)
           .property('disabled', true);

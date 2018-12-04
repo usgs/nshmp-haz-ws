@@ -34,7 +34,7 @@ import NshmpError from '../error/NshmpError.js';
 * @class Gmm
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-export default class Gmm {
+export class Gmm {
 
   /**
   * @param {!String} webApp Identifier of the application being used.

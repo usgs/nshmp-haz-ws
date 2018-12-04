@@ -25,7 +25,7 @@ import Tools from './Tools.js';
  * @class Gmm
  * @author bclayton@usgs.gov (Brandon Clayton)
  */
-export default class GmmBeta {
+export class GmmBeta {
 
   /**
    * @param {!String} webApp Identifier of the application being used.
