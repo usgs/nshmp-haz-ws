@@ -54,6 +54,7 @@ public class UtilitiesService extends NshmpServlet {
     nshmpSites.put("facilities", NshmpSite.facilities());
     nshmpSites.put("nehrp", NshmpSite.nehrp());
     nshmpSites.put("nrc", NshmpSite.nrc());
+    nshmpSites.put("hawaii", NshmpSite.hawaii());
 
     GeoJson.Builder builder = GeoJson.builder();
 
@@ -116,6 +117,9 @@ public class UtilitiesService extends NshmpServlet {
         break;
       case "nrc":
         regionDisplay = "NRC";
+        break;
+      case "hawaii":
+        regionDisplay = "Hawaii";
         break;
       default:
         throw new RuntimeException("Region [" + regionId + "] not found");
