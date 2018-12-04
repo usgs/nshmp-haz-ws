@@ -8,56 +8,55 @@ import Settings from './Settings.js';
 import Spinner from './Spinner.js';
 import Tools from './Tools.js';
 
-export default class Hazard{
+export class Hazard {
 
   constructor(config){
-    let _this = this;
-    
-    _this.footer = new Footer();
-    _this.footerOptions = {
+    this.footer = new Footer();
+    this.footerOptions = {
       rawBtnDisable: true,
       updateBtnDisable: true
     };
-    _this.footer.setOptions(_this.footerOptions);
+    this.footer.setOptions(this.footerOptions);
     
     // Create header                                                            
-    _this.header = new Header();                                                
+    this.header = new Header();                                                
     
     // Create spinner                                                           
-    _this.spinner = new Spinner();                                              
+    this.spinner = new Spinner();                                              
 
     // Settings menu
-    //_this.settings = new Settings(_this.footer.settingsBtnEl);
-    
+    //this.settings = new Settings(this.footer.settingsBtnEl);
      
-    _this.controlEl = document.querySelector("#control");
-    _this.editionEl = document.getElementById("edition");
-    _this.regionEl = document.getElementById("region");
-    _this.imtEl = document.getElementById("imt");
-    _this.vs30El = document.getElementById("vs30");
-    _this.latBoundsEl = document.getElementById("lat-bounds");
-    _this.lonBoundsEl = document.getElementById("lon-bounds");
-    _this.latEl = document.getElementById("lat");
-    _this.lonEl = document.getElementById("lon");
-    _this.latFormEl = document.getElementById("lat-form");
-    _this.lonFormEl = document.getElementById("lon-form");
+    this.controlEl = document.querySelector("#control");
+    this.editionEl = document.getElementById("edition");
+    this.regionEl = document.getElementById("region");
+    this.imtEl = document.getElementById("imt");
+    this.vs30El = document.getElementById("vs30");
+    this.latBoundsEl = document.getElementById("lat-bounds");
+    this.lonBoundsEl = document.getElementById("lon-bounds");
+    this.latEl = document.getElementById("lat");
+    this.lonEl = document.getElementById("lon");
+    this.latFormEl = document.getElementById("lat-form");
+    this.lonFormEl = document.getElementById("lon-form");
+
+    this.Y_MIN_CUTOFF = 1e-16;
 
     this.config = config;
 
-    $(_this.lonEl).on('input', (event) => {
-      Hazard.checkCoordinates(_this,false,true);
+    $(this.lonEl).on('input', (event) => {
+      this.checkCoordinates(false,true);
     });
     
-    $(_this.latEl).on('input', (event) => {
-      Hazard.checkCoordinates(_this,true,false);
+    $(this.latEl).on('input', (event) => {
+      this.checkCoordinates(true,false);
     });
 
-    $(_this.controlEl).on('input change', (event) => {
-      let canSubmit = Hazard.checkCoordinates(_this,false,false);
-      _this.footerOptions = {
+    $(this.controlEl).on('input change', (event) => {
+      let canSubmit = this.checkCoordinates(false,false);
+      this.footerOptions = {
         updateBtnDisable: !canSubmit
       };
-      _this.footer.setOptions(_this.footerOptions);
+      this.footer.setOptions(this.footerOptions);
     });
  
     this.dynamicUrl = this.config.server.dynamic + "/nshmp-haz-ws/hazard";
@@ -73,23 +72,57 @@ export default class Hazard{
     
     /* Bring Leaflet map up when clicked */
     $(this.testSitePickerBtnEl).on('click', (event) => {
-      this.testSitePicker.plotMap(this.regionEl.value);
+      this.testSitePicker.plotMap(this.region());
     });
   }
 
+  /**
+   * Get current region value
+   */
+  region() {
+    let region = '';
 
+    switch(this.regionEl.value) {
+      case 'CEUS':
+      case 'CEUS0P10':
+        region = 'CEUS';
+        break;
+      case 'COUS':
+      case 'COUS0P05':
+        region = 'COUS';
+        break;
+      case 'WUS':
+      case 'WUS0P05':
+        region = 'WUS';
+        break;
+      case 'AK':
+      case 'AK0P10':
+        region = 'AK';
+        break;
+      case 'HI0P02':
+        region = 'HAWAII';
+        break;
+      case 'PRIVI0P01':
+      case 'GMNI0P10':
+      case 'AMSAM0P05':
+        region = null;
+        break;
+      default:
+        region = null;
+    }
 
-  //.................. Method: getHazardParameters .............................
-  static getHazardParameters(_this, callback) {
-    let jsonCall = Tools.getJSONs([_this.dynamicUrl, _this.staticUrl]); 
-    _this.spinner.on(jsonCall.reject, 'Calculating');
+    return region;
+  }
+
+  getHazardParameters(callback) {
+    let jsonCall = Tools.getJSONs([this.dynamicUrl, this.staticUrl]); 
+    this.spinner.on(jsonCall.reject, 'Calculating');
 
     Promise.all(jsonCall.promises).then((responses) => {    
       NshmpError.checkResponses(responses);
       let dynamicParameters = responses[0].parameters;
       let staticParameters = responses[1].parameters;
 
-      //................ Add Edition Type ..................................
       var mainPars    = ["edition","region"];
       var editionType = ["static","dynamic"];
 
@@ -101,8 +134,6 @@ export default class Hazard{
           }
         }
       }
-      //--------------------------------------------------------------------
-
       
       //.................. Combine Static and Dynamic Parameters ...........
       var editionValues = staticParameters.edition.values
@@ -111,14 +142,12 @@ export default class Hazard{
           .concat(dynamicParameters.region.values);
       var imtValues = staticParameters.imt.values;
       var vs30Values = staticParameters.vs30.values;
-      //--------------------------------------------------------------------
 
       //........ Sort Combined Parameters by Display Order Parameter .......
-      editionValues.sort(Hazard.sortDisplayorder); 
-      regionValues.sort(Hazard.sortDisplayorder);
-      imtValues.sort(Hazard.sortDisplayorder);
-      vs30Values.sort(Hazard.sortDisplayorder);
-      //--------------------------------------------------------------------
+      editionValues.sort(this.sortDisplayorder); 
+      regionValues.sort(this.sortDisplayorder);
+      imtValues.sort(this.sortDisplayorder);
+      vs30Values.sort(this.sortDisplayorder);
 
       //....... Create a Single Parameter Object for Static and Dynamic ....
       var combinedParameters = {
@@ -143,20 +172,15 @@ export default class Hazard{
           values: vs30Values
         }
       };
-      //--------------------------------------------------------------------
-        
+
       callback(combinedParameters); 
     }).catch((errorMessage) => {
-      _this.spinner.off();
+      this.spinner.off();
       NshmpError.throwError(errorMessage);
     }); 
   
   }
-  //-------------------- End Method: getHazardParameters -----------------------
-
   
-  
-  //............................. Method: sortDisplayOrder ..................... 
   /*
   - The sort_displayorder function takes a parameter, 
       like edition, and sorts them based on the display 
@@ -165,28 +189,21 @@ export default class Hazard{
       order values of two editions to see which one should be 
       displayed first (a negative value return is displayed first)
   */
-  static sortDisplayorder(a,b){
+  sortDisplayorder(a,b){
     return (a.displayorder - b.displayorder);
   }      
-  //--------------------------- End Method: sortDisplayOrder -------------------
 
-
-
-  //........................... Method: setSelectMenu ..........................
-  static setSelectMenu(el,options){
+  setSelectMenu(el,options){
     
     d3.select(el)
         .selectAll("option")
         .data(options)
         .enter()
         .append("option")
-        .attr("value",function(d,i){return d.value})
-        .attr("id",function(d,i){return d.value})
-        .text(function(d,i){return d.display.replace("&amp;","&")})
+        .attr("value",(d,i) => {return d.value})
+        .attr("id",(d,i) => {return d.value})
+        .text((d,i) => {return d.display.replace("&amp;","&")})
   }                                                                             
-  //-------------------- End Method: setSelectMenu -----------------------------
-
-
 
   /*
   -  This function is used for model-compare and model-explorer
@@ -200,11 +217,11 @@ export default class Hazard{
     https://earthquake.usgs.gov/hazws/staticcurve/1
     /{edition}/{region}/{longitude}/{latitude}/{imt}/{vs30}"
   */
-  static composeHazardUrl(obj,edition,region,lat,lon,vs30,dataType){
+  composeHazardUrl(edition,region,lat,lon,vs30,dataType){
     if (dataType == "static"){  
       var urlInfo =  {
         dataType: "static",
-        url: obj.staticUrl +
+        url: this.staticUrl +
         edition + "/" + 
         region  + "/" +
         lon     + "/" +
@@ -215,7 +232,7 @@ export default class Hazard{
     }else if (dataType == "dynamic"){
       var urlInfo =  {
         dataType: "dynamic", 
-        url: obj.dynamicUrl +
+        url: this.dynamicUrl +
         "?edition="   + edition   +
         "&region="    + region    +
         "&longitude=" + lon       +
@@ -226,9 +243,7 @@ export default class Hazard{
     return urlInfo;
   }
 
-
-
-  static checkQuery(_this){
+  checkQuery(){
     let url = window.location.hash.substring(1);
     
     if (!url) return false;
@@ -244,7 +259,7 @@ export default class Hazard{
     let dataType = [];
     let regions = [];
     let urlInfo = [];
-    pars.forEach(function(par,i){
+    pars.forEach((par,i) => {
       key = par.split("=")[0];
       value = par.split("=")[1];
       switch (key){
@@ -272,166 +287,144 @@ export default class Hazard{
       }
     });
     
-    d3.select(_this.editionEl)
+    d3.select(this.editionEl)
         .selectAll("option")
         .property("selected",false);
    
-    _this.latEl.value = lat;
-    _this.lonEl.value = lon;
-    _this.imtEl.value = imt;
-    _this.vs30El.value = vs30;
-
-    if (_this.options.type == "compare"){ 
-      let comparableRegion = _this.comparableRegions.find(function(d,i){
-        return d.staticValue == regions[0] || d.dynamicValue == regions[0];
-      });
-      _this.regionEl.value = comparableRegion.value;
-      _this.options.regionDefault = comparableRegion.value;
-    }else{
-      _this.regionEl.value = regions[0];
-      _this.options.regionDefault = regions[0];
-      _this.options.editionDefault = editions[0];
-    }
-    
-    _this.options.imtDefault = imt;
-    _this.options.vs30Default = vs30;
-    
-    editions.forEach(function(edition,i){
-      d3.select(_this.editionEl)
+    editions.forEach((edition,i) => {
+      d3.select(this.editionEl)
           .select("#"+edition)
           .property("selected",true);
     });
+
+    $(this.editionEl).trigger('change');
+
+    this.latEl.value = lat;
+    this.lonEl.value = lon;
+    this.imtEl.value = imt;
+    this.vs30El.value = vs30;
+
+    if (this.options.type == "compare"){ 
+      let comparableRegion = this.comparableRegions.find((d,i) => {
+        return d.staticValue == regions[0] || d.dynamicValue == regions[0];
+      });
+      this.regionEl.value = comparableRegion.value;
+      this.options.regionDefault = comparableRegion.value;
+    }else{
+      this.regionEl.value = regions[0];
+      this.options.regionDefault = regions[0];
+      this.options.editionDefault = editions[0];
+    }
+    
+    this.options.imtDefault = imt;
+    this.options.vs30Default = vs30;
+    
     
     return true; 
   }
 
-
-
-
-
-
-  //....................... Method: setParameterMenu ...........................
-  static setParameterMenu(_this,par,supportedValues){
-    let el = eval("_this."+par+"El");
+  setParameterMenu(par,supportedValues){
+    let el = eval("this."+par+"El");
     d3.select(el)
         .selectAll("option")
         .remove();
     
-    if ((_this.options.type == "explorer" && par == "region") || 
-          (_this.options.type == "compare" && par == "edition" || "region"))
-      Hazard.setSelectMenu(el,supportedValues);
+    if ((this.options.type == "explorer" && par == "region") || 
+          (this.options.type == "compare" && par == "edition" || "region"))
+      this.setSelectMenu(el,supportedValues);
     else
-      Hazard.setSelectMenu(el,_this.parameters[par].values);
+      this.setSelectMenu(el,this.parameters[par].values);
     
 
     d3.select(el)
         .selectAll("option")
         .property("disabled",true)
-        .filter(function(d,i){
-          return supportedValues.some(function(sv,isv){
+        .filter((d,i) => {
+          return supportedValues.some((sv,isv) => {
             return d.value == sv.value;
           })
         })
         .property("disabled",false);
     
-    let defaultVal = _this.options[par+"Default"];
-    let isFound = supportedValues.some(function(val,i){
+    let defaultVal = this.options[par+"Default"];
+    let isFound = supportedValues.some((val,i) => {
       return val.value == defaultVal; 
     });
     defaultVal = isFound ? defaultVal 
         : supportedValues[0].value;  
     el.value = defaultVal;                                                      
   }
-  //------------------ End Method: setParameterMenu ----------------------------
   
-  
-  
-  
-  //....................... Method: supportedValues ............................
-  static supportedValues(_this,par){
+  supportedValues(par){
     
-    let type = _this.options.type;
+    let type = this.options.type;
     let supports = [];                                                          
-    let selectedEditions = _this.editionEl.querySelectorAll(":checked");
-    selectedEditions.forEach(function(e,i){
-      let edition = _this.parameters.edition.values.find(function(ev,iev){
+    let selectedEditions = this.editionEl.querySelectorAll(":checked");
+    selectedEditions.forEach((e,i) => {
+      let edition = this.parameters.edition.values.find((ev,iev) => {
         return ev.value == e.value;
       });
       supports.push(edition.supports[par]);
       let dataType = edition.dataType;
       if (type == "compare"){
-        let comparableRegion = _this.comparableRegions.find(function(r,ir){
-          return r.value == _this.regionEl.value;
+        let comparableRegion = this.comparableRegions.find((r,ir) => {
+          return r.value == this.regionEl.value;
         });
-        let region = _this.parameters.region.values.find(function(r,ir){
+        let region = this.parameters.region.values.find((r,ir) => {
           return r.value == comparableRegion[dataType+"Value"];
         });
         supports.push(region.supports[par]);
       }else if (type == "explorer"){
-        let region = _this.parameters.region.values.find(function(r,ir){
-          return r.value == _this.regionEl.value; 
+        let region = this.parameters.region.values.find((r,ir) => {
+          return r.value == this.regionEl.value; 
         });
         supports.push(region.supports[par]);
       }
     });
     
-    let supportedValues = _this.parameters[par].values.filter(function(p,ip){
-      return supports.every(function(pc,ipc){
+    let supportedValues = this.parameters[par].values.filter((p,ip) => {
+      return supports.every((pc,ipc) => {
         return pc.includes(p.value);
       });
     });
     
     return supportedValues;
   }
-  //----------------------- End Method: supportedValues ------------------------
 
-
-
-
-  //.................... Method: setBounds .....................................
-  static setBounds(_this){
+  setBounds(){
     
-    //............................ Variables ...................................
     let latMax,
         latMin,
         lonMax,
         lonMin,
         region;
     
-    region = _this.parameters.region.values.find(function(d,i){
-      return d.value == _this.regionEl.value;
+    region = this.parameters.region.values.find((d,i) => {
+      return d.value == this.regionEl.value;
     });
     
     latMax = region.maxlatitude;
     latMin = region.minlatitude;
     lonMax = region.maxlongitude;
     lonMin = region.minlongitude;
-    //--------------------------------------------------------------------------
     
-    
-    //...................... Update Bounds .....................................
-    _this.latBoundsEl.innerHTML = "<br>" + _this.regionEl.value +
+    this.latBoundsEl.innerHTML = "<br>" + this.regionEl.value +
         " bounds: " + " ["+latMin+","+latMax+"]";
     
-    _this.lonBoundsEl.innerHTML = "<br>" + _this.regionEl.value +
+    this.lonBoundsEl.innerHTML = "<br>" + this.regionEl.value +
         " bounds: " + " ["+lonMin+","+lonMax+"]";
-    //--------------------------------------------------------------------------
   
   }                                                                             
-  //--------------------- End Method: setBounds --------------------------------
   
-  
-  
-  //...................... Method: addSiteCheckBounds ..........................
-  static checkCoordinates(_this,checkLat,checkLon){
+  checkCoordinates(checkLat,checkLon){
     let latMax,
         latMin,
         lonMax,
         lonMin,
         region;
     
-    region = _this.parameters.region.values.find(function(d,i){
-      return d.value == _this.regionEl.value;
+    region = this.parameters.region.values.find((d,i) => {
+      return d.value == this.regionEl.value;
     });
     
     latMax = region.maxlatitude;
@@ -439,8 +432,8 @@ export default class Hazard{
     lonMax = region.maxlongitude;
     lonMin = region.minlongitude;
     
-    let lat = _this.latEl.value;
-    let lon = _this.lonEl.value;
+    let lat = this.latEl.value;
+    let lon = this.lonEl.value;
     
     let canLatSubmit = lat < latMin || lat > latMax
         || isNaN(lat) ? false : true;
@@ -448,105 +441,92 @@ export default class Hazard{
         || isNaN(lon) ? false : true;
     
     if(checkLat){
-      d3.select(_this.latFormEl)
+      d3.select(this.latFormEl)
           .classed("has-error",!canLatSubmit);
-      d3.select(_this.latFormEl)
+      d3.select(this.latFormEl)
           .classed("has-success",canLatSubmit);
     }
     if(checkLon){
-      d3.select(_this.lonFormEl)
+      d3.select(this.lonFormEl)
           .classed("has-error",!canLonSubmit);
-      d3.select(_this.lonFormEl)
+      d3.select(this.lonFormEl)
           .classed("has-success",canLonSubmit);
     }
     
     return canLatSubmit && canLonSubmit ? true : false;
   }
-  //-------------------- End Method: addSiteCheckBounds ------------------------
                                                                                 
-                                                                                
-  //..................... Method: clearCoordinates .............................
-  static clearCoordinates(_this){
-    _this.latEl.value = "";
-    _this.lonEl.value = "";
+  clearCoordinates(){
+    this.latEl.value = "";
+    this.lonEl.value = "";
     
-    d3.select(_this.latFormEl)
+    d3.select(this.latFormEl)
         .classed("has-error",false);
-    d3.select(_this.latFormEl)
+    d3.select(this.latFormEl)
         .classed("has-success",false);
     
-    d3.select(_this.lonFormEl)
+    d3.select(this.lonFormEl)
         .classed("has-error",false);
-    d3.select(_this.lonFormEl)
+    d3.select(this.lonFormEl)
         .classed("has-success",false);
   }
-  //------------------- End Method: clearCoordinates ---------------------------
 
-
-
-  //...................... Get Menu Selections/Values  .........................
-  static getSelections(_this){
+  getSelections(){
     
-    $(_this.footer.rawBtnEl).off();
+    $(this.footer.rawBtnEl).off();
     
-    let selectedEditions = _this.editionEl.querySelectorAll(":checked");
-    let vs30 = _this.vs30El.value;
-    let lat = _this.latEl.value;
-    let lon = _this.lonEl.value;
-    let imt = _this.imtEl.value;
+    let selectedEditions = this.editionEl.querySelectorAll(":checked");
+    let vs30 = this.vs30El.value;
+    let lat = this.latEl.value;
+    let lon = this.lonEl.value;
+    let imt = this.imtEl.value;
     
-    //....................... Setup URLs to Submit .............................
-    let type = _this.options.type;
+    let type = this.options.type;
     if (type == "compare"){
-      var regionInfo = _this.comparableRegions.find(function(d,i){
-        return d.value == _this.regionEl.value;
+      var regionInfo = this.comparableRegions.find((d,i) => {
+        return d.value == this.regionEl.value;
       });
     }
     var urlInfo = [];
     let windowUrl = "lat="+lat+"&lon="+lon+"&vs30="+vs30+"&imt="+imt;
-    selectedEditions.forEach(function(se,ise){
-      var editionInfo = _this.parameters.edition.values.find(function(d,i){
+    selectedEditions.forEach((se,ise) => {
+      var editionInfo = this.parameters.edition.values.find((d,i) => {
         return d.value == se.value;
       });
       var dataType = editionInfo.dataType;
       var editionVal = editionInfo.value;
       var regionVal  = type == "compare" ? regionInfo[dataType+"Value"]
-          : _this.regionEl.value;
+          : this.regionEl.value;
       windowUrl += "&dataType="+dataType+"&edition="
           +editionVal+"&region="+regionVal;
-      let url = Hazard.composeHazardUrl(_this,editionVal,regionVal,
+      let url = this.composeHazardUrl(editionVal,regionVal,
           lat,lon,vs30,dataType);
       urlInfo.push(url);
     });
     
     window.location.hash = windowUrl;
     
-    $(_this.footer.rawBtnEl).click(function(){
-      urlInfo.forEach(function(url,iu){
+    $(this.footer.rawBtnEl).click(() => {
+      urlInfo.forEach((url,iu) => {
         window.open(url.url);
       })
     });
-    //--------------------------------------------------------------------------
     
     return urlInfo; 
   }
-  //----------------- End: Get Menu Selections/Values --------------------------
 
-
-
-  //...................... Call the nshmp-haz Code Given URL ...................
-  static callHazard(_this,callback){
+  callHazard(callback){
     
-    var canSubmit = Hazard.checkCoordinates(_this,true,true);
+    var canSubmit = this.checkCoordinates(true,true);
     if (!canSubmit) return;
     
-    let urlInfo = Hazard.getSelections(_this);
+    let urlInfo = this.getSelections();
     
-    _this.footerOptions = {
+    this.footerOptions = {
       rawBtnDisable: false,
       updateBtnDisable: false
     };
-    _this.footer.setOptions(_this.footerOptions);
+    this.footer.setOptions(this.footerOptions);
     
     let urls = [];
     for (var ju in urlInfo){
@@ -554,14 +534,14 @@ export default class Hazard{
     }
 
     let jsonCall = Tools.getJSONs(urls);
-    _this.spinner.on(jsonCall.reject, 'Calculating');
+    this.spinner.on(jsonCall.reject, 'Calculating');
     
     Promise.all(jsonCall.promises).then((responses) => {
       NshmpError.checkResponses(responses);
 
       let jsonResponse = [];
       
-      responses.forEach(function(jsonReturn,i){
+      responses.forEach((jsonReturn,i) => {
         jsonReturn.response.dataType = urlInfo[i].dataType;
         jsonResponse.push(jsonReturn.response);
       });
@@ -572,22 +552,14 @@ export default class Hazard{
       
       let server = responseWithServer != undefined ?
           responseWithServer.server : undefined;
-      _this.footer.setMetadata(server);
+      this.footer.setMetadata(server);
 
-      callback(_this, jsonResponse); 
+      callback(jsonResponse); 
     }).catch((errorMessage) => {
-      _this.spinner.off();
+      this.spinner.off();
       NshmpError.throwError(errorMessage);
     });
   
   }
-  //------------------- End: Call nshmp-haz Code -------------------------------
-
-
 
 }
-//------------------------- End Class: Hazard ----------------------------------
-
-
-
-

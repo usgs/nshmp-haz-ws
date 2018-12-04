@@ -1,11 +1,16 @@
-'use strict'
 
-import D3LinePlot from './lib/D3LinePlot.js';
-import GmmBeta from './lib/GmmBeta.js';
-import Constraints from './lib/Constraints.js';
+import { D3LineData } from './d3/data/D3LineData.js';
+import { D3LineOptions } from './d3/options/D3LineOptions.js';
+import { D3LinePlot } from './d3/D3LinePlot.js';
+import { D3LineSubViewOptions } from './d3/options/D3LineSubViewOptions.js';
+import { D3LineView } from './d3/view/D3LineView.js';
+import { D3LineViewOptions } from './d3/options/D3LineViewOptions.js';
+import { D3SaveFigureOptions } from './d3/options/D3SaveFigureOptions.js';
+
+import { GmmBeta } from './lib/GmmBeta.js';
 import Tools from './lib/Tools.js';
 import NshmpError from './error/NshmpError.js';
-
+import { Preconditions } from './error/Preconditions.js';
 
 /** 
  * @fileoverview Class for spectra-plot.html, response spectra web app.
@@ -34,7 +39,7 @@ import NshmpError from './error/NshmpError.js';
  * @extends GmmBeta
  * @author bclayton@usgs.gov (Brandon Clayton)
  */
-export default class Spectra extends GmmBeta {
+export class Spectra extends GmmBeta {
 
   constructor(config) {
     let webApp = 'Spectra';
@@ -94,10 +99,13 @@ export default class Spectra extends GmmBeta {
     ];
 
     /** X-Axis domain for spectra plots - @type {Array<Number>} */
-    this.spectraXDomain = [0.01, 10.0];
+    this.spectraXDomain = [0.001, 10.0];
 
     /* Get the usage and create control panel */
     this.getUsage();
+
+    this.spectraView = this.setupSpectraView();
+    this.spectraLinePlot = new D3LinePlot(this.spectraView);
   }
 
   /**
@@ -215,88 +223,114 @@ export default class Spectra extends GmmBeta {
   }
 
   /**
-   * Plot ground motions Vs. period in the upper plot panel
+   * Plot spectra results.
    * 
-   * @param {Array<Object>} responses An array of JSON returns 
-   *     from gmm/spectra web service
+   * @param {Array} responses 
    */
-  plotGmm(responses) {
+  plotSpectra(responses) {
+    this.spectraLinePlot.clearAll();
     let metadata = this.getMetadata();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [responses[0].date]);
+    let means = this.plotSpectraMeans(responses);
+    let sigmas = this.plotSpectraSigma(responses);
+    this.spectraLinePlot.syncSubViews();
+    
+    this.spectraView.setMetadata(metadata);
+    this.spectraView.createMetadataTable();
 
-    let seriesInfo = this._responsesToData(responses, 'means');
-
-    this.plot.setUpperData(seriesInfo.data)
-        .setMetadata(metadata)
-        .setUpperDataTableTitle(seriesInfo.display)
-        .setUpperPlotFilename('spectraMean')
-        .setUpperPlotIds(seriesInfo.ids)
-        .setUpperPlotLabels(seriesInfo.labels)
-        .setUpperXLabel(seriesInfo.xLabel)
-        .setUpperYLabel(seriesInfo.yLabel)
-        .plotData(this.plot.upperPanel, this.spectraXDomain);
+    let meanData = means.pgaData.concat(means.lineData);
+    let sigmaData = sigmas.pgaData.concat(sigmas.lineData);
+    this.spectraView.setSaveData(meanData, sigmaData);
+    this.spectraView.createDataTable(meanData, sigmaData);
   }
 
   /**
-   * Set the plot options for the ground motion Vs. period and
-   *    the accompanying sigma plot.
+   * Plot the spectra means.
    * 
-   * @return {D3LinePlot} New instance of D3LinePlot
+   * @param {Array} responses 
    */
-  plotSetup() {
-    let plotOptions = {
-      plotLowerPanel: true,
-      syncSelections: true,
-      syncXAxis: true,
-      syncYAxis: false,
-      xAxisScale: 'log',
-    };
+  plotSpectraMeans(responses) {
+    let data = this._responsesToLineData(
+        responses,
+        this.spectraView.upperSubView,
+        'means');
 
-    let meanTooltipText = ['GMM:', 'Period (s):', 'MGM (g):'];
-    let meanPlotOptions = {
-      legendLocation: 'topright',
-      printMetadataColumns: 4,
-      tooltipText: meanTooltipText,
-      yAxisScale: 'linear',
-    };
-    
-    let sigmaTooltipText = ['GMM:', 'Period (s):', 'SD:'];
-    let sigmaPlotOptions = {
-      plotHeight: 224,
-      plotWidth: 896,
-      printMetadataColumns: 4,
-      showLegend: false,
-      tooltipText: sigmaTooltipText,
-      yAxisScale: 'linear',
-    };
-    
-    return new D3LinePlot(
-        this.contentEl,
-        plotOptions,
-        meanPlotOptions,
-        sigmaPlotOptions)
-        .withPlotHeader()
-        .withPlotFooter();
+    let lineData = data.lineData;
+    let pgaData = data.pgaData;
+
+    this.spectraLinePlot.plot(lineData);
+    this.spectraLinePlot.plot(pgaData);
+
+    return data;
   }
 
   /**
-   * Plot sigma of ground motions in the lower plot panel
-   * 
-   * @param {Array<Object>} responses An array of JSON returns 
-   *    from gmm/spectra web service
+   * Plot the spectra sigmas
+   * @param {Array} responses 
    */
-  plotSigma(responses) {
-    let seriesInfo = this._responsesToData(responses, 'sigmas');
+  plotSpectraSigma(responses) {
+    let data = this._responsesToLineData(
+        responses,
+        this.spectraView.lowerSubView,
+        'sigmas');
 
-    this.plot.setLowerData(seriesInfo.data)
-        .setLowerDataTableTitle(seriesInfo.display)
-        .setLowerPlotFilename('spectraSigma')
-        .setLowerPlotIds(seriesInfo.ids)
-        .setLowerPlotLabels(seriesInfo.labels)
-        .setLowerXLabel(seriesInfo.xLabel)
-        .setLowerYLabel(seriesInfo.yLabel)
-        .plotData(this.plot.lowerPanel, this.spectraXDomain);
+    let lineData = data.lineData;
+    let pgaData = data.pgaData;
+
+    this.spectraLinePlot.plot(lineData);
+    this.spectraLinePlot.plot(pgaData);
+
+    return data;
+  }
+
+  /**
+   * Setup the plot view
+   */
+  setupSpectraView() {
+    /* Save figure options */ 
+    let saveOptions = D3SaveFigureOptions.builder()
+        .metadataColumns(4)
+        .build();
+
+    /* Upper sub view options: means */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .filename('spectra-means')
+        .label('Response Spectra Means')
+        .lineLabel('Ground Motion Model')
+        .saveFigureOptions(saveOptions)
+        .xLabel('Period (s)')
+        .yAxisScale('linear')
+        .yLabel('Median Ground Motion (g)')
+        .build();
+
+    /* Lower sub view options: sigmas */
+    let lowerSubViewOptions = D3LineSubViewOptions.lowerBuilder()
+        .filename('spectra-sigmas')
+        .label('Response Spectra Sigmas')
+        .lineLabel('Ground Motion Model')
+        .saveFigureOptions(saveOptions)
+        .showLegend(false)
+        .xLabel('Period (s)')
+        .yAxisScale('linear')
+        .yLabel('Standard Deviation')
+        .build();
+
+    let viewOptions = D3LineViewOptions.builder()
+        .syncXAxisScale(true, 'log')
+        .syncYAxisScale(false)
+        .viewSize('max')
+        .build();
+
+    let view = D3LineView.builder()
+        .addLowerSubView(true)
+        .containerEl(this.contentEl)
+        .viewOptions(viewOptions)
+        .lowerSubViewOptions(lowerSubViewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+    
+    view.setTitle('Response Spectra');
+
+    return view;
   }
 
   /**
@@ -310,16 +344,11 @@ export default class Spectra extends GmmBeta {
 
     Promise.all(jsonCall.promises).then((responses) => {
       this.spinner.off();
-      NshmpError.checkResponses(responses, this.plot);
+      // NshmpError.checkResponses(responses, this.plot);
 
       this.footer.setMetadata(responses[0].server);
-      this.plot.setPlotTitle('Response Spectra');
-      // Plot means
-      this.plotGmm(responses);
-      // Plot sigmas
-      this.plotSigma(responses); 
-      // Sync selections
-      this.plot.syncSelections();
+
+      this.plotSpectra(responses);
 
       $(this.footer.rawBtnEl).off(); 
       $(this.footer.rawBtnEl).click((event) =>{
@@ -329,6 +358,7 @@ export default class Spectra extends GmmBeta {
       });
     }).catch((errorMessage) => {
       this.spinner.off();
+      this.spectraLinePlot.clearAll();
       NshmpError.throwError(errorMessage);
     });
 
@@ -942,9 +972,6 @@ export default class Spectra extends GmmBeta {
       this.updateHypoDepth();
     });
     
-    /** @type {D3LinePlot} */
-    this.plot = this.plotSetup();
-
     // On any input
     $(this.controlPanel.inputsEl)
       .on('input change', (event) => { this.inputsOnInput(event); });
@@ -1044,6 +1071,78 @@ export default class Spectra extends GmmBeta {
     };
 
     return dataInfo;
+  }
+
+  _responsesToLineData(responses, subView, whichDataSet) {
+    let multiParam = $(':selected', this.multiSelectEl).text();
+    let multiParamVal = this.multiSelectEl.value;
+
+    let dataBuilder = D3LineData.builder()
+        .subView(subView)
+        .xLimit(this.spectraXDomain);
+
+    let pgaBuilder = D3LineData.builder()
+        .subView(subView)
+        .xLimit(this.spectraXDomain);
+    
+    for (let response of responses) {
+      for (let responseData of response[whichDataSet].data) {
+        if (multiParamVal != 'gmms') {
+          let val = response.request.input[multiParamVal];
+          let valStr = val.toString().replace('.', 'p');
+
+          responseData.id = responseData.id + '_' + multiParamVal + '_' + valStr;
+          responseData.label = responseData.label + ' - ' + multiParam + ' = ' + val; 
+        }
+
+        let xValues = responseData.data.xs;
+        let yValues = responseData.data.ys;
+
+        let iPGA = xValues.indexOf(Tools.imtToValue('PGA'));
+        let pgaX = xValues.splice(iPGA, 1);
+        let pgaY = yValues.splice(iPGA, 1);
+
+        let pgaOptions = D3LineOptions.builder()
+            .id(responseData.id)
+            .label(responseData.label)
+            .lineStyle('none')
+            .markerStyle('s')
+            .showInLegend(false)
+            .build();
+
+        pgaBuilder.data(pgaX, pgaY, pgaOptions, ['PGA']);
+
+        let lineOptions = D3LineOptions.builder()
+            .id(responseData.id)
+            .label(responseData.label)
+            .build();
+
+        dataBuilder.data(xValues, yValues, lineOptions);
+      }
+    }
+
+    let lineData = dataBuilder.build()
+    let pgaData = pgaBuilder.build();
+
+    return new SpectraData(lineData, pgaData);    
+  }
+
+}
+
+class SpectraData {
+
+  /**
+   * Spectra data.
+   * 
+   * @param {D3LineData} lineData Line data
+   * @param {D3LineData} pgaData PGA data
+   */
+  constructor(lineData, pgaData) {
+    Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
+    Preconditions.checkArgumentInstanceOf(pgaData, D3LineData);
+
+    this.lineData = lineData;
+    this.pgaData = pgaData;
   }
 
 }

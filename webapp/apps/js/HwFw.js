@@ -1,8 +1,15 @@
-'use strict';
 
-import D3LinePlot from './lib/D3LinePlot.js';
+import { D3LineData } from './d3/data/D3LineData.js';
+import { D3LineOptions } from './d3/options/D3LineOptions.js';
+import { D3LinePlot } from './d3/D3LinePlot.js';
+import { D3LineSubViewOptions } from './d3/options/D3LineSubViewOptions.js';
+import { D3LineView } from './d3/view/D3LineView.js';
+import { D3LineSubView } from './d3/view/D3LineSubView.js';
+import { D3LineViewOptions } from './d3/options/D3LineViewOptions.js';
+import { D3SaveFigureOptions } from './d3/options/D3SaveFigureOptions.js';
+
 import Constraints from './lib/Constraints.js';
-import Gmm from './lib/Gmm.js';
+import { Gmm } from './lib/Gmm.js';
 import Tools from './lib/Tools.js';
 import NshmpError from './error/NshmpError.js';
 
@@ -35,7 +42,7 @@ import NshmpError from './error/NshmpError.js';
 *
 * @author bclayton@usgs.gov (Brandon Clayton)
 */
-export default class HwFw extends Gmm {
+export class HwFw extends Gmm {
  
   /**
   * @param {HTMLElement} contentEl - Container element to put plots
@@ -45,7 +52,7 @@ export default class HwFw extends Gmm {
     let webApp = 'HwFw';
     super(webApp, webServiceUrl, config);
     this.header.setTitle('Hanging Wall Effects');
-    
+
     /**
     * @type {{
     *   lowerPlotWidth: {number} - Lower plot width in percentage,
@@ -99,18 +106,20 @@ export default class HwFw extends Gmm {
     /** @type {HTMLElement} */
     this.zTopEl = undefined; 
     /** @type {HTMLElement} */
-    this.zTopSliderEl = undefined;  
+    this.zTopSliderEl = undefined;
     
-    /** @type {D3LinePlot} */
-    this.plot = this.plotSetup();
+    this.xLimit = [ this.rMin, this.rMax ];
 
-    // Replot on IMT change 
+    this.gmmView = this.setupGMMView();
+    this.gmmLinePlot = new D3LinePlot(this.gmmView);
+
+    this.faultXLimit = this.gmmView.lowerSubView.options.defaultXLimit;
+    this.faultYLimit = [ 0, this.options.maxFaultBottom ];
+    
     $(this.imtEl).change((event) => { this.imtOnChange(); }); 
     
-    // Build fault plane sliders
-    this.faultSliders();  
+    this.faultSliders();
     
-    // Build control panel
     this.getUsage(this.setSliderValues);
   }
   
@@ -178,10 +187,10 @@ export default class HwFw extends Gmm {
     ];      
    
     let width = (1 - this.options.lowerPlotWidth) * 100; 
-    d3.select(this.plot.lowerPanel.svgEl)
+    d3.select(this.gmmView.lowerSubView.svg.svgEl)
         .style('margin-right', width + '%');
   
-    let faultFormD3 =  d3.select(this.plot.lowerPanel.plotBodyEl)
+    let faultFormD3 = d3.select(this.gmmView.lowerSubView.subViewBodyEl)
         .append('form')
         .attr('class', 'form fault-form');
   
@@ -320,19 +329,9 @@ export default class HwFw extends Gmm {
   }
 
   /**
-  * @method getFaultPlaneData
-  *
-  * Calculate the the X,Y coordinates of the fault plane based on:
-  *     - Dip
-  *     - Width
-  *     - zTop
-  * @return {{
-  *   seriesData: {Array<Array<number, number>>},
-  *   seriesIds: {Array<String>},
-  *   seriesLabels: {Array<String>}
-    }} Object
-  */
-  getFaultPlaneData() {
+   * Get current fault plane line data
+   */
+  getFaultPlaneLineData() {
     let dip = this.dip_val();
     let width = this.width_val();
     let zTop = this.zTop_val();
@@ -341,78 +340,26 @@ export default class HwFw extends Gmm {
     let xMax = width * Math.cos(dip);
     let x = [xMin, Number(xMax.toFixed(4))];
     
-    let yMin = -zTop;
-    let yMax = - width * Math.sin(dip) - zTop;
+    let yMin = zTop;
+    let yMax =  width * Math.sin(dip) + zTop;
     let y = [yMin, Number(yMax.toFixed(4))];
-  
-    let seriesInfo = {
-      seriesData: [d3.zip(x, y)],
-      seriesIds: ['fault'],
-      seriesLabels: ['Fault'],
-    };
+    
+    let lineOptions = D3LineOptions.builder()
+        .id('fault')
+        .label('Fault Plane')
+        .markerSize(0)
+        .build();
 
-    return seriesInfo;
+    let lineData = D3LineData.builder()
+        .subView(this.gmmView.lowerSubView)
+        .data(x, y, lineOptions)
+        .xLimit(this.faultXLimit)
+        .yLimit(this.faultYLimit)
+        .build();
+
+    return lineData;
   }
 
-  /**
-  * @method getFaultPlaneDomain 
-  *
-  * Calculate the X and Y domain to make the ground motion vs. distance
-  *     plot have the same X scale
-  * @return {{
-  *   xDomain: {Array<number, number},
-  *   yDomain: {Array<number, number>}
-  * }} 
-  */
-  getFaultPlaneDomain() {
-    let lowerXWidth = d3.select(this.plot.lowerPanel.xAxisEl)
-        .select('.domain')
-        .node()
-        .getBoundingClientRect()
-        .width;
-    
-    let upperXWidth = d3.select(this.plot.upperPanel.xAxisEl)
-        .select('.domain')
-        .node()
-        .getBoundingClientRect()
-        .width;
-
-    let rMin = this.rMin;
-    let rMax = this.rMax;
-    // Calculate lower plot X limit to match upper plot 
-    let xLimit = ((lowerXWidth * (rMax - rMin)) / upperXWidth) + rMin;
-    
-    let xDomain = [rMin, xLimit];
-    let yDomain = [-this.options.maxFaultBottom, 0];
-    
-    let x = xLimit - rMin;
-    let y = this.options.maxFaultBottom;
-    let plotRatio = x / y;
-    let plotWidth = this.plot.upperPanel.options.plotWidth * 
-        this.options.lowerPlotWidth;
-    let plotHeight = plotWidth / plotRatio;
-    let options = this.plot.lowerPanel.options;
-    // Update lower plot svg height
-    this.plot.lowerPanel.svgHeight = plotHeight;
-    // Update lower plot height
-    this.plot.lowerPanel.plotHeight = plotHeight - 
-        options.marginTop - options.marginBottom; 
-    // Update lower plot svg width
-    this.plot.lowerPanel.svgWidth = plotWidth;
-    // Update lower plot height
-    this.plot.lowerPanel.plotWidth = plotWidth - 
-        options.marginLeft - options.marginRight; 
-    // Update the svg view box
-    this.plot.setSvgViewBox();
-
-    let domain = {
-      xDomain: xDomain,
-      yDomain: yDomain,
-    };
-    
-    return domain;
-  }
-  
   /**
    * Get current chosen parameters.
    * @return {Map<String, Array<String>>} The metadata Map
@@ -436,125 +383,127 @@ export default class HwFw extends Gmm {
     return metadata;
   }
 
-  /**
-  * Plot the fault plane in the lower plot panel 
-  */
   plotFaultPlane() {
-    let seriesInfo = this.getFaultPlaneData();    
-    
-    let tickMarks = d3.select(this.plot.upperPanel.xAxisEl)
-        .selectAll(".tick")
-        .size(); 
-    tickMarks = Math.ceil(tickMarks / 2);
-    this.plot.lowerPanel.options.xTickMarks = tickMarks;
-    
-    this.plot.setLowerData(seriesInfo.seriesData)
-        .setLowerPlotFilename('faultPlane')
-        .setLowerPlotIds(seriesInfo.seriesIds)
-        .setLowerPlotLabels(seriesInfo.seriesLabels)
-        .setLowerXLabel('km')
-        .setLowerYLabel('km')
-        .plotData(this.plot.lowerPanel);
-    
-    let domain = this.getFaultPlaneDomain();
-    // Replot with new domain
-    this.plot.plotData(
-        this.plot.lowerPanel, 
-        domain.xDomain, 
-        domain.yDomain);
-    
-    // Convert Y axis to positive down
-    d3.select(this.plot.lowerPanel.yAxisEl)
-        .selectAll(".tick")
-        .selectAll("text")
-        .text((d, i) => { return Math.abs(Number(d));});
+    this.gmmLinePlot.clear(this.gmmView.lowerSubView);
+    let lineData = this.getFaultPlaneLineData();
+    this.gmmLinePlot.plot(lineData);
   }
 
   /**
-  * Plot ground motion vs. distance in the upper plot panel
-  * @param {Object} response JSON return from the gmm/hw-fw web service
-  */ 
-  plotGmm(response) {
+   * Plot the ground motion vs. distance response.
+   * 
+   * @param {Object} response 
+   */
+  plotGMM(response) {
+    this.gmmLinePlot.clear(this.gmmView.upperSubView);
+    let lineData = this.responseToLineData(response, this.gmmView.upperSubView);
+    this.gmmLinePlot.plot(lineData);
+
     let metadata = this.getMetadata();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [response.date]);
-    
-    let mean = response.means;
-    let meanData = mean.data;
-    let seriesLabels = [];
-    let seriesIds = [];
-    let seriesData = [];
-      
-    meanData.forEach((d, i) => {
-      seriesLabels.push(d.label);
-      seriesIds.push(d.id);
-      seriesData.push(d3.zip(d.data.xs, d.data.ys));
-    });
-   
-    let selectedImt = $(':selected', this.imtEl);
-    let selectedImtVal = selectedImt.val();
-    
-    this.plot.setUpperData(seriesData)
-        .setMetadata(metadata)
-        .setUpperDataTableTitle('Median Ground Motion')
-        .setUpperPlotFilename('hwFw' + selectedImtVal)
-        .setUpperPlotIds(seriesIds)
-        .setUpperPlotLabels(seriesLabels)
-        .setUpperXLabel(mean.xLabel)
-        .setUpperYLabel(mean.yLabel)
-        .plotData(this.plot.upperPanel);
+    this.gmmView.setMetadata(metadata);
+    this.gmmView.createMetadataTable();
+
+    this.gmmView.setSaveData(lineData);
+    this.gmmView.createDataTable(lineData);
+
+    this.plotFaultPlane();
   }
 
   /**
-  * Set the plot options for the ground motion vs. distance plot
-  *     and the fault plane plot.
-  * @return {D3LinePlot} New instance of D3LinePlot 
-  */ 
-  plotSetup() {
-    let plotOptions = {
-      colSizeMinCenter: 'col-md-offset-2 col-md-8',
-      disableXAxisBtns: true,
-      plotLowerPanel: true,
-      syncXAxis: false,
-      syncYAxis: false, 
-    };
+   * Convert the response to line data.
+   * 
+   * @param {Object} response The response
+   * @param {D3LineSubView} subView The sub view to plot the line data 
+   */
+  responseToLineData(response, subView) {
+    let dataBuilder = D3LineData.builder().subView(subView).xLimit(this.xLimit);
 
-    let meanTooltipText = ['GMM:', 'Distance (km):', 'MGM (g):'];
-    let meanPlotOptions = {
-      pointRadius: 2.75,
-      selectionIncrement: 1,
-      tooltipText: meanTooltipText,
-      xAxisNice: false,
-      xAxisScale: 'linear',
-      yAxisScale: 'linear',
-    };
-    
-    let faultPlotOptions = {
-      marginTop: 50,
-      marginBottom: 20,
-      linewidth: 4,
-      selectionIncrease: 0, 
-      pointRadius: 0,
-      plotWidth: 896 * this.options.lowerPlotWidth, 
-      printTitle: false,
-      showData: false,
-      showLegend: false,
-      transitionDuration: 0,
-      xAxisNice: false,
-      xAxisScale: 'linear',
-      xAxisLocation: 'top',
-      yAxisScale: 'linear',
-    };
-  
-    return new D3LinePlot(
-        this.contentEl,
-        plotOptions,
-        meanPlotOptions,
-        faultPlotOptions)
-        .withPlotHeader()
-        .withPlotFooter(); 
+    for (let responseData of response.means.data) {
+      let lineOptions = D3LineOptions.builder()
+          .id(responseData.id)
+          .label(responseData.label)
+          .build();
+
+      dataBuilder.data(responseData.data.xs, responseData.data.ys, lineOptions);
+    }
+
+    return dataBuilder.build();
   }
+
+
+  /**
+   * Setup the plot view
+   */
+  setupGMMView() {
+    /* Upper sub view options: gmm vs distance */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .defaultXLimit(this.xLimit)
+        .filename('hanging-wall-effects')
+        .label('Ground Motion Vs. Distance')
+        .lineLabel('Ground Motion Model')
+        .xAxisScale('linear')
+        .xLabel('Distance (km)')
+        .yAxisScale('linear')
+        .yLabel('Median Ground Motion (g)')
+        .build();
+   
+    let lowerPlotWidth = Math.floor(upperSubViewOptions.plotWidth * this.options.lowerPlotWidth);
+
+    let margins = upperSubViewOptions.paddingLeft + 
+        upperSubViewOptions.paddingRight + upperSubViewOptions.marginLeft +
+        upperSubViewOptions.marginRight;
+
+    let upperXWidth = upperSubViewOptions.plotWidth - margins;
+    let lowerXWidth = lowerPlotWidth - margins;
   
+    /* Calculate lower plot X limit to match upper plot */
+    let lowerXMax = ((lowerXWidth * (this.rMax - this.rMin)) / upperXWidth) + this.rMin;
+
+    /* Lower sub view save figure options */
+    let lowerSaveOptions = D3SaveFigureOptions.builder()
+        .addTitle(false)
+        .build();
+
+    /* Lower sub view options: fault plane */
+    let lowerSubViewOptions = D3LineSubViewOptions.lowerBuilder()
+        .defaultXLimit([ this.options.rMin, lowerXMax ])
+        .filename('fault-plane')
+        .label('Ground Motion Vs. Distance')
+        .lineLabel('Ground Motion Model')
+        .marginBottom(20)
+        .marginTop(20)
+        .paddingTop(30)
+        .plotWidth(lowerPlotWidth)
+        .saveFigureOptions(lowerSaveOptions)
+        .showLegend(false)
+        .xAxisLocation('top')
+        .xAxisNice(false)
+        .xAxisScale('linear')
+        .xLabel('Distance (km)')
+        .xTickMarks(Math.floor(upperSubViewOptions.xTickMarks / 2))
+        .yAxisReverse(true)
+        .yAxisScale('linear')
+        .yLabel('Median Ground Motion (g)')
+        .build();
+
+    let viewOptions = D3LineViewOptions.builder()
+        .disableXAxisBtns(true)
+        .syncYAxisScale(false)
+        .build();
+
+    let view = D3LineView.builder()
+        .addLowerSubView(true)
+        .containerEl(this.contentEl)
+        .upperSubViewOptions(upperSubViewOptions)
+        .lowerSubViewOptions(lowerSubViewOptions)
+        .viewOptions(viewOptions)
+        .build();
+ 
+    view.setTitle('Hanging Wall Effects');
+
+    return view;
+  }
+
   /**
   * @method setSliderValues
   *
@@ -597,20 +546,14 @@ export default class HwFw extends Gmm {
 
     jsonCall.promise.then((response) => {
       this.spinner.off();
-      NshmpError.checkResponse(response, this.plot);
-
       this.footer.setMetadata(response.server);
 
       let selectedImt = $(':selected', this.imtEl);
       let selectedImtDisplay = selectedImt.text();
-      this.plot.setPlotTitle('Hanging Wall Effects: ' + 
-          selectedImtDisplay);
-      
-      // Plot ground motion Vs. distance
-      this.plotGmm(response);
-      // Plot fault plane
-      this.plotFaultPlane();
-      // Show raw JSON results on click
+      this.gmmView.setTitle(`Hanging Wall Effects: ${selectedImtDisplay}`);
+
+      this.plotGMM(response);
+
       $(this.footer.rawBtnEl).off() 
       $(this.footer.rawBtnEl).click((event) => {
         window.open(url);

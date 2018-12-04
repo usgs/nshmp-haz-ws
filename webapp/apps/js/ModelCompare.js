@@ -1,148 +1,165 @@
-'use strict';
 
-import D3LinePlot from './lib/D3LinePlot.js';
-import Hazard from './lib/Hazard.js';
+import { D3LineData } from './d3/data/D3LineData.js';
+import { D3LineLegendOptions } from './d3/options/D3LineLegendOptions.js';
+import { D3LineOptions } from './d3/options/D3LineOptions.js';
+import { D3LinePlot } from './d3/D3LinePlot.js';
+import { D3LineSubViewOptions } from './d3/options/D3LineSubViewOptions.js';
+import { D3LineView } from './d3/view/D3LineView.js';
+import { D3LineViewOptions } from './d3/options/D3LineViewOptions.js';
 
-/**
-* @class ModelCompare
-*
-* @classdec Class for model-compare.html
-*
-*/
-export default class ModelCompare extends Hazard{
+import { Hazard } from './lib/Hazard.js';
+import NshmpError from './error/NshmpError.js';
 
-  //.......................... Constructor: ModelCompare .......................
-  constructor(config){
+export class ModelCompare extends Hazard {
 
-    //......................... Variables ......................................
-    let _this = super(config); 
-    
-    _this.header.setTitle("Model Comparison");
-    //--------------------------------------------------------------------------
-  
-    _this.options = {
-        type: "compare",
-        regionDefault: "COUS",
-        imtDefault: "PGA",
-        vs30Default: 760,
+  constructor(config) {
+    super(config);
+
+    this.header.setTitle("Model Comparison");
+
+    this.options = {
+      type: "compare",
+      regionDefault: "COUS",
+      imtDefault: "PGA",
+      vs30Default: 760,
     };
 
-    //..................... Plot Setup .........................................
-    _this.plotEl = document.querySelector("#content");
-    let plotOptions = {
-      colSizeMin: "col-md-offset-3 col-md-6",
-    };
+    this.contentEl = document.querySelector('#content');
+    this.hazardPlotTitle = 'Hazard Curves';
 
-    let tooltipText = ["Edition:", "GM (g):", "AFE:"];
-    let hazardCurveOptions = {
-      legendLocation: "bottomleft",
-      tooltipText: tooltipText
-    };
+    /* Plot view options */
+    this.viewOptions = D3LineViewOptions.builder()
+        .titleFontSize(14)
+        .build();
 
+    /* Hazard curve plot setup */
+    this.hazardView = this.setupHazardView();
+    this.hazardLinePlot = new D3LinePlot(this.hazardView);
 
-    _this.plot = new D3LinePlot(_this.plotEl,
-        plotOptions,
-        hazardCurveOptions,
-        {})
-        .withPlotHeader()
-        .withPlotFooter(); 
-    //--------------------------------------------------------------------------
-
-
-    //........................ Comparable Regions ..............................
-    _this.comparableRegions = [
+    this.comparableRegions = [
       {
         display: "Alaska",
         value: "AK",
         staticValue: "AK0P10",
         dynamicValue: "AK"
-      },{
+      }, {
         display: "Central & Eastern US",
-        value:"CEUS",
+        value: "CEUS",
         staticValue: "CEUS0P10",
         dynamicValue: "CEUS"
-      },{
+      }, {
         display: "Conterminous US",
         value: "COUS",
         staticValue: "COUS0P05",
         dynamicValue: "COUS"
-      },{
+      }, {
         display: "Western US",
         value: "WUS",
         staticValue: "WUS0P05",
         dynamicValue: "WUS"
       }
     ];
-    //--------------------------------------------------------------------------
 
-
-    //....................... Get Hazard Parameters ............................
-    ModelCompare.getHazardParameters(_this,setParameters); 
-    function setParameters(par){
-      _this.parameters = par;
-      ModelCompare.buildInputs(_this); 
+    let setParameters = (par) => {
+      this.parameters = par;
+      this.buildInputs()
     };
-    //--------------------------------------------------------------------------
-   
 
-    $(_this.footer.updateBtnEl).click(function(){
-      Hazard.callHazard(_this,ModelCompare.callHazardCallback);
+    this.getHazardParameters(setParameters);
+
+    $(this.footer.updateBtnEl).click(() => {
+      this.callHazard((result) => { this.callHazardCallback(result) });
     });
-    //--------------------------------------------------------------------------
-  
+
   }
-  //---------------------- End Constructor: ModelComapre -----------------------
 
-  //......................... Method: buildInputs ..............................
-  static buildInputs(_this){
-    _this.spinner.off();
-    
-    _this.testSitePicker.on('testSiteLoad', (event) => { 
-      ModelCompare.checkQuery(_this);
+  /**
+   * Build the view for the hazard curves. 
+   * 
+   * @returns {D3LineView} The hazard line view
+   */
+  setupHazardView() {
+    /* Upper sub view legend options: hazard plot */
+    let upperLegendOptions = D3LineLegendOptions.upperBuilder()
+        .location('bottom-left')
+        .build();
+
+    /* Upper sub view options: hazard plot */
+    let upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
+        .filename('hazard-compare')
+        .label('Hazard Curves')
+        .lineLabel('Edition')
+        .legendOptions(upperLegendOptions)
+        .xAxisScale('log')
+        .xLabel('Ground Motion (g)')
+        .yAxisScale('log')
+        .yLabel('Annual Frequency of Exceedence')
+        .yValueToExponent(true)
+        .build();
+
+    /* Build the view */
+    let view = D3LineView.builder()
+        .addLowerSubView(false)
+        .containerEl(this.contentEl)
+        .viewOptions(this.viewOptions)
+        .upperSubViewOptions(upperSubViewOptions)
+        .build();
+
+    view.setTitle(this.hazardPlotTitle);
+
+    return view;
+  }
+
+  buildInputs() {
+    this.spinner.off();
+
+    this.testSitePicker.on('testSiteLoad', (event) => {
+      this.checkQuery();
     });
-    
-    ModelCompare.setParameterMenu(_this,"region",_this.comparableRegions);
-    ModelCompare.setBounds(_this);
-    
-    let supportedEditions = ModelCompare.supportedEditions(_this);
-    ModelCompare.setParameterMenu(_this,"edition",supportedEditions);
-    d3.select(_this.editionEl)  
+
+    this.setParameterMenu("region", this.comparableRegions);
+    this.setBounds();
+
+    let supportedEditions = this.supportedEditions();
+    this.setParameterMenu("edition", supportedEditions);
+    d3.select(this.editionEl)
         .selectAll("option")
-        .attr("selected",true);
-    
-    let supportedImt = ModelCompare.supportedValues(_this,"imt");
-    let supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
-    ModelCompare.setParameterMenu(_this,"imt",supportedImt);
-    ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
-    
-    $(_this.regionEl).change(function(){
-      ModelCompare.clearCoordinates(_this);
-      ModelCompare.setBounds(_this);
-      supportedEditions = ModelCompare.supportedEditions(_this);
-      ModelCompare.setParameterMenu(_this,"edition",supportedEditions);
-      d3.select(_this.editionEl)  
-          .selectAll("option")
-          .attr("selected",true);
-      
-      supportedImt = ModelCompare.supportedValues(_this,"imt");
-      supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
-      ModelCompare.setParameterMenu(_this,"imt",supportedImt);
-      ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
-    });
-    
-    $(_this.editionEl).change(function(){
-      supportedImt = ModelCompare.supportedValues(_this,"imt");
-      supportedVs30 = ModelCompare.supportedValues(_this,"vs30");
-      ModelCompare.setParameterMenu(_this,"imt",supportedImt);
-      ModelCompare.setParameterMenu(_this,"vs30",supportedVs30);
-     });
-    
-    $(_this.controlEl).removeClass('hidden');
+        .attr("selected", true);
 
-    let canSubmit = ModelCompare.checkQuery(_this);
-    if (canSubmit) ModelCompare.callHazard(_this,ModelCompare.callHazardCallback);
-  }                                                                             
-  //------------------- End Method: buildInputs --------------------------------
+    let supportedImt = this.supportedValues("imt");
+    let supportedVs30 = this.supportedValues("vs30");
+    this.setParameterMenu("imt", supportedImt);
+    this.setParameterMenu("vs30", supportedVs30);
+
+    $(this.regionEl).change(() => {
+      this.hazardLinePlot.clearAll();
+
+      this.clearCoordinates();
+      this.setBounds();
+      supportedEditions = this.supportedEditions();
+      this.setParameterMenu("edition", supportedEditions);
+      d3.select(this.editionEl)
+          .selectAll("option")
+          .attr("selected", true);
+
+      supportedImt = this.supportedValues("imt");
+      supportedVs30 = this.supportedValues("vs30");
+      this.setParameterMenu("imt", supportedImt);
+      this.setParameterMenu("vs30", supportedVs30);
+    });
+
+    $(this.editionEl).change(() => {
+      supportedImt = this.supportedValues("imt");
+      supportedVs30 = this.supportedValues("vs30");
+      this.setParameterMenu("imt", supportedImt);
+      this.setParameterMenu("vs30", supportedVs30);
+    });
+
+    $(this.controlEl).removeClass('hidden');
+
+    let canSubmit = this.checkQuery();
+    if (canSubmit) this.callHazard((result) => { this.callHazardCallback(result) });
+  }
 
   /**
    * Get the metadata
@@ -162,114 +179,108 @@ export default class ModelCompare extends Hazard{
     metadata.set('Longitude (°):', [this.lonEl.value]);
     metadata.set('Intensity Measure Type:', [$(this.imtEl).find(':selected').text()]);
     metadata.set('V<sub>S</sub>30:', [$(this.vs30El).find(':selected').text()]);
-    
+
     return metadata;
   }
 
-  static supportedEditions(_this){
-    var selectedRegion = _this.comparableRegions.find(function(region,i){
-      return region.value == _this.regionEl.value;
-    }); 
-    var supportedEditions = _this.parameters.edition
-        .values.filter(function(editionValue,iev){
-          return editionValue.supports.region.find(function(regionValue,irv){
-            return regionValue == selectedRegion.staticValue || 
-                regionValue == selectedRegion.dynamicValue;
-          })
+  supportedEditions() {
+    var selectedRegion = this.comparableRegions.find((region) => {
+      return region.value == this.regionEl.value;
     });
-    
+    var supportedEditions = this.parameters.edition
+      .values.filter((editionValue) => {
+        return editionValue.supports.region.find((regionValue) => {
+          return regionValue == selectedRegion.staticValue ||
+            regionValue == selectedRegion.dynamicValue;
+        })
+      });
+
     return supportedEditions;
   }
 
-  
-  
-  //.......................... Plot Hazard Curves ..............................
-  static plotHazardCurves(_this,jsonResponse){
-    _this.spinner.off();
-    let metadata = _this.getMetadata();
-    metadata.set('url', [window.location.href]);
-    metadata.set('date', [new Date()]); 
-    
-    var selectedImtDisplay = _this.imtEl.querySelector(":checked").text; 
-    var selectedImtValue   = _this.imtEl.value; 
-    
-    let imt = $(':selected', _this.imtEl).text();
-    let vs30 = $(':selected', _this.vs30El).text();
-    let siteTitle = _this.testSitePicker
-        .getTestSiteTitle(_this.regionEl.value);
+  plotHazardCurves(hazardResponse) {
+    this.spinner.off();
+    this.hazardLinePlot.clearAll();
+    let lineData = this.hazardResponseToLineData(hazardResponse);
 
-    let title = siteTitle + ', ' + imt + ', ' + vs30; 
-    let filename = "hazardCurves-"+selectedImtValue;
+    this.hazardLinePlot.plot(lineData);
+    this.updatePlotTitle(this.hazardView);
 
-    var seriesData = [];       
-    var seriesLabels = [];       
-    var seriesLabelIds = [];       
+    let metadata = this.getMetadata();
+    this.hazardView.setMetadata(metadata);
+    this.hazardView.createMetadataTable();
 
-    //............... Get Data from Selected IMT Value and Format for D3 .......
-    for (var jr in jsonResponse){        
-      var dataType = jsonResponse[jr].dataType;
-      var response  = jsonResponse[jr].find(function(d,i){
-       return d.metadata.imt.value == selectedImtValue;
-      });
-      var data = response.data;
-      
-      //................ JSON Variables based on Edition Type ..................
-      if (dataType == "dynamic"){
-        var xValueVariable = "xvalues";
-        var yValueVariable = "yvalues";
-        var jtotal = data.findIndex(function(d,i){ 
-          return d.component == "Total"
-        });     
-      }else if (dataType == "static"){ 
-        var xValueVariable = "xvals";
-        var yValueVariable = "yvals";
-        var jtotal          = 0; 
-      } 
-      //------------------------------------------------------------------------
-    
-      //...................... Set Data for D3 .................................
-      var xValues = response.metadata[xValueVariable];
-      seriesData[jr] = d3.zip(xValues,data[jtotal][yValueVariable]);
-      seriesLabels[jr] = response.metadata.edition.display; 
-      seriesLabelIds[jr] = response.metadata.edition.value;
-      //------------------------------------------------------------------------
-    }
-    //--------------------------------------------------------------------------
-   
-    //.................. Get Axis Information ..................................
-    var returnMetadata = jsonResponse[0][0].metadata;
-    var xLabel   = returnMetadata.xlabel;
-    var yLabel   = returnMetadata.ylabel;
-    //--------------------------------------------------------------------------
-    
-
-    //.................... Plot Info Object for D3 .............................
-    _this.plot.setPlotTitle(title)
-        .setMetadata(metadata)
-        .setUpperData(seriesData)
-        .setUpperDataTableTitle('')
-        .setUpperPlotFilename(filename)
-        .setUpperPlotIds(seriesLabelIds)
-        .setUpperPlotLabels(seriesLabels)
-        .setUpperXLabel(xLabel)
-        .setUpperYLabel(yLabel)
-        .removeSmallValues(_this.plot.upperPanel, 1e-14)
-        .plotData(_this.plot.upperPanel);
-    //--------------------------------------------------------------------------
-
+    this.hazardView.setSaveData(lineData);
+    this.hazardView.createDataTable(lineData);
   }
 
+  /**
+   * 
+   * @param {D3LineView} view 
+   */
+  updatePlotTitle(view) {
+    let imt = $(':selected', this.imtEl).text();
+    let vs30 = $(':selected', this.vs30El).text();
+    let siteTitle = this.testSitePicker.getTestSiteTitle(this.region());
+    let title = `${siteTitle}, ${imt}, ${vs30}`;
 
-  static callHazardCallback(_this,hazardReturn){
+    view.setTitle(title);
+  }
 
-    ModelCompare.plotHazardCurves(_this,hazardReturn);
-    $(_this.imtEl).off(); 
-    $(_this.imtEl).change(function(){
-      ModelCompare.plotHazardCurves(_this,hazardReturn);
+  callHazardCallback(hazardReturn) {
+    this.plotHazardCurves(hazardReturn);
+    $(this.imtEl).off();
+    $(this.imtEl).change(() => {
+      this.plotHazardCurves(hazardReturn);
     });
-  
+
   }
 
+  hazardResponseToLineData(hazardResponses) {
+    let dataBuilder = D3LineData.builder()
+        .subView(this.hazardView.upperSubView)
+        .removeSmallValues(this.Y_MIN_CUTOFF);
+
+    if (hazardResponses.length > 10) {
+      dataBuilder.colorScheme(d3.schemeCategory20);
+    }
+
+    for (let response of hazardResponses) {
+      let dataType = response.dataType;
+
+      let responseData = response.find((responseData) => {
+        return responseData.metadata.imt.value == this.imtEl.value;
+      });
+
+      let data = responseData.data;
+      let metadata = responseData.metadata;
+
+      let xValues = [];
+      let yValues = [];
+
+      switch (dataType) {
+        case 'dynamic':
+          let componentData = data.find((d) => { return d.component == 'Total'; });
+          xValues = metadata.xvalues;
+          yValues = componentData.yvalues;
+          break;
+        case 'static':
+          xValues = metadata.xvals;
+          yValues = data[0].yvals;
+          break;
+        default:
+          throw new NshmpError(`Response data type [${dataType}] not found`);
+      }
+
+      let lineOptions = D3LineOptions.builder()
+          .id(metadata.edition.value)
+          .label(metadata.edition.display)
+          .build();
+
+      dataBuilder.data(xValues, yValues, lineOptions);
+    }
+
+    return dataBuilder.build();
+  }
 
 }
-//-------------------- End Class: ModelCompare ---------------------------------
