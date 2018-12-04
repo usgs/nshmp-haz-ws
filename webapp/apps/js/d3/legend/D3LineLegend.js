@@ -135,6 +135,21 @@ export class D3LineLegend {
     }
   }
 
+  syncSubViews() {
+    for (let lineData of [this.linePlot.upperLineData, this.linePlot.lowerLineData]) {
+      d3.select(lineData.subView.svg.legendEl)
+          .selectAll('.legend-entry')
+          .on('click', (/** @type {D3LineSeriesData} */ series) => {
+            Preconditions.checkStateInstanceOf(series, D3LineSeriesData);
+            this.linePlot.selectLine(
+                series.lineOptions.id,
+                this.linePlot.upperLineData,
+                this.linePlot.lowerLineData);
+          });
+    }
+  }
+
+
   /**
    * @private
    * Add lines representing the data.
