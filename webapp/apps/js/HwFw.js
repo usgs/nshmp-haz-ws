@@ -422,6 +422,7 @@ export class HwFw extends Gmm {
       let lineOptions = D3LineOptions.builder()
           .id(responseData.id)
           .label(responseData.label)
+          .markerSize(4)
           .build();
 
       dataBuilder.data(responseData.data.xs, responseData.data.ys, lineOptions);
