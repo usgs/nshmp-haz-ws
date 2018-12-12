@@ -3,7 +3,7 @@ import { D3LineOptions } from '../options/D3LineOptions.js';
 import { D3LineSeriesData } from './D3LineSeriesData.js';
 import { D3LineSubView } from '../view/D3LineSubView.js';
 import { D3Utils } from '../D3Utils.js';
-import { D3XYPair }from './D3XYPair.js';
+import { D3XYPair } from './D3XYPair.js';
 
 import { Preconditions } from '../../error/Preconditions.js';
 
@@ -48,23 +48,23 @@ export class D3LineData {
      * @type {D3LineSubView}
      */
     this.subView = builder._subView;
-    
+
     /**
      * The lower and upper limit of the X axis.
      * Default: 'auto'
      * @type {Array<Number>} 
      */
     this.xLimit = builder._xLimit;
-    
+
     /**
      * The lower and upper limit of the Y axis.
      * Default: 'auto'
      * @type {Array<Number>} 
      */
     this.yLimit = builder._yLimit;
-    
+
     this._updateLineOptions();
-    
+
     /* Make immutable */
     Object.freeze(this);
   }
@@ -76,7 +76,7 @@ export class D3LineData {
    * @return {D3LineDataBuilder} new D3LineDataBuilder
    */
   static builder() {
-    return new D3LineDataBuilder(); 
+    return new D3LineDataBuilder();
   }
 
   /**
@@ -97,7 +97,7 @@ export class D3LineData {
    */
   concat(lineData) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-    
+
     let builder = D3LineData.builder()
         .subView(this.subView);
 
@@ -170,7 +170,7 @@ export class D3LineData {
     let max = this._getXLimitMax();
     let min = this._getXLimitMin();
 
-    return [ min, max ];
+    return [min, max];
   }
 
   /**
@@ -185,7 +185,7 @@ export class D3LineData {
     let max = this._getYLimitMax();
     let min = this._getYLimitMin();
 
-    return [ min, max ];
+    return [min, max];
   }
 
   /**
@@ -204,13 +204,13 @@ export class D3LineData {
       let data = series.data[i];
 
       markerSeries.push(new D3LineSeriesData(
-          [ data.x ], 
-          [ data.y ], 
+          [data.x],
+          [data.y],
           series.lineOptions,
-          [ series.xStrings[i] ],
-          [ series.yStrings[i] ]));
+          [series.xStrings[i]],
+          [series.yStrings[i]]));
     }
-    
+
     return markerSeries;
   }
 
@@ -298,7 +298,7 @@ export class D3LineData {
       let label = data.lineOptions.label || `Line ${index}`;
       let markerColor = data.lineOptions.markerColor || this.colorScheme[colorIndex];
       markerColor = markerColor == undefined ? color : markerColor;
-      let markerEdgeColor = data.lineOptions.markerEdgeColor || 
+      let markerEdgeColor = data.lineOptions.markerEdgeColor ||
           this.colorScheme[colorIndex];
       markerEdgeColor = markerEdgeColor == undefined ? color : markerEdgeColor;
 
@@ -324,7 +324,7 @@ export class D3LineData {
  * @author Brandon Clayton
  */
 export class D3LineDataBuilder {
-  
+
   /** @private */
   constructor() {
     /** @type {Array<String>} */
@@ -332,16 +332,16 @@ export class D3LineDataBuilder {
 
     /** @type {Boolean} */
     this._removeSmallValues = false;
-    
+
     /** @type {Array<D3LineSeriesData>} */
-    this._series = []; 
-    
+    this._series = [];
+
     /** @type {D3LineSubView} */
     this._subView = undefined;
-    
+
     /** @type {Array<Number>} */
     this._xLimit = undefined;
-    
+
     /** @type {Array<Number>} */
     this._yLimit = undefined;
 
@@ -410,9 +410,9 @@ export class D3LineDataBuilder {
     Preconditions.checkArgumentArray(yValues);
 
     Preconditions.checkArgument(
-        xValues.length == yValues.length, 
+        xValues.length == yValues.length,
         'Arrays must have same length');
-   
+
     Preconditions.checkArgumentInstanceOf(lineOptions, D3LineOptions);
 
     D3Utils.checkArrayIsNumberOrNull(xValues);
@@ -425,7 +425,7 @@ export class D3LineDataBuilder {
         xStrings,
         yStrings);
 
-    this._series.push(seriesData); 
+    this._series.push(seriesData);
     return this;
   }
 
@@ -458,10 +458,13 @@ export class D3LineDataBuilder {
     let yMin = d3.min(yLims, (y) => { return y[0]; });
     let yMax = d3.max(yLims, (y) => { return y[1]; });
 
-    this.colorScheme(color);
+    if (color && color.length > 0) {
+      this.colorScheme(color);
+    }
+
     this.subView(lineData[0].subView);
-    this.xLimit([ xMin, xMax ]);
-    this.yLimit([ yMin, yMax ]);
+    this.xLimit([xMin, xMax]);
+    this.yLimit([yMin, yMax]);
     this._removeSmallValues = false;
 
     return this;
@@ -501,7 +504,7 @@ export class D3LineDataBuilder {
     Preconditions.checkArgumentArrayOf(lim, 'number');
     Preconditions.checkArgument(lim[1] >= lim[0], 'xMax must be greater than xMin');
 
-    this._xLimit = lim; 
+    this._xLimit = lim;
     return this;
   }
 
@@ -516,17 +519,20 @@ export class D3LineDataBuilder {
     Preconditions.checkArgumentArrayOf(lim, 'number');
     Preconditions.checkArgument(lim[1] >= lim[0], 'yMax must be greater than yMin');
 
-    this._yLimit = lim; 
+    this._yLimit = lim;
     return this;
   }
 
   /** @private */
   _updateColorScheme() {
     let nSeries = this._series.length;
-    let colors = this._colorScheme ? 
+
+    let colors = this._colorScheme ?
         this._colorScheme : d3.schemeCategory10;
+
     let nColors = colors.length;
-    let nCat = Math.ceil( nSeries / nColors );
+
+    let nCat = Math.ceil(nSeries / nColors);
 
     for (let index = 0; index < nCat; index++) {
       colors = colors.concat(colors);
