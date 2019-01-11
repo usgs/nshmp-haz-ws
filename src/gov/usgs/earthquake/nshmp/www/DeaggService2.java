@@ -1,26 +1,19 @@
 package gov.usgs.earthquake.nshmp.www;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.MODEL;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
-
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,28 +22,26 @@ import java.util.concurrent.Executor;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
+import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.calc.Deaggregation;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
 import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
 import gov.usgs.earthquake.nshmp.calc.Site;
-import gov.usgs.earthquake.nshmp.calc.Vs30;
-import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
-import gov.usgs.earthquake.nshmp.www.NshmpServlet.UrlHelper;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
-import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
@@ -70,9 +61,9 @@ public final class DeaggService2 extends NshmpServlet {
   /* Developer notes: See HazardService. */
 
   private LoadingCache<Model, HazardModel> modelCache;
-  
+
   private static final String USAGE = SourceServices.GSON.toJson(
-	    new SourceServices.ResponseData());
+      new SourceServices.ResponseData());
 
   @Override
   @SuppressWarnings("unchecked")
@@ -89,12 +80,12 @@ public final class DeaggService2 extends NshmpServlet {
       throws ServletException, IOException {
 
     UrlHelper urlHelper = urlHelper(request, response);
-    
+
     if (emptyRequest(request)) {
       urlHelper.writeResponse(USAGE);
       return;
     }
-    
+
     try {
       RequestData requestData = buildRequestData(request);
 
@@ -119,7 +110,7 @@ public final class DeaggService2 extends NshmpServlet {
       double lon;
       double lat;
       Imt imt;
-      Vs30 vs30;
+      double vs30;
       double returnPeriod;
 
       if (request.getQueryString() != null) {
@@ -128,7 +119,7 @@ public final class DeaggService2 extends NshmpServlet {
         lon = readDouble(LONGITUDE, request);
         lat = readDouble(LATITUDE, request);
         imt = readValue(IMT, request, Imt.class);
-        vs30 = Vs30.fromValue(readDouble(VS30, request));
+        vs30 = readDouble(VS30, request);
         returnPeriod = readDouble(RETURNPERIOD, request);
 
       } else {
@@ -140,7 +131,7 @@ public final class DeaggService2 extends NshmpServlet {
         lon = Double.valueOf(params.get(1));
         lat = Double.valueOf(params.get(2));
         imt = Imt.valueOf(params.get(3));
-        vs30 = Vs30.fromValue(Double.valueOf(params.get(4)));
+        vs30 = Double.valueOf(params.get(4));
         returnPeriod = Double.valueOf(params.get(5));
       }
 
@@ -160,7 +151,7 @@ public final class DeaggService2 extends NshmpServlet {
   private class Deagg2Task extends TimedTask<Result> {
 
     RequestData data;
-    
+
     Deagg2Task(String url, ServletContext context, RequestData data) {
       super(url, context);
       this.data = data;
@@ -169,7 +160,7 @@ public final class DeaggService2 extends NshmpServlet {
     @Override
     Result calc() throws Exception {
       Deaggregation deagg = calcDeagg(data, context);
-      
+
       return new Result.Builder()
           .requestData(data)
           .url(url)
@@ -181,7 +172,7 @@ public final class DeaggService2 extends NshmpServlet {
 
   Deaggregation calcDeagg(RequestData data, ServletContext context) {
     Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
+    Site site = Site.builder().location(loc).vs30(data.vs30).build();
     HazardModel model = modelCache.getUnchecked(data.model);
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
     configBuilder.imts(EnumSet.of(data.imt));
@@ -191,14 +182,13 @@ public final class DeaggService2 extends NshmpServlet {
     return HazardCalcs.deaggregation(hazard, data.returnPeriod, Optional.of(data.imt));
   }
 
-
   static final class RequestData {
 
     final Model model;
     final double latitude;
     final double longitude;
     final Imt imt;
-    final Vs30 vs30;
+    final double vs30;
     final double returnPeriod;
 
     RequestData(
@@ -206,7 +196,7 @@ public final class DeaggService2 extends NshmpServlet {
         double longitude,
         double latitude,
         Imt imt,
-        Vs30 vs30,
+        double vs30,
         double returnPeriod) {
 
       this.model = model;
@@ -224,7 +214,7 @@ public final class DeaggService2 extends NshmpServlet {
     final double longitude;
     final double latitude;
     final Imt imt;
-    final Vs30 vs30;
+    final double vs30;
     final double returnperiod;
     final String rlabel = "Closest Distance, rRup (km)";
     final String mlabel = "Magnitude (Mw)";
