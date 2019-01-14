@@ -13,3 +13,4 @@ scratch*.html
 Scratch*.js
 webapp/config.json
 .vscode
+config.properties
