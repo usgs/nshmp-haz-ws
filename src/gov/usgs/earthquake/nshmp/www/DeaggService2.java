@@ -1,56 +1,53 @@
 package gov.usgs.earthquake.nshmp.www;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
+import static gov.usgs.earthquake.nshmp.www.Util.readBoolean;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.BASIN;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.MODEL;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
-
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
 import gov.usgs.earthquake.nshmp.calc.Deaggregation;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
 import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
 import gov.usgs.earthquake.nshmp.calc.Site;
-import gov.usgs.earthquake.nshmp.calc.Vs30;
-import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
-import gov.usgs.earthquake.nshmp.www.NshmpServlet.UrlHelper;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
-import gov.usgs.earthquake.nshmp.www.meta.Region;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 
 /**
@@ -70,16 +67,37 @@ public final class DeaggService2 extends NshmpServlet {
   /* Developer notes: See HazardService. */
 
   private LoadingCache<Model, HazardModel> modelCache;
-  
+  private URL basinUrl;
+
   private static final String USAGE = SourceServices.GSON.toJson(
-	    new SourceServices.ResponseData());
+      new SourceServices.ResponseData());
 
   @Override
   @SuppressWarnings("unchecked")
-  public void init() {
+  public void init() throws ServletException {
+
     ServletContext context = getServletConfig().getServletContext();
     Object modelCache = context.getAttribute(MODEL_CACHE_CONTEXT_ID);
     this.modelCache = (LoadingCache<Model, HazardModel>) modelCache;
+
+    try (InputStream config =
+        getClass().getResourceAsStream("/config.properties")) {
+
+      checkNotNull(config, "Missing config.properties");
+
+      Properties props = new Properties();
+      props.load(config);
+      if (props.containsKey("basin_host")) {
+        /*
+         * TODO Site builder tests if service is working, which may be
+         * inefficient for single call services.
+         */
+        URL url = new URL(props.getProperty("basin_host") + "/nshmp-sitedata-ws/basin01");
+        this.basinUrl = url;
+      }
+    } catch (IOException | NullPointerException e) {
+      throw new ServletException(e);
+    }
   }
 
   @Override
@@ -89,12 +107,12 @@ public final class DeaggService2 extends NshmpServlet {
       throws ServletException, IOException {
 
     UrlHelper urlHelper = urlHelper(request, response);
-    
+
     if (emptyRequest(request)) {
       urlHelper.writeResponse(USAGE);
       return;
     }
-    
+
     try {
       RequestData requestData = buildRequestData(request);
 
@@ -115,52 +133,71 @@ public final class DeaggService2 extends NshmpServlet {
 
     try {
 
-      Model model;
+      List<Model> models;
       double lon;
       double lat;
       Imt imt;
-      Vs30 vs30;
+      double vs30;
       double returnPeriod;
+      boolean basin;
 
       if (request.getQueryString() != null) {
         /* process query '?' request */
-        model = readValue(MODEL, request, Model.class);
+        models = readModelsFromQuery(request);
         lon = readDouble(LONGITUDE, request);
         lat = readDouble(LATITUDE, request);
         imt = readValue(IMT, request, Imt.class);
-        vs30 = Vs30.fromValue(readDouble(VS30, request));
+        vs30 = readDouble(VS30, request);
         returnPeriod = readDouble(RETURNPERIOD, request);
+        basin = readBoolean(BASIN, request);
 
       } else {
         /* process slash-delimited request */
         List<String> params = Parsing.splitToList(
             request.getPathInfo(),
             Delimiter.SLASH);
-        model = Model.valueOf(params.get(0));
+        models = readModelsFromString(params.get(0));
         lon = Double.valueOf(params.get(1));
         lat = Double.valueOf(params.get(2));
         imt = Imt.valueOf(params.get(3));
-        vs30 = Vs30.fromValue(Double.valueOf(params.get(4)));
+        vs30 = Double.valueOf(params.get(4));
         returnPeriod = Double.valueOf(params.get(5));
+        basin = Boolean.valueOf(params.get(6));
       }
 
       return new RequestData(
-          model,
+          models,
           lon,
           lat,
           imt,
           vs30,
-          returnPeriod);
+          returnPeriod,
+          basin);
 
     } catch (Exception e) {
       throw new IllegalArgumentException("Error parsing request URL", e);
     }
   }
 
+  private static List<Model> readModelsFromString(String models) {
+    return Parsing.splitToList(models, Delimiter.COMMA).stream()
+        .map(Model::valueOf)
+        .distinct()
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  private static List<Model> readModelsFromQuery(HttpServletRequest request) {
+    String[] ids = Util.readValues(MODEL, request);
+    return Arrays.stream(ids)
+        .map(Model::valueOf)
+        .distinct()
+        .collect(ImmutableList.toImmutableList());
+  }
+
   private class Deagg2Task extends TimedTask<Result> {
 
     RequestData data;
-    
+
     Deagg2Task(String url, ServletContext context, RequestData data) {
       super(url, context);
       this.data = data;
@@ -168,8 +205,8 @@ public final class DeaggService2 extends NshmpServlet {
 
     @Override
     Result calc() throws Exception {
-      Deaggregation deagg = calcDeagg(data, context);
-      
+      Deaggregation deagg = calcDeagg(data);
+
       return new Result.Builder()
           .requestData(data)
           .url(url)
@@ -179,52 +216,80 @@ public final class DeaggService2 extends NshmpServlet {
     }
   }
 
-  Deaggregation calcDeagg(RequestData data, ServletContext context) {
+  /*
+   * Develoer notes
+   * 
+   * We're opting here to fetch basin terms ourselves. If we were to set the
+   * basin provider in the config, which requires additions to conig, the URL is
+   * tested every time a site is created for a servlet request. While this
+   * worked for maps it's not good here.
+   * 
+   * Site has logic for prsing the basin service response, which perhaps it
+   * shouldn't. TODO is it worth decomposing data objects and services
+   */
+  Deaggregation calcDeagg(RequestData data) {
     Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
-    HazardModel model = modelCache.getUnchecked(data.model);
-    Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
-    configBuilder.imts(EnumSet.of(data.imt));
-    CalcConfig config = configBuilder.build();
-    Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
-    Hazard hazard = HazardCalcs.hazard(model, config, site, executor);
+
+    Site site = Site.builder()
+        .location(Location.create(data.latitude, data.longitude))
+        .basinDataProvider(data.basin ? this.basinUrl : null)
+        .vs30(data.vs30)
+        .build();
+
+    Hazard[] hazards = new Hazard[data.models.size()];
+    for (int i = 0; i < data.models.size(); i++) {
+      HazardModel model = modelCache.getUnchecked(data.models.get(i));
+      hazards[i] = process(model, site, data.imt);
+    }
+    Hazard hazard = Hazard.merge(hazards);
     return HazardCalcs.deaggregation(hazard, data.returnPeriod, Optional.of(data.imt));
   }
 
+  private static Hazard process(HazardModel model, Site site, Imt imt) {
+    CalcConfig config = CalcConfig.Builder
+        .copyOf(model.config())
+        .imts(EnumSet.of(imt))
+        .build();
+    Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
+    return HazardCalcs.hazard(model, config, site, executor);
+  }
 
   static final class RequestData {
 
-    final Model model;
+    final List<Model> models;
     final double latitude;
     final double longitude;
     final Imt imt;
-    final Vs30 vs30;
+    final double vs30;
     final double returnPeriod;
+    final boolean basin;
 
     RequestData(
-        Model model,
+        List<Model> models,
         double longitude,
         double latitude,
         Imt imt,
-        Vs30 vs30,
-        double returnPeriod) {
+        double vs30,
+        double returnPeriod,
+        boolean basin) {
 
-      this.model = model;
+      this.models = models;
       this.latitude = latitude;
       this.longitude = longitude;
       this.imt = imt;
       this.vs30 = vs30;
       this.returnPeriod = returnPeriod;
+      this.basin = basin;
     }
   }
 
   private static final class ResponseData {
 
-    final Model model;
+    final List<Model> models;
     final double longitude;
     final double latitude;
     final Imt imt;
-    final Vs30 vs30;
+    final double vs30;
     final double returnperiod;
     final String rlabel = "Closest Distance, rRup (km)";
     final String mlabel = "Magnitude (Mw)";
@@ -232,7 +297,7 @@ public final class DeaggService2 extends NshmpServlet {
     final Object εbins;
 
     ResponseData(Deaggregation deagg, RequestData request, Imt imt) {
-      this.model = request.model;
+      this.models = request.models;
       this.longitude = request.longitude;
       this.latitude = request.latitude;
       this.imt = imt;

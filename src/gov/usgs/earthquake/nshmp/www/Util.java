@@ -16,6 +16,16 @@ import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 public class Util {
 
   /**
+   * Returns the value of a servlet request parameter as a boolean.
+   * 
+   * @param key of value to get
+   * @param request servlet request
+   */
+  public static <E extends Enum<E>> boolean readBoolean(E key, ServletRequest request) {
+    return Boolean.valueOf(readValue(key, request));
+  }
+
+  /**
    * Returns the value of a servlet request parameter as a double.
    * 
    * @param key of value to get
@@ -101,7 +111,8 @@ public class Util {
     RETURNPERIOD,
     DISTANCE,
     FORMAT,
-    TIMESPAN;
+    TIMESPAN,
+    BASIN;
 
     private String label;
 
