@@ -81,7 +81,7 @@ public final class DeaggService2 extends NshmpServlet {
     this.modelCache = (LoadingCache<Model, HazardModel>) modelCache;
 
     try (InputStream config =
-        getClass().getResourceAsStream("/config.properties")) {
+        DeaggService2.class.getResourceAsStream("/config.properties")) {
 
       checkNotNull(config, "Missing config.properties");
 
