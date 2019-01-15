@@ -1,10 +1,13 @@
 package gov.usgs.earthquake.nshmp.www;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
+import static gov.usgs.earthquake.nshmp.www.Util.readBoolean;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
 import static gov.usgs.earthquake.nshmp.www.Util.readValue;
+import static gov.usgs.earthquake.nshmp.www.Util.Key.BASIN;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
@@ -13,11 +16,14 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import javax.servlet.ServletContext;
@@ -61,16 +67,37 @@ public final class DeaggService2 extends NshmpServlet {
   /* Developer notes: See HazardService. */
 
   private LoadingCache<Model, HazardModel> modelCache;
+  private URL basinUrl;
 
   private static final String USAGE = SourceServices.GSON.toJson(
       new SourceServices.ResponseData());
 
   @Override
   @SuppressWarnings("unchecked")
-  public void init() {
+  public void init() throws ServletException {
+
     ServletContext context = getServletConfig().getServletContext();
     Object modelCache = context.getAttribute(MODEL_CACHE_CONTEXT_ID);
     this.modelCache = (LoadingCache<Model, HazardModel>) modelCache;
+
+    try (InputStream config =
+        getClass().getResourceAsStream("/config.properties")) {
+
+      checkNotNull(config, "Missing config.properties");
+
+      Properties props = new Properties();
+      props.load(config);
+      if (props.containsKey("basin_host")) {
+        /*
+         * TODO Site builder tests if service is working, which may be
+         * inefficient for single call services.
+         */
+        URL url = new URL(props.getProperty("basin_host") + "/nshmp-sitedata-ws/basin01");
+        this.basinUrl = url;
+      }
+    } catch (IOException | NullPointerException e) {
+      throw new ServletException(e);
+    }
   }
 
   @Override
@@ -112,6 +139,7 @@ public final class DeaggService2 extends NshmpServlet {
       Imt imt;
       double vs30;
       double returnPeriod;
+      boolean basin;
 
       if (request.getQueryString() != null) {
         /* process query '?' request */
@@ -121,6 +149,7 @@ public final class DeaggService2 extends NshmpServlet {
         imt = readValue(IMT, request, Imt.class);
         vs30 = readDouble(VS30, request);
         returnPeriod = readDouble(RETURNPERIOD, request);
+        basin = readBoolean(BASIN, request);
 
       } else {
         /* process slash-delimited request */
@@ -133,6 +162,7 @@ public final class DeaggService2 extends NshmpServlet {
         imt = Imt.valueOf(params.get(3));
         vs30 = Double.valueOf(params.get(4));
         returnPeriod = Double.valueOf(params.get(5));
+        basin = Boolean.valueOf(params.get(6));
       }
 
       return new RequestData(
@@ -141,7 +171,8 @@ public final class DeaggService2 extends NshmpServlet {
           lat,
           imt,
           vs30,
-          returnPeriod);
+          returnPeriod,
+          basin);
 
     } catch (Exception e) {
       throw new IllegalArgumentException("Error parsing request URL", e);
@@ -185,9 +216,26 @@ public final class DeaggService2 extends NshmpServlet {
     }
   }
 
+  /*
+   * Develoer notes
+   * 
+   * We're opting here to fetch basin terms ourselves. If we were to set the
+   * basin provider in the config, which requires additions to conig, the URL is
+   * tested every time a site is created for a servlet request. While this
+   * worked for maps it's not good here.
+   * 
+   * Site has logic for prsing the basin service response, which perhaps it
+   * shouldn't. TODO is it worth decomposing data objects and services
+   */
   Deaggregation calcDeagg(RequestData data) {
     Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30).build();
+
+    Site site = Site.builder()
+        .location(Location.create(data.latitude, data.longitude))
+        .basinDataProvider(data.basin ? this.basinUrl : null)
+        .vs30(data.vs30)
+        .build();
+
     Hazard[] hazards = new Hazard[data.models.size()];
     for (int i = 0; i < data.models.size(); i++) {
       HazardModel model = modelCache.getUnchecked(data.models.get(i));
@@ -214,6 +262,7 @@ public final class DeaggService2 extends NshmpServlet {
     final Imt imt;
     final double vs30;
     final double returnPeriod;
+    final boolean basin;
 
     RequestData(
         List<Model> models,
@@ -221,7 +270,8 @@ public final class DeaggService2 extends NshmpServlet {
         double latitude,
         Imt imt,
         double vs30,
-        double returnPeriod) {
+        double returnPeriod,
+        boolean basin) {
 
       this.models = models;
       this.latitude = latitude;
@@ -229,6 +279,7 @@ public final class DeaggService2 extends NshmpServlet {
       this.imt = imt;
       this.vs30 = vs30;
       this.returnPeriod = returnPeriod;
+      this.basin = basin;
     }
   }
 
