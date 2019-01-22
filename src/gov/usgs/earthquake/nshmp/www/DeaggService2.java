@@ -217,14 +217,14 @@ public final class DeaggService2 extends NshmpServlet {
   }
 
   /*
-   * Develoer notes
+   * Developer notes:
    * 
    * We're opting here to fetch basin terms ourselves. If we were to set the
-   * basin provider in the config, which requires additions to conig, the URL is
-   * tested every time a site is created for a servlet request. While this
+   * basin provider in the config, which requires additions to config, the URL
+   * is tested every time a site is created for a servlet request. While this
    * worked for maps it's not good here.
    * 
-   * Site has logic for prsing the basin service response, which perhaps it
+   * Site has logic for parsing the basin service response, which perhaps it
    * shouldn't. TODO is it worth decomposing data objects and services
    */
   Deaggregation calcDeagg(RequestData data) {
@@ -317,8 +317,6 @@ public final class DeaggService2 extends NshmpServlet {
       this.data = data;
     }
   }
-
-  private static final String TOTAL_KEY = "Total";
 
   private static final class Result {
 
