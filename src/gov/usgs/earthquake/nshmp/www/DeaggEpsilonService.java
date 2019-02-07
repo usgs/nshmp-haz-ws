@@ -38,6 +38,7 @@ import gov.usgs.earthquake.nshmp.calc.Deaggregation;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
 import gov.usgs.earthquake.nshmp.calc.HazardCalcs;
 import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.calc.ThreadCount;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
@@ -228,6 +229,7 @@ public final class DeaggEpsilonService extends NshmpServlet {
     CalcConfig config = CalcConfig.Builder
         .copyOf(model.config())
         .imts(imts)
+        .threadCount(ThreadCount.QUARTER)
         .build();
     // System.out.println(config);
     return HazardCalcs.hazard(model, config, site, ServletUtil.CALC_EXECUTOR);
