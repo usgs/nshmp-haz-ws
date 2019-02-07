@@ -70,8 +70,11 @@ public class ServletUtil implements ServletContextListener {
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
 
   static {
-    THREAD_COUNT = getRuntime().availableProcessors();
-    CALC_EXECUTOR = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(THREAD_COUNT));
+    /* TODO modified for deagg-epsilon branch; should be context var */
+    THREAD_COUNT = Integer.max(1, getRuntime().availableProcessors() / 4);
+    CALC_EXECUTOR = MoreExecutors.listeningDecorator(THREAD_COUNT == 1
+        ? Executors.newSingleThreadExecutor()
+        : Executors.newFixedThreadPool(THREAD_COUNT));
     TASK_EXECUTOR = Executors.newSingleThreadExecutor();
     GSON = new GsonBuilder()
         .registerTypeAdapter(Edition.class, new Util.EnumSerializer<Edition>())
