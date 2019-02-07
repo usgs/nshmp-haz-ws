@@ -171,7 +171,7 @@ public class ServletUtil implements ServletContextListener {
     return isNullOrEmpty(request.getQueryString()) &&
         (request.getPathInfo() == null || request.getPathInfo().equals("/"));
   }
-  
+
   static Timer timer() {
     return new Timer();
   }

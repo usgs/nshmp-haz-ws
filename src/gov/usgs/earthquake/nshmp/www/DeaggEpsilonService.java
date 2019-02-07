@@ -6,13 +6,10 @@ import static gov.usgs.earthquake.nshmp.www.ServletUtil.MODEL_CACHE_CONTEXT_ID;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import static gov.usgs.earthquake.nshmp.www.Util.readBoolean;
 import static gov.usgs.earthquake.nshmp.www.Util.readDouble;
-import static gov.usgs.earthquake.nshmp.www.Util.readValue;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.BASIN;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.IMT;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.MODEL;
-import static gov.usgs.earthquake.nshmp.www.Util.Key.RETURNPERIOD;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.VS30;
 
 import java.io.IOException;
@@ -20,10 +17,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -42,8 +41,6 @@ import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
 import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
-import gov.usgs.earthquake.nshmp.internal.Parsing;
-import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
@@ -56,12 +53,10 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
  */
 @SuppressWarnings("unused")
 @WebServlet(
-    name = "Deaggregation Service (new)",
+    name = "Epsilon Deaggregation Service (experimental)",
     description = "USGS NSHMP Hazard Deaggregator",
-    urlPatterns = {
-        "/deagg2",
-        "/deagg2/*" })
-public final class DeaggService2 extends NshmpServlet {
+    urlPatterns = { "/deagg-epsilon" })
+public final class DeaggEpsilonService extends NshmpServlet {
 
   /* Developer notes: See HazardService. */
 
@@ -132,57 +127,25 @@ public final class DeaggService2 extends NshmpServlet {
 
     try {
 
-      List<Model> models;
-      double lon;
-      double lat;
-      Imt imt;
-      double vs30;
-      double returnPeriod;
-      boolean basin;
-
-      if (request.getQueryString() != null) {
-        /* process query '?' request */
-        models = readModelsFromQuery(request);
-        lon = readDouble(LONGITUDE, request);
-        lat = readDouble(LATITUDE, request);
-        imt = readValue(IMT, request, Imt.class);
-        vs30 = readDouble(VS30, request);
-        returnPeriod = readDouble(RETURNPERIOD, request);
-        basin = readBoolean(BASIN, request);
-
-      } else {
-        /* process slash-delimited request */
-        List<String> params = Parsing.splitToList(
-            request.getPathInfo(),
-            Delimiter.SLASH);
-        models = readModelsFromString(params.get(0));
-        lon = Double.valueOf(params.get(1));
-        lat = Double.valueOf(params.get(2));
-        imt = Imt.valueOf(params.get(3));
-        vs30 = Double.valueOf(params.get(4));
-        returnPeriod = Double.valueOf(params.get(5));
-        basin = Boolean.valueOf(params.get(6));
-      }
+      /* process query '?' request */
+      List<Model> models = readModelsFromQuery(request);
+      double lon = readDouble(LONGITUDE, request);
+      double lat = readDouble(LATITUDE, request);
+      Map<Imt, Double> imtImls = readImtsFromQuery(request);
+      double vs30 = readDouble(VS30, request);
+      boolean basin = readBoolean(BASIN, request);
 
       return new RequestData(
           models,
           lon,
           lat,
-          imt,
+          imtImls,
           vs30,
-          returnPeriod,
           basin);
 
     } catch (Exception e) {
       throw new IllegalArgumentException("Error parsing request URL", e);
     }
-  }
-
-  private static List<Model> readModelsFromString(String models) {
-    return Parsing.splitToList(models, Delimiter.COMMA).stream()
-        .map(Model::valueOf)
-        .distinct()
-        .collect(ImmutableList.toImmutableList());
   }
 
   private static List<Model> readModelsFromQuery(HttpServletRequest request) {
@@ -191,6 +154,23 @@ public final class DeaggService2 extends NshmpServlet {
         .map(Model::valueOf)
         .distinct()
         .collect(ImmutableList.toImmutableList());
+  }
+
+  /* Create map of IMT to deagg IML. */
+  private static Map<Imt, Double> readImtsFromQuery(HttpServletRequest request) {
+    EnumMap<Imt, Double> imtImls = new EnumMap<>(Imt.class);
+    for (Entry<String, String[]> param : request.getParameterMap().entrySet()) {
+      if (isImtParam(param.getKey())) {
+        imtImls.put(
+            Imt.valueOf(param.getKey()),
+            Double.valueOf(param.getValue()[0]));
+      }
+    }
+    return imtImls;
+  }
+
+  private static boolean isImtParam(String key) {
+    return key.equals("PGA") || key.startsWith("SA");
   }
 
   private class Deagg2Task extends TimedTask<Result> {
@@ -238,21 +218,18 @@ public final class DeaggService2 extends NshmpServlet {
     Hazard[] hazards = new Hazard[data.models.size()];
     for (int i = 0; i < data.models.size(); i++) {
       HazardModel model = modelCache.getUnchecked(data.models.get(i));
-      hazards[i] = process(model, site, data.imt);
+      hazards[i] = process(model, site, data.imtImls.keySet());
     }
     Hazard hazard = Hazard.merge(hazards);
-    return HazardCalcs.deaggregation(
-        hazard,
-        data.returnPeriod,
-        Optional.of(data.imt),
-        ServletUtil.CALC_EXECUTOR);
+    return Deaggregation.atImls(hazard, data.imtImls, ServletUtil.CALC_EXECUTOR);
   }
 
-  private static Hazard process(HazardModel model, Site site, Imt imt) {
+  private static Hazard process(HazardModel model, Site site, Set<Imt> imts) {
     CalcConfig config = CalcConfig.Builder
         .copyOf(model.config())
-        .imts(EnumSet.of(imt))
+        .imts(imts)
         .build();
+    // System.out.println(config);
     return HazardCalcs.hazard(model, config, site, ServletUtil.CALC_EXECUTOR);
   }
 
@@ -261,26 +238,23 @@ public final class DeaggService2 extends NshmpServlet {
     final List<Model> models;
     final double latitude;
     final double longitude;
-    final Imt imt;
+    final Map<Imt, Double> imtImls;
     final double vs30;
-    final double returnPeriod;
     final boolean basin;
 
     RequestData(
         List<Model> models,
         double longitude,
         double latitude,
-        Imt imt,
+        Map<Imt, Double> imtImls,
         double vs30,
-        double returnPeriod,
         boolean basin) {
 
       this.models = models;
       this.latitude = latitude;
       this.longitude = longitude;
-      this.imt = imt;
+      this.imtImls = imtImls;
       this.vs30 = vs30;
-      this.returnPeriod = returnPeriod;
       this.basin = basin;
     }
   }
@@ -290,9 +264,9 @@ public final class DeaggService2 extends NshmpServlet {
     final List<Model> models;
     final double longitude;
     final double latitude;
-    final Imt imt;
+    final String imt;
+    final double iml;
     final double vs30;
-    final double returnperiod;
     final String rlabel = "Closest Distance, rRup (km)";
     final String mlabel = "Magnitude (Mw)";
     final String εlabel = "% Contribution to Hazard";
@@ -302,9 +276,9 @@ public final class DeaggService2 extends NshmpServlet {
       this.models = request.models;
       this.longitude = request.longitude;
       this.latitude = request.latitude;
-      this.imt = imt;
+      this.imt = imt.toString();
+      this.iml = request.imtImls.get(imt);
       this.vs30 = request.vs30;
-      this.returnperiod = request.returnPeriod;
       this.εbins = deagg.εBins();
     }
   }
@@ -362,16 +336,14 @@ public final class DeaggService2 extends NshmpServlet {
       }
 
       Result build() {
-
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
-        Imt imt = request.imt;
-        ResponseData responseData = new ResponseData(
-            deagg,
-            request,
-            imt);
-        Object deaggs = deagg.toJson(imt);
-        Response response = new Response(responseData, deaggs);
-        responseListBuilder.add(response);
+
+        for (Imt imt : request.imtImls.keySet()) {
+          ResponseData responseData = new ResponseData(deagg, request, imt);
+          Object deaggs = deagg.toJsonCompact(imt);
+          Response response = new Response(responseData, deaggs);
+          responseListBuilder.add(response);
+        }
 
         List<Response> responseList = responseListBuilder.build();
         Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);

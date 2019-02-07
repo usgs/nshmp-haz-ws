@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -308,8 +307,7 @@ public final class HazardService extends NshmpServlet {
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
     configBuilder.imts(imts);
     CalcConfig config = configBuilder.build();
-    Optional<Executor> executor = Optional.of(ServletUtil.CALC_EXECUTOR);
-    return HazardCalcs.hazard(model, config, site, executor);
+    return HazardCalcs.hazard(model, config, site, ServletUtil.CALC_EXECUTOR);
   }
 
   /*
