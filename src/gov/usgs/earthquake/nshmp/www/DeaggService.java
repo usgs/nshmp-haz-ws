@@ -1,24 +1,20 @@
 package gov.usgs.earthquake.nshmp.www;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 import gov.usgs.earthquake.nshmp.calc.Deaggregation;
 import gov.usgs.earthquake.nshmp.calc.Hazard;
@@ -28,7 +24,6 @@ import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.HazardService.RequestData;
-import gov.usgs.earthquake.nshmp.www.NshmpServlet.UrlHelper;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.TimedTask;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;
@@ -98,7 +93,7 @@ public final class DeaggService extends NshmpServlet {
   private static class DeaggTask extends TimedTask<Result> {
 
     RequestData data;
-    
+
     DeaggTask(String url, ServletContext context, RequestData data) {
       super(url, context);
       this.data = data;
@@ -111,7 +106,8 @@ public final class DeaggService extends NshmpServlet {
       Deaggregation deagg = HazardCalcs.deaggregation(
           hazard,
           data.returnPeriod.getAsDouble(),
-          data.deaggImt);
+          data.deaggImt,
+          ServletUtil.CALC_EXECUTOR);
 
       return new Result.Builder()
           .requestData(data)
