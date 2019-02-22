@@ -198,13 +198,13 @@ export class ExceedanceExplorer {
 
     const upperSubViewOptions = D3LineSubViewOptions.upperBuilder()
         .filename('exceedance')
-        .label('Exceedance Model')
+        .label('Exceedance Models')
         .legendOptions(legendOptions)
         .lineLabel('Exceedance Model')
         .xValueToExponent(true)
         .xAxisScale('log')
-        .xLabel('X')
-        .yLabel('Exceedance Rate')
+        .xLabel('Ground Motion (g)')
+        .yLabel('Annual Frequency of Exceedance')
         .build();
 
     return D3LineView.builder()
