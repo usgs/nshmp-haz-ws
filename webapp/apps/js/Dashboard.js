@@ -49,10 +49,13 @@ export default class Dashboard {
       }, {
         label: 'Geographic Deaggregation',
         href: 'apps/geo-deagg.html',
-      },{
+      }, {
+        label: 'Exceedance Explorer',
+        href: 'apps/exceedance-explorer.html',
+      }, {
         label: 'Services',
         href: 'apps/services.html',
-      }, 
+      }
     ];
     
     this.createDashboard();
