@@ -54,7 +54,10 @@ export default class Header{
       }, {
         label: 'Response Spectra', 
         href: '/nshmp-haz-ws/apps/spectra-plot.html',
-      },{
+      }, {
+        label: 'Exceedance Explorer',
+        href: '/nshmp-haz-ws/apps/exceedance-explorer.html'
+      }, {
         label: 'Services',  
         href: '/nshmp-haz-ws/apps/services.html',
       }
