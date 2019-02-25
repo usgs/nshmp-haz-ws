@@ -99,13 +99,15 @@ export class Spectra extends GmmBeta {
     ];
 
     /** X-Axis domain for spectra plots - @type {Array<Number>} */
-    this.spectraXDomain = [0.001, 10.0];
+    this.spectraXDomain = [0.01, 10.0];
 
     /* Get the usage and create control panel */
     this.getUsage();
 
     this.spectraView = this.setupSpectraView();
     this.spectraLinePlot = new D3LinePlot(this.spectraView);
+
+    this.pga = 0.01;
   }
 
   /**
@@ -1099,7 +1101,8 @@ export class Spectra extends GmmBeta {
         let yValues = responseData.data.ys;
 
         let iPGA = xValues.indexOf(Tools.imtToValue('PGA'));
-        let pgaX = xValues.splice(iPGA, 1);
+        xValues.splice(iPGA, 1);
+        let pgaX = [this.pga];
         let pgaY = yValues.splice(iPGA, 1);
 
         let pgaOptions = D3LineOptions.builder()
@@ -1107,6 +1110,9 @@ export class Spectra extends GmmBeta {
             .label(responseData.label)
             .lineStyle('none')
             .markerStyle('s')
+            .markerColor('none')
+            .markerEdgeWidth(2)
+            .markerSize(9)
             .showInLegend(false)
             .build();
 
@@ -1115,6 +1121,7 @@ export class Spectra extends GmmBeta {
         let lineOptions = D3LineOptions.builder()
             .id(responseData.id)
             .label(responseData.label)
+            .markerSize(5)
             .build();
 
         dataBuilder.data(xValues, yValues, lineOptions);
