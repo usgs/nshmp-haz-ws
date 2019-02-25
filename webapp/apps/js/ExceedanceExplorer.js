@@ -56,7 +56,7 @@ export class ExceedanceExplorer {
       rate: 1,
       xMin: 0.0001,
       xMax: 10.0,
-      xPoints: 30
+      xPoints: 100
     };
 
     const formEls = [
@@ -110,7 +110,7 @@ export class ExceedanceExplorer {
     this.clearPlotBtnEl.disabled = false;
 
     let model = new UncertaintyModel(
-        this.median(),
+        this.mean(),
         this.sigma(),
         this.truncationLevel() === 'N/A' ? 0 : this.truncationLevel());
 
@@ -124,13 +124,15 @@ export class ExceedanceExplorer {
       sequence = ExceedanceModel.truncationOffSequence(model, this.sequence);
     }
 
-    let xValues = sequence.map(xy => xy.x);
-    let yValues = sequence.map(xy => Maths.round(xy.y * this.rate(), 4));
+    let xValues = sequence.map(xy => Math.exp(xy.x));
+    let yValues = sequence.map(xy => Maths.round(xy.y * this.rate() , 4));
 
     let dataBuilder = this.getDataBuilder();
 
     let lineOptions = D3LineOptions.builder()
         .label(label)
+        .markerSize(3)
+        .lineWidth(1.25)
         .build();
     
     let data = dataBuilder
@@ -183,8 +185,8 @@ export class ExceedanceExplorer {
     const xMax = this.defaults.xMax;
     const xPoints = this.defaults.xPoints
 
-    return d3.ticks(Math.log10(xMin), Math.log10(xMax), xPoints).map((x) => {
-      return new D3XYPair(Math.pow(10, x), 0);
+    return d3.ticks(Math.log(xMin), Math.log(xMax), xPoints).map((x) => {
+      return new D3XYPair(x, 0);
     });
   }
 
@@ -249,6 +251,8 @@ export class ExceedanceExplorer {
     for (let series of this.exceedanceData.series) {
       let lineOptions = D3LineOptions.builder()
           .label(series.lineOptions.label)
+          .markerSize(series.lineOptions.markerSize)
+          .lineWidth(series.lineOptions.lineWidth)
           .build();
 
       dataBuilder.data(series.xValues, series.yValues, lineOptions);
@@ -271,6 +275,13 @@ export class ExceedanceExplorer {
   }
 
   /**
+   * Return the mean value, ln(median)
+   */
+  mean() {
+    return Math.log(this.median()); 
+  }
+
+  /**
    * Return the median value
    */
   median() {
@@ -280,8 +291,8 @@ export class ExceedanceExplorer {
   metadata() {
     const metadata = new Map();
 
-    metadata.set('Median (μ)', this.medianValues);
-    metadata.set('Sigma (σ)', this.sigmaValues);
+    metadata.set('Median (g)', this.medianValues);
+    metadata.set('Sigma (natural log units)', this.sigmaValues);
     metadata.set('Truncation', this.truncationValues);
     metadata.set('Truncation Level (n)', this.truncationLevelValues);
 
