@@ -406,6 +406,7 @@ export class D3LineLegend {
     d3.select(lineData.subView.svg.legendForeignObjectEl)
         .style('height', `${ legendHeight }px`)
         .style('width', `${ legendWidth }px`)
+        .style('overflow', 'visible')
         .attr('x', loc.x)
         .attr('y', loc.y);
   }
@@ -540,10 +541,15 @@ export class D3LineLegend {
     Preconditions.checkArgumentInstanceOf(series, D3LineSeriesData);
     Preconditions.checkArgumentInstanceOfHTMLElement(tableRowEl);
 
-    let isActive = tableRowEl.classList.toggle('active');
+    let isActive = !tableRowEl.classList.contains('active');
     let lineEls = tableRowEl.querySelectorAll('.legend-line');
     let symbolEls = tableRowEl.querySelectorAll('.legend-symbol');
     
+    d3.select(lineData.subView.svg.legendEl)
+        .selectAll('.legend-entry')
+        .classed('active', false);
+
+    tableRowEl.classList.toggle('active', isActive);
     let legendOptions = lineData.subView.options.legendOptions;
     let fontWeight = isActive ? 'bold' : 'normal';
     let fontSize = legendOptions.fontSize;
@@ -600,10 +606,6 @@ export class D3LineLegend {
    */
   _resetLegendSelection(lineData) {
     Preconditions.checkArgumentInstanceOf(lineData, D3LineData);
-
-    d3.select(lineData.subView.svg.legendEl)
-        .selectAll('.legend-entry')
-        .classed('active', false);
 
     d3.select(lineData.subView.svg.legendEl)
         .selectAll('.legend-line')
