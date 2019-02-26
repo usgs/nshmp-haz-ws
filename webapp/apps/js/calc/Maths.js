@@ -10,7 +10,7 @@ export class Maths {
    * @param {number} σ standard deviation
    * @param {number} x variate
    */
-  static normalCcdf(μ, σ,  x) {
+  static normalCcdf(μ, σ, x) {
     Preconditions.checkArgumentNumber(μ);
     Preconditions.checkArgumentNumber(σ);
     Preconditions.checkArgumentNumber(x);
