@@ -1237,10 +1237,15 @@ export class D3LinePlot {
     Preconditions.checkArgumentInstanceOfSVGElement(dataEl);
 
     d3.select(dataEl).raise();
-    let isActive = dataEl.classList.toggle('active');
+    let isActive = !dataEl.classList.contains('active');
     let lineEls = dataEl.querySelectorAll('.plot-line');
     let symbolEls = dataEl.querySelectorAll('.plot-symbol');
 
+    d3.select(lineData.subView.svg.dataContainerEl)
+        .selectAll('.data-enter')
+        .classed('active', false);
+    
+    dataEl.classList.toggle('active', isActive);
     D3Utils.linePlotSelection(series, lineEls, symbolEls, isActive);
 
     let selectionEvent = new CustomEvent(
@@ -1589,10 +1594,6 @@ export class D3LinePlot {
    * @param {D3LineData} lineData The line data 
    */
   _resetPlotSelection(lineData) {
-    d3.select(lineData.subView.svg.dataContainerEl)
-        .selectAll('.data-enter')
-        .classed('active', false);
-
     d3.select(lineData.subView.svg.dataContainerEl)
         .selectAll('.plot-line')
         .attr('stroke-width', (/** @type {D3LineSeriesData} */ series) => {
