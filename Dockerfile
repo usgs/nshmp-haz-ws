@@ -1,5 +1,9 @@
 ################################
 # Dockerfile for nshmp-haz-ws
+#
+# Note: Models load as requested. While all supported models are
+# available, requesting them all will eventually result in an
+# OutOfMemoryError. Increase -Xmx to -Xmx16g or -Xmx24g, if available.
 ################################
 
 # Project
@@ -61,7 +65,7 @@ ARG war_path
 COPY --from=builder ${war_path} ${CATALINA_HOME}/webapps/.
 
 # Set Java memory
-ENV JAVA_OPTS -Xms1g -Xmx4g 
+ENV JAVA_OPTS -Xms1g -Xmx8g
 
 # Expose port
 EXPOSE 8080
