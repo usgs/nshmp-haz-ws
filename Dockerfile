@@ -63,5 +63,8 @@ COPY --from=builder ${war_path} ${CATALINA_HOME}/webapps/.
 # Set Java memory
 ENV JAVA_OPTS -Xms1g -Xmx4g 
 
+# Expose port
+EXPOSE 8080
+
 # Run Tomcat
 ENTRYPOINT ${CATALINA_HOME}/bin/catalina.sh run
