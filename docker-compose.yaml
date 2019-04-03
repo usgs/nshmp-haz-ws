@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  nshmp-haz-ws:
+    # nshmp-haz-ws image
+    image: nshmp/nshmp-haz-ws:latest
+
+    # Build this directory
+    build: .
+
+    # Restart always
+    restart: always
+
+    # Set to port 8080
+    ports:
+      - 8080:8080
+
+    # Look for changes to WAR file
+    volumes:
+      - ./build/libs/nshmp-haz-ws.war:/usr/local/tomcat/webapps/nshmp-haz-ws.war
