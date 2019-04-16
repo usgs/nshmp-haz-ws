@@ -198,17 +198,17 @@ public final class DeaggService extends NshmpServlet {
       }
 
       Result build() {
-
+        
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
-        Imt imt = Iterables.getOnlyElement(request.imts);
-        ResponseData responseData = new ResponseData(
-            deagg,
-            request,
-            imt);
-        Object deaggs = deagg.toJson(imt);
-        Response response = new Response(responseData, deaggs);
-        responseListBuilder.add(response);
-
+        for (Imt imt : request.imts) {
+          ResponseData responseData = new ResponseData(
+              deagg,
+              request,
+              imt);
+          Object deaggs = deagg.toJson(imt);
+          Response response = new Response(responseData, deaggs);
+          responseListBuilder.add(response);
+        }
         List<Response> responseList = responseListBuilder.build();
         Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);
 
