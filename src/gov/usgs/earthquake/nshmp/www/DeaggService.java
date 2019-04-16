@@ -103,10 +103,9 @@ public final class DeaggService extends NshmpServlet {
     Result calc() throws Exception {
 
       Hazard hazard = HazardService.calcHazard(data, context);
-      Deaggregation deagg = HazardCalcs.deaggregation(
+      Deaggregation deagg = HazardCalcs.deaggReturnPeriod(
           hazard,
           data.returnPeriod.getAsDouble(),
-          data.deaggImt,
           ServletUtil.CALC_EXECUTOR);
 
       return new Result.Builder()

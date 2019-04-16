@@ -242,10 +242,9 @@ public final class DeaggService2 extends NshmpServlet {
       hazards[i] = process(model, site, data.imt);
     }
     Hazard hazard = Hazard.merge(hazards);
-    return HazardCalcs.deaggregation(
+    return HazardCalcs.deaggReturnPeriod(
         hazard,
         data.returnPeriod,
-        Optional.of(data.imt),
         ServletUtil.CALC_EXECUTOR);
   }
 
