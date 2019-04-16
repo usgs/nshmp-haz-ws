@@ -178,15 +178,10 @@ public final class HazardService extends NshmpServlet {
         ? readValues(IMT, request, Imt.class)
         : supportedImts;
     OptionalDouble returnPeriod = OptionalDouble.empty();
-    Optional<Imt> deaggImt = Optional.empty();
 
     /* Possibly update for deagg. */
     if (paramMap.containsKey(RETURNPERIOD.toString())) {
-      // imts = supportedImts; TODO for CMS, need all periods
-      Imt imt = readValue(IMT, request, Imt.class);
-      imts = Sets.immutableEnumSet(imt);
       returnPeriod = OptionalDouble.of(readDouble(RETURNPERIOD, request));
-      deaggImt = Optional.of(imt);
     }
 
     return new RequestData(
@@ -196,8 +191,7 @@ public final class HazardService extends NshmpServlet {
         lat,
         imts,
         vs30,
-        returnPeriod,
-        deaggImt);
+        returnPeriod);
   }
 
   /*
@@ -219,15 +213,10 @@ public final class HazardService extends NshmpServlet {
         ? supportedImts
         : readValues(params.get(4), Imt.class);
     OptionalDouble returnPeriod = OptionalDouble.empty();
-    Optional<Imt> deaggImt = Optional.empty();
 
     /* Possibly update for deagg. */
     if (params.size() == 7) {
-      // imts = supportedImts; TODO for CMS, need all periods
-      Imt imt = Enum.valueOf(Imt.class, params.get(4));
-      imts = Sets.immutableEnumSet(imt);
       returnPeriod = OptionalDouble.of(Double.valueOf(params.get(6)));
-      deaggImt = Optional.of(imt);
     }
 
     return new RequestData(
@@ -237,8 +226,7 @@ public final class HazardService extends NshmpServlet {
         lat,
         imts,
         vs30,
-        returnPeriod,
-        deaggImt);
+        returnPeriod);
   }
 
   private static class HazardTask extends TimedTask<Result> {
@@ -333,7 +321,6 @@ public final class HazardService extends NshmpServlet {
     final Set<Imt> imts;
     final Vs30 vs30;
     final OptionalDouble returnPeriod;
-    final Optional<Imt> deaggImt;
 
     RequestData(
         Edition edition,
@@ -342,8 +329,7 @@ public final class HazardService extends NshmpServlet {
         double latitude,
         Set<Imt> imts,
         Vs30 vs30,
-        OptionalDouble returnPeriod,
-        Optional<Imt> deaggImt) {
+        OptionalDouble returnPeriod) {
 
       this.edition = edition;
       this.region = region;
@@ -352,7 +338,6 @@ public final class HazardService extends NshmpServlet {
       this.imts = imts;
       this.vs30 = vs30;
       this.returnPeriod = returnPeriod;
-      this.deaggImt = deaggImt;
     }
   }
 

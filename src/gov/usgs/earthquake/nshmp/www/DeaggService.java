@@ -103,10 +103,9 @@ public final class DeaggService extends NshmpServlet {
     Result calc() throws Exception {
 
       Hazard hazard = HazardService.calcHazard(data, context);
-      Deaggregation deagg = HazardCalcs.deaggregation(
+      Deaggregation deagg = HazardCalcs.deaggReturnPeriod(
           hazard,
           data.returnPeriod.getAsDouble(),
-          data.deaggImt,
           ServletUtil.CALC_EXECUTOR);
 
       return new Result.Builder()
@@ -199,17 +198,17 @@ public final class DeaggService extends NshmpServlet {
       }
 
       Result build() {
-
+        
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
-        Imt imt = Iterables.getOnlyElement(request.imts);
-        ResponseData responseData = new ResponseData(
-            deagg,
-            request,
-            imt);
-        Object deaggs = deagg.toJson(imt);
-        Response response = new Response(responseData, deaggs);
-        responseListBuilder.add(response);
-
+        for (Imt imt : request.imts) {
+          ResponseData responseData = new ResponseData(
+              deagg,
+              request,
+              imt);
+          Object deaggs = deagg.toJson(imt);
+          Response response = new Response(responseData, deaggs);
+          responseListBuilder.add(response);
+        }
         List<Response> responseList = responseListBuilder.build();
         Object server = Metadata.serverData(ServletUtil.THREAD_COUNT, timer);
 
