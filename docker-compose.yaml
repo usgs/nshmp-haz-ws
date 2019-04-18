@@ -3,10 +3,7 @@ version: "3"
 services:
   nshmp-haz-ws:
     # nshmp-haz-ws image
-    image: nshmp/nshmp-haz-ws:latest
-
-    # Build this directory
-    build: .
+    image: usgs/nshmp-haz-ws:latest
 
     # Restart always
     restart: always
