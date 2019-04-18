@@ -21,7 +21,7 @@ ARG war_path=${builder_workdir}/build/libs/${project}.war
 #   - Download repositories (docker.sh)
 #   - Build nshmp-haz-ws
 ####
-FROM openjdk:8-alpine as builder
+FROM openjdk:8 as builder
 
 # Get builder workdir
 ARG builder_workdir
@@ -40,7 +40,7 @@ WORKDIR ${builder_workdir}
 COPY . ${builder_workdir}/. 
 
 # Install curl, git, bash
-RUN apk add --no-cache git curl bash
+RUN apt-get install -y git curl bash 
 
 # Download repositories
 RUN cd .. && bash ${builder_workdir}/docker.sh
@@ -49,14 +49,28 @@ RUN cd .. && bash ${builder_workdir}/docker.sh
 RUN ./gradlew assemble
 
 ####
-# Application Image: Tomcat
+# Application Image: usgs/centos
+#   - Install Java 8 and Tomcat
 #   - Copy WAR file from builder image
 #   - Run Tomcat
 ####
-FROM tomcat:8-alpine
+FROM usgs/centos
 
 # Set author
 LABEL maintainer="Peter Powers <pmpowers@usgs.gov>"
+
+# Tomcat home
+ENV CATALINA_HOME "/usr/local/tomcat"
+
+# Tomcat version to download
+ARG tomcat_major=8
+ARG tomcat_version=8.5.39
+ARG tomcat_source=http://archive.apache.org/dist/tomcat
+
+# Install Java 8 and Tomcat 8
+RUN yum install -y java-1.8.0-openjdk-devel \
+  && curl -L ${tomcat_source}/tomcat-${tomcat_major}/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.tar.gz | tar -xz \
+  && mv apache-tomcat-${tomcat_version} ${CATALINA_HOME}
 
 # Get WAR path
 ARG war_path
