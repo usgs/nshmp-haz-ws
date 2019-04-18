@@ -40,7 +40,7 @@ WORKDIR ${builder_workdir}
 COPY . ${builder_workdir}/. 
 
 # Install curl, git, bash
-RUN apt-get install -y git curl bash 
+RUN apt-get install -y git curl bash
 
 # Download repositories
 RUN cd .. && bash ${builder_workdir}/docker.sh
