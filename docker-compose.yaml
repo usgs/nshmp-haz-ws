@@ -4,7 +4,7 @@ services:
   nshmp-haz-ws:
     # nshmp-haz-ws image
     image: usgs/nshmp-haz-ws
-    container_name: nshmp-haz-ws
+    container_name: nshmp-haz-ws-docker-compose
 
     # Restart always
     restart: always
