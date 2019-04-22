@@ -3,10 +3,8 @@ version: "3"
 services:
   nshmp-haz-ws:
     # nshmp-haz-ws image
-    image: nshmp/nshmp-haz-ws:latest
-
-    # Build this directory
-    build: .
+    image: usgs/nshmp-haz-ws
+    container_name: nshmp-haz-ws-docker-compose
 
     # Restart always
     restart: always

@@ -21,7 +21,7 @@ ARG war_path=${builder_workdir}/build/libs/${project}.war
 #   - Download repositories (docker.sh)
 #   - Build nshmp-haz-ws
 ####
-FROM openjdk:8-alpine as builder
+FROM openjdk:8 as builder
 
 # Get builder workdir
 ARG builder_workdir
@@ -40,7 +40,7 @@ WORKDIR ${builder_workdir}
 COPY . ${builder_workdir}/. 
 
 # Install curl, git, bash
-RUN apk add --no-cache git curl bash
+RUN apt-get install -y git curl bash
 
 # Download repositories
 RUN cd .. && bash ${builder_workdir}/docker.sh
@@ -49,11 +49,10 @@ RUN cd .. && bash ${builder_workdir}/docker.sh
 RUN ./gradlew assemble
 
 ####
-# Application Image: Tomcat
+# Application Image: usgsnshmp/nshmp-tomcat:8.5-jre8
 #   - Copy WAR file from builder image
-#   - Run Tomcat
 ####
-FROM tomcat:8-alpine
+FROM usgsnshmp/nshmp-tomcat:8.5-jre8 
 
 # Set author
 LABEL maintainer="Peter Powers <pmpowers@usgs.gov>"
@@ -62,13 +61,7 @@ LABEL maintainer="Peter Powers <pmpowers@usgs.gov>"
 ARG war_path
 
 # Copy WAR file from builder image
-COPY --from=builder ${war_path} ${CATALINA_HOME}/webapps/.
+COPY --from=builder ${war_path} ${TOMCAT_WEBAPPS}
 
 # Set Java memory
 ENV JAVA_OPTS -Xms1g -Xmx8g
-
-# Expose port
-EXPOSE 8080
-
-# Run Tomcat
-ENTRYPOINT ${CATALINA_HOME}/bin/catalina.sh run
