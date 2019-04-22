@@ -4,6 +4,7 @@ services:
   nshmp-haz-ws:
     # nshmp-haz-ws image
     image: usgs/nshmp-haz-ws:latest
+    container_name: nshmp-haz-ws
 
     # Restart always
     restart: always
