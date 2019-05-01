@@ -11,9 +11,9 @@ services:
     # Restart always
     restart: always
 
-    # Set to port 8080
+    # Set port range
     ports:
-      - 8080:8080
+      - 8080-9080:8080
 
     # Look for changes to WAR file
     volumes:
