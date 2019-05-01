@@ -2,9 +2,11 @@ version: "3"
 
 services:
   nshmp-haz-ws:
-    # nshmp-haz-ws image
-    image: usgs/nshmp-haz-ws
-    container_name: nshmp-haz-ws-docker-compose
+    # Tomcat 8.5 with JRE 8 image
+    image: usgsnshmp/nshmp-tomcat:8.5-jre8 
+
+    # Container name
+    container_name: nshmp-haz-ws__docker-compose
 
     # Restart always
     restart: always
