@@ -81,6 +81,7 @@ export class Spectra extends GmmBeta {
 
     /* Vs30 buttons */
     this.vs30Btns = [
+      { text: '150', value: 150.0 },
       { text: '185', value: 185.0 },
       { text: '260', value: 260.0 },
       { text: '365', value: 365.0 },
