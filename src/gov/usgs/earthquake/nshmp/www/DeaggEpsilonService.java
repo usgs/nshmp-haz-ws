@@ -86,7 +86,7 @@ public final class DeaggEpsilonService extends NshmpServlet {
          * TODO Site builder tests if service is working, which may be
          * inefficient for single call services.
          */
-        URL url = new URL(props.getProperty("basin_host") + "/nshmp-site-ws/basin");
+        URL url = new URL(props.getProperty("basin_host") + "/nshmp-site-ws/basin/local-data");
         this.basinUrl = url;
       }
     } catch (IOException | NullPointerException e) {
