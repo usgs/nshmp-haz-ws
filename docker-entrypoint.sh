@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 # Docker entrypoint for nshmp-haz-ws:
-#   * Downloads nshmp-haz and all models
-#   * Builds nshmp-haz-ws
-#   * Deploys nshmp-haz-ws
+#   - Downloads nshmp-haz and all models
+#   - Builds nshmp-haz-ws
+#   - Deploys nshmp-haz-ws
 ####
 
 set -o errexit;
