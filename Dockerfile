@@ -21,6 +21,7 @@ LABEL maintainer="Peter Powers <pmpowers@usgs.gov>"
 # Project name
 ENV PROJECT=nshmp-haz-ws
 
+# Set home
 ENV HOME=/app
 
 # Builder image working directory
