@@ -1,4 +1,4 @@
-################################
+####
 # Dockerfile for nshmp-haz-ws
 #
 # Usage:
@@ -7,8 +7,7 @@
 # Note: Models load as requested. While all supported models are
 # available, requesting them all will eventually result in an
 # OutOfMemoryError. Increase -Xmx to -Xmx16g or -Xmx24g, if available.
-################################
-
+####
 
 ####
 # Application Image: usgsnshmp/nshmp-tomcat:8.5-jre8
