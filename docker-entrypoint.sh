@@ -7,7 +7,7 @@
 ####
 
 set -o errexit;
-set -o errtrace
+set -o errtrace;
 
 readonly LOG_FILE="docker-entrypoint.log";
 
@@ -137,4 +137,4 @@ error_exit() {
 ####
 # Run main
 ####
-main "$@"
+main "$@";
