@@ -11,7 +11,9 @@
 
 ####
 # Application Image: usgsnshmp/nshmp-tomcat:8.5-jre8
-#   - Copy WAR file from builder image
+#   - Download nshmp-haz and models
+#   - Build nshmp-haz-ws
+#   - Deploy nshmp-haz-ws 
 ####
 FROM usgsnshmp/nshmp-tomcat:8.5-jre8 
 
