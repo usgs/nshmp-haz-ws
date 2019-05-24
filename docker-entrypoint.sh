@@ -9,7 +9,15 @@
 set -o errexit;
 set -o errtrace;
 
+# Import bash functions from usgsnshmp/centos
+. ${BASH_FUNCTIONS}
+
 readonly LOG_FILE="docker-entrypoint.log";
+
+# Docker usage
+readonly USAGE="
+  docker run -p <PORT>:8080 -d usgs/nshmp-haz-ws
+";
 
 ####
 # Build and deploy nshmp-haz-ws.
@@ -24,7 +32,7 @@ readonly LOG_FILE="docker-entrypoint.log";
 ####
 main() {
   # Set trap for uncaught errors
-  trap 'error_exit "${BASH_COMMAND}" "$(< ${LOG_FILE})"' ERR;
+  trap 'error_exit "${BASH_COMMAND}" "$(< ${LOG_FILE})" "${USAGE}"' ERR;
   
   # Download repositories
   download_repos;
@@ -59,79 +67,22 @@ download_repos() {
   cd ${HOME} 2> ${LOG_FILE};
 
   # Download nshmp-haz
-  download_repo "nshmp-haz" ${NSHMP_HAZ_VERSION};
+  download_repo "usgs" "nshmp-haz" ${NSHMP_HAZ_VERSION};
 
   # Download nshm-ak-2007
-  download_repo "nshm-ak-2007" ${NSHM_AK_2007_VERSION};
+  download_repo "usgs" "nshm-ak-2007" ${NSHM_AK_2007_VERSION};
 
   # Download nshm-cous-2008
-  download_repo "nshm-cous-2008" ${NSHM_COUS_2008_VERSION};
+  download_repo "usgs" "nshm-cous-2008" ${NSHM_COUS_2008_VERSION};
 
   # Download nshm-cous-2014
-  download_repo "nshm-cous-2014" ${NSHM_COUS_2014_VERSION};
+  download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014_VERSION};
 
   # Download nshm-cous-2018
-  download_repo "nshm-cous-2018" ${NSHM_COUS_2018_VERSION};
+  download_repo "usgs" "nshm-cous-2018" ${NSHM_COUS_2018_VERSION};
   
   # Change to WORKDIR
   cd ${WORKDIR} 2> ${LOG_FILE};
-}
-
-####
-# Download a USGS repository from Github.
-# Globals:
-#   (string) LOG_FILE - The log file
-# Arguments:
-#   (string) repo - The project to download
-#   (string) version - The version to download
-# Returns:
-#   None
-####
-download_repo() {
-  local repo=${1};
-  local version=${2};
-  local url="https://github.com/usgs/${repo}/archive/${version}.tar.gz";
-
-  printf "\n Downloading [${url}] \n\n";
-  curl -L ${url} | tar -xz 2> ${LOG_FILE} || \
-      error_exit "Could not download [${url}]" "$(< ${LOG_FILE})";
-  mv ${repo}-${version#v*} ${repo};
-}
-
-####
-# Exit script with error.
-# Globals:
-#   None
-# Arguments:
-#   (string) message - The error message
-#   (string) logs - The log for the error
-# Returns:
-#   None
-####
-error_exit() {
-  local usage="
-    docker run -p <PORT>:8080 -d usgs/nshmp-haz-ws
-  ";
-
-  local message="
-    nshmp-haz Docker error:
-    ${1}
-
-    ----------
-    Logs:
-
-    ${2}
-
-    ----------
-    Usage:
-
-    ${usage}
-
-  ";
-
-  printf "${message}";
-
-  exit -1;
 }
 
 ####
