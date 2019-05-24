@@ -10,12 +10,12 @@
 ####
 
 ####
-# Application Image: usgsnshmp/nshmp-tomcat:8.5-jre8
+# Application Image: usgsnshmp/tomcat:8.5-jre8
 #   - Download nshmp-haz and models
 #   - Build nshmp-haz-ws
 #   - Deploy nshmp-haz-ws 
 ####
-FROM usgsnshmp/nshmp-tomcat:8.5-jre8 
+FROM usgsnshmp/tomcat:8.5-jre8 
 
 # Set author
 LABEL maintainer="Peter Powers <pmpowers@usgs.gov>"
