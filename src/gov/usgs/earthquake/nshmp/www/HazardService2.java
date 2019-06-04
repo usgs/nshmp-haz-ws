@@ -191,11 +191,17 @@ public final class HazardService2 extends NshmpServlet {
 
   Hazard calcHazard(RequestData data, ServletContext context) {
     Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
     HazardModel model = modelCache.getUnchecked(data.model);
     Builder configBuilder = CalcConfig.Builder.copyOf(model.config());
     configBuilder.imts(data.model.imts);
     CalcConfig config = configBuilder.build();
+
+    Site site = Site.builder()
+        .basinDataProvider(config.siteData.basinDataProvider)
+        .location(loc)
+        .vs30(data.vs30.value())
+        .build();
+
     return HazardCalcs.hazard(model, config, site, ServletUtil.CALC_EXECUTOR);
   }
 

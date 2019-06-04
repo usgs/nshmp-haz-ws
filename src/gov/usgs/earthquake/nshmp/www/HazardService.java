@@ -254,7 +254,7 @@ public final class HazardService extends NshmpServlet {
   static Hazard calcHazard(RequestData data, ServletContext context) {
 
     Location loc = Location.create(data.latitude, data.longitude);
-    Site site = Site.builder().location(loc).vs30(data.vs30.value()).build();
+    Site.Builder siteBuilder = Site.builder().location(loc).vs30(data.vs30.value());
 
     @SuppressWarnings("unchecked")
     LoadingCache<Model, HazardModel> modelCache =
@@ -277,6 +277,9 @@ public final class HazardService extends NshmpServlet {
 
       Model wusId = Model.valueOf(WUS, data.edition.year());
       HazardModel wusModel = modelCache.getUnchecked(wusId);
+      Site site = siteBuilder
+          .basinDataProvider(wusModel.config().siteData.basinDataProvider)
+          .build();
       Hazard wusResult = process(wusModel, site, data.imts);
 
       Model ceusId = Model.valueOf(CEUS, data.edition.year());
@@ -288,6 +291,7 @@ public final class HazardService extends NshmpServlet {
 
     Model modelId = Model.valueOf(data.region, data.edition.year());
     HazardModel model = modelCache.getUnchecked(modelId);
+    Site site = siteBuilder.basinDataProvider(model.config().siteData.basinDataProvider).build();
     return process(model, site, data.imts);
   }
 
