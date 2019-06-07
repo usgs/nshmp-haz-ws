@@ -14,8 +14,10 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 
+import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.util.Maths;
 
 @SuppressWarnings("javadoc")
 public final class Util {
@@ -68,6 +70,27 @@ public final class Util {
 
       return jObj;
     }
+  }
+  
+  public static final class SiteSerializer implements JsonSerializer<Site> {
+
+    @Override
+    public JsonElement serialize(Site site, Type typeOfSrc, JsonSerializationContext context) {
+      JsonObject loc = new JsonObject();
+      
+      loc.addProperty("latitude", Maths.round(site.location.lat(), 3));
+      loc.addProperty("longitude", Maths.round(site.location.lon(), 3));
+      
+      JsonObject json = new JsonObject();
+      json.add("location", loc);
+      json.addProperty("vs30", site.vs30);
+      json.addProperty("vsInfered", site.vsInferred);
+      json.addProperty("z1p0", Double.isNaN(site.z1p0) ? null : site.z1p0);
+      json.addProperty("z2p5", Double.isNaN(site.z2p5) ? null : site.z2p5);
+      
+      return json;
+    }
+    
   }
 
   /* Constrain all doubles to 8 decimal places */
