@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.ValueFormat;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
 import gov.usgs.earthquake.nshmp.eq.model.HazardModel;
@@ -84,6 +85,7 @@ public class ServletUtil implements ServletContextListener {
         .registerTypeAdapter(ValueFormat.class, new Util.EnumSerializer<ValueFormat>())
         .registerTypeAdapter(Double.class, new Util.DoubleSerializer())
         .registerTypeAdapter(ParamType.class, new Util.ParamTypeSerializer())
+        .registerTypeAdapter(Site.class, new Util.SiteSerializer())
         .disableHtmlEscaping()
         .serializeNulls()
         .setPrettyPrinting()
