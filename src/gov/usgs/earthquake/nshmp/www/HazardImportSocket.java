@@ -10,6 +10,7 @@ import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -88,12 +89,28 @@ public class HazardImportSocket {
       String name = zipEntry.getName();
       
       if (name.contains("csv")) {
-        String[] names = name.split("/");
-        Imt imt = Imt.valueOf(names[names.length - 2]);
-        HazardCurves curves = readCurveFile(imt, zipStream, name);
-        Result result = new Result(requestData, curves);
-        String json = GSON.toJson(result, Result.class);
-        sendMessage(session, json);
+        CompletableFuture.supplyAsync(() -> {
+          try {
+            String[] names = name.split("/");
+            Imt imt = Imt.valueOf(names[names.length - 2]);
+            System.out.println("imt: " + imt);
+            return readCurveFile(imt, new ZipInputStream(zipStream), name);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          return null;
+        }).thenApplyAsync((curves) -> {
+          return new Result(requestData, curves);
+        }).thenApplyAsync((result) -> {
+          return GSON.toJson(result, Result.class);
+        }).thenAcceptAsync((json) -> {
+          sendMessage(session, json);
+        });
+        
+//        HazardCurves curves = readCurveFile(imt, zipStream, name);
+//        Result result = new Result(requestData, curves);
+//        String json = GSON.toJson(result, Result.class);
+//        sendMessage(session, json);
       }
     }
     
