@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.ZonedDateTime;
@@ -21,15 +23,18 @@ import java.util.zip.ZipInputStream;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
-import javax.websocket.RemoteEndpoint.Basic;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import com.google.common.base.Enums;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import gov.usgs.earthquake.nshmp.calc.DataType;
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.ThreadCount;
+import gov.usgs.earthquake.nshmp.eq.model.SourceType;
+import gov.usgs.earthquake.nshmp.gmm.Gmm;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
@@ -48,6 +53,9 @@ import gov.usgs.earthquake.nshmp.www.meta.Util;
 @ServerEndpoint(value = "/hazard-results")
 public class HazardResultsService {
 
+  private static final int IMT_DIR_BACK_FROM_TOTAL = 2;
+  private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
+
   private static final Gson GSON;
 
   static {
@@ -55,6 +63,9 @@ public class HazardResultsService {
         .serializeNulls()
         .registerTypeAdapter(Site.class, new Util.SiteSerializer())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+        .registerTypeAdapter(SourceType.class, new Util.EnumSerializer<SourceType>())
+        .registerTypeAdapter(Gmm.class, new Util.EnumSerializer<Gmm>())
+        .registerTypeAdapter(DataType.class, new Util.EnumSerializer<DataType>())
         .create();
   }
 
@@ -68,12 +79,13 @@ public class HazardResultsService {
   @OnMessage
   public void onMessage(Session session, String url) throws IOException {
     try {
+      validateUrl(url);
       RequestData requestData = new RequestData(url);
       processRequest(session, requestData);
       session.close();
     } catch (Exception e) {
       String message = Metadata.errorMessage(url, e, false);
-      sendMessage(session, message, false);
+      sendMessage(session, message);
     }
   }
 
@@ -93,11 +105,25 @@ public class HazardResultsService {
    * 
    * @param session The WebSocket session
    * @param throwable The exception
+   * @throws IOException
    */
   @OnError
-  public void onError(Session session, Throwable throwable) {
+  public void onError(Session session, Throwable throwable) throws IOException {
     String message = Metadata.errorMessage("", throwable, false);
-    sendMessage(session, message, false);
+    sendMessage(session, message);
+    session.close();
+  }
+
+  private static void validateUrl(String url) {
+    try {
+      new URL(url).toURI();
+    } catch (URISyntaxException | MalformedURLException e) {
+      throw new RuntimeException("Malformed URL [" + url + "]");
+    }
+
+    if (!url.endsWith(".zip")) {
+      throw new RuntimeException("Must be a zip file [" + url + "]");
+    }
   }
 
   private static void processRequest(
@@ -115,7 +141,7 @@ public class HazardResultsService {
     while ((zipEntry = zipStream.getNextEntry()) != null) {
       String name = zipEntry.getName();
 
-      if (name.contains("csv")) {
+      if (name.endsWith(".csv")) {
         futures.add(processCurveFile(session, requestData, name, zipStream, exec));
       }
     }
@@ -125,17 +151,13 @@ public class HazardResultsService {
     exec.shutdown();
   }
 
-  private static void sendMessage(Session session, String message, boolean isBinary) {
-    Basic remote = session.getBasicRemote();
-
-    try {
-      if (isBinary) {
-        remote.sendBinary(ByteBuffer.wrap(message.getBytes()));
-      } else {
-        remote.sendText(message);
+  private static void sendMessage(Session session, String message) {
+    synchronized (session) {
+      try {
+        session.getBasicRemote().sendBinary(ByteBuffer.wrap(message.getBytes()));
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e.getMessage());
     }
   }
 
@@ -146,19 +168,39 @@ public class HazardResultsService {
       ZipInputStream zipStream,
       ExecutorService exec) throws IOException {
     String[] names = name.split("/");
-    Imt imt = Imt.valueOf(names[names.length - 2]);
-    HazardCurves curves = readCurveFile(imt, zipStream, name);
+    String sourceType = names[names.length - IMT_DIR_BACK_FROM_TOTAL];
+    HazardDataType<?> dataType = null;
+    Imt imt = null;
+
+    if (Enums.getIfPresent(SourceType.class, sourceType).isPresent()) {
+      imt = Imt.valueOf(names[names.length - IMT_DIR_BACK_FROM_SOURCE]);
+      SourceType type = SourceType.valueOf(sourceType);
+      dataType = new HazardDataType<SourceType>(DataType.SOURCE, type);
+    } else if (Enums.getIfPresent(Gmm.class, sourceType).isPresent()) {
+      imt = Imt.valueOf(names[names.length - IMT_DIR_BACK_FROM_SOURCE]);
+      Gmm type = Gmm.valueOf(sourceType);
+      dataType = new HazardDataType<Gmm>(DataType.GMM, type);
+    } else if (Enums.getIfPresent(Imt.class, sourceType).isPresent()) {
+      Imt type = Imt.valueOf(sourceType);
+      imt = type;;
+      dataType = new HazardDataType<Imt>(DataType.TOTAL, type);
+    } else {
+      throw new RuntimeException("Source type [" + sourceType + "] not supported");
+    }
+
+    HazardCurves curves = readCurveFile(imt, dataType, zipStream, name);
     Result result = new Result(requestData, curves);
 
     return CompletableFuture.supplyAsync(() -> {
       return GSON.toJson(result, Result.class);
     }, exec).thenAcceptAsync((json) -> {
-      sendMessage(session, json, true);
+      sendMessage(session, json);
     }, exec);
   }
 
   private static HazardCurves readCurveFile(
       Imt imt,
+      HazardDataType<?> dataType,
       ZipInputStream zipStream,
       String file) throws IOException {
     List<HazardData> hazardData = new ArrayList<>();
@@ -192,7 +234,7 @@ public class HazardResultsService {
       hazardData.add(new HazardData(site, gms));
     }
 
-    return new HazardCurves(imt, imls, hazardData);
+    return new HazardCurves(imt, dataType, imls, hazardData);
   }
 
   private static Site buildSite(List<String> keys, List<String> values) {
@@ -233,6 +275,16 @@ public class HazardResultsService {
     }
   }
 
+  private static class HazardDataType<E extends Enum<E>> {
+    final DataType type;
+    final E sourceType;
+
+    HazardDataType(DataType type, E sourceType) {
+      this.type = type;
+      this.sourceType = sourceType;
+    }
+  }
+
   private static class HazardData {
     final Site site;
     final List<Double> values;
@@ -245,11 +297,13 @@ public class HazardResultsService {
 
   private static class HazardCurves {
     final Imt imt;
+    final HazardDataType<?> dataType;
     final List<Double> imls;
     final List<HazardData> data;
 
-    HazardCurves(Imt imt, List<Double> imls, List<HazardData> data) {
+    HazardCurves(Imt imt, HazardDataType<?> dataType, List<Double> imls, List<HazardData> data) {
       this.imt = imt;
+      this.dataType = dataType;
       this.imls = imls;
       this.data = data;
     }
