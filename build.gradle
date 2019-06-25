@@ -35,6 +35,7 @@ repositories {
 dependencies {
   providedCompile 'org.apache.tomcat:tomcat-catalina:8.0.45'
   providedCompile 'javax.websocket:javax.websocket-api:1.1'
+  providedCompile 'com.amazonaws:aws-lambda-java-core:1.1.0'
   compile project(':nshmp-haz')
 }
 
