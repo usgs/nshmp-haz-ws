@@ -36,6 +36,7 @@ dependencies {
   providedCompile 'org.apache.tomcat:tomcat-catalina:8.0.45'
   providedCompile 'javax.websocket:javax.websocket-api:1.1'
   providedCompile 'com.amazonaws:aws-lambda-java-core:1.1.0'
+  providedCompile 'com.amazonaws:aws-java-sdk-s3:1.11.579'
   compile project(':nshmp-haz')
 }
 
@@ -103,6 +104,14 @@ war {
     props.setProperty('E2014.version', getGitTag(repo_cous_2014))
     props.setProperty('E2018.version', getGitTag(repo_cous_2018))
     props.store(propsFile.newWriter(), null)
+  }
+}
+
+jar {
+  from {
+    configurations.compile.collect {
+      it.isDirectory() ? it : zipTree(it)
+    }
   }
 }
 
