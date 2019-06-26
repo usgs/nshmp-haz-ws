@@ -52,7 +52,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
  * CSV files of return periods of interest.
  */
 @SuppressWarnings("unused")
-public class HazardResultSlicerLambda implements RequestStreamHandler {
+public class HazardResultsSlicerLambda implements RequestStreamHandler {
 
   private static final int IMT_DIR_BACK_FROM_TOTAL = 2;
   private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
