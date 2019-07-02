@@ -54,7 +54,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final String RATE_FMT = "%.8e";
   private static final Function<Double, String> FORMATTER = Parsing.formatDoubleFunction(RATE_FMT);
-  
+
   @Override
   public void handleRequest(
       InputStream input,
@@ -87,10 +87,10 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
     createHeaderString(csv, request);
     createDataString(csv, data);
     writeResults(request, outputBucket, csv.toString().getBytes());
-    
+
     return new Response(request, outputBucket);
   }
-  
+
   private static List<InterpolatedData> readCurveFile(RequestData request) throws IOException {
     S3Object object = S3.getObject(request.bucket, request.key + "/" + CURVES_FILE);
     S3ObjectInputStream input = object.getObjectContent();
@@ -232,7 +232,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
       String outputBucket,
       byte[] result) throws IOException {
     ObjectMetadata metadata = new ObjectMetadata();
-    
+
     InputStream input = new ByteArrayInputStream(result);
     metadata.setContentType(CONTENT_TYPE);
     metadata.setContentLength(result.length);
@@ -241,7 +241,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
         String.format("%s/%s.csv", request.key, FILENAME),
         input,
         metadata)
-       .withCannedAcl(CannedAccessControlList.PublicRead);
+            .withCannedAcl(CannedAccessControlList.PublicRead);
     S3.putObject(putRequest);
     input.close();
   }
@@ -250,13 +250,13 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
     String bucket;
     String key;
     List<Double> slices;
-    
+
     private RequestData(Builder builder) {
       bucket = builder.bucket;
       key = builder.key;
       slices = builder.slices;
     }
-    
+
     static Builder builder() {
       return new Builder();
     }
