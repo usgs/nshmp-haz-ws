@@ -48,7 +48,8 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 @SuppressWarnings("unused")
 public class HazardResultSliceLambda implements RequestStreamHandler {
 
-  private static final String FILENAME = "map";
+  static final String MAP_FILE = "map.csv";
+  
   private static final int NUMBER_OF_HEADERS = 3;
   private static final String CONTENT_TYPE = "text/csv";
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
@@ -238,7 +239,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
     metadata.setContentLength(result.length);
     PutObjectRequest putRequest = new PutObjectRequest(
         request.bucket,
-        String.format("%s/%s.csv", request.key, FILENAME),
+        request.key + "/" + MAP_FILE,
         input,
         metadata)
             .withCannedAcl(CannedAccessControlList.PublicRead);
@@ -299,7 +300,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
       status = Status.SUCCESS.toString();
       date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
       this.request = request;
-      this.csv = String.format("%s/%s.csv", outputBucket, FILENAME);
+      this.csv = outputBucket + "/" + MAP_FILE;
     }
 
   }
