@@ -21,14 +21,9 @@ import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectListing;
-import com.google.common.base.Enums;
 import com.google.common.base.Throwables;
 import com.google.gson.JsonObject;
 
-import gov.usgs.earthquake.nshmp.calc.DataType;
-import gov.usgs.earthquake.nshmp.eq.model.SourceType;
-import gov.usgs.earthquake.nshmp.gmm.Gmm;
-import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.Util.LambdaHelper;
@@ -47,12 +42,8 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
   static final String CURVES_FILE = "curves.csv";
 
   private static final String LAMBDA_CALL = "nshmp-haz-result-slice";
-  private static final int IMT_DIR_BACK_FROM_TOTAL = 2;
-  private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final AWSLambda LAMBDA_CLIENT = AWSLambdaClientBuilder.defaultClient();
-
-  static LambdaHelper LAMBDA_HELPER;
 
   @Override
   public void handleRequest(
@@ -60,7 +51,6 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
       OutputStream output,
       Context context) throws IOException {
     LambdaHelper lambdaHelper = new LambdaHelper(input, output, context);
-    LAMBDA_HELPER = lambdaHelper;
     String requestBucket = "";
 
     try {
@@ -104,29 +94,8 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
   private static CompletableFuture<Void> processCurveFile(
       RequestData request,
       LambdaHelper lambdaHelper,
-      String curvesFile) throws IOException {
-    String[] names = curvesFile.split("/");
-    String sourceType = names[names.length - IMT_DIR_BACK_FROM_TOTAL];
-    HazardDataType<?> dataType = null;
-    Imt imt = null;
-
-    if (Enums.getIfPresent(SourceType.class, sourceType).isPresent()) {
-      imt = Imt.valueOf(names[names.length - IMT_DIR_BACK_FROM_SOURCE]);
-      SourceType type = SourceType.valueOf(sourceType);
-      dataType = new HazardDataType<SourceType>(DataType.SOURCE, type);
-    } else if (Enums.getIfPresent(Gmm.class, sourceType).isPresent()) {
-      imt = Imt.valueOf(names[names.length - IMT_DIR_BACK_FROM_SOURCE]);
-      Gmm type = Gmm.valueOf(sourceType);
-      dataType = new HazardDataType<Gmm>(DataType.GMM, type);
-    } else if (Enums.getIfPresent(Imt.class, sourceType).isPresent()) {
-      Imt type = Imt.valueOf(sourceType);
-      imt = type;
-      dataType = new HazardDataType<Imt>(DataType.TOTAL, type);
-    } else {
-      throw new RuntimeException("Source type [" + sourceType + "] not supported");
-    }
-
-    return readCurveFile(request, curvesFile, imt, dataType)
+      String curvesPath) throws IOException {
+    return readCurveFile(request, curvesPath)
         .thenAcceptAsync(result -> {
           try {
             Object object = GSON.fromJson(
@@ -145,12 +114,10 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
 
   private static CompletableFuture<InvokeResult> readCurveFile(
       RequestData request,
-      String curvesPath,
-      Imt imt,
-      HazardDataType<?> dataType) throws IOException {
+      String curvesPath) throws IOException {
     List<String> names = Arrays.stream(curvesPath.split("/"))
         .collect(Collectors.toList());
-    String curvesFile = names.remove(names.size() - 1);
+    names.remove(names.size() - 1);
     String key = Parsing.join(names, Delimiter.SLASH);
 
     HazardResultSliceLambda.RequestData lambdaRequest = HazardResultSliceLambda.RequestData
@@ -193,16 +160,6 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
     String bucket;
     String key;
     List<Double> slices;
-  }
-
-  static class HazardDataType<E extends Enum<E>> {
-    final DataType type;
-    final E sourceType;
-
-    HazardDataType(DataType type, E sourceType) {
-      this.type = type;
-      this.sourceType = sourceType;
-    }
   }
 
   private static class Response {
