@@ -224,7 +224,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   }
 
   private static void createHeaderString(StringBuilder builder, RequestData request) {
-    List<String> header = Lists.newArrayList(Keys.LON, Keys.LAT, Keys.NAME);
+    List<String> header = Lists.newArrayList(Keys.NAME, Keys.LON, Keys.LAT);
     builder.append(toLine(header, request.slices) + "\n");
   }
 
