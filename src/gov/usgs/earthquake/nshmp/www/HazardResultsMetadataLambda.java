@@ -169,11 +169,11 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
   private static class Result {
     final Set<String> users;
-    final List<HazardListing> listing;
+    final List<HazardListing> listings;
 
-    Result(Set<String> users, List<HazardListing> listing) {
+    Result(Set<String> users, List<HazardListing> listings) {
       this.users = users;
-      this.listing = listing;
+      this.listings = listings;
     }
   }
 
