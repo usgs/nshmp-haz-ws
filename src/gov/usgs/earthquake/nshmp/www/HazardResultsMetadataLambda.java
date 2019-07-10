@@ -73,20 +73,19 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
   private static List<HazardListing> listObjects() {
     ListObjectsV2Request request = new ListObjectsV2Request()
-        .withBucketName(S3_BUCKET);
+        .withBucketName(S3_BUCKET)
+        .withDelimiter(MAP_FILE);
     ListObjectsV2Result s3Listing;
     List<HazardListing> hazardListing = new ArrayList<>();
 
     do {
       s3Listing = S3.listObjectsV2(request);
-      s3Listing.getObjectSummaries()
+      s3Listing.getCommonPrefixes()
           .stream()
-          .map(summary -> summary.getKey())
-          .filter(key -> key.contains(MAP_FILE))
           .map(key -> keyToHazardListing(key))
           .forEach(listing -> hazardListing.add(listing));
 
-      request.setContinuationToken(s3Listing.getContinuationToken());
+      request.setContinuationToken(s3Listing.getNextContinuationToken());
     } while (s3Listing.isTruncated());
 
     return hazardListing;
