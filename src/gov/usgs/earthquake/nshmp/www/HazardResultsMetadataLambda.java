@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.amazonaws.services.lambda.runtime.Context;
@@ -111,7 +112,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
     return listing.getCommonPrefixes().stream()
         .map(prefix -> prefix.replace("/", ""))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(TreeSet::new));
   }
 
   private static HazardDataType<?> getDataType(List<String> keys) {
