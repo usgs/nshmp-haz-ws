@@ -58,7 +58,7 @@ public class ServletUtil implements ServletContextListener {
    * depend on a context-param and may be accessed as context attributes.
    */
 
-  static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern(
+  public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern(
       "yyyy-MM-dd'T'HH:mm:ssXXX");
 
   static final ListeningExecutorService CALC_EXECUTOR;
