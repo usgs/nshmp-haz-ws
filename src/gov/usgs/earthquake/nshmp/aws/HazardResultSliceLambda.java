@@ -1,7 +1,7 @@
-package gov.usgs.earthquake.nshmp.www;
+package gov.usgs.earthquake.nshmp.aws;
 
 import static com.google.common.base.Preconditions.checkState;
-import static gov.usgs.earthquake.nshmp.www.HazardResultsSlicerLambda.CURVES_FILE;
+import static gov.usgs.earthquake.nshmp.aws.HazardResultsSlicerLambda.CURVES_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 import static java.lang.Math.log;
 
@@ -28,14 +28,16 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.Util.LambdaHelper;
+import gov.usgs.earthquake.nshmp.www.ServletUtil;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 
@@ -49,7 +51,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 public class HazardResultSliceLambda implements RequestStreamHandler {
 
   static final String MAP_FILE = "map.csv";
-  
+
   private static final int NUMBER_OF_HEADERS = 3;
   private static final String CONTENT_TYPE = "text/csv";
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
@@ -87,8 +89,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
     StringBuilder csv = new StringBuilder();
     createHeaderString(csv, request);
     createDataString(csv, data);
-    writeResults(request, outputBucket, csv.toString().getBytes());
-
+    writeResults(request, outputBucket, csv.toString().getBytes(Charsets.UTF_8));
     return new Response(request, outputBucket);
   }
 
@@ -206,7 +207,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   }
 
   private static void createDataString(StringBuilder builder, List<InterpolatedData> data) {
-    data.parallelStream().forEach(datum -> {
+    data.forEach(datum -> {
       List<String> locData = Lists.newArrayList(
           datum.site.name,
           String.format("%.5f", datum.site.location.lon()),

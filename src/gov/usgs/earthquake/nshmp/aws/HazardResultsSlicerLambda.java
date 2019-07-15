@@ -1,4 +1,4 @@
-package gov.usgs.earthquake.nshmp.www;
+package gov.usgs.earthquake.nshmp.aws;
 
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 
@@ -24,9 +24,10 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.google.common.base.Throwables;
 import com.google.gson.JsonObject;
 
+import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.Util.LambdaHelper;
+import gov.usgs.earthquake.nshmp.www.ServletUtil;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 

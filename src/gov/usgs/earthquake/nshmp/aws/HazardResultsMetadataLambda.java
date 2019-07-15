@@ -1,6 +1,6 @@
-package gov.usgs.earthquake.nshmp.www;
+package gov.usgs.earthquake.nshmp.aws;
 
-import static gov.usgs.earthquake.nshmp.www.HazardResultSliceLambda.MAP_FILE;
+import static gov.usgs.earthquake.nshmp.aws.HazardResultSliceLambda.MAP_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 
 import java.io.IOException;
@@ -22,13 +22,14 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.google.common.base.Enums;
 import com.google.common.base.Throwables;
 
+import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
 import gov.usgs.earthquake.nshmp.calc.DataType;
 import gov.usgs.earthquake.nshmp.eq.model.SourceType;
 import gov.usgs.earthquake.nshmp.gmm.Gmm;
 import gov.usgs.earthquake.nshmp.gmm.Imt;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.Util.LambdaHelper;
+import gov.usgs.earthquake.nshmp.www.ServletUtil;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
 import gov.usgs.earthquake.nshmp.www.meta.Status;
 

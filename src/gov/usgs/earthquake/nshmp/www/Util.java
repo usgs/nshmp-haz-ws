@@ -3,22 +3,12 @@ package gov.usgs.earthquake.nshmp.www;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletRequest;
-
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
@@ -157,28 +147,4 @@ public class Util {
     return Enum.valueOf(type, readValue(key, paramMap));
   }
   
-  /**
-   * Parse the Lambda function {@code InputStream} into an {@code JsonObject}.
-   */
-  static class LambdaHelper {
-    JsonObject requestJson;
-    Context context;
-    LambdaLogger logger;
-    OutputStream output;
-
-    LambdaHelper(InputStream input, OutputStream output, Context context)
-        throws UnsupportedEncodingException {
-      logger = context.getLogger();
-      this.context = context;
-      this.output = output;
-
-      BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-      JsonParser parser = new JsonParser();
-
-      requestJson = parser.parse(reader).getAsJsonObject();
-    }
-  }
-
-  
-
 }
