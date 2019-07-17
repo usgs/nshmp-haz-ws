@@ -73,26 +73,26 @@ public final class Util {
       return jObj;
     }
   }
-  
+
   public static final class SiteSerializer implements JsonSerializer<Site> {
 
     @Override
     public JsonElement serialize(Site site, Type typeOfSrc, JsonSerializationContext context) {
       JsonObject loc = new JsonObject();
-      
+
       loc.addProperty("latitude", Maths.round(site.location.lat(), 3));
       loc.addProperty("longitude", Maths.round(site.location.lon(), 3));
-      
+
       JsonObject json = new JsonObject();
       json.add("location", loc);
       json.addProperty("vs30", site.vs30);
       json.addProperty("vsInfered", site.vsInferred);
       json.addProperty("z1p0", Double.isNaN(site.z1p0) ? null : site.z1p0);
       json.addProperty("z2p5", Double.isNaN(site.z2p5) ? null : site.z2p5);
-      
+
       return json;
     }
-    
+
   }
 
   /* Constrain all doubles to 8 decimal places */
@@ -119,7 +119,7 @@ public final class Util {
       return Double.isNaN(d) ? null : new JsonPrimitive(d);
     }
   }
-  
+
   public static final class ConstraintSerializer implements JsonSerializer<GmmInput.Constraints> {
     @Override
     public JsonElement serialize(
@@ -127,7 +127,7 @@ public final class Util {
         Type type,
         JsonSerializationContext context) {
       JsonArray json = new JsonArray();
-      
+
       for (Field field : Field.values()) {
         Optional<?> opt = constraints.get(field);
         if (opt.isPresent()) {
@@ -140,18 +140,18 @@ public final class Util {
           json.add(context.serialize(constraint));
         }
       }
-      
+
       return json;
     }
   }
-  
+
   private static class Constraint {
     final String id;
     final String label;
     final Object min;
     final Object max;
-    
-    Constraint(String id, String label,Object min, Object max) {
+
+    Constraint(String id, String label, Object min, Object max) {
       this.id = id;
       this.label = label;
       this.min = min;
