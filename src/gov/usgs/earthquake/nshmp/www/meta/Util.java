@@ -1,22 +1,24 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Range;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.List;
-
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
-import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
 import gov.usgs.earthquake.nshmp.util.Maths;
 
 @SuppressWarnings("javadoc")
@@ -115,6 +117,45 @@ public final class Util {
     @Override
     public JsonElement serialize(Double d, Type type, JsonSerializationContext context) {
       return Double.isNaN(d) ? null : new JsonPrimitive(d);
+    }
+  }
+  
+  public static final class ConstraintSerializer implements JsonSerializer<GmmInput.Constraints> {
+    @Override
+    public JsonElement serialize(
+        GmmInput.Constraints constraints,
+        Type type,
+        JsonSerializationContext context) {
+      JsonArray json = new JsonArray();
+      
+      for (Field field : Field.values()) {
+        Optional<?> opt = constraints.get(field);
+        if (opt.isPresent()) {
+          Range<?> value = (Range<?>) opt.get();
+          Constraint constraint = new Constraint(
+              field.id,
+              field.label,
+              value.lowerEndpoint(),
+              value.upperEndpoint());
+          json.add(context.serialize(constraint));
+        }
+      }
+      
+      return json;
+    }
+  }
+  
+  private static class Constraint {
+    final String id;
+    final String label;
+    final Object min;
+    final Object max;
+    
+    Constraint(String id, String label,Object min, Object max) {
+      this.id = id;
+      this.label = label;
+      this.min = min;
+      this.max = max;
     }
   }
 
