@@ -86,7 +86,7 @@ public class GmmServices extends NshmpServlet {
         .registerTypeAdapter(Double.class, new Util.NaNSerializer())
         .registerTypeAdapter(Parameters.class, new Parameters.Serializer())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
-        .registerTypeAdapter(Constraints.class, new Util.ConstraintSerializer())
+        .registerTypeAdapter(Constraints.class, new Util.ConstraintsSerializer())
         .create();
   }
 

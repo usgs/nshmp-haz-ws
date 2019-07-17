@@ -120,7 +120,7 @@ public final class Util {
     }
   }
 
-  public static final class ConstraintSerializer implements JsonSerializer<GmmInput.Constraints> {
+  public static final class ConstraintsSerializer implements JsonSerializer<GmmInput.Constraints> {
     @Override
     public JsonElement serialize(
         GmmInput.Constraints constraints,
