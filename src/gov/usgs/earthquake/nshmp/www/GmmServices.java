@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -85,6 +86,7 @@ public class GmmServices extends NshmpServlet {
         .registerTypeAdapter(Double.class, new Util.NaNSerializer())
         .registerTypeAdapter(Parameters.class, new Parameters.Serializer())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+        .registerTypeAdapter(Constraints.class, new Util.ConstraintSerializer())
         .create();
   }
 
@@ -229,8 +231,8 @@ public class GmmServices extends NshmpServlet {
     String url;
     Object server;
     RequestData request;
-    XY_DataGroup means;
-    XY_DataGroup sigmas;
+    GmmXYDataGroup means;
+    GmmXYDataGroup sigmas;
 
     ResponseData(Service service, RequestData request) {
       name = service.resultName;
@@ -240,12 +242,12 @@ public class GmmServices extends NshmpServlet {
       
       this.request = request;
       
-      means = XY_DataGroup.create(
+      means = GmmXYDataGroup.create(
           service.groupNameMean,
           service.xLabel,
           service.yLabelMedian);
 
-      sigmas = XY_DataGroup.create(
+      sigmas = GmmXYDataGroup.create(
           service.groupNameSigma,
           service.xLabel,
           service.yLabelSigma);
@@ -260,15 +262,44 @@ public class GmmServices extends NshmpServlet {
         XySequence xyMeans = XySequence.create(
             x.get(gmm),
             Data.round(ROUND, Data.exp(new ArrayList<>(means.get(gmm)))));
-        this.means.add(gmm.name(), gmm.toString(), xyMeans);
+        this.means.add(gmm.name(), gmm.toString(), xyMeans, gmm);
 
         XySequence xySigmas = XySequence.create(
             x.get(gmm),
             Data.round(ROUND, new ArrayList<>(sigmas.get(gmm))));
-        this.sigmas.add(gmm.name(), gmm.toString(), xySigmas);
+        this.sigmas.add(gmm.name(), gmm.toString(), xySigmas, gmm);
       }
     }
 
+  }
+  
+  private static class GmmXYDataGroup extends XY_DataGroup {
+    
+    GmmXYDataGroup(String name, String xLabel, String yLabel) {
+      super(name, xLabel, yLabel);
+    }
+    
+    public static GmmXYDataGroup create(String name, String xLabel, String yLabel) {
+      return new GmmXYDataGroup(name, xLabel, yLabel); 
+    }
+    
+    public GmmXYDataGroup add(String id, String name, XySequence data, Gmm gmm) {
+      this.data.add(new GmmSeries(id, name, data, gmm));
+      return this;
+    }
+    
+    static class GmmSeries extends XY_DataGroup.Series {
+      final Constraints constraints;
+      final TreeSet<String> supportedImts;
+      
+      GmmSeries(String id, String label, XySequence data, Gmm gmm) {
+        super(id, label, data);
+        constraints = gmm.constraints();
+        supportedImts = gmm.supportedIMTs().stream()
+            .map(imt -> imt.name())
+            .collect(Collectors.toCollection(TreeSet::new));
+      }
+    }
   }
   
   static ResponseData processRequest(
