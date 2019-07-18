@@ -541,11 +541,13 @@ public class GmmServices extends NshmpServlet {
       final String id;
       final String label;
       final ArrayList<String> supportedImts;
+      final Constraints constraints;
 
       Value(Gmm gmm) {
         this.id = gmm.name();
         this.label = gmm.toString();
         this.supportedImts = SupportedImts(gmm.supportedIMTs());
+        this.constraints = gmm.constraints();
       }
     }
 
