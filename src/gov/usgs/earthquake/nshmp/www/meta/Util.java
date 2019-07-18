@@ -134,7 +134,6 @@ public final class Util {
           Range<?> value = (Range<?>) opt.get();
           Constraint constraint = new Constraint(
               field.id,
-              field.label,
               value.lowerEndpoint(),
               value.upperEndpoint());
           json.add(context.serialize(constraint));
@@ -147,13 +146,11 @@ public final class Util {
 
   private static class Constraint {
     final String id;
-    final String label;
     final Object min;
     final Object max;
 
-    Constraint(String id, String label, Object min, Object max) {
+    Constraint(String id, Object min, Object max) {
       this.id = id;
-      this.label = label;
       this.min = min;
       this.max = max;
     }
