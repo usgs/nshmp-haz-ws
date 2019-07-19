@@ -109,10 +109,14 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
           .collect(Collectors.toList());
 
       S3Listing s3Listing = s3Filteredlistings.get(0);
+      String path = s3Listing.path.split(resultPrefix)[0];
+      String s3Path = s3Listing.user + "/" + path + resultPrefix;
+
       hazardResults.add(new HazardResults(
           s3Listing.user,
           s3Listing.bucket,
           resultPrefix,
+          s3Path,
           listings));
     });
 
@@ -192,12 +196,19 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     final String user;
     final String bucket;
     final String resultPrefix;
+    final String path;
     final List<HazardListing> listings;
 
-    HazardResults(String user, String bucket, String resultPrefix, List<HazardListing> listings) {
+    HazardResults(
+        String user,
+        String bucket,
+        String resultPrefix,
+        String path,
+        List<HazardListing> listings) {
       this.user = user;
       this.bucket = bucket;
       this.resultPrefix = resultPrefix;
+      this.path = path;
       this.listings = listings;
     }
   }
