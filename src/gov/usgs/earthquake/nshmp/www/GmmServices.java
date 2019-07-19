@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -85,6 +86,7 @@ public class GmmServices extends NshmpServlet {
         .registerTypeAdapter(Double.class, new Util.NaNSerializer())
         .registerTypeAdapter(Parameters.class, new Parameters.Serializer())
         .registerTypeAdapter(Imt.class, new Util.EnumSerializer<Imt>())
+        .registerTypeAdapter(Constraints.class, new Util.ConstraintsSerializer())
         .create();
   }
 
@@ -100,7 +102,7 @@ public class GmmServices extends NshmpServlet {
     try {
       /* At a minimum, Gmms must be defined. */
       if (!hasGMM(request, service, urlHelper)) return;
-      
+
       Map<String, String[]> params = request.getParameterMap();
 
       ResponseData svcResponse = processRequest(service, params, urlHelper);
@@ -130,35 +132,35 @@ public class GmmServices extends NshmpServlet {
       String[] gmmParams = request.getParameterValues(GMM_KEY);
 
       List<String> requestData = requestReader.lines().collect(Collectors.toList());
-      
+
       if (requestData.isEmpty()) {
         throw new IllegalStateException("Post data is empty");
       }
-      
+
       List<String> keys = Parsing.splitToList(requestData.get(0), Delimiter.COMMA);
 
       ResponseDataPost svcResponse = new ResponseDataPost(service, urlHelper);
-      
+
       List<ResponseData> gmmResponses = requestData.subList(1, requestData.size())
           .parallelStream()
           .filter((line) -> !line.startsWith("#") && !line.trim().isEmpty())
           .map((line) -> {
             List<String> values = Parsing.splitToList(line, Delimiter.COMMA);
-           
+
             Map<String, String[]> params = new HashMap<>();
             params.put(GMM_KEY, gmmParams);
-            
+
             int index = 0;
 
             for (String key : keys) {
               String value = values.get(index);
               if ("null".equals(value.toLowerCase())) continue;
-              
+
               params.put(key, new String[] { value });
               index++;
             }
-           
-            return processRequest(service, params, urlHelper); 
+
+            return processRequest(service, params, urlHelper);
           })
           .collect(Collectors.toList());
 
@@ -170,7 +172,7 @@ public class GmmServices extends NshmpServlet {
       e.printStackTrace();
     }
   }
-  
+
   static class RequestData {
     Set<Gmm> gmms;
     GmmInput input;
@@ -199,7 +201,7 @@ public class GmmServices extends NshmpServlet {
       maxDistance = rMax;
     }
   }
-  
+
   static class ResponseDataPost {
     String name;
     String status = Status.SUCCESS.toString();
@@ -207,45 +209,43 @@ public class GmmServices extends NshmpServlet {
     String url;
     Object server;
     List<ResponseData> response;
-   
+
     ResponseDataPost(Service service, UrlHelper urlHelper) {
       name = service.resultName;
-      
-      server = gov.usgs.earthquake.nshmp.www.meta
-          .Metadata.serverData(1, ServletUtil.timer());
-      
+
+      server = gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
+
       url = urlHelper.url;
     }
-    
+
     void setResponse(List<ResponseData> response) {
       this.response = response;
     }
   }
 
-  static class ResponseData  {
+  static class ResponseData {
     String name;
     String status = Status.SUCCESS.toString();
     String date = ZonedDateTime.now().format(ServletUtil.DATE_FMT);
     String url;
     Object server;
     RequestData request;
-    XY_DataGroup means;
-    XY_DataGroup sigmas;
+    GmmXYDataGroup means;
+    GmmXYDataGroup sigmas;
 
     ResponseData(Service service, RequestData request) {
       name = service.resultName;
-      
-      server = gov.usgs.earthquake.nshmp.www.meta
-          .Metadata.serverData(1, ServletUtil.timer());
-      
+
+      server = gov.usgs.earthquake.nshmp.www.meta.Metadata.serverData(1, ServletUtil.timer());
+
       this.request = request;
-      
-      means = XY_DataGroup.create(
+
+      means = GmmXYDataGroup.create(
           service.groupNameMean,
           service.xLabel,
           service.yLabelMedian);
 
-      sigmas = XY_DataGroup.create(
+      sigmas = GmmXYDataGroup.create(
           service.groupNameSigma,
           service.xLabel,
           service.yLabelSigma);
@@ -260,23 +260,52 @@ public class GmmServices extends NshmpServlet {
         XySequence xyMeans = XySequence.create(
             x.get(gmm),
             Data.round(ROUND, Data.exp(new ArrayList<>(means.get(gmm)))));
-        this.means.add(gmm.name(), gmm.toString(), xyMeans);
+        this.means.add(gmm.name(), gmm.toString(), xyMeans, gmm);
 
         XySequence xySigmas = XySequence.create(
             x.get(gmm),
             Data.round(ROUND, new ArrayList<>(sigmas.get(gmm))));
-        this.sigmas.add(gmm.name(), gmm.toString(), xySigmas);
+        this.sigmas.add(gmm.name(), gmm.toString(), xySigmas, gmm);
       }
     }
 
   }
-  
+
+  private static class GmmXYDataGroup extends XY_DataGroup {
+
+    GmmXYDataGroup(String name, String xLabel, String yLabel) {
+      super(name, xLabel, yLabel);
+    }
+
+    public static GmmXYDataGroup create(String name, String xLabel, String yLabel) {
+      return new GmmXYDataGroup(name, xLabel, yLabel);
+    }
+
+    public GmmXYDataGroup add(String id, String name, XySequence data, Gmm gmm) {
+      this.data.add(new GmmSeries(id, name, data, gmm));
+      return this;
+    }
+
+    static class GmmSeries extends XY_DataGroup.Series {
+      final Constraints constraints;
+      final TreeSet<String> supportedImts;
+
+      GmmSeries(String id, String label, XySequence data, Gmm gmm) {
+        super(id, label, data);
+        constraints = gmm.constraints();
+        supportedImts = gmm.supportedIMTs().stream()
+            .map(imt -> imt.name())
+            .collect(Collectors.toCollection(TreeSet::new));
+      }
+    }
+  }
+
   static ResponseData processRequest(
       Service service,
       Map<String, String[]> params,
       UrlHelper urlHelper) {
     ResponseData svcResponse = null;
-    
+
     switch (service) {
       case DISTANCE:
       case HW_FW:
@@ -288,7 +317,7 @@ public class GmmServices extends NshmpServlet {
       default:
         throw new IllegalStateException("Service not supported [" + service + "]");
     }
-    
+
     svcResponse.url = urlHelper.url;
     return svcResponse;
   }
@@ -512,11 +541,13 @@ public class GmmServices extends NshmpServlet {
       final String id;
       final String label;
       final ArrayList<String> supportedImts;
+      final Constraints constraints;
 
       Value(Gmm gmm) {
         this.id = gmm.name();
         this.label = gmm.toString();
         this.supportedImts = SupportedImts(gmm.supportedIMTs());
+        this.constraints = gmm.constraints();
       }
     }
 

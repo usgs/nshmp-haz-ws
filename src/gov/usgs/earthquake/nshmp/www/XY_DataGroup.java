@@ -7,7 +7,7 @@ import gov.usgs.earthquake.nshmp.data.XySequence;
 
 /**
  * Container class of XY data sequences prior to Json serialization. This
- * implementation is for datseriesthat sharethesame x-values
+ * implementation is for data series that share the same x-values
  * 
  * @author Peter Powers
  */
@@ -17,9 +17,9 @@ public class XY_DataGroup {
   private final String label;
   private final String xLabel;
   private final String yLabel;
-  private final List<Series> data;
+  protected final List<Series> data;
 
-  private XY_DataGroup(String label, String xLabel, String yLabel) {
+  protected XY_DataGroup(String label, String xLabel, String yLabel) {
     this.label = label;
     this.xLabel = xLabel;
     this.yLabel = yLabel;
@@ -37,7 +37,7 @@ public class XY_DataGroup {
     return this;
   }
 
-  static final class Series {
+  static class Series {
     private final String id;
     private final String label;
     private final XySequence data;

@@ -1,22 +1,24 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Range;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.List;
-
 import gov.usgs.earthquake.nshmp.calc.Site;
 import gov.usgs.earthquake.nshmp.calc.Vs30;
-import gov.usgs.earthquake.nshmp.gmm.Imt;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput;
+import gov.usgs.earthquake.nshmp.gmm.GmmInput.Field;
 import gov.usgs.earthquake.nshmp.util.Maths;
 
 @SuppressWarnings("javadoc")
@@ -71,26 +73,26 @@ public final class Util {
       return jObj;
     }
   }
-  
+
   public static final class SiteSerializer implements JsonSerializer<Site> {
 
     @Override
     public JsonElement serialize(Site site, Type typeOfSrc, JsonSerializationContext context) {
       JsonObject loc = new JsonObject();
-      
+
       loc.addProperty("latitude", Maths.round(site.location.lat(), 3));
       loc.addProperty("longitude", Maths.round(site.location.lon(), 3));
-      
+
       JsonObject json = new JsonObject();
       json.add("location", loc);
       json.addProperty("vs30", site.vs30);
       json.addProperty("vsInfered", site.vsInferred);
       json.addProperty("z1p0", Double.isNaN(site.z1p0) ? null : site.z1p0);
       json.addProperty("z2p5", Double.isNaN(site.z2p5) ? null : site.z2p5);
-      
+
       return json;
     }
-    
+
   }
 
   /* Constrain all doubles to 8 decimal places */
@@ -115,6 +117,42 @@ public final class Util {
     @Override
     public JsonElement serialize(Double d, Type type, JsonSerializationContext context) {
       return Double.isNaN(d) ? null : new JsonPrimitive(d);
+    }
+  }
+
+  public static final class ConstraintsSerializer implements JsonSerializer<GmmInput.Constraints> {
+    @Override
+    public JsonElement serialize(
+        GmmInput.Constraints constraints,
+        Type type,
+        JsonSerializationContext context) {
+      JsonArray json = new JsonArray();
+
+      for (Field field : Field.values()) {
+        Optional<?> opt = constraints.get(field);
+        if (opt.isPresent()) {
+          Range<?> value = (Range<?>) opt.get();
+          Constraint constraint = new Constraint(
+              field.id,
+              value.lowerEndpoint(),
+              value.upperEndpoint());
+          json.add(context.serialize(constraint));
+        }
+      }
+
+      return json;
+    }
+  }
+
+  private static class Constraint {
+    final String id;
+    final Object min;
+    final Object max;
+
+    Constraint(String id, Object min, Object max) {
+      this.id = id;
+      this.min = min;
+      this.max = max;
     }
   }
 
