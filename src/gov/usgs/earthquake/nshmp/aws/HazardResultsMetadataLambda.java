@@ -100,16 +100,16 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
   private static List<HazardResults> transformS3Listing(List<S3Listing> s3Listings) {
     List<HazardResults> hazardResults = new ArrayList<>();
-    TreeSet<String> resultDirectories = s3Listings.stream()
+    TreeSet<String> resultDirectories = s3Listings.parallelStream()
         .map(listing -> listing.resultPrefix)
         .collect(Collectors.toCollection(TreeSet::new));
 
     resultDirectories.forEach(resultPrefix -> {
-      List<S3Listing> s3Filteredlistings = s3Listings.stream()
+      List<S3Listing> s3Filteredlistings = s3Listings.parallelStream()
           .filter(listing -> listing.resultPrefix.equals(resultPrefix))
           .collect(Collectors.toList());
 
-      List<HazardListing> listings = s3Filteredlistings.stream()
+      List<HazardListing> listings = s3Filteredlistings.parallelStream()
           .map(listing -> s3ListingToHazardListing(listing))
           .collect(Collectors.toList());
 
