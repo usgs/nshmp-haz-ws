@@ -24,7 +24,6 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.common.base.Enums;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 
 import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
@@ -51,14 +50,13 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final String RESULT_BUCKET = "nshmp-haz-lambda";
   private static final String RESULT_KEY = "nshmp-haz-aws-results-metadata.json";
-  
+
   @Override
   public void handleRequest(
       InputStream input,
       OutputStream output,
       Context context) throws IOException {
     LambdaHelper lambdaHelper = new LambdaHelper(input, output, context);
-    lambda = lambdaHelper;
 
     try {
       Response response = processRequest();
@@ -72,7 +70,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
       output.write(message.getBytes());
     }
   }
-  
+
   private static Response processRequest() {
     Set<String> users = getUsers();
     List<HazardResults> hazardResults = listObjects();
@@ -188,7 +186,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   private static void uploadResults(String results) {
     byte[] bytes = results.getBytes();
     ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-    ObjectMetadata metadata =  new ObjectMetadata();
+    ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentLength(bytes.length);
     metadata.setContentType("application/json");
 
@@ -197,8 +195,8 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
         RESULT_KEY,
         input,
         metadata)
-        .withCannedAcl(CannedAccessControlList.PublicRead);
-    
+       .withCannedAcl(CannedAccessControlList.PublicRead);
+
     S3.putObject(request);
   }
 
