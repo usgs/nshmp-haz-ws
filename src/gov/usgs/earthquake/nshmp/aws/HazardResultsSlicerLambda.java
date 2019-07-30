@@ -108,7 +108,7 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
               throw new RuntimeException(json.get("message").getAsString());
             }
           } catch (Exception e) {
-            lambdaHelper.logger.log(Throwables.getStackTraceAsString(e));
+            throw new RuntimeException(e);
           }
         });
   }
