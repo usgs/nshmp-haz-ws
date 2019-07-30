@@ -194,8 +194,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
         RESULT_BUCKET,
         RESULT_KEY,
         input,
-        metadata)
-       .withCannedAcl(CannedAccessControlList.PublicRead);
+        metadata);
 
     S3.putObject(request);
   }
