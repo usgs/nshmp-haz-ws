@@ -3,6 +3,7 @@ package gov.usgs.earthquake.nshmp.aws;
 import static gov.usgs.earthquake.nshmp.aws.HazardResultSliceLambda.MAP_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,8 +18,11 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.google.common.base.Enums;
 import com.google.common.base.Throwables;
 
@@ -44,6 +48,8 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
   private static final String S3_BUCKET = "nshmp-hazout";
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
+  private static final String RESULT_BUCKET = "nshmp-haz-lambda";
+  private static final String RESULT_KEY = "nshmp-haz-aws-results-metadata.json";
 
   @Override
   public void handleRequest(
@@ -55,7 +61,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     try {
       Response response = processRequest();
       String json = GSON.toJson(response, Response.class);
-      lambdaHelper.logger.log("Response: " + json + "\n");
+      uploadResults(json);
       output.write(json.getBytes());
       output.close();
     } catch (Exception e) {
@@ -68,7 +74,6 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   private static Response processRequest() {
     Set<String> users = getUsers();
     List<HazardResults> hazardResults = listObjects();
-
     Result result = new Result(users, hazardResults);
     return new Response(result);
   }
@@ -95,16 +100,16 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
   private static List<HazardResults> transformS3Listing(List<S3Listing> s3Listings) {
     List<HazardResults> hazardResults = new ArrayList<>();
-    TreeSet<String> resultDirectories = s3Listings.stream()
+    TreeSet<String> resultDirectories = s3Listings.parallelStream()
         .map(listing -> listing.resultPrefix)
         .collect(Collectors.toCollection(TreeSet::new));
 
     resultDirectories.forEach(resultPrefix -> {
-      List<S3Listing> s3Filteredlistings = s3Listings.stream()
+      List<S3Listing> s3Filteredlistings = s3Listings.parallelStream()
           .filter(listing -> listing.resultPrefix.equals(resultPrefix))
           .collect(Collectors.toList());
 
-      List<HazardListing> listings = s3Filteredlistings.stream()
+      List<HazardListing> listings = s3Filteredlistings.parallelStream()
           .map(listing -> s3ListingToHazardListing(listing))
           .collect(Collectors.toList());
 
@@ -176,6 +181,22 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     }
 
     return dataType;
+  }
+
+  private static void uploadResults(String results) {
+    byte[] bytes = results.getBytes();
+    ByteArrayInputStream input = new ByteArrayInputStream(bytes);
+    ObjectMetadata metadata = new ObjectMetadata();
+    metadata.setContentLength(bytes.length);
+    metadata.setContentType("application/json");
+
+    PutObjectRequest request = new PutObjectRequest(
+        RESULT_BUCKET,
+        RESULT_KEY,
+        input,
+        metadata);
+
+    S3.putObject(request);
   }
 
   static class HazardDataType<E extends Enum<E>> {

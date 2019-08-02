@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.lambda.model.InvokeRequest;
@@ -43,8 +44,20 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
   static final String CURVES_FILE = "curves.csv";
 
   private static final String LAMBDA_CALL = "nshmp-haz-result-slice";
+  private static final String ZIP_LAMBDA_CALL = "nshmp-haz-zip-results";
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
-  private static final AWSLambda LAMBDA_CLIENT = AWSLambdaClientBuilder.defaultClient();
+  private static AWSLambda LAMBDA_CLIENT;
+
+  private static final int SDK_TIMEOUT = 10 * 60 * 1000;
+
+  static {
+    ClientConfiguration config = new ClientConfiguration()
+        .withSocketTimeout(SDK_TIMEOUT);
+
+    LAMBDA_CLIENT = AWSLambdaClientBuilder.standard()
+        .withClientConfiguration(config)
+        .build();
+  }
 
   @Override
   public void handleRequest(
@@ -89,6 +102,7 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
         });
 
     futures.forEach(CompletableFuture::join);
+    zipResults(request);
     return new Response(request);
   }
 
@@ -98,18 +112,7 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
       String curvesPath) throws IOException {
     return readCurveFile(request, curvesPath)
         .thenAcceptAsync(result -> {
-          try {
-            Object object = GSON.fromJson(
-                new String(result.getPayload().array(), "UTF-8"),
-                Object.class);
-            JsonObject json = GSON.toJsonTree(object).getAsJsonObject();
-            String status = json.get("status").getAsString();
-            if (Status.ERROR.toString().equals(status)) {
-              throw new RuntimeException(json.get("message").getAsString());
-            }
-          } catch (Exception e) {
-            lambdaHelper.logger.log(Throwables.getStackTraceAsString(e));
-          }
+          checkLambdaResponse(result);
         });
   }
 
@@ -154,6 +157,26 @@ public class HazardResultsSlicerLambda implements RequestStreamHandler {
   private static void checkBucket(RequestData request) {
     if (!S3.doesBucketExistV2(request.bucket)) {
       throw new RuntimeException(String.format("S3 bucket [%s] does not exist", request.bucket));
+    }
+  }
+
+  private static void zipResults(RequestData request) {
+    InvokeRequest invokeRequest = new InvokeRequest()
+        .withFunctionName(ZIP_LAMBDA_CALL)
+        .withPayload(GSON.toJson(request));
+
+    InvokeResult result = LAMBDA_CLIENT.invoke(invokeRequest);
+    checkLambdaResponse(result);
+  }
+
+  private static void checkLambdaResponse(InvokeResult result) {
+    Object object = GSON.fromJson(
+        new String(result.getPayload().array()),
+        Object.class);
+    JsonObject json = GSON.toJsonTree(object).getAsJsonObject();
+    String status = json.get("status").getAsString();
+    if (Status.ERROR.toString().equals(status)) {
+      throw new RuntimeException(json.get("message").getAsString());
     }
   }
 

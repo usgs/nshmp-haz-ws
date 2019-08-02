@@ -242,8 +242,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
         request.bucket,
         request.key + "/" + MAP_FILE,
         input,
-        metadata)
-            .withCannedAcl(CannedAccessControlList.PublicRead);
+        metadata);
     S3.putObject(putRequest);
     input.close();
   }
