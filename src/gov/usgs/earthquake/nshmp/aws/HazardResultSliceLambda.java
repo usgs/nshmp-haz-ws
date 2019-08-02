@@ -23,7 +23,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -35,6 +34,7 @@ import com.google.common.collect.Lists;
 
 import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
 import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.data.Interpolator;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.ServletUtil;
@@ -175,21 +175,11 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   }
 
   private static double interpolate(List<Double> xs, List<Double> ys, double returnPeriod) {
-    int index = IntStream.range(0, ys.size())
-        .filter(i -> ys.get(i) < returnPeriod)
-        .findFirst()
-        .orElse(-1);
+    Interpolator interpolator = Interpolator.builder()
+        .decreasingX()
+        .build();
 
-    if (index <= 0) {
-      return 0.0;
-    }
-
-    double x1 = xs.get(index - 1);
-    double x2 = xs.get(index);
-    double y1 = ys.get(index - 1);
-    double y2 = ys.get(index);
-
-    return x1 + (log(returnPeriod / y1) * (x2 - x1) / log(y2 / y1));
+    return interpolator.findX(xs, ys, returnPeriod);
   }
 
   private static void checkRequest(RequestData request) {
