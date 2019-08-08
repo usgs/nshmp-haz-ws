@@ -24,16 +24,37 @@ export default class Dashboard {
     //this.settings = new Settings(footer.settingsBtnEl);
     /** @type {Header} */
     this.header = new Header();
-    this.header.setTitle("Dashboard");
+    this.header.setTitle("Dev Dashboard");
  
     /** @ type {Array{Object}} */
     this.webapps = [
       {
+        label: 'Dynamic Model Comparison',
+        href: '../apps/dynamic-compare.html',
+      }, {
         label: 'Response Spectra',
-        href: 'apps/spectra-plot.html',
+        href: '../apps/spectra-plot.html',
+      }, {
+        label: 'Model Comparison',
+        href: '../apps/model-compare.html',
+      }, { 
+        label: 'Ground Motion Vs. Distance',
+        href: '../apps/gmm-distance.html',
+      }, {
+        label: 'Model Explorer',
+        href: '../apps/model-explorer.html', 
+      }, {
+        label: 'Hanging Wall Effects',
+        href: '../apps/hw-fw.html',
+      }, {
+        label: 'Geographic Deaggregation',
+        href: '../apps/geo-deagg.html',
+      }, {
+        label: 'Exceedance Explorer',
+        href: '../apps/exceedance-explorer.html',
       }, {
         label: 'Services',
-        href: 'apps/services.html',
+        href: '../apps/services.html',
       }
     ];
     
@@ -56,7 +77,7 @@ export default class Dashboard {
         .data(this.webapps)
         .enter()
         .append('div')
-        .attr('class', 'col-sm-offset-4 col-sm-4 col-sm-offset-4')
+        .attr('class', 'col-sm-offset-1 col-sm-4 col-sm-offset-1')
         .on('click', (d, i) => { window.location = d.href; })
         .append('div')
         .attr('class', 'panel panel-default')
