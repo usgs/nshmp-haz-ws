@@ -57,6 +57,11 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final String RATE_FMT = "%.8e";
   private static final Function<Double, String> FORMATTER = Parsing.formatDoubleFunction(RATE_FMT);
+  private static final Interpolator INTERPOLATOR = Interpolator.builder()
+      .logx()
+      .logy()
+      .decreasingX()
+      .build();
 
   @Override
   public void handleRequest(
@@ -138,7 +143,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
 
     Site site = buildSite(keys, values);
     List<Double> interpolatedValues = request.slices.stream()
-        .map(returnPeriod -> interpolate(imls, gms, returnPeriod))
+        .map(returnPeriod -> INTERPOLATOR.findX(imls, gms, returnPeriod))
         .collect(Collectors.toList());
 
     return new InterpolatedData(site, interpolatedValues);
@@ -172,14 +177,6 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
         .location(lat, lon)
         .name(name)
         .build();
-  }
-
-  private static double interpolate(List<Double> xs, List<Double> ys, double returnPeriod) {
-    Interpolator interpolator = Interpolator.builder()
-        .decreasingX()
-        .build();
-
-    return interpolator.findX(xs, ys, returnPeriod);
   }
 
   private static void checkRequest(RequestData request) {
