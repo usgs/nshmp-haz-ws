@@ -23,7 +23,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -35,6 +34,7 @@ import com.google.common.collect.Lists;
 
 import gov.usgs.earthquake.nshmp.aws.Util.LambdaHelper;
 import gov.usgs.earthquake.nshmp.calc.Site;
+import gov.usgs.earthquake.nshmp.data.Interpolator;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
 import gov.usgs.earthquake.nshmp.www.ServletUtil;
@@ -57,6 +57,11 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final String RATE_FMT = "%.8e";
   private static final Function<Double, String> FORMATTER = Parsing.formatDoubleFunction(RATE_FMT);
+  private static final Interpolator INTERPOLATOR = Interpolator.builder()
+      .logx()
+      .logy()
+      .decreasingX()
+      .build();
 
   @Override
   public void handleRequest(
@@ -138,7 +143,7 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
 
     Site site = buildSite(keys, values);
     List<Double> interpolatedValues = request.slices.stream()
-        .map(returnPeriod -> interpolate(imls, gms, returnPeriod))
+        .map(returnPeriod -> INTERPOLATOR.findX(imls, gms, returnPeriod))
         .collect(Collectors.toList());
 
     return new InterpolatedData(site, interpolatedValues);
@@ -172,24 +177,6 @@ public class HazardResultSliceLambda implements RequestStreamHandler {
         .location(lat, lon)
         .name(name)
         .build();
-  }
-
-  private static double interpolate(List<Double> xs, List<Double> ys, double returnPeriod) {
-    int index = IntStream.range(0, ys.size())
-        .filter(i -> ys.get(i) < returnPeriod)
-        .findFirst()
-        .orElse(-1);
-
-    if (index <= 0) {
-      return 0.0;
-    }
-
-    double x1 = xs.get(index - 1);
-    double x2 = xs.get(index);
-    double y1 = ys.get(index - 1);
-    double y2 = ys.get(index);
-
-    return x1 + (log(returnPeriod / y1) * (x2 - x1) / log(y2 / y1));
   }
 
   private static void checkRequest(RequestData request) {
