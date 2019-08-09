@@ -1,6 +1,7 @@
 package gov.usgs.earthquake.nshmp.aws;
 
-import static gov.usgs.earthquake.nshmp.aws.HazardResultSliceLambda.MAP_FILE;
+import static gov.usgs.earthquake.nshmp.aws.Util.CURVES_FILE;
+import static gov.usgs.earthquake.nshmp.aws.Util.MAP_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 
 import java.io.ByteArrayInputStream;
@@ -9,7 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -43,10 +46,11 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 @SuppressWarnings("unused")
 public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
+  private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
+  
   private static final int IMT_DIR_BACK_FROM_TOTAL = 2;
   private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
   private static final String S3_BUCKET = "nshmp-hazout";
-  private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static final String RESULT_BUCKET = "nshmp-haz-lambda";
   private static final String RESULT_KEY = "nshmp-haz-aws-results-metadata.json";
 
@@ -71,16 +75,23 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   }
 
   private static Response processRequest() {
+    Map<String, CurvesMapResult> curvesMapResults = new HashMap<>();
     Set<String> users = getUsers();
-    List<HazardResults> hazardResults = listObjects();
-    Result result = new Result(users, hazardResults);
+
+    for (String file : new String[] { CURVES_FILE, MAP_FILE }) {
+      List<HazardResults> hazardResults = listObjects(file);
+      CurvesMapResult result = new CurvesMapResult(users, hazardResults);
+      curvesMapResults.put(file, result);
+    }
+
+    Result result = new Result(curvesMapResults.get(CURVES_FILE), curvesMapResults.get(MAP_FILE));
     return new Response(result);
   }
 
-  private static List<HazardResults> listObjects() {
+  private static List<HazardResults> listObjects(String file) {
     ListObjectsV2Request request = new ListObjectsV2Request()
         .withBucketName(S3_BUCKET)
-        .withDelimiter(MAP_FILE);
+        .withDelimiter(file);
     ListObjectsV2Result s3Result;
     List<S3Listing> s3Listings = new ArrayList<>();
 
@@ -128,18 +139,19 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
   }
 
   private static HazardListing s3ListingToHazardListing(S3Listing s3Listing) {
-    return new HazardListing(s3Listing.dataType, s3Listing.path);
+    return new HazardListing(s3Listing.dataType, s3Listing.path, s3Listing.file);
   }
 
   private static S3Listing keyToHazardListing(String key) {
     List<String> keys = Parsing.splitToList(key, Delimiter.SLASH);
     HazardDataType<?> dataType = getDataType(keys);
     String user = keys.get(0);
+    String file = keys.get(keys.size() - 1);
     String path = keys.subList(1, keys.size() - 1)
         .stream()
         .collect(Collectors.joining("/"));
 
-    return new S3Listing(user, S3_BUCKET, path, dataType);
+    return new S3Listing(user, S3_BUCKET, path, file, dataType);
   }
 
   private static Set<String> getUsers() {
@@ -238,9 +250,9 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     final String file;
     final String path;
 
-    HazardListing(HazardDataType<?> dataType, String path) {
+    HazardListing(HazardDataType<?> dataType, String path, String file) {
       this.dataType = dataType;
-      this.file = MAP_FILE;
+      this.file = file;
       this.path = path;
     }
   }
@@ -249,25 +261,37 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     final String user;
     final String bucket;
     final String path;
+    final String file;
     final String resultPrefix;
     final HazardDataType<?> dataType;
 
-    S3Listing(String user, String bucket, String path, HazardDataType<?> dataType) {
+    S3Listing(String user, String bucket, String path, String file, HazardDataType<?> dataType) {
       this.user = user;
       this.bucket = bucket;
       this.path = path;
+      this.file = file;
       this.resultPrefix = dataType.resultPrefix;
       this.dataType = dataType;
     }
   }
 
-  private static class Result {
+  private static class CurvesMapResult {
     final Set<String> users;
     final List<HazardResults> hazardResults;
 
-    Result(Set<String> users, List<HazardResults> hazardResults) {
+    CurvesMapResult(Set<String> users, List<HazardResults> hazardResults) {
       this.users = users;
       this.hazardResults = hazardResults;
+    }
+  }
+
+  private static class Result {
+    final CurvesMapResult curves;
+    final CurvesMapResult map;
+
+    Result(CurvesMapResult curves, CurvesMapResult map) {
+      this.curves = curves;
+      this.map = map;
     }
   }
 
