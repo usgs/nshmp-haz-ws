@@ -1,5 +1,6 @@
 package gov.usgs.earthquake.nshmp.aws;
 
+import static gov.usgs.earthquake.nshmp.aws.Util.CURVES_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
 
 import java.io.IOException;
@@ -41,13 +42,11 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 @SuppressWarnings("unused")
 public class HazardResultsSlicerLambda implements RequestStreamHandler {
 
-  static final String CURVES_FILE = "curves.csv";
-
-  private static final String LAMBDA_CALL = "nshmp-haz-result-slice";
-  private static final String ZIP_LAMBDA_CALL = "nshmp-haz-zip-results";
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
   private static AWSLambda LAMBDA_CLIENT;
 
+  private static final String LAMBDA_CALL = "nshmp-haz-result-slice";
+  private static final String ZIP_LAMBDA_CALL = "nshmp-haz-zip-results";
   private static final int SDK_TIMEOUT = 10 * 60 * 1000;
 
   static {
