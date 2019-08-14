@@ -47,7 +47,7 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
   private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
-  
+
   private static final int IMT_DIR_BACK_FROM_TOTAL = 2;
   private static final int IMT_DIR_BACK_FROM_SOURCE = 4;
   private static final String S3_BUCKET = "nshmp-hazout";
@@ -79,7 +79,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     Set<String> users = getUsers();
 
     for (String file : new String[] { CURVES_FILE, MAP_FILE }) {
-      List<HazardResults> hazardResults = listObjects(file);
+      List<HazardResults> hazardResults = listObjects(users, file);
       CurvesMapResult result = new CurvesMapResult(users, hazardResults);
       curvesMapResults.put(file, result);
     }
@@ -88,7 +88,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
     return new Response(result);
   }
 
-  private static List<HazardResults> listObjects(String file) {
+  private static List<HazardResults> listObjects(Set<String> users, String file) {
     ListObjectsV2Request request = new ListObjectsV2Request()
         .withBucketName(S3_BUCKET)
         .withDelimiter(file);
@@ -105,34 +105,38 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
       request.setContinuationToken(s3Result.getNextContinuationToken());
     } while (s3Result.isTruncated());
 
-    return transformS3Listing(s3Listings);
+    return transformS3Listing(users, s3Listings);
   }
 
-  private static List<HazardResults> transformS3Listing(List<S3Listing> s3Listings) {
+  private static List<HazardResults> transformS3Listing(Set<String> users, List<S3Listing> s3Listings) {
     List<HazardResults> hazardResults = new ArrayList<>();
-    TreeSet<String> resultDirectories = s3Listings.parallelStream()
-        .map(listing -> listing.resultPrefix)
-        .collect(Collectors.toCollection(TreeSet::new));
 
-    resultDirectories.forEach(resultPrefix -> {
-      List<S3Listing> s3Filteredlistings = s3Listings.parallelStream()
-          .filter(listing -> listing.resultPrefix.equals(resultPrefix))
-          .collect(Collectors.toList());
+    users.forEach(user -> {
+      TreeSet<String> resultDirectories = s3Listings.stream()
+          .filter(listing -> listing.user.equals(user))
+          .map(listing -> listing.resultPrefix)
+          .collect(Collectors.toCollection(TreeSet::new));
 
-      List<HazardListing> listings = s3Filteredlistings.parallelStream()
-          .map(listing -> s3ListingToHazardListing(listing))
-          .collect(Collectors.toList());
+      resultDirectories.forEach(resultPrefix -> {
+        List<S3Listing> s3Filteredlistings = s3Listings.parallelStream()
+            .filter(listing -> listing.resultPrefix.equals(resultPrefix))
+            .collect(Collectors.toList());
 
-      S3Listing s3Listing = s3Filteredlistings.get(0);
-      String path = s3Listing.path.split(resultPrefix)[0];
-      String s3Path = s3Listing.user + "/" + path + resultPrefix;
+        List<HazardListing> listings = s3Filteredlistings.parallelStream()
+            .map(listing -> s3ListingToHazardListing(listing))
+            .collect(Collectors.toList());
 
-      hazardResults.add(new HazardResults(
-          s3Listing.user,
-          s3Listing.bucket,
-          resultPrefix,
-          s3Path,
-          listings));
+        S3Listing s3Listing = s3Filteredlistings.get(0);
+        String path = s3Listing.path.split(resultPrefix)[0];
+        String s3Path = s3Listing.user + "/" + path + resultPrefix;
+
+        hazardResults.add(new HazardResults(
+            user,
+            s3Listing.bucket,
+            resultPrefix,
+            s3Path,
+            listings));
+      });
     });
 
     return hazardResults;
