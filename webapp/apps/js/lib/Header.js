@@ -74,27 +74,27 @@ export default class Header{
         .attr('id', 'header-title')
         .text('');
     
-    // Create dropdown 
-    headerD3.append('div')
-        .attr('class', 'dropdown-toggle')
-        .attr('id', 'header-menu')
-        .attr('data-toggle', 'dropdown')
-        .append('span')
-        .attr('class', 'glyphicon glyphicon-menu-hamburger');
+    // // Create dropdown 
+    // headerD3.append('div')
+    //     .attr('class', 'dropdown-toggle')
+    //     .attr('id', 'header-menu')
+    //     .attr('data-toggle', 'dropdown')
+    //     .append('span')
+    //     .attr('class', 'glyphicon glyphicon-menu-hamburger');
     
-    // Append unordered list
-    let headerMenuD3 = headerD3.append('ul')
-        .attr('class', 'dropdown-menu dropdown-menu-right')
-        .attr('aria-labelledby', 'header-menu');
+    // // Append unordered list
+    // let headerMenuD3 = headerD3.append('ul')
+    //     .attr('class', 'dropdown-menu dropdown-menu-right')
+    //     .attr('aria-labelledby', 'header-menu');
     
-    // Create dropdown list of all webapps 
-    headerMenuD3.selectAll('li')
-        .data(this.menuItems)
-        .enter()
-        .append('li')
-        .append('a')
-        .text((d,i) => {return d.label})
-        .attr('href', (d,i) => {return d.href});
+    // // Create dropdown list of all webapps 
+    // headerMenuD3.selectAll('li')
+    //     .data(this.menuItems)
+    //     .enter()
+    //     .append('li')
+    //     .append('a')
+    //     .text((d,i) => {return d.label})
+    //     .attr('href', (d,i) => {return d.href});
 
     headerD3.lower(); 
     
