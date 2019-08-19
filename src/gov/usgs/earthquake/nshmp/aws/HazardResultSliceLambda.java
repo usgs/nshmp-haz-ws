@@ -1,9 +1,9 @@
 package gov.usgs.earthquake.nshmp.aws;
 
 import static com.google.common.base.Preconditions.checkState;
-import static gov.usgs.earthquake.nshmp.aws.HazardResultsSlicerLambda.CURVES_FILE;
+import static gov.usgs.earthquake.nshmp.aws.Util.CURVES_FILE;
+import static gov.usgs.earthquake.nshmp.aws.Util.MAP_FILE;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
-import static java.lang.Math.log;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
@@ -50,13 +49,14 @@ import gov.usgs.earthquake.nshmp.www.meta.Status;
 @SuppressWarnings("unused")
 public class HazardResultSliceLambda implements RequestStreamHandler {
 
-  static final String MAP_FILE = "map.csv";
+  private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
+
+  private static final String RATE_FMT = "%.8e";
+  private static final Function<Double, String> FORMATTER = Parsing.formatDoubleFunction(RATE_FMT);
 
   private static final int NUMBER_OF_HEADERS = 3;
   private static final String CONTENT_TYPE = "text/csv";
-  private static final AmazonS3 S3 = AmazonS3ClientBuilder.defaultClient();
-  private static final String RATE_FMT = "%.8e";
-  private static final Function<Double, String> FORMATTER = Parsing.formatDoubleFunction(RATE_FMT);
+
   private static final Interpolator INTERPOLATOR = Interpolator.builder()
       .logx()
       .logy()
