@@ -78,6 +78,7 @@ ext {
 }
 
 war {
+  enabled = true
   webAppDirName = 'webapp'
   
   /* 
@@ -122,6 +123,20 @@ task dependencies(type: Zip) {
 }
 
 task assembleUsgs(type: Sync) {
-    into "${libsDir}/exploded-war"
-    with war
+  into "${libsDir}/exploded-war"
+  with war
+    
+  doFirst {
+    /* Record service and model versions */
+    def props = new Properties()
+    def propsFile = new File(project.buildDir.toString() + propsPath)
+    propsFile.createNewFile()
+    props.setProperty('app.version', getGitTag('.'))
+    props.setProperty('E2007.version', getGitTag(model_ak_2007))
+    props.setProperty('E2008.version', getGitTag(repo_cous_2008))
+    props.setProperty('E2014.version', getGitTag(repo_cous_2014))
+    props.setProperty('E2018.version', getGitTag(repo_cous_2018))
+    props.store(propsFile.newWriter(), null)
+  }
+    
 }
