@@ -26,27 +26,29 @@ public enum Edition implements Constrained {
 
   E2008(
       "Dynamic: Conterminous U.S. 2008",
-      2008,
       100,
       EnumSet.of(COUS, CEUS, WUS),
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0)),
 
   E2014(
       "Dynamic: Conterminous U.S. 2014",
-      2014,
       0,
+      EnumSet.of(COUS, CEUS, WUS),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
+
+  E2014B(
+      "Dynamic: Conterminous U.S. 2014 (update)",
+      -10,
       EnumSet.of(COUS, CEUS, WUS),
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
 
   E2007(
       "Dynamic: Alaska 2007",
-      2007,
       -100,
       EnumSet.of(AK),
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0));
 
   private final String label;
-  private final int year;
 
   /* not serialized */
   private final transient String version;
@@ -59,12 +61,10 @@ public enum Edition implements Constrained {
 
   private Edition(
       String label,
-      int year,
       int displayOrder,
       Set<Region> regions,
       Set<Imt> imts) {
 
-    this.year = year;
     this.version = Versions.modelVersion(name());
     this.label = label + " (" + version + ")";
     this.displayOrder = displayOrder;
@@ -76,10 +76,6 @@ public enum Edition implements Constrained {
   @Override
   public String toString() {
     return label;
-  }
-
-  public int year() {
-    return year;
   }
 
   public String version() {
