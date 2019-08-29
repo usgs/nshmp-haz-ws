@@ -15,6 +15,8 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.LATITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.LONGITUDE;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.REGION;
 import static gov.usgs.earthquake.nshmp.www.Util.Key.TIMESPAN;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
+import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
 import java.util.Optional;
 import com.google.common.cache.LoadingCache;
@@ -218,20 +220,28 @@ public final class RateService extends NshmpServlet {
      */
     Optional<Double> emptyTimespan = Optional.<Double> empty();
 
+    // May include trailing 'B' for 2014B
+    String baseYear = data.edition.name().substring(1);
+
     if (data.region == Region.COUS) {
 
-      Model wusId = Model.valueOf(Region.WUS, data.edition.year());
+      Model wusId = Model.valueOf(WUS.name() + "_" + baseYear);
       HazardModel wusModel = modelCache.get(wusId);
       ListenableFuture<EqRate> wusRates = process(wusModel, site, distance, emptyTimespan);
 
-      Model ceusId = Model.valueOf(Region.CEUS, data.edition.year());
+      String ceusYear = baseYear.equals("2014B") ? "2014" : baseYear;
+      Model ceusId = Model.valueOf(CEUS.name() + "_" + ceusYear);
       HazardModel ceusModel = modelCache.get(ceusId);
       ListenableFuture<EqRate> ceusRates = process(ceusModel, site, distance, emptyTimespan);
 
       rates = EqRate.combine(wusRates.get(), ceusRates.get());
 
     } else {
-      Model modelId = Model.valueOf(data.region, data.edition.year());
+      
+      String year = (baseYear.equals("2014B") && data.region == Region.CEUS) 
+          ?  "2014" : baseYear;
+      Model modelId = Model.valueOf(data.region.name() + "_" + year);
+      
       HazardModel model = modelCache.get(modelId);
       rates = process(model, site, distance, emptyTimespan).get();
     }

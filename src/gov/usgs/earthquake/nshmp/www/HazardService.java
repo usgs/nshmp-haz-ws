@@ -261,7 +261,10 @@ public final class HazardService extends NshmpServlet {
         (LoadingCache<Model, HazardModel>) context.getAttribute(MODEL_CACHE_CONTEXT_ID);
 
     // TODO cache calls should be using checked get(id)
-
+    
+    // May include trailing 'B' for 2014B
+    String baseYear = data.edition.name().substring(1);
+    
     /*
      * When combining (merging) Hazard, the config from the first supplied
      * Hazard is used for the result. This means, for example, the exceedance
@@ -275,21 +278,24 @@ public final class HazardService extends NshmpServlet {
      */
     if (data.region == COUS) {
 
-      Model wusId = Model.valueOf(WUS, data.edition.year());
+      Model wusId = Model.valueOf(WUS.name() + "_" + baseYear);
       HazardModel wusModel = modelCache.getUnchecked(wusId);
       Site site = siteBuilder
           .basinDataProvider(wusModel.config().siteData.basinDataProvider)
           .build();
       Hazard wusResult = process(wusModel, site, data.imts);
 
-      Model ceusId = Model.valueOf(CEUS, data.edition.year());
+      String ceusYear = baseYear.equals("2014B") ? "2014" : baseYear;
+      Model ceusId = Model.valueOf(CEUS.name() + "_" + ceusYear);
       HazardModel ceusModel = modelCache.getUnchecked(ceusId);
       Hazard ceusResult = process(ceusModel, site, data.imts);
 
       return Hazard.merge(wusResult, ceusResult);
     }
 
-    Model modelId = Model.valueOf(data.region, data.edition.year());
+    String year = (baseYear.equals("2014B") && data.region == Region.CEUS) 
+        ?  "2014" : baseYear;
+    Model modelId = Model.valueOf(data.region.name() + "_" + year);
     HazardModel model = modelCache.getUnchecked(modelId);
     Site site = siteBuilder.basinDataProvider(model.config().siteData.basinDataProvider).build();
     return process(model, site, data.imts);
