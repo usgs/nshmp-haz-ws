@@ -10,6 +10,7 @@
  *         wus/
  *            2008/
  *            2014/
+ *            2014b/
  *            2018/
  *         ceus/
  *            2008/
@@ -75,7 +76,6 @@ ext {
   model_wus_2014 = "${repo_cous_2014}/Western US"
   model_ceus_2014 = "${repo_cous_2014}/Central & Eastern US"
   model_wus_2014b = "${repo_cous_2014b}/Western US"
-  model_ceus_2014b = "${repo_cous_2014b}/Central & Eastern US"
   model_wus_2018 = "${repo_cous_2018}/Western US"
   model_ceus_2018 = "${repo_cous_2018}/Central & Eastern US"
   model_ak_2007 = "${repo_ak_2007}"
@@ -94,7 +94,6 @@ war {
   from(model_ak_2007) { into 'models/ak/2007' }
   from(model_ceus_2008) { into 'models/ceus/2008' }
   from(model_ceus_2014) { into 'models/ceus/2014' }
-  from(model_ceus_2014b) { into 'models/ceus/2014b' }
   from(model_ceus_2018) { into 'models/ceus/2018' }
   from(model_wus_2008) { into 'models/wus/2008' }
   from(model_wus_2014) { into 'models/wus/2014' }
