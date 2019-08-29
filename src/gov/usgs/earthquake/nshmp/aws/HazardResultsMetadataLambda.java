@@ -119,6 +119,7 @@ public class HazardResultsMetadataLambda implements RequestStreamHandler {
 
       resultDirectories.forEach(resultPrefix -> {
         List<S3Listing> s3Filteredlistings = s3Listings.parallelStream()
+            .filter(listing -> listing.user.equals(user))
             .filter(listing -> listing.resultPrefix.equals(resultPrefix))
             .collect(Collectors.toList());
 
