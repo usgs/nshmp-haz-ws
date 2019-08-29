@@ -76,7 +76,7 @@ ext {
   model_ceus_2014 = "${repo_cous_2014}/Central & Eastern US"
   model_wus_2014b = "${repo_cous_2014b}/Western US"
   model_ceus_2014b = "${repo_cous_2014b}/Central & Eastern US"
-  model_wus_2018 = "${repo_cous_2018}/nshm-cous-2018/Western US"
+  model_wus_2018 = "${repo_cous_2018}/Western US"
   model_ceus_2018 = "${repo_cous_2018}/Central & Eastern US"
   model_ak_2007 = "${repo_ak_2007}"
 }
