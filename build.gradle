@@ -38,6 +38,7 @@ dependencies {
   providedCompile 'com.amazonaws:aws-lambda-java-core:1.1.0'
   providedCompile 'com.amazonaws:aws-java-sdk-lambda:1.11.461'
   providedCompile 'com.amazonaws:aws-java-sdk-s3:1.11.579'
+  providedCompile 'com.amazonaws:aws-java-sdk-ec2:1.11.619'
   compile project(':nshmp-haz')
 }
 
