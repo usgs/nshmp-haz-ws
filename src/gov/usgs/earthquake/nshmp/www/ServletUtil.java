@@ -72,6 +72,8 @@ public class ServletUtil implements ServletContextListener {
 
   /* Stateful flag to reject requests while a result is pending. */
   static boolean uhtBusy = false;
+  static long hitCount = 0;
+  static long missCount = 0;
 
   static {
     /* TODO modified for deagg-epsilon branch; should be context var */
