@@ -70,6 +70,9 @@ public class ServletUtil implements ServletContextListener {
 
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
 
+  /* Stateful flag to reject requests while a result is pending. */
+  static boolean uhtBusy = false;
+
   static {
     /* TODO modified for deagg-epsilon branch; should be context var */
     THREAD_COUNT = getRuntime().availableProcessors();

@@ -62,7 +62,14 @@ public final class DeaggService extends NshmpServlet {
       return;
     }
 
+    if (ServletUtil.uhtBusy) {
+      String message = Metadata.busyMessage(urlHelper.url);
+      response.getWriter().print(message);
+      return;
+    }
+
     RequestData requestData;
+    ServletUtil.uhtBusy = true;
     try {
       if (query != null) {
         /* process query '?' request */
@@ -88,6 +95,7 @@ public final class DeaggService extends NshmpServlet {
       response.getWriter().print(message);
       getServletContext().log(urlHelper.url, e);
     }
+    ServletUtil.uhtBusy = false;
   }
 
   private static class DeaggTask extends TimedTask<Result> {
@@ -198,7 +206,7 @@ public final class DeaggService extends NshmpServlet {
       }
 
       Result build() {
-        
+
         ImmutableList.Builder<Response> responseListBuilder = ImmutableList.builder();
         for (Imt imt : request.imts) {
           ResponseData responseData = new ResponseData(
