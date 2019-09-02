@@ -8,9 +8,10 @@ package gov.usgs.earthquake.nshmp.www.meta;
 @SuppressWarnings("javadoc")
 public enum Status {
 
-  USAGE,
+  BUSY,
+  ERROR,
   SUCCESS,
-  ERROR;
+  USAGE;
 
   @Override
   public String toString() {
