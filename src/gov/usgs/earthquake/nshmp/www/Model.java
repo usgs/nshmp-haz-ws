@@ -36,8 +36,8 @@ enum Model {
       EnumSet.of(VS_760, VS_2000)),
 
   WUS_2014(
-      EnumSet.of(PGA, SA0P2, SA1P0),
-      EnumSet.of(VS_760)),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0),
+      EnumSet.of(VS_1150, VS_760, VS_537, VS_360, VS_259, VS_180)),
 
   WUS_2014B(
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0),
