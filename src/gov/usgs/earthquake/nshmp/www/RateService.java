@@ -105,7 +105,14 @@ public final class RateService extends NshmpServlet {
       return;
     }
 
+    if (ServletUtil.uhtBusy) {
+      String message = Metadata.busyMessage(urlHelper.url);
+      response.getWriter().print(message);
+      return;
+    }
+
     RequestData requestData;
+    ServletUtil.uhtBusy = true;
     try {
       if (query != null) {
         /* process query '?' request */
@@ -135,6 +142,7 @@ public final class RateService extends NshmpServlet {
       response.getWriter().print(message);
       getServletContext().log(urlHelper.url, e);
     }
+    ServletUtil.uhtBusy = false;
   }
 
   /* Reduce query string key-value pairs */
