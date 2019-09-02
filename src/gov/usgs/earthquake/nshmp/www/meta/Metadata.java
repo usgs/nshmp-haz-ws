@@ -250,6 +250,23 @@ public final class Metadata {
     }
   }
 
+  public static String busyMessage(String url) {
+    Busy busy = new Busy(url);
+    return ServletUtil.GSON.toJson(busy);
+  }
+
+  private static class Busy {
+
+    final String status = Status.BUSY.toString();
+    final String request;
+    final String message = "Server busy. Please try again later. \n" +
+        "We apologize for any inconvenience while we increase capacity.";
+
+    private Busy(String request) {
+      this.request = request;
+    }
+  }
+
   public static String errorMessage(String url, Throwable e, boolean trace) {
     Error error = new Error(url, e, trace);
     return ServletUtil.GSON.toJson(error);
