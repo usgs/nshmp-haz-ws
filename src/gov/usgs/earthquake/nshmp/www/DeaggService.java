@@ -63,7 +63,11 @@ public final class DeaggService extends NshmpServlet {
     }
 
     if (ServletUtil.uhtBusy) {
-      String message = Metadata.busyMessage(urlHelper.url);
+      ServletUtil.missCount++;
+      String message = Metadata.busyMessage(
+          urlHelper.url,
+          ServletUtil.hitCount,
+          ServletUtil.missCount);
       response.getWriter().print(message);
       return;
     }
@@ -95,6 +99,7 @@ public final class DeaggService extends NshmpServlet {
       response.getWriter().print(message);
       getServletContext().log(urlHelper.url, e);
     }
+    ServletUtil.hitCount++;
     ServletUtil.uhtBusy = false;
   }
 

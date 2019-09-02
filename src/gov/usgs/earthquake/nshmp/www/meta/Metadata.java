@@ -250,20 +250,23 @@ public final class Metadata {
     }
   }
 
-  public static String busyMessage(String url) {
-    Busy busy = new Busy(url);
+  public static String busyMessage(String url, long hits, long misses) {
+    Busy busy = new Busy(url, hits, misses);
     return ServletUtil.GSON.toJson(busy);
   }
 
+  static final String BUSY_MESSAGE = "Server busy. Please try again later. " +
+      "We apologize for any inconvenience while we increase capacity.";
+      
   private static class Busy {
 
     final String status = Status.BUSY.toString();
     final String request;
-    final String message = "Server busy. Please try again later. \n" +
-        "We apologize for any inconvenience while we increase capacity.";
+    final String message;
 
-    private Busy(String request) {
+    private Busy(String request, long hits, long misses) {
       this.request = request;
+      this.message = BUSY_MESSAGE + String.format(" (%s,%s)", hits, misses);
     }
   }
 
