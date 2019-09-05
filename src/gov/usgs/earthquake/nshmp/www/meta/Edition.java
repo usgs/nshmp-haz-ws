@@ -36,11 +36,11 @@ public enum Edition implements Constrained {
       EnumSet.of(COUS, CEUS, WUS),
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA1P0, SA2P0)),
 
-//  E2014B(
-//      "Dynamic: Conterminous U.S. 2014 (update)",
-//      -10,
-//      EnumSet.of(COUS, CEUS, WUS),
-//      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
+  E2014B(
+      "Dynamic: Conterminous U.S. 2014 (update)",
+      -10,
+      EnumSet.of(COUS, CEUS, WUS),
+      EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
 
   E2007(
       "Dynamic: Alaska 2007",
