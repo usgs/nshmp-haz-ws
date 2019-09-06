@@ -134,6 +134,7 @@ public final class HazardService extends NshmpServlet {
           urlHelper.url,
           ServletUtil.hitCount,
           ServletUtil.missCount);
+      response.setStatus(503);
       response.getWriter().print(message);
       return;
     }
