@@ -135,6 +135,7 @@ public final class HazardService extends NshmpServlet {
           ServletUtil.hitCount,
           ServletUtil.missCount);
       response.setStatus(503);
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;
     }
