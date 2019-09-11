@@ -68,9 +68,10 @@ public final class DeaggService extends NshmpServlet {
           urlHelper.url,
           ServletUtil.hitCount,
           ServletUtil.missCount);
-      response.setStatus(503);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
+      response.sendError(503, message);
+      //response.setStatus(503);
+      //response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      //response.getWriter().print(message);
       return;
     }
 
