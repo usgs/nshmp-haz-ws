@@ -12,7 +12,7 @@ set -o errtrace;
 # Import bash functions from usgsnshmp/centos
 . ${BASH_FUNCTIONS}
 
-readonly LOG_FILE="docker-entrypoint.log";
+readonly LOG_FILE="/var/log/docker-entrypoint-haz-ws.log";
 
 # Docker usage
 readonly USAGE="
@@ -55,6 +55,7 @@ main() {
 #   (string) NSHM_AK_2007_VERSION - nshm-ak-2007 repository version
 #   (string) NSHM_COUS_2008_VERSION - nshm-cous-2008 repository version
 #   (string) NSHM_COUS_2014_VERSION - nshm-cous-2014 repository version
+#   (string) NSHM_COUS_2014B_VERSION - nshm-cous-2014b repository version
 #   (string) NSHM_COUS_2018_VERSION - nshm-cous-2018 repository version
 #   (string) NSHMP_HAZ_VERSION - nshmp-haz repository version
 #   (string) WORKDIR - The Docker working directory
@@ -77,6 +78,9 @@ download_repos() {
 
   # Download nshm-cous-2014
   download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014_VERSION};
+
+  # Download nshm-cous-2014
+  download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014B_VERSION} "nshm-cous-2014b";
 
   # Download nshm-cous-2018
   download_repo "usgs" "nshm-cous-2018" ${NSHM_COUS_2018_VERSION};
