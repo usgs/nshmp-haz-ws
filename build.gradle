@@ -102,11 +102,7 @@ war {
   
   doFirst {
     /* Record service and model versions */
-    def props = new Properties()
-    def propsFile = new File(project.buildDir.toString() + propsPath)
-    propsFile.createNewFile()
-    setProperties(props)
-    props.store(propsFile.newWriter(), null)
+    writeProperties()
   }
 }
 
@@ -129,20 +125,20 @@ task assembleUsgs(type: Sync) {
     
   doFirst {
     /* Record service and model versions */
-    def props = new Properties()
-    def propsFile = new File(project.buildDir.toString() + propsPath)
-    propsFile.createNewFile()
-    setProperties(props)
-    props.store(propsFile.newWriter(), null)
+    writeProperties()
   }
     
 }
 
-def setProperties(props) {
+def writeProperties() {
+  def props = new Properties()
+  def propsFile = new File(project.buildDir.toString() + propsPath)
+  propsFile.createNewFile()
   props.setProperty('app.version', getGitTag('.'))
   props.setProperty('E2007.version', getGitTag(repo_ak_2007))
   props.setProperty('E2008.version', getGitTag(repo_cous_2008))
   props.setProperty('E2014.version', getGitTag(repo_cous_2014))
   props.setProperty('E2014B.version', getGitTag(repo_cous_2014b))
   props.setProperty('E2018.version', getGitTag(repo_cous_2018))
+  props.store(propsFile.newWriter(), null)
 }
