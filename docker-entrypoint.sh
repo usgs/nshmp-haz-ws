@@ -38,7 +38,7 @@ main() {
   download_repos;
 
   # Build nshmp-haz-ws
-  if [ ${ENV} == "DEV" ]; then
+  if [ ${MODEL_ENV} == "DEV" ]; then
     ./gradlew assembleDev 2> ${LOG_FILE};
   else
     ./gradlew assemble 2> ${LOG_FILE};
@@ -86,7 +86,7 @@ download_repos() {
   # Download nshm-cous-2014
   download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014B_VERSION} "nshm-cous-2014b";
 
-  if [ ${ENV} == 'DEV' ]; then
+  if [ ${MODEL_ENV} == "DEV" ]; then
     # Download nshm-cous-2018
     download_repo "usgs" "nshm-cous-2018" ${NSHM_COUS_2018_VERSION};
 
