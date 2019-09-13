@@ -43,7 +43,7 @@ RUN yum install git -y
 
 # Environment for production or developmental models
 # Values: PROD || DEV
-ENV ENV=PROD
+ENV MODEL_ENV=PROD
 
 # Repository version
 ENV NSHMP_HAZ_VERSION=master
