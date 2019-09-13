@@ -68,6 +68,7 @@ ext {
   repo_cous_2014 = '../nshm-cous-2014'
   repo_cous_2014b = '../nshm-cous-2014b'
   repo_cous_2018 = '../nshm-cous-2018'
+  repo_hi_2020 = '../nshm-hi-2020'
   repo_ak_2007 = '../nshm-ak-2007'
   
   /* Explicit model paths */
@@ -78,9 +79,13 @@ ext {
   model_wus_2014b = "${repo_cous_2014b}/Western US"
   model_wus_2018 = "${repo_cous_2018}/Western US"
   model_ceus_2018 = "${repo_cous_2018}/Central & Eastern US"
+  model_hi_2020 = "${repo_hi_2020}"
   model_ak_2007 = "${repo_ak_2007}"
 }
 
+/**
+ * Create war file with production models
+ */
 war {
   enabled = true
   webAppDirName = 'webapp'
@@ -94,18 +99,54 @@ war {
   from(model_ak_2007) { into 'models/ak/2007' }
   from(model_ceus_2008) { into 'models/ceus/2008' }
   from(model_ceus_2014) { into 'models/ceus/2014' }
-  from(model_ceus_2018) { into 'models/ceus/2018' }
   from(model_wus_2008) { into 'models/wus/2008' }
   from(model_wus_2014) { into 'models/wus/2014' }
   from(model_wus_2014b) { into 'models/wus/2014b' }
-  from(model_wus_2018) { into 'models/wus/2018' }
-  
+
   doFirst {
     /* Record service and model versions */
     writeProperties()
   }
 }
 
+/**
+ * Create a war file with development models
+ */
+task assembleDev(type: War, dependsOn: 'war') {
+  from(model_ceus_2018) { into 'models/ceus/2018' }
+  from(model_wus_2018) { into 'models/wus/2018' }
+  from(model_hi_2020) { into 'models/hi/2020' }
+}
+
+/**
+ * Create am exploded war file with production models
+ */
+task assembleUsgs(type: Sync) {
+  into "${libsDir}/exploded-war"
+  with war
+
+  doFirst {
+    /* Record service and model versions */
+    writeProperties()
+  }
+}
+
+/**
+ * Create am exploded war file with development models
+ */
+task assembleUsgsDev(type: Sync) {
+  into "${libsDir}/exploded-war"
+  with assembleDev
+
+  doFirst {
+    /* Record service and model versions */
+    writeProperties()
+  }
+}
+
+/**
+ * Create a zip file of all dependencies
+ */
 task dependencies(type: Zip) {
   baseName = "nshmp-haz-ws-dependencies"
   from {
@@ -119,17 +160,9 @@ task dependencies(type: Zip) {
   destinationDir libsDir
 }
 
-task assembleUsgs(type: Sync) {
-  into "${libsDir}/exploded-war"
-  with war
-    
-  doFirst {
-    /* Record service and model versions */
-    writeProperties()
-  }
-    
-}
-
+/**
+ * Create properties file
+ */
 def writeProperties() {
   def props = new Properties()
   def propsFile = new File(project.buildDir.toString() + propsPath)
