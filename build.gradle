@@ -127,6 +127,10 @@ war {
  * Create a war file with development models
  */
 task assembleDev(type: War, dependsOn: 'war') {
+  prod_models.each{model ->
+    from(model[0]) { into model[1] }
+  }
+
   dev_models.each{model ->
     from(model[0]) { into model[1] }
   }
