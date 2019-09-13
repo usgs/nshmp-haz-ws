@@ -41,6 +41,10 @@ COPY . ${WORKDIR}/.
 # Install git
 RUN yum install git -y
 
+# Environment for production or developmental models
+# Values: PROD || DEV
+ENV ENV=PROD
+
 # Repository version
 ENV NSHMP_HAZ_VERSION=master
 ENV NSHM_COUS_2018_VERSION=master
@@ -48,6 +52,7 @@ ENV NSHM_COUS_2014_VERSION=v4.1.4
 ENV NSHM_COUS_2014B_VERSION=master
 ENV NSHM_COUS_2008_VERSION=master
 ENV NSHM_AK_2007_VERSION=master
+ENV NSHM_HI_2020_VERSION=master
 
 # Set Java memory
 ENV JAVA_OPTS -Xms8g -Xmx8g
