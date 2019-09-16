@@ -129,9 +129,10 @@ public final class HazardService extends NshmpServlet {
     }
     
     if (pathInfo.equals("/reset")) {
+      String message = ServletUtil.uhtBusy + " ;busy = false";
       ServletUtil.uhtBusy = false;
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print("busy = false");
+      response.getWriter().print(message);
       return;
     }
 
