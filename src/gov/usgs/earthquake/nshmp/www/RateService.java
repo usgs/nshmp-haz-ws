@@ -111,7 +111,6 @@ public final class RateService extends NshmpServlet {
           urlHelper.url,
           ServletUtil.hitCount,
           ServletUtil.missCount);
-      //response.setStatus(503);
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;
@@ -142,14 +141,15 @@ public final class RateService extends NshmpServlet {
           .build();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
+      ServletUtil.uhtBusy = false;
 
     } catch (Exception e) {
       String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
+      ServletUtil.uhtBusy = false;
       getServletContext().log(urlHelper.url, e);
     }
     ServletUtil.hitCount++;
-    ServletUtil.uhtBusy = false;
   }
 
   /* Reduce query string key-value pairs */
