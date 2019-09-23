@@ -8,9 +8,6 @@ services:
     # Container name
     container_name: nshmp-haz-ws__docker-compose
 
-    # Restart always
-    restart: always
-
     # Set port range
     ports:
       - 8080-9080:8080
