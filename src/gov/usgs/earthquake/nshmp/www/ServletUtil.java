@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,7 +72,7 @@ public class ServletUtil implements ServletContextListener {
   public static final Gson GSON;
 
   static final String MODEL_CACHE_CONTEXT_ID = "model.cache";
-  
+
   static Model[] INSTALLED_MODELS;
 
   /* Stateful flag to reject requests while a result is pending. */
@@ -109,13 +110,13 @@ public class ServletUtil implements ServletContextListener {
   public void contextInitialized(ServletContextEvent e) {
 
     final ServletContext context = e.getServletContext();
-    
+
     INSTALLED_MODELS = Stream.of(Model.values())
         .filter(model -> {
           Path path = Paths.get(context.getRealPath(model.path));
           return Files.isDirectory(path);
         }).toArray(Model[]::new);
-    
+
     final LoadingCache<Model, HazardModel> modelCache = CacheBuilder.newBuilder().build(
         new CacheLoader<Model, HazardModel>() {
           @Override
@@ -237,6 +238,78 @@ public class ServletUtil implements ServletContextListener {
       return (lon <= WUS.uimaxlongitude) ? WUS : (lon >= CEUS.uiminlongitude) ? CEUS : COUS;
     }
     return region;
+  }
+
+  /*
+   * IP based access throttling.
+   */
+
+  static final Map<String, Long> IP_TIME = new HashMap<>();
+  static final Map<String, Integer> IP_COUNT = new HashMap<>();
+  static final int IP_MAX_REQUESTS = 20;
+  static final long IP_WINDOW_MS = 600000;
+
+  static boolean checkRequestIp(HttpServletRequest request) {
+    String ip = getClientIp(request);
+    IP_TIME.putIfAbsent(ip, System.currentTimeMillis());
+    IP_COUNT.putIfAbsent(ip, 0);
+
+    long cTime = System.currentTimeMillis();
+    long delta = cTime - IP_TIME.get(ip);
+
+    /*
+     * (1) If the number of requests is below 20 and ten minutes has passed
+     * since the last request, reset the count and time reference, otherwise
+     * keep the time of the first request, increment the request count, and
+     * allow request to proceed.
+     */
+    if (IP_COUNT.get(ip) < IP_MAX_REQUESTS) {
+      if (delta > IP_WINDOW_MS) {
+        IP_COUNT.put(ip, 0);
+        IP_TIME.put(ip, cTime);
+        return true;
+      }
+      IP_COUNT.merge(ip, 1, Integer::sum);
+      return true;
+    }
+
+    /*
+     * (2) If the number of recent requests is greater than 20 and less than 10
+     * minutes have passed since the first request, reject request.
+     */
+    if (delta < IP_WINDOW_MS) {
+      return false;
+    }
+
+    /*
+     * (3) If the number of recent requests is greater than 20 and 10 to 20
+     * minutes has passed since the first request, update the reference time to
+     * the present and allow the request to proceed. This limits requests to
+     * once per ten minutes if the user has made a large number of requests in
+     * rapid succesion.
+     */
+    if (delta < IP_WINDOW_MS * 2) {
+      IP_TIME.put(ip, cTime);
+      return true;
+    }
+
+    /*
+     * (4) Otherwise, it's been longer than 20 minutes. Reset count and time.
+     */
+    IP_COUNT.put(ip, 0);
+    IP_TIME.put(ip, cTime);
+    return true;
+  }
+
+  private static String getClientIp(HttpServletRequest request) {
+    String remoteAddr = "";
+    if (request != null) {
+      remoteAddr = request.getHeader("X-FORWARDED-FOR");
+      if (remoteAddr == null || "".equals(remoteAddr)) {
+        remoteAddr = request.getRemoteAddr();
+      }
+    }
+    return remoteAddr;
   }
 
 }
