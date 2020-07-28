@@ -250,6 +250,26 @@ public final class Metadata {
     }
   }
 
+  public static String tooManyRequestsMessage(String url) {
+    TooManyRequests tmr = new TooManyRequests(url);
+    return ServletUtil.GSON.toJson(tmr);
+  }
+
+  static final String TOO_MANY_REQUESTS_MESSAGE =
+      "Too many requests. Please try again in 20 minutes.";
+
+  private static class TooManyRequests {
+
+    final String status = Status.BUSY.toString();
+    final String request;
+    final String message;
+
+    private TooManyRequests(String request) {
+      this.request = request;
+      this.message = TOO_MANY_REQUESTS_MESSAGE;
+    }
+  }
+
   public static String busyMessage(String url, long hits, long misses) {
     Busy busy = new Busy(url, hits, misses);
     return ServletUtil.GSON.toJson(busy);
@@ -257,7 +277,7 @@ public final class Metadata {
 
   static final String BUSY_MESSAGE = "Server busy. Please try again later. " +
       "We apologize for any inconvenience while we increase capacity.";
-      
+
   private static class Busy {
 
     final String status = Status.BUSY.toString();

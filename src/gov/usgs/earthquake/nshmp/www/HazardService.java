@@ -24,7 +24,6 @@ import java.time.ZonedDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
@@ -127,7 +125,7 @@ public final class HazardService extends NshmpServlet {
       urlHelper.writeResponse(Metadata.HAZARD_USAGE);
       return;
     }
-    
+
     if (pathInfo.equals("/reset")) {
       String message = ServletUtil.uhtBusy + " ;busy = false";
       ServletUtil.uhtBusy = false;
@@ -142,6 +140,13 @@ public final class HazardService extends NshmpServlet {
           urlHelper.url,
           ServletUtil.hitCount,
           ServletUtil.missCount);
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.getWriter().print(message);
+      return;
+    }
+
+    if (!ServletUtil.checkRequestIp(request)) {
+      String message = Metadata.tooManyRequestsMessage(urlHelper.url);
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;
