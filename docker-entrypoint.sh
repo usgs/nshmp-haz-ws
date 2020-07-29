@@ -10,7 +10,7 @@ set -o errexit;
 set -o errtrace;
 
 # Import bash functions from usgsnshmp/centos
-. ${BASH_FUNCTIONS}
+. "${BASH_FUNCTIONS}";
 
 readonly LOG_FILE="/var/log/docker-entrypoint-haz-ws.log";
 
@@ -38,14 +38,14 @@ main() {
   download_repos;
 
   # Build nshmp-haz-ws
-  if [ ${MODEL_ENV} == "DEV" ]; then
+  if [ "${MODEL_ENV}" == "DEV" ]; then
     ./gradlew assembleDev 2> ${LOG_FILE};
   else
     ./gradlew assemble 2> ${LOG_FILE};
   fi
 
   # Move war file
-  mv ${WAR_PATH} ${TOMCAT_WEBAPPS} 2> ${LOG_FILE};
+  mv "${WAR_PATH}" "${TOMCAT_WEBAPPS}" 2> ${LOG_FILE};
 
   # Run Tomcat
   catalina.sh run 1> ${LOG_FILE};
@@ -69,33 +69,33 @@ main() {
 #   None
 ####
 download_repos() {
-  cd ${HOME} 2> ${LOG_FILE};
+  cd "${HOME}" 2> ${LOG_FILE};
 
   # Download nshmp-haz
-  download_repo "usgs" "nshmp-haz" ${NSHMP_HAZ_VERSION};
+  download_repo "usgs" "nshmp-haz" "${NSHMP_HAZ_VERSION}";
 
   # Download nshm-ak-2007
-  download_repo "usgs" "nshm-ak-2007" ${NSHM_AK_2007_VERSION};
+  download_repo "usgs" "nshm-ak-2007" "${NSHM_AK_2007_VERSION}";
 
   # Download nshm-cous-2008
-  download_repo "usgs" "nshm-cous-2008" ${NSHM_COUS_2008_VERSION};
+  download_repo "usgs" "nshm-cous-2008" "${NSHM_COUS_2008_VERSION}";
 
   # Download nshm-cous-2014
-  download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014_VERSION};
+  download_repo "usgs" "nshm-cous-2014" "${NSHM_COUS_2014_VERSION}";
 
   # Download nshm-cous-2014
-  download_repo "usgs" "nshm-cous-2014" ${NSHM_COUS_2014B_VERSION} "nshm-cous-2014b";
+  download_repo "usgs" "nshm-cous-2014" "${NSHM_COUS_2014B_VERSION}" "nshm-cous-2014b";
 
-  if [ ${MODEL_ENV} == "DEV" ]; then
+  if [ "${MODEL_ENV}" == "DEV" ]; then
     # Download nshm-cous-2018
-    download_repo "usgs" "nshm-cous-2018" ${NSHM_COUS_2018_VERSION};
+    download_repo "usgs" "nshm-cous-2018" "${NSHM_COUS_2018_VERSION}";
 
     # Download nshm-hi-2020
-    download_repo "usgs" "nshm-hi-2020" ${NSHM_HI_2020_VERSION};
+    download_repo "usgs" "nshm-hi-2020" "${NSHM_HI_2020_VERSION}";
   fi 
 
   # Change to WORKDIR
-  cd ${WORKDIR} 2> ${LOG_FILE};
+  cd "${WORKDIR}" 2> ${LOG_FILE};
 }
 
 ####
