@@ -32,6 +32,9 @@ ENV WORKDIR=${HOME}/${PROJECT}
 # Path to WAR file in builder image
 ENV WAR_PATH=${WORKDIR}/build/libs/${PROJECT}.war
 
+# Don't throttle IP address in Docker container
+ENV CATALINA_OPTS="${CATALINA_OPTS} -DthrottleIp=false"
+
 # Set working directory
 WORKDIR ${WORKDIR} 
 
