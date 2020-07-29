@@ -80,6 +80,9 @@ public class ServletUtil implements ServletContextListener {
   static long hitCount = 0;
   static long missCount = 0;
 
+  private static boolean throttleIp = true;
+  private static final String THROTTLE_IP_KEY = "throttleIp";
+
   static {
     /* TODO modified for deagg-epsilon branch; should be context var */
     THREAD_COUNT = getRuntime().availableProcessors();
@@ -110,6 +113,9 @@ public class ServletUtil implements ServletContextListener {
   public void contextInitialized(ServletContextEvent e) {
 
     final ServletContext context = e.getServletContext();
+
+    Boolean throttle = Boolean.parseBoolean(System.getProperty(THROTTLE_IP_KEY));
+    throttleIp = throttle != null ? throttle : throttleIp;
 
     INSTALLED_MODELS = Stream.of(Model.values())
         .filter(model -> {
@@ -250,6 +256,10 @@ public class ServletUtil implements ServletContextListener {
   static final long IP_WINDOW_MS = 600000;
 
   static boolean checkRequestIp(HttpServletRequest request) {
+    if (!throttleIp) {
+      return true;
+    }
+
     String ip = getClientIp(request);
     IP_TIME.putIfAbsent(ip, System.currentTimeMillis());
     IP_COUNT.putIfAbsent(ip, 0);
