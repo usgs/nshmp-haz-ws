@@ -114,8 +114,8 @@ public class ServletUtil implements ServletContextListener {
 
     final ServletContext context = e.getServletContext();
 
-    Boolean throttle = Boolean.parseBoolean(System.getProperty(THROTTLE_IP_KEY));
-    throttleIp = throttle != null ? throttle : throttleIp;
+    String throttle = System.getProperty(THROTTLE_IP_KEY);
+    throttleIp = throttle != null ? Boolean.parseBoolean(throttle) : throttleIp;
 
     INSTALLED_MODELS = Stream.of(Model.values())
         .filter(model -> {
@@ -253,7 +253,7 @@ public class ServletUtil implements ServletContextListener {
   static final Map<String, Long> IP_TIME = new HashMap<>();
   static final Map<String, Integer> IP_COUNT = new HashMap<>();
   static final int IP_MAX_REQUESTS = 20;
-  static final long IP_WINDOW_MS = 600000;
+  static final long IP_WINDOW_MS = 300000;
 
   static boolean checkRequestIp(HttpServletRequest request) {
     if (!throttleIp) {
@@ -261,10 +261,11 @@ public class ServletUtil implements ServletContextListener {
     }
 
     String ip = getClientIp(request);
-    IP_TIME.putIfAbsent(ip, System.currentTimeMillis());
+    long cTime = System.currentTimeMillis();
+
+    IP_TIME.putIfAbsent(ip, cTime);
     IP_COUNT.putIfAbsent(ip, 0);
 
-    long cTime = System.currentTimeMillis();
     long delta = cTime - IP_TIME.get(ip);
 
     /*
