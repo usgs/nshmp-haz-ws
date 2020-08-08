@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +33,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
@@ -250,66 +252,74 @@ public class ServletUtil implements ServletContextListener {
    * IP based access throttling.
    */
 
-  static final Map<String, Long> IP_TIME = new HashMap<>();
+  // static final Map<String, Long> IP_TIME = new HashMap<>();
   static final Map<String, Integer> IP_COUNT = new HashMap<>();
-  static final int IP_MAX_REQUESTS = 20;
-  static final long IP_WINDOW_MS = 300000;
+  // static final int IP_MAX_REQUESTS = 20;
+  // static final long IP_WINDOW_MS = 300000;
+
+  /* blacklist */
+  static final List<String> blacklist = ImmutableList.of("98.26.65.16");
 
   static boolean checkRequestIp(HttpServletRequest request) {
-    if (!throttleIp) {
-      return true;
-    }
+    // if (!throttleIp) {
+    // return true;
+    // }
 
     String ip = getClientIp(request);
-    long cTime = System.currentTimeMillis();
+    IP_COUNT.merge(ip, 1, Integer::sum);
+    return !blacklist.contains(ip);
 
-    IP_TIME.putIfAbsent(ip, cTime);
-    IP_COUNT.putIfAbsent(ip, 0);
-
-    long delta = cTime - IP_TIME.get(ip);
-
-    /*
-     * (1) If the number of requests is below 20 and ten minutes has passed
-     * since the last request, reset the count and time reference, otherwise
-     * keep the time of the first request, increment the request count, and
-     * allow request to proceed.
-     */
-    if (IP_COUNT.get(ip) < IP_MAX_REQUESTS) {
-      if (delta > IP_WINDOW_MS) {
-        IP_COUNT.put(ip, 0);
-        IP_TIME.put(ip, cTime);
-        return true;
-      }
-      IP_COUNT.merge(ip, 1, Integer::sum);
-      return true;
-    }
-
-    /*
-     * (2) If the number of recent requests is greater than 20 and less than 10
-     * minutes have passed since the first request, reject request.
-     */
-    if (delta < IP_WINDOW_MS) {
-      return false;
-    }
-
-    /*
-     * (3) If the number of recent requests is greater than 20 and 10 to 20
-     * minutes has passed since the first request, update the reference time to
-     * the present and allow the request to proceed. This limits requests to
-     * once per ten minutes if the user has made a large number of requests in
-     * rapid succesion.
-     */
-    if (delta < IP_WINDOW_MS * 2) {
-      IP_TIME.put(ip, cTime);
-      return true;
-    }
-
-    /*
-     * (4) Otherwise, it's been longer than 20 minutes. Reset count and time.
-     */
-    IP_COUNT.put(ip, 0);
-    IP_TIME.put(ip, cTime);
-    return true;
+    // long cTime = System.currentTimeMillis();
+    //
+    // IP_TIME.putIfAbsent(ip, cTime);
+    // IP_COUNT.putIfAbsent(ip, 0);
+    //
+    // long delta = cTime - IP_TIME.get(ip);
+    //
+    // /*
+    // * (1) If the number of requests is below 20 and ten minutes has passed
+    // * since the last request, reset the count and time reference, otherwise
+    // * keep the time of the first request, increment the request count, and
+    // * allow request to proceed.
+    // */
+    // if (IP_COUNT.get(ip) < IP_MAX_REQUESTS) {
+    // if (delta > IP_WINDOW_MS) {
+    // IP_COUNT.put(ip, 0);
+    // IP_TIME.put(ip, cTime);
+    // return true;
+    // }
+    // IP_COUNT.merge(ip, 1, Integer::sum);
+    // return true;
+    // }
+    //
+    // /*
+    // * (2) If the number of recent requests is greater than 20 and less than
+    // 10
+    // * minutes have passed since the first request, reject request.
+    // */
+    // if (delta < IP_WINDOW_MS) {
+    // return false;
+    // }
+    //
+    // /*
+    // * (3) If the number of recent requests is greater than 20 and 10 to 20
+    // * minutes has passed since the first request, update the reference time
+    // to
+    // * the present and allow the request to proceed. This limits requests to
+    // * once per ten minutes if the user has made a large number of requests in
+    // * rapid succesion.
+    // */
+    // if (delta < IP_WINDOW_MS * 2) {
+    // IP_TIME.put(ip, cTime);
+    // return true;
+    // }
+    //
+    // /*
+    // * (4) Otherwise, it's been longer than 20 minutes. Reset count and time.
+    // */
+    // IP_COUNT.put(ip, 0);
+    // IP_TIME.put(ip, cTime);
+    // return true;
   }
 
   private static String getClientIp(HttpServletRequest request) {
