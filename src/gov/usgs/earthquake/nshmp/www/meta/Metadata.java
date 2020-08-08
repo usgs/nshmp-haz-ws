@@ -256,7 +256,7 @@ public final class Metadata {
   }
 
   static final String TOO_MANY_REQUESTS_MESSAGE =
-      "Too many requests. Please try again in 5 minutes.";
+      "Too many requests. Please contact administrator.";
 
   private static class TooManyRequests {
 

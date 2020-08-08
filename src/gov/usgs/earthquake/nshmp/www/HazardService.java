@@ -33,6 +33,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Joiner;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 
@@ -147,6 +148,13 @@ public final class HazardService extends NshmpServlet {
 
     if (!ServletUtil.checkRequestIp(request)) {
       String message = Metadata.tooManyRequestsMessage(urlHelper.url);
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.getWriter().print(message);
+      return;
+    }
+
+    if (pathInfo.equals("/iplist")) {
+      String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;
