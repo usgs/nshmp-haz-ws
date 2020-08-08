@@ -127,6 +127,20 @@ public final class HazardService extends NshmpServlet {
       return;
     }
 
+    if (!ServletUtil.checkRequestIp(request)) {
+      String message = Metadata.tooManyRequestsMessage(urlHelper.url);
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.getWriter().print(message);
+      return;
+    }
+
+    if (pathInfo.equals("/iplist")) {
+      String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.getWriter().print(message);
+      return;
+    }
+
     if (pathInfo.equals("/reset")) {
       String message = ServletUtil.uhtBusy + " ;busy = false";
       ServletUtil.uhtBusy = false;
@@ -141,20 +155,6 @@ public final class HazardService extends NshmpServlet {
           urlHelper.url,
           ServletUtil.hitCount,
           ServletUtil.missCount);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
-
-    if (!ServletUtil.checkRequestIp(request)) {
-      String message = Metadata.tooManyRequestsMessage(urlHelper.url);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
-
-    if (pathInfo.equals("/iplist")) {
-      String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;

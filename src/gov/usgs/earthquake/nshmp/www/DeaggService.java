@@ -62,17 +62,6 @@ public final class DeaggService extends NshmpServlet {
       return;
     }
 
-    if (ServletUtil.uhtBusy) {
-      ServletUtil.missCount++;
-      String message = Metadata.busyMessage(
-          urlHelper.url,
-          ServletUtil.hitCount,
-          ServletUtil.missCount);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
-
     if (!ServletUtil.checkRequestIp(request)) {
       String message = Metadata.tooManyRequestsMessage(urlHelper.url);
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
@@ -82,6 +71,17 @@ public final class DeaggService extends NshmpServlet {
 
     if (pathInfo.equals("/iplist")) {
       String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
+      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.getWriter().print(message);
+      return;
+    }
+
+    if (ServletUtil.uhtBusy) {
+      ServletUtil.missCount++;
+      String message = Metadata.busyMessage(
+          urlHelper.url,
+          ServletUtil.hitCount,
+          ServletUtil.missCount);
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
       return;
