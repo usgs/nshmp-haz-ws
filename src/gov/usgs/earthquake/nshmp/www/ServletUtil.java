@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
@@ -258,7 +256,7 @@ public class ServletUtil implements ServletContextListener {
   // static final long IP_WINDOW_MS = 300000;
 
   /* blacklist */
-  static final List<String> blacklist = ImmutableList.of("98.26.65.16");
+  static final String BLOCK_1 = "98.26.65.16";
 
   static boolean checkRequestIp(HttpServletRequest request) {
     // if (!throttleIp) {
@@ -267,7 +265,7 @@ public class ServletUtil implements ServletContextListener {
 
     String ip = getClientIp(request);
     IP_COUNT.merge(ip, 1, Integer::sum);
-    return !blacklist.contains(ip);
+    return !ip.startsWith(BLOCK_1);
 
     // long cTime = System.currentTimeMillis();
     //
