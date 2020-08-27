@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 
@@ -120,7 +121,7 @@ public final class HazardService extends NshmpServlet {
 
     UrlHelper urlHelper = urlHelper(request, response);
     String query = request.getQueryString();
-    String pathInfo = request.getPathInfo();
+    Optional<String> pathInfo = Optional.ofNullable(request.getPathInfo());
 
     if (emptyRequest(request)) {
       urlHelper.writeResponse(Metadata.HAZARD_USAGE);
@@ -134,19 +135,21 @@ public final class HazardService extends NshmpServlet {
       return;
     }
 
-    if (pathInfo.equals("/iplist")) {
-      String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
+    if (pathInfo.isPresent()) {
+      if (pathInfo.get().equals("/iplist")) {
+        String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.getWriter().print(message);
+        return;
+      }
 
-    if (pathInfo.equals("/reset")) {
-      String message = ServletUtil.uhtBusy + " ;busy = false";
-      ServletUtil.uhtBusy = false;
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
+      if (pathInfo.get().equals("/reset")) {
+        String message = ServletUtil.uhtBusy + " ;busy = false";
+        ServletUtil.uhtBusy = false;
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.getWriter().print(message);
+        return;
+      }
     }
 
     if (ServletUtil.uhtBusy) {
@@ -168,7 +171,7 @@ public final class HazardService extends NshmpServlet {
         requestData = buildRequest(request);
       } else {
         /* process slash-delimited request */
-        List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
+        List<String> params = Parsing.splitToList(pathInfo.get(), Delimiter.SLASH);
         if (params.size() < 6) {
           urlHelper.writeResponse(Metadata.HAZARD_USAGE);
           return;
