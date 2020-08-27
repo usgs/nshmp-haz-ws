@@ -6,6 +6,7 @@ import static gov.usgs.earthquake.nshmp.www.ServletUtil.emptyRequest;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -55,7 +56,7 @@ public final class DeaggService extends NshmpServlet {
 
     UrlHelper urlHelper = urlHelper(request, response);
     String query = request.getQueryString();
-    String pathInfo = request.getPathInfo();
+    Optional<String> pathInfo = Optional.ofNullable(request.getPathInfo());
 
     if (emptyRequest(request)) {
       urlHelper.writeResponse(Metadata.DEAGG_USAGE);
@@ -69,7 +70,7 @@ public final class DeaggService extends NshmpServlet {
       return;
     }
 
-    if (pathInfo.equals("/iplist")) {
+    if (pathInfo.isPresent() && pathInfo.get().equals("/iplist")) {
       String message = Joiner.on("\n").join(ServletUtil.IP_COUNT.entrySet());
       response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       response.getWriter().print(message);
@@ -95,7 +96,7 @@ public final class DeaggService extends NshmpServlet {
         requestData = HazardService.buildRequest(request);
       } else {
         /* process slash-delimited request */
-        List<String> params = Parsing.splitToList(pathInfo, Delimiter.SLASH);
+        List<String> params = Parsing.splitToList(pathInfo.get(), Delimiter.SLASH);
         if (params.size() < 7) {
           urlHelper.writeResponse(Metadata.DEAGG_USAGE);
           return;
