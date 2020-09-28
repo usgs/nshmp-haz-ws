@@ -40,7 +40,7 @@
 		<init-param>
 			<!-- need to disable credentials for wildcard allow-origin. -->
 			<param-name>cors.support.credentials</param-name>
-			<param-value>true</param-value>
+			<param-value>false</param-value>
 		</init-param>
     <init-param>
       <param-name>cors.preflight.maxage</param-name>
