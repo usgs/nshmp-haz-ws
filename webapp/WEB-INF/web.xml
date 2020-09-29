@@ -4,21 +4,21 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	id="WebApp_ID" version="3.0">
 
-	<display-name>nshmp-haz-ws</display-name>
+    <display-name>nshmp-haz-ws</display-name>
 
-	<welcome-file-list>
-		<welcome-file>index.html</welcome-file>
-	</welcome-file-list>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
 
-	<servlet>
-		<servlet-name>default</servlet-name>
-		<init-param>
-			<param-name>listings</param-name>
-			<param-value>true</param-value>
-		</init-param>
-	</servlet>
+    <servlet>
+        <servlet-name>default</servlet-name>
+        <init-param>
+            <param-name>listings</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </servlet>
 
-	<filter>
+    <filter>
         <filter-name>CorsFilter</filVter-name>
         <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
         <init-param>
@@ -57,7 +57,6 @@
             <param-value>access plus 15 minutes</param-value>
         </init-param>
     </filter>
-
     <filter-mapping>
         <filter-name>ExpiresFilter</filter-name>
         <url-pattern>/*</url-pattern>
