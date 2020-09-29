@@ -19,7 +19,7 @@
     </servlet>
 
     <filter>
-        <filter-name>CorsFilter</filVter-name>
+        <filter-name>CorsFilter</filter-name>
         <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
         <init-param>
             <param-name>cors.allowed.origins</param-name>
