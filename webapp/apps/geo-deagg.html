@@ -139,10 +139,10 @@
    
   <!-- Application specific JavaScript --> 
   <script type='module'>
-    import Config from './js/lib/Config.js';
+    import { CONFIG }  from './config.js';
     import GeoDeagg from './js/GeoDeagg.js';
 
-    Config.getConfig(GeoDeagg); 
+    new GeoDeagg(CONFIG); 
   </script>
 
 </body>
