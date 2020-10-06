@@ -265,10 +265,10 @@
   <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
   
   <script type='module'>
-    import Config from './js/lib/Config.js';
+    import { CONFIG }  from './config.js';
     import { HwFw } from './js/HwFw.js';
      
-    Config.getConfig(HwFw);
+    new HwFw(CONFIG);
   </script>
   <!-- ..................... End: Import JavaScript ........................ -->
 

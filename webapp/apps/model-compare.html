@@ -130,10 +130,10 @@
   <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script> 
   
   <script type='module'>
-    import Config from './js/lib/Config.js';
+    import { CONFIG }  from './config.js';
     import { ModelCompare } from './js/ModelCompare.js';
 
-    Config.getConfig(ModelCompare);
+    new ModelCompare(CONFIG);
   </script>
   <!-- ................... End: Import JavaScript .......................... -->
 

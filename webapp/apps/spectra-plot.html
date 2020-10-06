@@ -33,10 +33,10 @@
     
     <!-- Run main JavaScript -->
     <script type='module'>
-      import Config from './js/lib/Config.js';
+      import { CONFIG }  from './config.js';
       import { Spectra } from './js/Spectra.js';
       
-      Config.getConfig(Spectra);
+      new Spectra(CONFIG);
     </script>
 
   </body>

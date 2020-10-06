@@ -155,10 +155,10 @@
     
     <!-- Application Specific JavaScript -->
     <script type='module'>
-      import Config from './js/lib/Config.js';
+      import { CONFIG }  from './config.js';
       import { ExceedanceExplorer } from './js/ExceedanceExplorer.js';
       
-      Config.getConfig(ExceedanceExplorer);
+      new ExceedanceExplorer(CONFIG);
     </script>
 
   </body>
