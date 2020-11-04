@@ -77,19 +77,7 @@ public final class DeaggService extends NshmpServlet {
       return;
     }
 
-    if (ServletUtil.uhtBusy) {
-      ServletUtil.missCount++;
-      String message = Metadata.busyMessage(
-          urlHelper.url,
-          ServletUtil.hitCount,
-          ServletUtil.missCount);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
-
     RequestData requestData;
-    ServletUtil.uhtBusy = true;
     try {
       if (query != null) {
         /* process query '?' request */
@@ -109,15 +97,12 @@ public final class DeaggService extends NshmpServlet {
       Result result = ServletUtil.TASK_EXECUTOR.submit(task).get();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
-      ServletUtil.uhtBusy = false;
 
     } catch (Exception e) {
       String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
-      ServletUtil.uhtBusy = false;
       getServletContext().log(urlHelper.url, e);
     }
-    ServletUtil.hitCount++;
   }
 
   private static class DeaggTask extends TimedTask<Result> {

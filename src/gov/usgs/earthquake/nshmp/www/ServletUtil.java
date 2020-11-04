@@ -75,11 +75,6 @@ public class ServletUtil implements ServletContextListener {
 
   static Model[] INSTALLED_MODELS;
 
-  /* Stateful flag to reject requests while a result is pending. */
-  static boolean uhtBusy = false;
-  static long hitCount = 0;
-  static long missCount = 0;
-
   private static boolean throttleIp = true;
   private static final String THROTTLE_IP_KEY = "throttleIp";
 
