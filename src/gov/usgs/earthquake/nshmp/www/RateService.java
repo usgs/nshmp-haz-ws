@@ -1,7 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static gov.usgs.earthquake.nshmp.calc.ValueFormat.ANNUAL_RATE;
 import static gov.usgs.earthquake.nshmp.calc.ValueFormat.POISSON_PROBABILITY;
 import static gov.usgs.earthquake.nshmp.www.ServletUtil.GSON;
@@ -18,27 +17,23 @@ import static gov.usgs.earthquake.nshmp.www.Util.Key.TIMESPAN;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.WUS;
 
-import java.util.Optional;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import gov.usgs.earthquake.nshmp.calc.CalcConfig;
 import gov.usgs.earthquake.nshmp.calc.CalcConfig.Builder;
@@ -51,7 +46,6 @@ import gov.usgs.earthquake.nshmp.eq.model.SourceType;
 import gov.usgs.earthquake.nshmp.geo.Location;
 import gov.usgs.earthquake.nshmp.internal.Parsing;
 import gov.usgs.earthquake.nshmp.internal.Parsing.Delimiter;
-import gov.usgs.earthquake.nshmp.www.NshmpServlet.UrlHelper;
 import gov.usgs.earthquake.nshmp.www.ServletUtil.Timer;
 import gov.usgs.earthquake.nshmp.www.meta.Edition;
 import gov.usgs.earthquake.nshmp.www.meta.Metadata;
@@ -105,19 +99,7 @@ public final class RateService extends NshmpServlet {
       return;
     }
 
-    if (ServletUtil.uhtBusy) {
-      ServletUtil.missCount++;
-      String message = Metadata.busyMessage(
-          urlHelper.url,
-          ServletUtil.hitCount,
-          ServletUtil.missCount);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
-    }
-
     RequestData requestData;
-    ServletUtil.uhtBusy = true;
     try {
       if (query != null) {
         /* process query '?' request */
@@ -141,15 +123,12 @@ public final class RateService extends NshmpServlet {
           .build();
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
-      ServletUtil.uhtBusy = false;
 
     } catch (Exception e) {
       String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
-      ServletUtil.uhtBusy = false;
       getServletContext().log(urlHelper.url, e);
     }
-    ServletUtil.hitCount++;
   }
 
   /* Reduce query string key-value pairs */
@@ -184,7 +163,7 @@ public final class RateService extends NshmpServlet {
 
   /*
    * TODO delete if not needed
-   * 
+   *
    * Currently unused, however, will be used if it makes sense to submit jobs to
    * TASK_EXECUTOR.
    */
@@ -252,11 +231,11 @@ public final class RateService extends NshmpServlet {
       rates = EqRate.combine(wusRates.get(), ceusRates.get());
 
     } else {
-      
-      String year = (baseYear.equals("2014B") && data.region == Region.CEUS) 
-          ?  "2014" : baseYear;
+
+      String year = (baseYear.equals("2014B") && data.region == Region.CEUS)
+          ? "2014" : baseYear;
       Model modelId = Model.valueOf(data.region.name() + "_" + year);
-      
+
       HazardModel model = modelCache.get(modelId);
       rates = process(model, site, distance, emptyTimespan).get();
     }

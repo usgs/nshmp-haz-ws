@@ -142,29 +142,9 @@ public final class HazardService extends NshmpServlet {
         response.getWriter().print(message);
         return;
       }
-
-      if (pathInfo.get().equals("/reset")) {
-        String message = ServletUtil.uhtBusy + " ;busy = false";
-        ServletUtil.uhtBusy = false;
-        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        response.getWriter().print(message);
-        return;
-      }
-    }
-
-    if (ServletUtil.uhtBusy) {
-      ServletUtil.missCount++;
-      String message = Metadata.busyMessage(
-          urlHelper.url,
-          ServletUtil.hitCount,
-          ServletUtil.missCount);
-      response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      response.getWriter().print(message);
-      return;
     }
 
     RequestData requestData;
-    ServletUtil.uhtBusy = true;
     try {
       if (query != null) {
         /* process query '?' request */
@@ -185,15 +165,12 @@ public final class HazardService extends NshmpServlet {
       // GSON.toJson(result, response.getWriter()); TODO test and use elsewhere?
       String resultStr = GSON.toJson(result);
       response.getWriter().print(resultStr);
-      ServletUtil.uhtBusy = false;
 
     } catch (Exception e) {
       String message = Metadata.errorMessage(urlHelper.url, e, false);
       response.getWriter().print(message);
-      ServletUtil.uhtBusy = false;
       getServletContext().log(urlHelper.url, e);
     }
-    ServletUtil.hitCount++;
   }
 
   /*
