@@ -68,7 +68,8 @@ public abstract class NshmpServlet extends HttpServlet {
        * Check custom header for a forwarded protocol so generated links can use
        * the same protocol and not cause mixed content errors.
        */
-      String host = request.getServerName();
+      String sourceHost = request.getHeader("x-source-host");
+      String host = sourceHost == null ? request.getServerName() : sourceHost;
       String protocol = request.getHeader("X-FORWARDED-PROTO");
       if (protocol == null) {
         /* Not a forwarded request. Honor reported protocol and port. */
