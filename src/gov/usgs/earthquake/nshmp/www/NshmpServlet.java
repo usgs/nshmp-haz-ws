@@ -1,6 +1,7 @@
 package gov.usgs.earthquake.nshmp.www;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -64,13 +65,18 @@ public abstract class NshmpServlet extends HttpServlet {
 
     UrlHelper(HttpServletRequest request, HttpServletResponse response) {
 
+      Logger logger = Logger.getAnonymousLogger();
+
       /*
        * Check custom header for a forwarded protocol so generated links can use
        * the same protocol and not cause mixed content errors.
        */
       String sourceHost = request.getHeader("x-source-host");
       String host = sourceHost == null ? request.getServerName() : sourceHost;
+      logger.info("Server name: " + request.getServerName());
+      logger.info("Host: " + host);
       String protocol = request.getHeader("X-FORWARDED-PROTO");
+      logger.info("X-FORWARDED-PROTO: " + protocol);
       if (protocol == null) {
         /* Not a forwarded request. Honor reported protocol and port. */
         protocol = request.getScheme();
