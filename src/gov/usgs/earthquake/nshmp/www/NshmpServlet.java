@@ -77,6 +77,7 @@ public abstract class NshmpServlet extends HttpServlet {
       logger.info("Host: " + host);
       String protocol = request.getHeader("X-FORWARDED-PROTO");
       logger.info("X-FORWARDED-PROTO: " + protocol);
+      logger.info("x-forwarded-proto: " + request.getHeader("x-forwarded-proto"));
       if (protocol == null) {
         /* Not a forwarded request. Honor reported protocol and port. */
         protocol = request.getScheme();
