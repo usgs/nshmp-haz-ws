@@ -65,12 +65,6 @@ public abstract class NshmpServlet extends HttpServlet {
     public final String url;
 
     UrlHelper(HttpServletRequest request, HttpServletResponse response) {
-
-      Logger logger = Logger.getAnonymousLogger();
-
-      Collections.list(request.getHeaderNames()).stream()
-        .forEach(name -> logger.info("Name: " + name + ", value: " + request.getHeader(name)));
-
       /*
        * Check custom header for a forwarded protocol so generated links can use
        * the same protocol and not cause mixed content errors.
@@ -78,7 +72,9 @@ public abstract class NshmpServlet extends HttpServlet {
       String sourceHost = request.getHeader("x-source-host");
       String host = sourceHost == null ? request.getServerName() : sourceHost;
       String sourceProtocol = request.getHeader("x-source-proto");
-      String protocol = sourceProtocol == null ? request.getHeader("X-FORWARDED-PROTO") : sourceProtocol;
+      String protocol = sourceProtocol == null
+          ? request.getHeader("X-FORWARDED-PROTO")
+          : sourceProtocol;
       if (protocol == null) {
         /* Not a forwarded request. Honor reported protocol and port. */
         protocol = request.getScheme();
