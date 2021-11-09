@@ -77,7 +77,8 @@ public abstract class NshmpServlet extends HttpServlet {
        */
       String sourceHost = request.getHeader("x-source-host");
       String host = sourceHost == null ? request.getServerName() : sourceHost;
-      String protocol = request.getHeader("X-FORWARDED-PROTO");
+      String sourceProtocol = request.getHeader("x-source-proto");
+      String protocol = sourceProtocol == null ? request.getHeader("X-FORWARDED-PROTO") : sourceProtocol;
       if (protocol == null) {
         /* Not a forwarded request. Honor reported protocol and port. */
         protocol = request.getScheme();
