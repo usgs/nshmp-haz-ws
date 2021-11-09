@@ -1,8 +1,6 @@
 package gov.usgs.earthquake.nshmp.www;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
