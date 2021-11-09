@@ -91,7 +91,7 @@ public abstract class NshmpServlet extends HttpServlet {
        */
       String url = String.format("%s://%s", protocol, host);
       String query = request.getQueryString();
-      if (query != null) url += "?" + query;
+      if (query != null) url = String.format("%s?%s", url, query);
 
       this.response = response;
       this.host = host;
