@@ -89,7 +89,7 @@ public abstract class NshmpServlet extends HttpServlet {
        * For convenience, store a url field with the (possibly updated) request
        * protocol and
        */
-      String url = String.format("%s://%s", protocol, host);
+      String url = String.format("%s://%s%s", protocol, host, request.getPathInfo());
       String query = request.getQueryString();
       if (query != null) url = String.format("%s?%s", url, query);
 
