@@ -68,7 +68,6 @@ ext {
   repo_cous_2014 = '../nshm-cous-2014'
   repo_cous_2014b = '../nshm-cous-2014b'
   repo_cous_2018 = '../nshm-cous-2018'
-  repo_hi_2020 = '../nshm-hi-2020'
   repo_ak_2007 = '../nshm-ak-2007'
   
   /* Explicit model paths */
@@ -79,7 +78,6 @@ ext {
   model_wus_2014b = "${repo_cous_2014b}/Western US"
   model_wus_2018 = "${repo_cous_2018}/Western US"
   model_ceus_2018 = "${repo_cous_2018}/Central & Eastern US"
-  model_hi_2020 = "${repo_hi_2020}"
   model_ak_2007 = "${repo_ak_2007}"
 
   /* Production models */
@@ -89,14 +87,9 @@ ext {
     [ model_wus_2008, 'models/wus/2008' ],
     [ model_ceus_2014, 'models/ceus/2014' ],
     [ model_wus_2014, 'models/wus/2014' ],
-    [ model_wus_2014b, 'models/wus/2014b' ]
-  ]
-
-  /* Development models */
-  dev_models = [
+    [ model_wus_2014b, 'models/wus/2014b' ],
     [ model_ceus_2018, 'models/ceus/2018' ],
     [ model_wus_2018, 'models/wus/2018' ],
-    [ model_hi_2020, 'models/hi/2020' ]    
   ]
 }
 
@@ -124,37 +117,11 @@ war {
 }
 
 /**
- * Create a war file with development models
- */
-task assembleDev(type: War, dependsOn: 'war') {
-  prod_models.each{model ->
-    from(model[0]) { into model[1] }
-  }
-
-  dev_models.each{model ->
-    from(model[0]) { into model[1] }
-  }
-}
-
-/**
  * Create am exploded war file with production models
  */
 task assembleUsgs(type: Sync) {
   into "${libsDir}/exploded-war"
   with war
-
-  doFirst {
-    /* Record service and model versions */
-    writeProperties()
-  }
-}
-
-/**
- * Create am exploded war file with development models
- */
-task assembleUsgsDev(type: Sync) {
-  into "${libsDir}/exploded-war"
-  with assembleDev
 
   doFirst {
     /* Record service and model versions */
@@ -191,6 +158,5 @@ def writeProperties() {
   props.setProperty('E2014.version', getGitTag(repo_cous_2014))
   props.setProperty('E2014B.version', getGitTag(repo_cous_2014b))
   props.setProperty('E2018.version', getGitTag(repo_cous_2018))
-  props.setProperty('E2020.version', getGitTag(repo_hi_2020))
   props.store(propsFile.newWriter(), null)
 }

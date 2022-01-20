@@ -38,11 +38,7 @@ main() {
   download_repos;
 
   # Build nshmp-haz-ws
-  if [ "${MODEL_ENV}" == "DEV" ]; then
-    ./gradlew assembleDev 2> ${LOG_FILE};
-  else
-    ./gradlew assemble 2> ${LOG_FILE};
-  fi
+  ./gradlew assemble 2> ${LOG_FILE};
 
   # Move war file
   mv "${WAR_PATH}" "${TOMCAT_WEBAPPS}" 2> ${LOG_FILE};
