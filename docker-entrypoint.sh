@@ -89,11 +89,6 @@ download_repos() {
   # Download nshm-cous-2018
   download_repo "usgs" "nshm-cous-2018" "${NSHM_COUS_2018_VERSION}";
 
-  if [ "${MODEL_ENV}" == "DEV" ]; then
-    # Download nshm-hi-2020
-    download_repo "usgs" "nshm-hi-2020" "${NSHM_HI_2020_VERSION}";
-  fi 
-
   # Change to WORKDIR
   cd "${WORKDIR}" 2> ${LOG_FILE};
 }
