@@ -1,16 +1,27 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P01;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P02;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P03;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P05;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P075;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P15;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P25;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P4;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P5;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA4P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA7P5;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA10P0;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
@@ -41,6 +52,34 @@ public enum Edition implements Constrained {
       -10,
       EnumSet.of(COUS, CEUS, WUS),
       EnumSet.of(PGA, SA0P1, SA0P2, SA0P3, SA0P5, SA0P75, SA1P0, SA2P0, SA3P0, SA4P0, SA5P0)),
+
+  E2018(
+      "Dynamic: Conterminous U.S. 2018",
+      10,
+      EnumSet.of(COUS, CEUS, WUS),
+      EnumSet.of(
+          PGA,
+          SA0P01,
+          SA0P02,
+          SA0P03,
+          SA0P05,
+          SA0P075,
+          SA0P1,
+          SA0P15,
+          SA0P2,
+          SA0P25,
+          SA0P3,
+          SA0P4,
+          SA0P5,
+          SA0P75,
+          SA1P0,
+          SA1P5,
+          SA2P0,
+          SA3P0,
+          SA4P0,
+          SA5P0,
+          SA7P5,
+          SA10P0)),
 
   E2007(
       "Dynamic: Alaska 2007",
