@@ -44,10 +44,6 @@ COPY . ${WORKDIR}/.
 # Install git
 RUN yum install git -y
 
-# Environment for production or developmental models
-# Values: PROD || DEV
-ENV MODEL_ENV=PROD
-
 # Repository version
 ENV NSHMP_HAZ_VERSION=master
 ENV NSHM_COUS_2018_VERSION=master
