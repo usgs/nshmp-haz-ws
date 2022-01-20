@@ -1,16 +1,27 @@
 package gov.usgs.earthquake.nshmp.www.meta;
 
 import static gov.usgs.earthquake.nshmp.gmm.Imt.PGA;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P01;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P02;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P03;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P05;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P075;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P1;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P15;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P2;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P25;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P3;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P4;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P5;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA0P75;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA1P5;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA2P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA3P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA4P0;
 import static gov.usgs.earthquake.nshmp.gmm.Imt.SA5P0;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA7P5;
+import static gov.usgs.earthquake.nshmp.gmm.Imt.SA10P0;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.AK;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.CEUS;
 import static gov.usgs.earthquake.nshmp.www.meta.Region.COUS;
