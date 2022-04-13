@@ -9,9 +9,6 @@
 set -o errexit;
 set -o errtrace;
 
-# Import bash functions from usgsnshmp/centos
-. "${BASH_FUNCTIONS}";
-
 readonly LOG_FILE="/var/log/docker-entrypoint-haz-ws.log";
 
 # Docker usage
@@ -48,6 +45,44 @@ main() {
 }
 
 ####
+# Download a repository from Github.
+# Globals:
+#   (string) CENTOS_LOG_FILE - The log file
+# Arguments:
+#   (string) user - The Github user
+#   (string) repo - The project to download
+#   (string) version - The version to download
+#   (string) directory - The direcotry name for repo download
+# Returns:
+#   None
+####
+download_repo() {
+  local usage="download_repo <user> <repo> <version>";
+
+  local user=${1};
+  local repo=${2};
+  local version=${3};
+  local directory=${4};
+  local url="https://github.com/${user}/${repo}/archive/${version}.tar.gz";
+
+  if [ "${version}" == "null" ]; then
+    printf "\n Skipping download of [%s/%s]\n" "${user}" "${repo}";
+    return;
+  fi
+
+  printf "\n Downloading [%s] \n\n" "${url}";
+
+  if [ -z "${directory}" ]; then
+    directory=${repo};
+  fi
+
+  curl -L "${url}" | tar -xz 2> "${LOG_FILE}" || \
+      error_exit "Could not download [${url}]" "$(< "${LOG_FILE}")" "${usage}";
+
+  mv "${repo}-${version#v*}" "${directory}";
+}
+
+####
 # Download nshmp-haz and all models.
 # Globals:
 #   (string) HOME - app home 
@@ -65,7 +100,7 @@ main() {
 #   None
 ####
 download_repos() {
-  cd "${HOME}" 2> ${LOG_FILE};
+  pushd .. > /dev/null 2>&1;
 
   # Download nshmp-haz
   download_repo "usgs" "nshmp-haz" "${NSHMP_HAZ_VERSION}";
@@ -85,8 +120,39 @@ download_repos() {
   # Download nshm-cous-2018
   download_repo "usgs" "nshm-cous-2018" "${NSHM_COUS_2018_VERSION}";
 
-  # Change to WORKDIR
-  cd "${WORKDIR}" 2> ${LOG_FILE};
+  popd > /dev/null 2>&1;
+}
+
+####
+# Exit script with error.
+# Globals:
+#   None
+# Arguments:
+#   (string) err - The error message
+#   (string) logs - The log for the error
+#   (string) usage - The Docker usage
+# Returns:
+#   None
+####
+error_exit() {
+  local err="${1}";
+  local logs="${2}";
+  local usage="${3}";
+
+  local message="
+    Error:
+    ${err}
+    ----------
+    Logs:
+    ${logs}
+    ----------
+    Usage:
+    ${usage}
+  ";
+
+  echo "${message}";
+
+  exit 0;
 }
 
 ####
